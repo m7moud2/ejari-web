@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الإدارة - إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1e293b;
+            /* Dark Slate */
+            --accent: #3b82f6;
+            /* Blue */
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Cairo', sans-serif;
+            color: var(--text);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--primary);
+            color: white;
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            padding: 2rem;
+            z-index: 1000;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: white;
+        }
+
+        .nav-group {
+            margin-bottom: 2rem;
+        }
+
+        .nav-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.85rem 1rem;
+            color: #cbd5e1;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(-5px);
+        }
+
+        .nav-item i {
+            margin-left: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-right: var(--sidebar-width);
+            padding: 2.5rem;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .admin-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: white;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .admin-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        /* Views (Tabs) */
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Tables */
+        .table-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: right;
+            padding: 1rem 1.5rem;
+            background: #f8fafc;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        td {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-badge.active {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-badge.banned {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .action-btn {
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-left: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .btn-danger {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .btn-danger:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-success {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .btn-success:hover {
+            background: #16a34a;
+            color: white;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+                padding: 1rem;
+            }
+
+            .nav-title,
+            .nav-item span,
+            .brand span {
+                display: none;
+            }
+
+            .nav-item {
+                justify-content: center;
+                padding: 1rem 0;
+            }
+
+            .nav-item i {
+                margin: 0;
+                font-size: 1.25rem;
+            }
+
+            .main-content {
+                margin-right: 80px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div
+                style="width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                E</div>
+            <span>Ejari Admin</span>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-title">الرئيسية</div>
+            <div class="nav-item active" onclick="switchView('dashboard', this)">
+                <i class="fas fa-th-large"></i>
+                <span>لوحة القيادة</span>
+            </div>
+            <div class="nav-item" onclick="switchView('users', this)">
+                <i class="fas fa-users"></i>
+                <span>المستخدمين</span>
+            </div>
+            <div class="nav-item" onclick="switchView('properties', this)">
+                <i class="fas fa-building"></i>
+                <span>العقارات</span>
+            </div>
+            <div class="nav-item" onclick="switchView('bookings', this)">
+                <i class="fas fa-file-invoice"></i>
+                <span>الحجوزات</span>
+            </div>
+            <div class="nav-item" onclick="switchView('verifications', this)">
+                <i class="fas fa-user-check"></i>
+                <span>طلبات التوثيق</span>
+            </div>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-title">النظام</div>
+            <div class="nav-item" onclick="switchView('settings', this)">
+                <i class="fas fa-cog"></i>
+                <span>الإعدادات</span>
+            </div>
+            <div class="nav-item logout-btn" style="color: #fca5a5;">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>تسجيل خروج</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="header">
+            <div>
+                <h1 id="page-title">نظرة عامة</h1>
+                <p style="color: #64748b;">أهلاً بك في لوحة التحكم المركزية</p>
+            </div>
+            <div class="admin-profile">
+                <div class="admin-avatar"><i class="fas fa-user"></i></div>
+                <span style="font-weight: 600;">Admin User</span>
+            </div>
+        </header>
+
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="view-section active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon" style="background: #eff6ff; color: #3b82f6;"><i class="fas fa-users"></i>
+                        </div>
+                        <span class="status-badge active">+12%</span>
+                    </div>
+                    <div class="stat-value" id="total-users">0</div>
+                    <div class="stat-label">إجمالي المستخدمين</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon" style="background: #f0fdf4; color: #16a34a;"><i
+                                class="fas fa-check-circle"></i></div>
+                        <span class="status-badge active">+5%</span>
+                    </div>
+                    <div class="stat-value" id="total-bookings">0</div>
+                    <div class="stat-label">حجوزات مكتملة</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon" style="background: #fff7ed; color: #f97316;"><i
+                                class="fas fa-wallet"></i></div>
+                    </div>
+                    <div class="stat-value">125k</div>
+                    <div class="stat-label">إجمالي الإيرادات (ج.م)</div>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <div class="table-header">
+                    <h3>آخر النشاطات</h3>
+                    <button class="action-btn" style="background: #f1f5f9;">عرض الكل</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>النشاط</th>
+                            <th>المستخدم</th>
+                            <th>التوقيت</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-activity-list">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- USERS VIEW -->
+        <div id="view-users" class="view-section">
+            <div class="table-card">
+                <div class="table-header">
+                    <h3>إدارة المستخدمين</h3>
+                    <input type="text" placeholder="بحث..."
+                        style="padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;">
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>الاسم</th>
+                            <th>الدور</th>
+                            <th>الحالة</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PROPERTIES VIEW -->
+        <div id="view-properties" class="view-section">
+            <div class="table-card">
+                <div class="table-header">
+                    <h3>جميع العقارات المسجلة</h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>العقار</th>
+                            <th>المالك</th>
+                            <th>السعر</th>
+                            <th>الحالة</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="properties-table-body">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- BOOKINGS VIEW -->
+        <div id="view-bookings" class="view-section">
+            <div class="table-card">
+                <div class="table-header">
+                    <h3>سجل الحجوزات</h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>رقم الحجز</th>
+                            <th>العقار</th>
+                            <th>المستأجر</th>
+                            <th>التاريخ</th>
+                            <th>الحالة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookings-table-body">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VERIFICATIONS VIEW -->
+        <div id="view-verifications" class="view-section">
+            <div class="table-card">
+                <div class="table-header">
+                    <h3>طلبات التوثيق المعلقة</h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>المستخدم</th>
+                            <th>نوع الهوية</th>
+                            <th>الرقم</th>
+                            <th>التاريخ</th>
+                            <th>المستندات</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="verifications-table-body">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SETTINGS VIEW -->
+        <div id="view-settings" class="view-section">
+            <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                <div class="stat-card">
+                    <h3 style="margin-bottom: 1.5rem;">إعدادات المنصة العامة</h3>
+                    <div class="form-group">
+                        <label>اسم المنصة</label>
+                        <input type="text" value="إيجاري - Ejari"
+                            style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>نسبة العمولة الافتراضية (%)</label>
+                        <input type="number" value="10"
+                            style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="maintenance-mode">
+                        <label for="maintenance-mode">تفعيل وضع الصيانة</label>
+                    </div>
+                    <button class="btn-primary" style="margin-top: 1.5rem; width: 100%; justify-content: center;">حفظ
+                        الإعدادات</button>
+                </div>
+
+                <div class="stat-card">
+                    <h3 style="margin-bottom: 1.5rem;">إعدادات الأمان والتوثيق</h3>
+                    <div class="form-group">
+                        <label>الحد الأدنى لطول كلمة المرور</label>
+                        <input type="number" value="8"
+                            style="width: 100%; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;">
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="auto-verify" checked>
+                        <label for="auto-verify">طلب توثيق إجباري للملاك</label>
+                    </div>
+                    <div class="form-group" style="margin-top: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="checkbox" id="email-notify" checked>
+                        <label for="email-notify">إرسال إشعارات بريدية عند التسجيل</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- User Details Modal -->
+    <div id="userDetailsModal" class="modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+        <div class="modal-content"
+            style="background: white; padding: 2rem; border-radius: 16px; width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">تفاصيل المستخدم</h2>
+                <button onclick="document.getElementById('userDetailsModal').style.display='none'"
+                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div id="user-details-content">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Verification Review Modal -->
+    <div id="verificationReviewModal" class="modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+        <div class="modal-content"
+            style="background: white; padding: 2rem; border-radius: 16px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">مراجعة طلب التوثيق</h2>
+                <button onclick="document.getElementById('verificationReviewModal').style.display='none'"
+                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;"><i
+                        class="fas fa-times"></i></button>
+            </div>
+            <div id="verification-review-content">
+                <!-- Populated by JS -->
+            </div>
+            <div
+                style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end; border-top: 1px solid #f1f5f9; padding-top: 1rem;">
+                <button id="btn-reject-req" class="btn-danger"
+                    style="padding: 0.75rem 1.5rem; border-radius: 8px; border: none; cursor: pointer;">رفض
+                    الطلب</button>
+                <button id="btn-approve-req" class="btn-success"
+                    style="padding: 0.75rem 1.5rem; border-radius: 8px; border: none; cursor: pointer;">قبول
+                    وتوثيق</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+    <script>
+        // Simple View Switcher Logic
+        function switchView(viewName, element) {
+            // Update Nav
+            if (element) {
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                element.classList.add('active');
+            }
+
+            // Update Content
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + viewName).classList.add('active');
+
+            // Update Title
+            const titles = {
+                'dashboard': 'نظرة عامة',
+                'users': 'إدارة المستخدمين',
+                'properties': 'إدارة العقارات',
+                'bookings': 'سجل الحجوزات',
+                'verifications': 'طلبات التوثيق',
+                'settings': 'إعدادات النظام'
+            };
+            document.getElementById('page-title').textContent = titles[viewName];
+        }
+    </script>
+</body>
+
+</html>

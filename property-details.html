@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل العقار | إيجاري</title>
+
+    <!-- الخطوط -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- ملفات CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/property-details.css">
+    <link rel="stylesheet" href="css/localization.css">
+</head>
+
+<body>
+    <!-- شريط التنقل العلوي -->
+    <nav class="top-nav">
+        <div class="nav-wrapper">
+            <a href="properties.html" class="back-btn">
+                <i class="fas fa-arrow-right"></i>
+                <span>العودة للعقارات</span>
+            </a>
+            <!-- Settings (Country & Language) -->
+            <div class="settings-container" style="margin-right: auto; margin-left: 20px;">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn"
+                    style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+            <div class="property-nav-info">
+                <h1>شقة فاخرة في المعادي</h1>
+                <div class="property-status">
+                    <span class="status-badge active" style="background-color: #10b981;">متاح للإيجار</span>
+                    <span class="property-id">رقم العقار: #PRO123</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="property-details">
+        <!-- معرض الصور -->
+        <section class="property-gallery">
+            <div class="main-image">
+                <img src="images/home1.jpg" alt="صورة العقار الرئيسية">
+                <button class="gallery-nav prev"><i class="fas fa-chevron-right"></i></button>
+                <button class="gallery-nav next"><i class="fas fa-chevron-left"></i></button>
+            </div>
+            <div class="thumbnails">
+                <img src="images/home1.jpg" alt="صورة مصغرة 1" class="active">
+                <img src="images/home1.jpg" alt="صورة مصغرة 2">
+                <img src="images/home1.jpg" alt="صورة مصغرة 3">
+                <img src="images/home1.jpg" alt="صورة مصغرة 4">
+            </div>
+        </section>
+
+        <!-- شريط الإجراءات السريعة للمستأجر -->
+        <div class="quick-actions">
+            <button class="btn btn-primary" onclick="bookNow()">
+                <i class="fas fa-check-circle"></i>
+                احجز الآن
+            </button>
+            <button class="btn btn-outline" onclick="location.href='contact.html'">
+                <i class="fas fa-phone-alt"></i>
+                تواصل مع المالك
+            </button>
+            <button class="btn btn-outline">
+                <i class="far fa-heart"></i>
+                إضافة للمفضلة
+            </button>
+            <button class="btn btn-outline">
+                <i class="fas fa-share-alt"></i>
+                مشاركة
+            </button>
+        </div>
+
+        <div class="content-grid">
+            <!-- المعلومات الأساسية -->
+            <section class="info-card main-info">
+                <h2>المعلومات الأساسية</h2>
+                <div class="property-specs">
+                    <div class="spec-item">
+                        <i class="fas fa-ruler-combined"></i>
+                        <div class="spec-details">
+                            <span class="value">180</span>
+                            <span class="label">متر مربع</span>
+                        </div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-bed"></i>
+                        <div class="spec-details">
+                            <span class="value">3</span>
+                            <span class="label">غرف نوم</span>
+                        </div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-bath"></i>
+                        <div class="spec-details">
+                            <span class="value">2</span>
+                            <span class="label">حمام</span>
+                        </div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-car"></i>
+                        <div class="spec-details">
+                            <span class="value">1</span>
+                            <span class="label">موقف سيارات</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="property-features">
+                    <h3>المميزات</h3>
+                    <ul class="features-list">
+                        <li><i class="fas fa-check"></i> مطبخ مجهز بالكامل</li>
+                        <li><i class="fas fa-check"></i> تكييف مركزي</li>
+                        <li><i class="fas fa-check"></i> بلكونة</li>
+                        <li><i class="fas fa-check"></i> أمن 24 ساعة</li>
+                        <li><i class="fas fa-check"></i> مصعد</li>
+                        <li><i class="fas fa-check"></i> إنترنت فائق السرعة</li>
+                    </ul>
+                </div>
+                <div class="property-description" style="margin-top: 2rem;">
+                    <h3>الوصف</h3>
+                    <p style="color: #4b5563; line-height: 1.8;">
+                        شقة فاخرة للإيجار في أرقى أحياء المعادي. تتميز الشقة بتشطيب سوبر لوكس وإطلالة رائعة على النيل.
+                        قريبة من جميع الخدمات والمواصلات. العمارة حديثة وبها مدخل فندقي وأمن وحراسة على مدار الساعة.
+                    </p>
+                </div>
+            </section>
+
+            <!-- معلومات المالية -->
+            <section class="info-card financial-info">
+                <h2>تفاصيل السعر</h2>
+                <div class="financial-details">
+                    <div class="financial-item">
+                        <span class="label">الإيجار الشهري</span>
+                        <span class="value"><span class="price-amount" data-price="960">12,000</span></span>
+                    </div>
+                    <div class="financial-item">
+                        <span class="label">التأمين</span>
+                        <span class="value"><span class="price-amount" data-price="1920">24,000</span></span>
+                    </div>
+                    <div class="financial-item">
+                        <span class="label">رسوم المكتب</span>
+                        <span class="value"><span class="price-amount" data-price="480">6,000</span></span>
+                    </div>
+                    <div class="total-price"
+                        style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #e5e7eb; display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem;">
+                        <span>إجمالي الدفعة الأولى</span>
+                        <span style="color: #10b981;"><span class="price-amount" data-price="3360">42,000</span></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- الموقع والخريطة -->
+            <section class="info-card location-info">
+                <h2>الموقع</h2>
+                <div class="location-details">
+                    <p class="address">
+                        <i class="fas fa-map-marker-alt"></i>
+                        شارع 9، المعادي، القاهرة
+                    </p>
+                </div>
+                <div class="map-container">
+                    <div class="map-placeholder"
+                        style="background: #e5e7eb; height: 300px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #9ca3af;">
+                        <i class="fas fa-map-marked-alt" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <span>خريطة الموقع (Google Maps)</span>
+                    </div>
+                </div>
+                <div class="nearby-places">
+                    <h3>الخدمات القريبة</h3>
+                    <div class="places-grid">
+                        <div class="place-item">
+                            <i class="fas fa-hospital"></i>
+                            <span>مستشفى (500 م)</span>
+                        </div>
+                        <div class="place-item">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>سوبر ماركت (200 م)</span>
+                        </div>
+                        <div class="place-item">
+                            <i class="fas fa-subway"></i>
+                            <span>محطة مترو (1 كم)</span>
+                        </div>
+                        <div class="place-item">
+                            <i class="fas fa-school"></i>
+                            <span>مدرسة (800 م)</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- معلومات المالك -->
+            <section class="info-card owner-info">
+                <h2>معلومات المالك</h2>
+                <div class="owner-profile"
+                    style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="owner-avatar"
+                        style="width: 60px; height: 60px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #6b7280;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="owner-details">
+                        <h4 style="margin: 0; color: #1f2937;">أحمد محمد</h4>
+                        <span style="color: #6b7280; font-size: 0.9rem;">مالك عقار موثوق</span>
+                        <div class="rating" style="color: #fbbf24; font-size: 0.8rem;">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                            <span style="color: #6b7280;">(4.8)</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-outline btn-block" onclick="location.href='contact.html'">
+                    <i class="fas fa-envelope"></i>
+                    إرسال رسالة
+                </button>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+    <script>
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+
+        // Book Now Function
+        function bookNow() {
+            const booking = {
+                id: Date.now(),
+                itemTitle: 'شقة فاخرة في المعادي',
+                price: 12000,
+                totalCost: 42000,
+                serviceFee: 6000,
+                deposit: 24000,
+                type: 'property',
+                location: 'المعادي، القاهرة',
+                startDate: new Date().toISOString(),
+                duration: 1,
+                durationUnit: 'months',
+                image: 'images/home1.jpg',
+                propertyId: 123,
+                ownerId: 2
+            };
+
+            // Save to localStorage
+            localStorage.setItem('currentBooking', JSON.stringify(booking));
+
+            // Redirect to payment
+            window.location.href = 'payment.html';
+        }
+    </script>
+</body>
+
+</html>

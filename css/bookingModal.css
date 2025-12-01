@@ -1,0 +1,281 @@
+/* كارت الحجز */
+.booking-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.booking-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.booking-card {
+    background: white;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+}
+
+.booking-modal.active .booking-card {
+    transform: translateY(0);
+}
+
+.booking-card-header {
+    padding: 20px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.booking-card-header h3 {
+    font-size: 1.5rem;
+    color: #1f2937;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    padding: 5px;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    color: #ef4444;
+    transform: rotate(90deg);
+}
+
+.booking-card-content {
+    padding: 20px;
+}
+
+/* معلومات العقار */
+.property-summary {
+    display: flex;
+    gap: 15px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 20px;
+}
+
+.property-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.property-info h4 {
+    font-size: 1.2rem;
+    color: #1f2937;
+    margin-bottom: 5px;
+}
+
+.location {
+    color: #6b7280;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.base-price {
+    font-size: 1.3rem;
+    color: #0ea5e9;
+    font-weight: 600;
+}
+
+/* اختيار المدة */
+.duration-selector {
+    margin-bottom: 20px;
+}
+
+.duration-tabs {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.duration-tab {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    background: none;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.duration-tab.active {
+    border-color: #0ea5e9;
+    background: #f0f9ff;
+    color: #0ea5e9;
+}
+
+.duration-input {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.number-input {
+    display: flex;
+    align-items: center;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.number-input button {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: #f9fafb;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.number-input button:hover {
+    background: #f3f4f6;
+    color: #0ea5e9;
+}
+
+.number-input input {
+    width: 60px;
+    border: none;
+    text-align: center;
+    font-size: 1.1rem;
+    padding: 5px;
+}
+
+.duration-label {
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+/* تفاصيل التكلفة */
+.cost-breakdown {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.cost-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    color: #6b7280;
+}
+
+.cost-total {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 2px solid #e5e7eb;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+/* تاريخ البداية */
+.start-date {
+    margin-bottom: 20px;
+}
+
+.start-date input {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+/* معاينة المدة */
+.duration-preview {
+    background: #f0f9ff;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.date-range {
+    display: flex;
+    justify-content: space-between;
+}
+
+.range-item {
+    text-align: center;
+}
+
+.range-item .label {
+    display: block;
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.range-item .value {
+    color: #0ea5e9;
+    font-weight: 500;
+}
+
+/* أزرار الإجراءات */
+.booking-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: #0ea5e9;
+    color: white;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: #0284c7;
+}
+
+.btn-outline {
+    border: 2px solid #e5e7eb;
+    color: #6b7280;
+    background: none;
+}
+
+.btn-outline:hover {
+    border-color: #0ea5e9;
+    color: #0ea5e9;
+}

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل العقار | إيجاري</title>
+
+    <!-- الخطوط -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- ملفات CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/property-details.css">
+    <link rel="stylesheet" href="css/localization.css">
+</head>
+
+<body>
+    <!-- شريط التنقل العلوي -->
+    <nav class="top-nav">
+        <div class="nav-wrapper">
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-right"></i>
+                <span>العودة للوحة التحكم</span>
+            </a>
+            <!-- Settings (Country & Language) -->
+            <div class="settings-container" style="margin-right: auto; margin-left: 20px;">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn"
+                    style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+            <div class="property-nav-info">
+                <h1>شقة فاخرة في المعادي</h1>
+                <div class="property-status">
+                    <span class="status-badge rented">مؤجر</span>
+                    <span class="property-id">رقم العقار: #PRO123</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="property-details">
+        <!-- معرض الصور -->
+        <section class="property-gallery">
+            <div class="main-image">
+                <img src="images/home1.jpg" alt="صورة العقار الرئيسية">
+                <button class="gallery-nav prev"><i class="fas fa-chevron-right"></i></button>
+                <button class="gallery-nav next"><i class="fas fa-chevron-left"></i></button>
+            </div>
+            <div class="thumbnails">
+                <img src="images/home1.jpg" alt="صورة مصغرة 1" class="active">
+                <img src="images/home1.jpg" alt="صورة مصغرة 2">
+                <img src="images/home1.jpg" alt="صورة مصغرة 3">
+                <img src="images/home1.jpg" alt="صورة مصغرة 4">
+                <button class="add-photo-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>إضافة صور</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- شريط الإجراءات السريعة -->
+        <div class="quick-actions">
+            <button class="btn btn-primary">
+                <i class="fas fa-edit"></i>
+                تعديل العقار
+            </button>
+            <button class="btn btn-outline">
+                <i class="fas fa-file-contract"></i>
+                عرض العقد
+            </button>
+            <button class="btn btn-outline">
+                <i class="fas fa-print"></i>
+                طباعة التقرير
+            </button>
+            <button class="btn btn-outline">
+                <i class="fas fa-share-alt"></i>
+                مشاركة
+            </button>
+        </div>
+
+        <div class="content-grid">
+            <!-- المعلومات الأساسية -->
+            <section class="info-card main-info">
+                <h2>المعلومات الأساسية</h2>
+                <div class="property-specs">
+                    <div class="spec-item">
+                        <i class="fas fa-ruler-combined"></i>
+                        <div class="spec-details">
+                            <span class="value">180</span>
+                            <span class="label">متر مربع</span>
+                        </div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-bed"></i>
+                        <div class="spec-details">
+                            <span class="value">3</span>
+                            <span class="label">غرف نوم</span>
+                        </div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-bath"></i>
+                        <div class="spec-details">
+                            <span class="value">2</span>
+                            <span class="label">حمام</span>
+                        </div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-car"></i>
+                        <div class="spec-details">
+                            <span class="value">1</span>
+                            <span class="label">موقف سيارات</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="property-features">
+                    <h3>المميزات</h3>
+                    <ul class="features-list">
+                        <li><i class="fas fa-check"></i> مطبخ مجهز بالكامل</li>
+                        <li><i class="fas fa-check"></i> تكييف مركزي</li>
+                        <li><i class="fas fa-check"></i> بلكونة</li>
+                        <li><i class="fas fa-check"></i> أمن 24 ساعة</li>
+                        <li><i class="fas fa-check"></i> مصعد</li>
+                        <li><i class="fas fa-check"></i> إنترنت فائق السرعة</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- معلومات المالية -->
+            <section class="info-card financial-info">
+                <h2>المعلومات المالية</h2>
+                <div class="financial-details">
+                    <div class="financial-item">
+                        <span class="label">الإيجار الشهري</span>
+                        <span class="value"><span class="price-amount" data-price="960">12,000</span></span>
+                    </div>
+                    <div class="financial-item">
+                        <span class="label">التأمين</span>
+                        <span class="value"><span class="price-amount" data-price="1920">24,000</span></span>
+                    </div>
+                    <div class="financial-item">
+                        <span class="label">مصاريف الصيانة السنوية</span>
+                        <span class="value"><span class="price-amount" data-price="480">6,000</span></span>
+                    </div>
+                    <div class="financial-item">
+                        <span class="label">العائد السنوي</span>
+                        <span class="value positive">8.5%</span>
+                    </div>
+                </div>
+                <div class="payment-history">
+                    <h3>سجل المدفوعات</h3>
+                    <div class="payments-timeline">
+                        <!-- ستتم إضافة سجل المدفوعات ديناميكياً -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- معلومات المستأجر -->
+            <section class="info-card tenant-info">
+                <h2>معلومات المستأجر</h2>
+                <div class="current-tenant">
+                    <div class="tenant-header">
+                        <img src="/api/placeholder/60/60" alt="صورة المستأجر" class="tenant-avatar">
+                        <div class="tenant-main-info">
+                            <h3>أحمد محمود</h3>
+                            <span class="tenant-since">مستأجر منذ: يناير 2024</span>
+                        </div>
+                        <button class="btn btn-outline btn-sm">
+                            <i class="fas fa-user"></i>
+                            عرض الملف
+                        </button>
+                    </div>
+                    <div class="tenant-details">
+                        <div class="contact-info">
+                            <div class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>0123456789</span>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>ahmed@example.com</span>
+                            </div>
+                        </div>
+                        <div class="lease-info">
+                            <h4>معلومات العقد</h4>
+                            <div class="lease-details">
+                                <div class="detail-item">
+                                    <span class="label">تاريخ البداية</span>
+                                    <span class="value">01/01/2024</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="label">تاريخ النهاية</span>
+                                    <span class="value">31/12/2024</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="label">حالة العقد</span>
+                                    <span class="status-badge active">ساري</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- سجل الصيانة -->
+            <section class="info-card maintenance-info">
+                <h2>سجل الصيانة</h2>
+                <div class="maintenance-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">12</span>
+                        <span class="stat-label">طلب صيانة</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value"><span class="price-amount" data-price="680">8,500</span></span>
+                        <span class="stat-label">تكلفة الصيانة</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value urgent">2</span>
+                        <span class="stat-label">طلبات عاجلة</span>
+                    </div>
+                </div>
+                <div class="maintenance-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-icon urgent">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-header">
+                                <h4>تسريب مياه في الحمام</h4>
+                                <span class="date">15/03/2024</span>
+                            </div>
+                            <p>تم إصلاح تسريب المياه وتغيير المحبس التالف</p>
+                            <div class="timeline-details">
+                                <span class="cost">التكلفة: <span class="price-amount" data-price="68">850</span></span>
+                                <span class="status completed">مكتمل</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- المزيد من عناصر الصيانة -->
+                </div>
+                <button class="btn btn-outline btn-block">
+                    <i class="fas fa-history"></i>
+                    عرض السجل الكامل
+                </button>
+            </section>
+
+            <!-- الموقع والخريطة -->
+            <section class="info-card location-info">
+                <h2>الموقع</h2>
+                <div class="location-details">
+                    <p class="address">
+                        <i class="fas fa-map-marker-alt"></i>
+                        شارع 9، المعادي، القاهرة
+                    </p>
+                </div>
+                <div class="map-container">
+                    <!-- هنا سيتم إضافة الخريطة -->
+                    <div class="map-placeholder">
+                        <img src="/api/placeholder/800/300" alt="خريطة الموقع">
+                    </div>
+                </div>
+                <div class="nearby-places">
+                    <h3>الخدمات القريبة</h3>
+                    <div class="places-grid">
+                        <div class="place-item">
+                            <i class="fas fa-hospital"></i>
+                            <span>مستشفى (500 م)</span>
+                        </div>
+                        <div class="place-item">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span>سوبر ماركت (200 م)</span>
+                        </div>
+                        <div class="place-item">
+                            <i class="fas fa-subway"></i>
+                            <span>محطة مترو (1 كم)</span>
+                        </div>
+                        <div class="place-item">
+                            <i class="fas fa-school"></i>
+                            <span>مدرسة (800 م)</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- المستندات -->
+            <section class="info-card documents-info">
+                <h2>المستندات</h2>
+                <div class="documents-grid">
+                    <div class="document-card">
+                        <div class="document-icon">
+                            <i class="fas fa-file-contract"></i>
+                        </div>
+                        <div class="document-details">
+                            <h4>عقد الإيجار</h4>
+                            <span class="document-date">01/01/2024</span>
+                        </div>
+                        <button class="btn btn-icon">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                    <div class="document-card">
+                        <div class="document-icon">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <div class="document-details">
+                            <h4>شهادة العقار</h4>
+                            <span class="document-date">15/12/2023</span>
+                        </div>
+                        <button class="btn btn-icon">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                    <!-- إضافة مستند جديد -->
+                    <div class="add-document-card">
+                        <button class="btn btn-dashed">
+                            <i class="fas fa-plus"></i>
+                            <span>إضافة مستند</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>إيجاري</h3>
+                    <p>منصتك المتكاملة للبحث عن العقارات</p>
+                </div>
+                <div class="footer-section">
+                    <h3>روابط سريعة</h3>
+                    <ul>
+                        <li><a href="#">عن الموقع</a></li>
+                        <li><a href="#">الشروط والأحكام</a></li>
+                        <li><a href="#">سياسة الخصوصية</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>تواصل معنا</h3>
+                    <ul>
+                        <li>info@ejari.com</li>
+                        <li>+20 123 456 789</li>
+                        <li>القاهرة، مصر</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>جميع الحقوق محفوظة © 2024 إيجاري</p>
+            </div>
+        </div>
+    </footer>
+    <!-- النوافذ المنبثقة -->
+    <div id="modal-container"></div>
+
+    <!-- السكربتات -->
+    <script src="js/session.js"></script>
+    <script src="js/property-details.js"></script>
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+    <script>
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+    </script>
+
+</body>
+
+</html>

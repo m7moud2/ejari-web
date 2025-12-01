@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الصيانة المنزلية - إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/localization.css">
+    <style>
+        body {
+            background: #f8fafc;
+            padding-top: 80px;
+        }
+
+        .service-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .service-header {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .service-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .service-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .service-icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1rem;
+        }
+
+        .service-card h3 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .service-card p {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .booking-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .pricing-info {
+            background: rgba(59, 130, 246, 0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border-left: 4px solid #3b82f6;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo"><a href="index.html">إيجاري</a></div>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="services.html" class="active">الخدمات</a></li>
+            </ul>
+            <!-- Settings (Country & Language) -->
+            <div class="settings-container">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="service-container">
+        <div class="service-header">
+            <h1><i class="fas fa-tools"></i> الصيانة المنزلية الفورية</h1>
+            <p style="font-size: 1.2rem; opacity: 0.9;">فنيون محترفون يصلونك أينما كنت</p>
+        </div>
+
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-wrench"></i></div>
+                <h3>سباكة</h3>
+                <p>إصلاح التسريبات والأعطال</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-bolt"></i></div>
+                <h3>كهرباء</h3>
+                <p>صيانة الأعطال الكهربائية</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-snowflake"></i></div>
+                <h3>تكييف</h3>
+                <p>صيانة وتنظيف المكيفات</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-hammer"></i></div>
+                <h3>نجارة</h3>
+                <p>إصلاح الأبواب والنوافذ</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-paint-roller"></i></div>
+                <h3>دهانات</h3>
+                <p>أعمال الدهان والديكور</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon"><i class="fas fa-couch"></i></div>
+                <h3>أثاث</h3>
+                <p>تركيب وإصلاح الأثاث</p>
+            </div>
+        </div>
+
+        <div class="pricing-info">
+            <h3 style="color: #2c3e50; margin-bottom: 1rem;"><i class="fas fa-tag"></i> الأسعار</h3>
+            <ul style="list-style: none; padding: 0;">
+                <li style="padding: 0.5rem 0; color: #6b7280;">✓ رسوم الزيارة: <strong style="color: #3b82f6;"><span
+                            class="price-amount" data-price="50">50</span></strong></li>
+                <li style="padding: 0.5rem 0; color: #6b7280;">✓ ضمان 30 يوم على جميع الأعمال</li>
+                <li style="padding: 0.5rem 0; color: #6b7280;">✓ فنيون مدربون ومعتمدون</li>
+                <li style="padding: 0.5rem 0; color: #6b7280;">✓ أسعار محددة مسبقاً بدون مفاجآت</li>
+            </ul>
+        </div>
+
+        <div class="booking-form">
+            <h2 style="text-align: center; margin-bottom: 1.5rem; color: #2c3e50;">احجز موعد صيانة</h2>
+            <form onsubmit="submitBooking(event)">
+                <div class="form-group">
+                    <label>الاسم الكامل</label>
+                    <input type="text" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>رقم الهاتف</label>
+                    <input type="tel" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>العنوان</label>
+                    <input type="text" class="form-control" placeholder="الشارع، الحي، المدينة" required>
+                </div>
+                <div class="form-group">
+                    <label>نوع الخدمة</label>
+                    <select class="form-control" required>
+                        <option value="">اختر نوع الخدمة</option>
+                        <option>سباكة</option>
+                        <option>كهرباء</option>
+                        <option>تكييف</option>
+                        <option>نجارة</option>
+                        <option>دهانات</option>
+                        <option>أثاث</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>وصف المشكلة</label>
+                    <textarea class="form-control" rows="4" placeholder="اشرح المشكلة بالتفصيل..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>الموعد المفضل</label>
+                    <input type="datetime-local" class="form-control" required>
+                </div>
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-calendar-check"></i> احجز الآن
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function submitBooking(e) {
+            e.preventDefault();
+            alert('تم تأكيد حجزك! سيتواصل معك الفني قريباً.');
+            e.target.reset();
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+    </script>
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+</body>
+
+</html>

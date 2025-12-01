@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء عقد إيجار - إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/localization.css">
+    <style>
+        body {
+            background: #f8fafc;
+            padding-top: 80px;
+        }
+
+        .contract-wizard {
+            max-width: 900px;
+            margin: 2rem auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .wizard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .wizard-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .wizard-steps {
+            display: flex;
+            justify-content: space-between;
+            padding: 2rem;
+            background: #f8fafc;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            padding: 0 1rem;
+        }
+
+        .step::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background: #e5e7eb;
+            z-index: 0;
+        }
+
+        .step:last-child::after {
+            display: none;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 0.5rem;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s;
+        }
+
+        .step.active .step-number {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .step.completed .step-number {
+            background: #10b981;
+            color: white;
+        }
+
+        .step-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .step.active .step-label {
+            color: #667eea;
+        }
+
+        .wizard-content {
+            padding: 2rem;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-family: 'Cairo', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .property-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1rem;
+        }
+
+        .property-card:hover {
+            border-color: #667eea;
+            background: #f9fafb;
+        }
+
+        .property-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        }
+
+        .wizard-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 2rem;
+            border-top: 2px solid #e5e7eb;
+        }
+
+        .btn {
+            padding: 0.875rem 2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+        .contract-preview {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .preview-section h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .preview-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .preview-item:last-child {
+            border-bottom: none;
+        }
+
+        .preview-label {
+            color: #6b7280;
+            font-weight: 600;
+        }
+
+        .preview-value {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .success-message {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 2.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">إيجاري</a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="services.html" class="active">الخدمات</a></li>
+            </ul>
+            <!-- Settings (Country & Language) -->
+            <div class="settings-container">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="contract-wizard">
+        <div class="wizard-header">
+            <h1><i class="fas fa-file-signature"></i> إنشاء عقد إيجار إلكتروني</h1>
+            <p>أنشئ عقد إيجار قانوني موثق في دقائق معدودة</p>
+        </div>
+
+        <div class="wizard-steps">
+            <div class="step active" data-step="1">
+                <div class="step-number">1</div>
+                <div class="step-label">اختر العقار</div>
+            </div>
+            <div class="step" data-step="2">
+                <div class="step-number">2</div>
+                <div class="step-label">بيانات المستأجر</div>
+            </div>
+            <div class="step" data-step="3">
+                <div class="step-number">3</div>
+                <div class="step-label">شروط العقد</div>
+            </div>
+            <div class="step" data-step="4">
+                <div class="step-number">4</div>
+                <div class="step-label">المراجعة والتوقيع</div>
+            </div>
+        </div>
+
+        <div class="wizard-content">
+            <!-- Step 1: Property Selection -->
+            <div class="form-section active" id="step1">
+                <h2 style="margin-bottom: 1.5rem;">اختر العقار المراد تأجيره</h2>
+                <div id="propertiesList">
+                    <div class="property-card" onclick="selectProperty(1)">
+                        <h3>شقة فاخرة في المعادي</h3>
+                        <p style="color: #6b7280; margin: 0.5rem 0;">
+                            <i class="fas fa-map-marker-alt"></i> المعادي، القاهرة
+                        </p>
+                        <p style="color: #667eea; font-weight: 700; margin-top: 0.5rem;"><span class="price-amount"
+                                data-price="960">12,000</span> ج.م/شهر</p>
+                    </div>
+                    <div class="property-card" onclick="selectProperty(2)">
+                        <h3>فيلا مستقلة في التجمع</h3>
+                        <p style="color: #6b7280; margin: 0.5rem 0;">
+                            <i class="fas fa-map-marker-alt"></i> التجمع الخامس، القاهرة
+                        </p>
+                        <p style="color: #667eea; font-weight: 700; margin-top: 0.5rem;"><span class="price-amount"
+                                data-price="2800">35,000</span> ج.م/شهر</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Tenant Info -->
+            <div class="form-section" id="step2">
+                <h2 style="margin-bottom: 1.5rem;">بيانات المستأجر</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>الاسم الكامل</label>
+                        <input type="text" class="form-control" id="tenantName" placeholder="أحمد محمد علي">
+                    </div>
+                    <div class="form-group">
+                        <label>رقم الهوية/الإقامة</label>
+                        <input type="text" class="form-control" id="tenantId" placeholder="2xxxxxxxxxx">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>رقم الهاتف</label>
+                        <input type="tel" class="form-control" id="tenantPhone" placeholder="05xxxxxxxx">
+                    </div>
+                    <div class="form-group">
+                        <label>البريد الإلكتروني</label>
+                        <input type="email" class="form-control" id="tenantEmail" placeholder="example@email.com">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>العنوان الحالي</label>
+                    <input type="text" class="form-control" id="tenantAddress" placeholder="الشارع، الحي، المدينة">
+                </div>
+            </div>
+
+            <!-- Step 3: Contract Terms -->
+            <div class="form-section" id="step3">
+                <h2 style="margin-bottom: 1.5rem;">شروط وأحكام العقد</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>قيمة الإيجار الشهري (ر.س)</label>
+                        <input type="number" class="form-control" id="rentAmount" placeholder="12000">
+                    </div>
+                    <div class="form-group">
+                        <label>مدة العقد (بالأشهر)</label>
+                        <input type="number" class="form-control" id="contractDuration" placeholder="12">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>تاريخ بداية العقد</label>
+                        <input type="date" class="form-control" id="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label>قيمة التأمين (ر.س)</label>
+                        <input type="number" class="form-control" id="depositAmount" placeholder="12000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>شروط إضافية (اختياري)</label>
+                    <textarea class="form-control" id="additionalTerms" rows="4"
+                        placeholder="أي شروط أو ملاحظات إضافية..."></textarea>
+                </div>
+            </div>
+
+            <!-- Step 4: Review & Sign -->
+            <div class="form-section" id="step4">
+                <h2 style="margin-bottom: 1.5rem;">مراجعة العقد</h2>
+                <div class="contract-preview" id="contractPreview">
+                    <!-- Will be filled by JavaScript -->
+                </div>
+                <div
+                    style="background: #fef3c7; border: 2px solid #fbbf24; border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem;">
+                    <p style="color: #92400e; margin: 0;">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>ملاحظة:</strong> سيتم إرسال العقد للطرفين عبر البريد الإلكتروني للتوقيع الإلكتروني.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Success Message -->
+            <div class="form-section" id="stepSuccess">
+                <div class="success-message">
+                    <div class="success-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h2 style="color: #10b981; margin-bottom: 1rem;">تم إنشاء العقد بنجاح!</h2>
+                    <p style="color: #6b7280; margin-bottom: 2rem;">
+                        تم إرسال العقد إلى البريد الإلكتروني للطرفين للمراجعة والتوقيع الإلكتروني.
+                    </p>
+                    <div style="display: flex; gap: 1rem; justify-content: center;">
+                        <button class="btn btn-primary" onclick="downloadContract()">
+                            <i class="fas fa-download"></i> تحميل العقد
+                        </button>
+                        <button class="btn btn-secondary" onclick="window.location.href='owner-dashboard.html'">
+                            <i class="fas fa-home"></i> العودة للوحة التحكم
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="wizard-actions" id="wizardActions">
+            <button class="btn btn-secondary" id="prevBtn" onclick="previousStep()" style="display: none;">
+                <i class="fas fa-arrow-right"></i> السابق
+            </button>
+            <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">
+                التالي <i class="fas fa-arrow-left"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let selectedProperty = null;
+        let contractData = {};
+
+        function selectProperty(id) {
+            selectedProperty = id;
+            document.querySelectorAll('.property-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            event.target.closest('.property-card').classList.add('selected');
+        }
+
+        function nextStep() {
+            if (currentStep === 1 && !selectedProperty) {
+                alert('الرجاء اختيار عقار أولاً');
+                return;
+            }
+
+            if (currentStep === 2) {
+                if (!validateTenantInfo()) return;
+                saveTenantInfo();
+            }
+
+            if (currentStep === 3) {
+                if (!validateContractTerms()) return;
+                saveContractTerms();
+                showContractPreview();
+            }
+
+            if (currentStep === 4) {
+                createContract();
+                return;
+            }
+
+            currentStep++;
+            updateWizard();
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateWizard();
+            }
+        }
+
+        function updateWizard() {
+            // Update steps
+            document.querySelectorAll('.step').forEach(step => {
+                const stepNum = parseInt(step.dataset.step);
+                step.classList.remove('active', 'completed');
+                if (stepNum === currentStep) {
+                    step.classList.add('active');
+                } else if (stepNum < currentStep) {
+                    step.classList.add('completed');
+                }
+            });
+
+            // Update sections
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById('step' + currentStep).classList.add('active');
+
+            // Update buttons
+            document.getElementById('prevBtn').style.display = currentStep > 1 ? 'block' : 'none';
+            const nextBtn = document.getElementById('nextBtn');
+            if (currentStep === 4) {
+                nextBtn.innerHTML = '<i class="fas fa-check"></i> إنشاء العقد';
+            } else {
+                nextBtn.innerHTML = 'التالي <i class="fas fa-arrow-left"></i>';
+            }
+        }
+
+        function validateTenantInfo() {
+            const name = document.getElementById('tenantName').value;
+            const id = document.getElementById('tenantId').value;
+            const phone = document.getElementById('tenantPhone').value;
+            const email = document.getElementById('tenantEmail').value;
+
+            if (!name || !id || !phone || !email) {
+                alert('الرجاء ملء جميع الحقول المطلوبة');
+                return false;
+            }
+            return true;
+        }
+
+        function saveTenantInfo() {
+            contractData.tenant = {
+                name: document.getElementById('tenantName').value,
+                id: document.getElementById('tenantId').value,
+                phone: document.getElementById('tenantPhone').value,
+                email: document.getElementById('tenantEmail').value,
+                address: document.getElementById('tenantAddress').value
+            };
+        }
+
+        function validateContractTerms() {
+            const rent = document.getElementById('rentAmount').value;
+            const duration = document.getElementById('contractDuration').value;
+            const startDate = document.getElementById('startDate').value;
+            const deposit = document.getElementById('depositAmount').value;
+
+            if (!rent || !duration || !startDate || !deposit) {
+                alert('الرجاء ملء جميع الحقول المطلوبة');
+                return false;
+            }
+            return true;
+        }
+
+        function saveContractTerms() {
+            contractData.terms = {
+                rent: document.getElementById('rentAmount').value,
+                duration: document.getElementById('contractDuration').value,
+                startDate: document.getElementById('startDate').value,
+                deposit: document.getElementById('depositAmount').value,
+                additional: document.getElementById('additionalTerms').value
+            };
+        }
+
+        function showContractPreview() {
+            const preview = document.getElementById('contractPreview');
+            preview.innerHTML = `
+                <div class="preview-section">
+                    <h3>بيانات المستأجر</h3>
+                    <div class="preview-item">
+                        <span class="preview-label">الاسم:</span>
+                        <span class="preview-value">${contractData.tenant.name}</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">رقم الهوية:</span>
+                        <span class="preview-value">${contractData.tenant.id}</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">الهاتف:</span>
+                        <span class="preview-value">${contractData.tenant.phone}</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">البريد الإلكتروني:</span>
+                        <span class="preview-value">${contractData.tenant.email}</span>
+                    </div>
+                </div>
+                <div class="preview-section">
+                    <h3>شروط العقد</h3>
+                    <div class="preview-item">
+                        <span class="preview-label">قيمة الإيجار الشهري:</span>
+                        <span class="preview-value">${contractData.terms.rent} ر.س</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">مدة العقد:</span>
+                        <span class="preview-value">${contractData.terms.duration} شهر</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">تاريخ البداية:</span>
+                        <span class="preview-value">${contractData.terms.startDate}</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">قيمة التأمين:</span>
+                        <span class="preview-value">${contractData.terms.deposit} ر.س</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function createContract() {
+            // Save contract to localStorage
+            const contracts = JSON.parse(localStorage.getItem('ejari_contracts')) || [];
+            const newContract = {
+                id: Date.now(),
+                propertyId: selectedProperty,
+                tenant: contractData.tenant,
+                terms: contractData.terms,
+                status: 'pending_signature',
+                createdAt: new Date().toISOString()
+            };
+            contracts.push(newContract);
+            localStorage.setItem('ejari_contracts', JSON.stringify(contracts));
+
+            // Show success
+            document.getElementById('wizardActions').style.display = 'none';
+            document.querySelectorAll('.form-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById('stepSuccess').classList.add('active');
+        }
+
+        function downloadContract() {
+            alert('سيتم تحميل العقد بصيغة PDF...');
+            // Here you would generate and download the PDF
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+            
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+            
+            dropdown.classList.toggle('active');
+        }
+    </script>
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+</body>
+
+</html>

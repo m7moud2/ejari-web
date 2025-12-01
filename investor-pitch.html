@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إيجاري - عرض تقديمي للمستثمرين</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #0f0f0f;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .slide {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .slide-content {
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Slide 1: Cover */
+        .slide-1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .slide-1 h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: fadeInUp 1s ease;
+        }
+
+        .slide-1 .subtitle {
+            font-size: 2rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease 0.3s backwards;
+        }
+
+        .slide-1 .logo {
+            font-size: 6rem;
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease 0.6s backwards;
+        }
+
+        /* Slide 2: Problem */
+        .slide-2 {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .problem-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: fadeInUp 1s ease;
+        }
+
+        .problem-card i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Slide 3: Solution */
+        .slide-3 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .solution-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .solution-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 20px;
+            text-align: right;
+            animation: fadeInUp 1s ease;
+        }
+
+        .solution-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #ffd700;
+        }
+
+        /* Slide 4: Market */
+        .slide-4 {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .market-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 3rem;
+            margin-top: 3rem;
+        }
+
+        .market-stat {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 3rem;
+            border-radius: 20px;
+            animation: fadeInUp 1s ease;
+        }
+
+        .market-stat .number {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: #ffd700;
+        }
+
+        /* Slide 5: Business Model */
+        .slide-5 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .revenue-streams {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .revenue-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 20px;
+            animation: fadeInUp 1s ease;
+        }
+
+        .revenue-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #ffd700;
+        }
+
+        /* Slide 6: Financials */
+        .slide-6 {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .financial-table {
+            margin-top: 3rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            animation: fadeInUp 1s ease;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.1);
+            font-size: 1.2rem;
+            color: #ffd700;
+        }
+
+        td {
+            font-size: 1.1rem;
+        }
+
+        /* Slide 7: Investment */
+        .slide-7 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .investment-box {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 4rem;
+            border-radius: 30px;
+            margin-top: 3rem;
+            border: 2px solid #ffd700;
+            animation: fadeInUp 1s ease;
+        }
+
+        .investment-amount {
+            font-size: 5rem;
+            font-weight: 800;
+            color: #ffd700;
+            margin-bottom: 2rem;
+        }
+
+        .investment-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
+            margin-top: 2rem;
+            text-align: right;
+        }
+
+        /* Slide 8: CTA */
+        .slide-8 {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+
+        .cta-box {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 4rem;
+            border-radius: 30px;
+            margin-top: 3rem;
+            animation: fadeInUp 1s ease;
+        }
+
+        .contact-info {
+            margin-top: 3rem;
+            font-size: 1.3rem;
+        }
+
+        .contact-info p {
+            margin: 1rem 0;
+        }
+
+        .contact-info i {
+            color: #ffd700;
+            margin-left: 1rem;
+        }
+
+        /* Navigation */
+        .nav-dots {
+            position: fixed;
+            left: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 1000;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            margin: 1rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: #ffd700;
+            transform: scale(1.5);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        h2 {
+            font-size: 3rem;
+            margin-bottom: 2rem;
+            color: #ffd700;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            font-size: 1.2rem;
+            line-height: 1.8;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .slide-1 h1 {
+                font-size: 2.5rem;
+            }
+
+            .slide-1 .subtitle {
+                font-size: 1.5rem;
+            }
+
+            .solution-grid,
+            .market-stats,
+            .revenue-streams,
+            .investment-details {
+                grid-template-columns: 1fr;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            .investment-amount {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation Dots -->
+    <div class="nav-dots">
+        <div class="nav-dot active" data-slide="1"></div>
+        <div class="nav-dot" data-slide="2"></div>
+        <div class="nav-dot" data-slide="3"></div>
+        <div class="nav-dot" data-slide="4"></div>
+        <div class="nav-dot" data-slide="5"></div>
+        <div class="nav-dot" data-slide="6"></div>
+        <div class="nav-dot" data-slide="7"></div>
+        <div class="nav-dot" data-slide="8"></div>
+    </div>
+
+    <!-- Slide 1: Cover -->
+    <section class="slide slide-1" id="slide-1">
+        <div class="slide-content">
+            <div class="logo">🏠</div>
+            <h1>إيجاري</h1>
+            <p class="subtitle">ثورة في عالم الإيجارات</p>
+            <p>منصة رقمية متكاملة تربط الملاك بالمستأجرين في مصر</p>
+        </div>
+    </section>
+
+    <!-- Slide 2: Problem -->
+    <section class="slide slide-2" id="slide-2">
+        <div class="slide-content">
+            <h2>المشكلة</h2>
+            <p>سوق الإيجارات التقليدي يعاني من تحديات كبيرة</p>
+            <div class="problem-grid">
+                <div class="problem-card">
+                    <i class="fas fa-search"></i>
+                    <h3>صعوبة البحث</h3>
+                    <p>عملية البحث تستغرق وقتًا وجهدًا كبيرين</p>
+                </div>
+                <div class="problem-card">
+                    <i class="fas fa-eye-slash"></i>
+                    <h3>نقص الشفافية</h3>
+                    <p>معلومات غير دقيقة وأسعار غير واضحة</p>
+                </div>
+                <div class="problem-card">
+                    <i class="fas fa-shield-alt"></i>
+                    <h3>عدم الأمان</h3>
+                    <p>غياب التوثيق والعقود القانونية</p>
+                </div>
+                <div class="problem-card">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <h3>تكاليف مرتفعة</h3>
+                    <p>عمولات الوسطاء التقليديين مرتفعة</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 3: Solution -->
+    <section class="slide slide-3" id="slide-3">
+        <div class="slide-content">
+            <h2>الحل - منصة إيجاري</h2>
+            <p>منصة رقمية متكاملة توفر حلولاً شاملة</p>
+            <div class="solution-grid">
+                <div class="solution-card">
+                    <h3>للمستأجرين</h3>
+                    <p>✅ بحث ذكي ومتقدم</p>
+                    <p>✅ معلومات دقيقة وشفافة</p>
+                    <p>✅ عقود إلكترونية موثقة</p>
+                    <p>✅ دفع آمن ومتعدد الخيارات</p>
+                </div>
+                <div class="solution-card">
+                    <h3>للملاك</h3>
+                    <p>✅ لوحة تحكم احترافية</p>
+                    <p>✅ إدارة متطورة للعقارات</p>
+                    <p>✅ تتبع المدفوعات والعقود</p>
+                    <p>✅ تقارير وإحصائيات تفصيلية</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 4: Market -->
+    <section class="slide slide-4" id="slide-4">
+        <div class="slide-content">
+            <h2>حجم السوق</h2>
+            <p>فرصة استثمارية ضخمة في السوق المصري</p>
+            <div class="market-stats">
+                <div class="market-stat">
+                    <div class="number">105M+</div>
+                    <p>عدد سكان مصر</p>
+                </div>
+                <div class="market-stat">
+                    <div class="number">45M+</div>
+                    <p>سكان المدن</p>
+                </div>
+                <div class="market-stat">
+                    <div class="number">13M+</div>
+                    <p>أسرة مستأجرة</p>
+                </div>
+                <div class="market-stat">
+                    <div class="number">30%</div>
+                    <p>معدل الإيجار في المدن</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 5: Business Model -->
+    <section class="slide slide-5" id="slide-5">
+        <div class="slide-content">
+            <h2>نموذج العمل</h2>
+            <p>مصادر دخل متعددة ومستدامة</p>
+            <div class="revenue-streams">
+                <div class="revenue-card">
+                    <h3>عمولة الحجز</h3>
+                    <p>5-10% من قيمة الإيجار السنوي</p>
+                </div>
+                <div class="revenue-card">
+                    <h3>اشتراكات الملاك</h3>
+                    <p>باقات شهرية من 500-2000 ج.م</p>
+                </div>
+                <div class="revenue-card">
+                    <h3>الإعلانات المميزة</h3>
+                    <p>200-500 ج.م/شهر للعقار</p>
+                </div>
+                <div class="revenue-card">
+                    <h3>خدمات إضافية</h3>
+                    <p>تأمين، صيانة، تأجير سيارات</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 6: Financials -->
+    <section class="slide slide-6" id="slide-6">
+        <div class="slide-content">
+            <h2>التوقعات المالية</h2>
+            <p>نمو متسارع وربحية مستدامة</p>
+            <div class="financial-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>البند</th>
+                            <th>السنة 1</th>
+                            <th>السنة 2</th>
+                            <th>السنة 3</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>الإيرادات</strong></td>
+                            <td>5 مليون ج.م</td>
+                            <td>25 مليون ج.م</td>
+                            <td>100 مليون ج.م</td>
+                        </tr>
+                        <tr>
+                            <td><strong>التكاليف</strong></td>
+                            <td>4 مليون ج.م</td>
+                            <td>15 مليون ج.م</td>
+                            <td>50 مليون ج.م</td>
+                        </tr>
+                        <tr>
+                            <td><strong>صافي الربح</strong></td>
+                            <td>1 مليون ج.م</td>
+                            <td>10 مليون ج.م</td>
+                            <td>50 مليون ج.م</td>
+                        </tr>
+                        <tr>
+                            <td><strong>هامش الربح</strong></td>
+                            <td>20%</td>
+                            <td>40%</td>
+                            <td>50%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 7: Investment -->
+    <section class="slide slide-7" id="slide-7">
+        <div class="slide-content">
+            <h2>فرصة الاستثمار</h2>
+            <div class="investment-box">
+                <p>التمويل المطلوب - المرحلة الأولى</p>
+                <div class="investment-amount">2 مليون ج.م</div>
+                <div class="investment-details">
+                    <div>
+                        <h3>استخدام التمويل</h3>
+                        <p>40% تطوير تقني</p>
+                        <p>30% تسويق ومبيعات</p>
+                        <p>20% عمليات</p>
+                        <p>10% احتياطي</p>
+                    </div>
+                    <div>
+                        <h3>العائد المتوقع</h3>
+                        <p>5-10x خلال 5 سنوات</p>
+                        <p>نمو سنوي 300%+</p>
+                        <p>ربحية بعد السنة الأولى</p>
+                        <p>فرص خروج متعددة</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Slide 8: CTA -->
+    <section class="slide slide-8" id="slide-8">
+        <div class="slide-content">
+            <h2>انضم إلينا في رحلة النجاح</h2>
+            <div class="cta-box">
+                <h3>هل أنت مستعد للاستثمار في المستقبل؟</h3>
+                <p>نحن نبحث عن مستثمرين استراتيجيين يشاركوننا الرؤية</p>
+                <div class="contact-info">
+                    <p><i class="fas fa-envelope"></i> info@ejari.com</p>
+                    <p><i class="fas fa-phone"></i> +20 123 456 789</p>
+                    <p><i class="fas fa-map-marker-alt"></i> القاهرة، مصر</p>
+                </div>
+                <h2 style="margin-top: 3rem; color: #ffd700;">شكراً لكم</h2>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Smooth scroll to slides
+        document.querySelectorAll('.nav-dot').forEach(dot => {
+            dot.addEventListener('click', function () {
+                const slideNum = this.getAttribute('data-slide');
+                const slide = document.getElementById('slide-' + slideNum);
+                slide.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // Update active dot on scroll
+        window.addEventListener('scroll', () => {
+            const slides = document.querySelectorAll('.slide');
+            const dots = document.querySelectorAll('.nav-dot');
+
+            slides.forEach((slide, index) => {
+                const rect = slide.getBoundingClientRect();
+                if (rect.top >= -100 && rect.top <= 100) {
+                    dots.forEach(dot => dot.classList.remove('active'));
+                    dots[index].classList.add('active');
+                }
+            });
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            const currentSlide = document.querySelector('.nav-dot.active');
+            const currentIndex = Array.from(document.querySelectorAll('.nav-dot')).indexOf(currentSlide);
+
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                const nextSlide = document.getElementById('slide-' + (currentIndex + 2));
+                if (nextSlide) nextSlide.scrollIntoView({ behavior: 'smooth' });
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                const prevSlide = document.getElementById('slide-' + currentIndex);
+                if (prevSlide) prevSlide.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    </script>
+</body>
+
+</html>

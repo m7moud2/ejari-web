@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خدمات التنظيف - إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/localization.css">
+    <style>
+        body {
+            background: #f8fafc;
+            padding-top: 80px;
+        }
+
+        .service-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .service-header {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .service-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .packages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .package-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #06b6d4;
+        }
+
+        .package-card h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .package-card .price {
+            font-size: 2rem;
+            color: #06b6d4;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .package-card ul {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .package-card li {
+            padding: 0.5rem 0;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .package-card li i {
+            color: #06b6d4;
+        }
+
+        .btn-book {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-book:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(6, 182, 212, 0.3);
+        }
+
+        .booking-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo"><a href="index.html">إيجاري</a></div>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="services.html" class="active">الخدمات</a></li>
+            </ul>
+            <!-- Settings (Country & Language) -->
+            <div class="settings-container">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="service-container">
+        <div class="service-header">
+            <h1><i class="fas fa-broom"></i> خدمات التنظيف العميق</h1>
+            <p style="font-size: 1.2rem; opacity: 0.9;">نظافة احترافية لمنزلك أو عقارك</p>
+        </div>
+
+        <div class="packages-grid">
+            <div class="package-card">
+                <h3>تنظيف أساسي</h3>
+                <div class="price"><span class="price-amount" data-price="300">300</span></div>
+                <ul>
+                    <li><i class="fas fa-check-circle"></i> تنظيف الأرضيات</li>
+                    <li><i class="fas fa-check-circle"></i> مسح الأسطح</li>
+                    <li><i class="fas fa-check-circle"></i> تنظيف الحمامات</li>
+                    <li><i class="fas fa-check-circle"></i> تنظيف المطبخ</li>
+                    <li><i class="fas fa-check-circle"></i> إخراج القمامة</li>
+                </ul>
+                <button class="btn-book" onclick="selectPackage('basic')">احجز الآن</button>
+            </div>
+
+            <div class="package-card" style="border-top-color: #10b981;">
+                <h3>تنظيف شامل</h3>
+                <div class="price" style="color: #10b981;"><span class="price-amount" data-price="600">600</span>
+                </div>
+                <ul>
+                    <li><i class="fas fa-check-circle" style="color: #10b981;"></i> كل ما في الباقة الأساسية</li>
+                    <li><i class="fas fa-check-circle" style="color: #10b981;"></i> تنظيف النوافذ</li>
+                    <li><i class="fas fa-check-circle" style="color: #10b981;"></i> تنظيف الستائر</li>
+                    <li><i class="fas fa-check-circle" style="color: #10b981;"></i> تلميع الأثاث</li>
+                    <li><i class="fas fa-check-circle" style="color: #10b981;"></i> تنظيف الشرفات</li>
+                </ul>
+                <button class="btn-book" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"
+                    onclick="selectPackage('comprehensive')">احجز الآن</button>
+            </div>
+
+            <div class="package-card" style="border-top-color: #f59e0b;">
+                <h3>تنظيف + تعقيم</h3>
+                <div class="price" style="color: #f59e0b;"><span class="price-amount" data-price="900">900</span>
+                </div>
+                <ul>
+                    <li><i class="fas fa-check-circle" style="color: #f59e0b;"></i> كل ما في الباقة الشاملة</li>
+                    <li><i class="fas fa-check-circle" style="color: #f59e0b;"></i> تعقيم شامل بالبخار</li>
+                    <li><i class="fas fa-check-circle" style="color: #f59e0b;"></i> تطهير الأسطح</li>
+                    <li><i class="fas fa-check-circle" style="color: #f59e0b;"></i> معطرات طبيعية</li>
+                    <li><i class="fas fa-check-circle" style="color: #f59e0b;"></i> تنظيف المكيفات</li>
+                </ul>
+                <button class="btn-book" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);"
+                    onclick="selectPackage('premium')">احجز الآن</button>
+            </div>
+        </div>
+
+        <div class="booking-form" id="bookingForm" style="display: none;">
+            <h2 style="text-align: center; margin-bottom: 1.5rem; color: #2c3e50;">احجز خدمة التنظيف</h2>
+            <form onsubmit="submitBooking(event)">
+                <input type="hidden" id="selectedPackage">
+                <div class="form-group">
+                    <label>الاسم الكامل</label>
+                    <input type="text" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>رقم الهاتف</label>
+                    <input type="tel" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>العنوان</label>
+                    <input type="text" class="form-control" placeholder="الشارع، الحي، المدينة" required>
+                </div>
+                <div class="form-group">
+                    <label>نوع العقار</label>
+                    <select class="form-control" required>
+                        <option value="">اختر نوع العقار</option>
+                        <option>شقة</option>
+                        <option>فيلا</option>
+                        <option>مكتب</option>
+                        <option>محل تجاري</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>مساحة العقار (م²)</label>
+                    <input type="number" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>الموعد المفضل</label>
+                    <input type="datetime-local" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>ملاحظات إضافية</label>
+                    <textarea class="form-control" rows="3" placeholder="أي ملاحظات أو طلبات خاصة..."></textarea>
+                </div>
+                <button type="submit" class="btn-book">
+                    <i class="fas fa-check-circle"></i> تأكيد الحجز
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function selectPackage(packageType) {
+            document.getElementById('selectedPackage').value = packageType;
+            document.getElementById('bookingForm').style.display = 'block';
+            document.getElementById('bookingForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function submitBooking(e) {
+            e.preventDefault();
+            const packageType = document.getElementById('selectedPackage').value;
+            alert(`تم تأكيد حجز باقة ${packageType}! سيتواصل معك فريق التنظيف قريباً.`);
+            e.target.reset();
+            document.getElementById('bookingForm').style.display = 'none';
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+    </script>
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+</body>
+
+</html>

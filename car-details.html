@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفاصيل السيارة | إيجاري</title>
+
+    <!-- الخطوط -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- ملفات CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/property-details.css">
+    <link rel="stylesheet" href="css/localization.css">
+</head>
+
+<body>
+    <!-- شريط التنقل العلوي -->
+    <nav class="top-nav">
+        <div class="nav-wrapper">
+            <a href="cars.html" class="back-btn">
+                <i class="fas fa-arrow-right"></i>
+                <span>العودة للسيارات</span>
+            </a>
+            <!-- Settings (Country & Language) -->
+            <div class="settings-container" style="margin-right: auto; margin-left: 20px;">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn"
+                    style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+            <div class="property-nav-info">
+                <h1>مرسيدس C200 موديل 2024</h1>
+                <div class="property-status">
+                    <span class="status-badge active" style="background-color: #10b981;">متاح للإيجار</span>
+                    <span class="property-id">رقم السيارة: #CAR882</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="property-details">
+        <!-- معرض الصور -->
+        <section class="property-gallery">
+            <div class="main-image">
+                <img src="images/carc200.jpg" alt="صورة السيارة الرئيسية">
+                <button class="gallery-nav prev"><i class="fas fa-chevron-right"></i></button>
+                <button class="gallery-nav next"><i class="fas fa-chevron-left"></i></button>
+            </div>
+            <div class="thumbnails">
+                <img src="images/carc200.jpg" alt="صورة مصغرة 1" class="active">
+                <img src="images/carc200.jpg" alt="صورة مصغرة 2">
+                <img src="images/carc200.jpg" alt="صورة مصغرة 3">
+                <img src="images/carc200.jpg" alt="صورة مصغرة 4">
+            </div>
+        </section>
+
+        <!-- شريط الإجراءات السريعة للمستأجر -->
+        <div class="quick-actions">
+            <button class="btn btn-primary" onclick="bookCarNow()">
+                <i class="fas fa-check-circle"></i>
+                احجز الآن
+            </button>
+            <button class="btn btn-outline" onclick="location.href='contact.html'">
+                <i class="fas fa-phone-alt"></i>
+                تواصل مع المكتب
+            </button>
+            <button class="btn btn-outline">
+                <i class="far fa-heart"></i>
+                إضافة للمفضلة
+            </button>
+            <button class="btn btn-outline">
+                <i class="fas fa-share-alt"></i>
+                مشاركة
+            </button>
+        </div>
+
+        <div class="content-grid">
+            <!-- المعلومات الأساسية -->
+            <section class="info-card main-info">
+                <h2>مواصفات السيارة</h2>
+                <div class="property-specs">
+                    <div class="spec-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <div class="spec-details">
+                            <span class="value">2024</span>
+                            <span class="label">الموديل</span>
+                        </div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <div class="spec-details">
+                            <span class="value">0 - 100</span>
+                            <span class="label">كم/س</span>
+                        </div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-cogs"></i>
+                        <div class="spec-details">
+                            <span class="value">أوتوماتيك</span>
+                            <span class="label">ناقل الحركة</span>
+                        </div>
+                    </div>
+                    <div class="spec-item">
+                        <i class="fas fa-gas-pump"></i>
+                        <div class="spec-details">
+                            <span class="value">بنزين</span>
+                            <span class="label">الوقود</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="property-features">
+                    <h3>المميزات الإضافية</h3>
+                    <ul class="features-list">
+                        <li><i class="fas fa-check"></i> تأمين شامل</li>
+                        <li><i class="fas fa-check"></i> نظام ملاحة GPS</li>
+                        <li><i class="fas fa-check"></i> مقاعد جلدية</li>
+                        <li><i class="fas fa-check"></i> كاميرا خلفية</li>
+                        <li><i class="fas fa-check"></i> بلوتوث و USB</li>
+                        <li><i class="fas fa-check"></i> مثبت سرعة</li>
+                    </ul>
+                </div>
+                <div class="property-description" style="margin-top: 2rem;">
+                    <h3>الوصف</h3>
+                    <p style="color: #4b5563; line-height: 1.8;">
+                        استمتع بتجربة قيادة فاخرة مع مرسيدس C200 موديل 2024. السيارة تجمع بين الأناقة والأداء القوي.
+                        مثالية للمناسبات الخاصة ورحلات العمل. تأتي مع سائق محترف عند الطلب.
+                    </p>
+                </div>
+            </section>
+
+            <!-- معلومات السعر -->
+            <section class="info-card financial-info">
+                <h2>تفاصيل الإيجار</h2>
+                <div class="financial-details">
+                    <div class="financial-item">
+                        <span class="label">السعر اليومي</span>
+                        <span class="value"><span class="price-amount" data-price="400">5,000</span></span>
+                    </div>
+                    <div class="financial-item">
+                        <span class="label">السعر الأسبوعي (خصم 10%)</span>
+                        <span class="value"><span class="price-amount" data-price="2520">31,500</span></span>
+                    </div>
+                    <div class="financial-item">
+                        <span class="label">التأمين المسترد</span>
+                        <span class="value"><span class="price-amount" data-price="800">10,000</span></span>
+                    </div>
+                    <div class="financial-item">
+                        <span class="label">الحد الأقصى للكيلومترات</span>
+                        <span class="value">250 كم / يوم</span>
+                    </div>
+                    <div class="total-price"
+                        style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #e5e7eb; display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem;">
+                        <span>إجمالي اليوم الواحد</span>
+                        <span style="color: #10b981;"><span class="price-amount" data-price="1200">15,000</span></span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- الموقع -->
+            <section class="info-card location-info">
+                <h2>موقع الاستلام</h2>
+                <div class="location-details">
+                    <p class="address">
+                        <i class="fas fa-map-marker-alt"></i>
+                        فرع التجمع الخامس، القاهرة
+                    </p>
+                </div>
+                <div class="map-container">
+                    <div class="map-placeholder"
+                        style="background: #e5e7eb; height: 200px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #9ca3af;">
+                        <i class="fas fa-map-marked-alt" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <span>خريطة الموقع (Google Maps)</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- معلومات المكتب -->
+            <section class="info-card owner-info">
+                <h2>مكتب التأجير</h2>
+                <div class="owner-profile"
+                    style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div class="owner-avatar"
+                        style="width: 60px; height: 60px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #6b7280;">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="owner-details">
+                        <h4 style="margin: 0; color: #1f2937;">إيليت كارز</h4>
+                        <span style="color: #6b7280; font-size: 0.9rem;">شريك معتمد</span>
+                        <div class="rating" style="color: #fbbf24; font-size: 0.8rem;">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <span style="color: #6b7280;">(5.0)</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-outline btn-block" onclick="location.href='contact.html'">
+                    <i class="fas fa-envelope"></i>
+                    تواصل مع المكتب
+                </button>
+            </section>
+        </div>
+    </main>
+
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+    <script>
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+
+        // Book Car Now Function
+        function bookCarNow() {
+            const booking = {
+                id: Date.now(),
+                itemTitle: 'مرسيدس C200 موديل 2024',
+                price: 5000,
+                totalCost: 15000,
+                serviceFee: 0,
+                deposit: 10000,
+                type: 'car',
+                location: 'التجمع الخامس، القاهرة',
+                startDate: new Date().toISOString(),
+                duration: 1,
+                durationUnit: 'days',
+                image: 'images/carc200.jpg',
+                carId: 882,
+                agencyId: 5
+            };
+
+            // Save to localStorage
+            localStorage.setItem('currentBooking', JSON.stringify(booking));
+
+            // Redirect to payment
+            window.location.href = 'payment.html';
+        }
+    </script>
+</body>
+
+</html>

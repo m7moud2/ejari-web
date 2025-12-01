@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة العقود | إيجاري</title>
+    
+    <!-- الخطوط -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- ملفات CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/contracts.css">
+</head>
+<body>
+    <!-- رأس الصفحة -->
+    <div class="page-header">
+        <h1>إدارة العقود</h1>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="showNewContractModal()">
+                <i class="fas fa-plus"></i>
+                عقد جديد
+            </button>
+            <button class="btn btn-outline" onclick="exportContracts()">
+                <i class="fas fa-download"></i>
+                تصدير العقود
+            </button>
+        </div>
+    </div>
+
+    <!-- شريط البحث والتصفية -->
+    <div class="filters-bar">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="البحث في العقود...">
+        </div>
+        <div class="filters">
+            <select class="filter-select" onchange="filterContracts('status', this.value)">
+                <option value="all">جميع الحالات</option>
+                <option value="active">سارية</option>
+                <option value="expired">منتهية</option>
+                <option value="pending">قيد التجديد</option>
+            </select>
+            <select class="filter-select" onchange="filterContracts('duration', this.value)">
+                <option value="all">جميع المدد</option>
+                <option value="1">سنة واحدة</option>
+                <option value="2">سنتان</option>
+                <option value="3">ثلاث سنوات</option>
+            </select>
+            <div class="date-range">
+                <input type="date" placeholder="من تاريخ">
+                <input type="date" placeholder="إلى تاريخ">
+            </div>
+        </div>
+    </div>
+
+    <!-- إحصائيات العقود -->
+    <div class="contracts-stats">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-file-contract"></i>
+            </div>
+            <div class="stat-details">
+                <span class="stat-value">45</span>
+                <span class="stat-label">إجمالي العقود</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon active">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-details">
+                <span class="stat-value">32</span>
+                <span class="stat-label">عقود سارية</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-details">
+                <span class="stat-value">8</span>
+                <span class="stat-label">قيد التجديد</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon expired">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div class="stat-details">
+                <span class="stat-value">5</span>
+                <span class="stat-label">تنتهي هذا الشهر</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- جدول العقود -->
+    <div class="contracts-table-container">
+        <table class="contracts-table">
+            <thead>
+                <tr>
+                    <th>رقم العقد</th>
+                    <th>العقار</th>
+                    <th>المستأجر</th>
+                    <th>تاريخ البداية</th>
+                    <th>تاريخ النهاية</th>
+                    <th>قيمة الإيجار</th>
+                    <th>الحالة</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- نموذج لعقد نشط -->
+                <tr>
+                    <td>#CNT001</td>
+                    <td>
+                        <div class="property-info">
+                            <img src="/api/placeholder/40/40" alt="Property">
+                            <span>شقة في المعادي</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="tenant-info">
+                            <img src="/api/placeholder/40/40" alt="Tenant">
+                            <span>أحمد محمود</span>
+                        </div>
+                    </td>
+                    <td>01/01/2024</td>
+                    <td>31/12/2024</td>
+                    <td>12,000 ج.م</td>
+                    <td>
+                        <span class="status-badge active">ساري</span>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="btn btn-icon" onclick="viewContract('CNT001')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-icon" onclick="editContract('CNT001')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-icon" onclick="printContract('CNT001')">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <!-- نموذج لعقد قيد التجديد -->
+                <tr>
+                    <td>#CNT002</td>
+                    <td>
+                        <div class="property-info">
+                            <img src="/api/placeholder/40/40" alt="Property">
+                            <span>فيلا في التجمع</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="tenant-info">
+                            <img src="/api/placeholder/40/40" alt="Tenant">
+                            <span>سارة أحمد</span>
+                        </div>
+                    </td>
+                    <td>15/03/2024</td>
+                    <td>14/03/2025</td>
+                    <td>25,000 ج.م</td>
+                    <td>
+                        <span class="status-badge pending">قيد التجديد</span>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="btn btn-icon" onclick="viewContract('CNT002')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-icon" onclick="renewContract('CNT002')">
+                                <i class="fas fa-sync"></i>
+                            </button>
+                            <button class="btn btn-icon" onclick="printContract('CNT002')">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- التنبيهات والإشعارات -->
+    <div class="alerts-section">
+        <h2>تنبيهات العقود</h2>
+        <div class="alerts-grid">
+            <div class="alert-card warning">
+                <div class="alert-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="alert-content">
+                    <h3>عقود تنتهي قريباً</h3>
+                    <p>5 عقود تنتهي خلال الشهر القادم</p>
+                    <button class="btn btn-sm" onclick="viewExpiringContracts()">
+                        عرض القائمة
+                    </button>
+                </div>
+            </div>
+            <div class="alert-card info">
+                <div class="alert-icon">
+                    <i class="fas fa-sync"></i>
+                </div>
+                <div class="alert-content">
+                    <h3>تجديدات معلقة</h3>
+                    <p>8 عقود في انتظار التجديد</p>
+                    <button class="btn btn-sm" onclick="viewPendingRenewals()">
+                        عرض القائمة
+                    </button>
+                </div>
+            </div>
+            <div class="alert-card success">
+                <div class="alert-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="alert-content">
+                    <h3>عقود جديدة</h3>
+                    <p>3 عقود تم توقيعها هذا الشهر</p>
+                    <button class="btn btn-sm" onclick="viewNewContracts()">
+                        عرض القائمة
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>إيجاري</h3>
+                    <p>منصتك المتكاملة للبحث عن العقارات</p>
+                </div>
+                <div class="footer-section">
+                    <h3>روابط سريعة</h3>
+                    <ul>
+                        <li><a href="#">عن الموقع</a></li>
+                        <li><a href="#">الشروط والأحكام</a></li>
+                        <li><a href="#">سياسة الخصوصية</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>تواصل معنا</h3>
+                    <ul>
+                        <li>info@ejari.com</li>
+                        <li>+20 123 456 789</li>
+                        <li>القاهرة، مصر</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>جميع الحقوق محفوظة © 2024 إيجاري</p>
+            </div>
+        </div>
+    </footer>
+    <script src="js/contracts.js"></script>
+</body>
+</html>

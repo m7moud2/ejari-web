@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الدفع الآمن - إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/localization.css">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #f8fafc;
+            margin: 0;
+            padding-top: 80px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .checkout-container {
+            display: flex;
+            gap: 2rem;
+            max-width: 1200px;
+            width: 100%;
+            padding: 2rem;
+            align-items: flex-start;
+        }
+
+        .payment-section {
+            flex: 2;
+            background: white;
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+        }
+
+        .summary-section {
+            flex: 1;
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 100px;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #1e293b;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-header {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 1rem;
+        }
+
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .payment-method-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .payment-method-card:hover {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .payment-method-card.active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+
+        .payment-method-card.active::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.8rem;
+            background: #3b82f6;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .payment-method-card i {
+            font-size: 2rem;
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.95rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.9rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            box-sizing: border-box;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .row {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .col {
+            flex: 1;
+        }
+
+        .btn-pay {
+            width: 100%;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            padding: 1.2rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-pay:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Summary Styles */
+        .order-preview {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .order-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: #f1f5f9;
+        }
+
+        .order-info h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1rem;
+            color: #1e293b;
+        }
+
+        .order-info p {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px dashed #e2e8f0;
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: #1e293b;
+        }
+
+        .trust-badges {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            opacity: 0.7;
+        }
+
+        .trust-badges i {
+            font-size: 1.5rem;
+            color: #64748b;
+        }
+
+        /* Dynamic Form Sections */
+        .method-form {
+            display: none;
+        }
+
+        .method-form.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .checkout-container {
+                flex-direction: column;
+            }
+
+            .payment-methods {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo"><a href="index.html">إيجاري</a></div>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="properties.html">عقارات</a></li>
+                <li><a href="cars.html">سيارات</a></li>
+                <li><a href="services.html">الخدمات</a></li>
+                <li><a href="contact.html">تواصل معنا</a></li>
+            </ul>
+            <!-- Settings -->
+            <div class="settings-container">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="checkout-container">
+        <div class="payment-section">
+            <div class="section-header">
+                <h2><i class="fas fa-lock" style="color: #10b981;"></i> الدفع الآمن</h2>
+                <p style="color: #64748b; margin: 0;">جميع المعاملات مشفرة ومحمية بتقنية SSL 256-bit</p>
+            </div>
+
+            <h3 style="margin-bottom: 1rem;">اختر طريقة الدفع</h3>
+
+            <!-- Payment Categories Tabs -->
+            <div
+                style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e2e8f0; overflow-x: auto;">
+                <button class="payment-tab active" onclick="switchPaymentCategory('instant')" id="tab-instant"
+                    style="padding: 0.75rem 1.5rem; border: none; background: none; cursor: pointer; border-bottom: 3px solid #3b82f6; color: #3b82f6; font-weight: bold; white-space: nowrap;">
+                    الدفع الفوري
+                </button>
+                <button class="payment-tab" onclick="switchPaymentCategory('wallets')" id="tab-wallets"
+                    style="padding: 0.75rem 1.5rem; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; color: #64748b; font-weight: 600; white-space: nowrap;">
+                    المحافظ الإلكترونية
+                </button>
+                <button class="payment-tab" onclick="switchPaymentCategory('installment')" id="tab-installment"
+                    style="padding: 0.75rem 1.5rem; border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; color: #64748b; font-weight: 600; white-space: nowrap;">
+                    التقسيط
+                </button>
+            </div>
+
+            <!-- Instant Payment Methods -->
+            <div id="category-instant" class="payment-category active">
+                <div class="payment-methods">
+                    <div class="payment-method-card active" id="card-option" onclick="selectMethod('card')">
+                        <i class="far fa-credit-card"></i>
+                        <span>بطاقة بنكية</span>
+                    </div>
+                    <div class="payment-method-card" id="instapay-option" onclick="selectMethod('instapay')">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span>InstaPay</span>
+                    </div>
+                    <div class="payment-method-card" id="cash-option" onclick="selectMethod('cash')">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>الدفع عند الاستلام</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- E-Wallets -->
+            <div id="category-wallets" class="payment-category" style="display: none;">
+                <div class="payment-methods" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));">
+                    <div class="payment-method-card" id="vodafone-option" onclick="selectMethod('vodafone')">
+                        <i class="fas fa-wallet" style="color: #e60000;"></i>
+                        <span>فودافون كاش</span>
+                    </div>
+                    <div class="payment-method-card" id="orange-option" onclick="selectMethod('orange')">
+                        <i class="fas fa-wallet" style="color: #ff6600;"></i>
+                        <span>أورنج كاش</span>
+                    </div>
+                    <div class="payment-method-card" id="etisalat-option" onclick="selectMethod('etisalat')">
+                        <i class="fas fa-wallet" style="color: #00a651;"></i>
+                        <span>اتصالات كاش</span>
+                    </div>
+                    <div class="payment-method-card" id="we-option" onclick="selectMethod('we')">
+                        <i class="fas fa-wallet" style="color: #6a1b9a;"></i>
+                        <span>WE Pay</span>
+                    </div>
+                    <div class="payment-method-card" id="fawry-option" onclick="selectMethod('fawry')">
+                        <i class="fas fa-store" style="color: #f57c00;"></i>
+                        <span>فوري</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Installment Methods -->
+            <div id="category-installment" class="payment-category" style="display: none;">
+                <div class="payment-methods" style="grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));">
+                    <div class="payment-method-card" id="valu-option" onclick="selectMethod('valu')">
+                        <i class="fas fa-credit-card" style="color: #00a8e1;"></i>
+                        <span>فاليو</span>
+                    </div>
+                    <div class="payment-method-card" id="halan-option" onclick="selectMethod('halan')">
+                        <i class="fas fa-credit-card" style="color: #ff6b35;"></i>
+                        <span>حالا</span>
+                    </div>
+                    <div class="payment-method-card" id="contact-option" onclick="selectMethod('contact')">
+                        <i class="fas fa-credit-card" style="color: #1e88e5;"></i>
+                        <span>كونتكت</span>
+                    </div>
+                    <div class="payment-method-card" id="aman-option" onclick="selectMethod('aman')">
+                        <i class="fas fa-credit-card" style="color: #43a047;"></i>
+                        <span>أمان</span>
+                    </div>
+                    <div class="payment-method-card" id="forsa-option" onclick="selectMethod('forsa')">
+                        <i class="fas fa-credit-card" style="color: #8e24aa;"></i>
+                        <span>فرصة</span>
+                    </div>
+                    <div class="payment-method-card" id="souhoola-option" onclick="selectMethod('souhoola')">
+                        <i class="fas fa-credit-card" style="color: #00897b;"></i>
+                        <span>سهولة</span>
+                    </div>
+                    <div class="payment-method-card" id="true-option" onclick="selectMethod('true')">
+                        <i class="fas fa-credit-card" style="color: #e53935;"></i>
+                        <span>ترو</span>
+                    </div>
+                    <div class="payment-method-card" id="clever-option" onclick="selectMethod('clever')">
+                        <i class="fas fa-credit-card" style="color: #fb8c00;"></i>
+                        <span>كليفر</span>
+                    </div>
+                    <div class="payment-method-card" id="sympl-option" onclick="selectMethod('sympl')">
+                        <i class="fas fa-credit-card" style="color: #5e35b1;"></i>
+                        <span>سيمبل</span>
+                    </div>
+                    <div class="payment-method-card" id="tabby-option" onclick="selectMethod('tabby')">
+                        <i class="fas fa-credit-card" style="color: #00d4aa;"></i>
+                        <span>تابي</span>
+                    </div>
+                    <div class="payment-method-card" id="tamara-option" onclick="selectMethod('tamara')">
+                        <i class="fas fa-credit-card" style="color: #1a1a1a;"></i>
+                        <span>تمارا</span>
+                    </div>
+                </div>
+            </div>
+
+            <form onsubmit="handlePayment(event)">
+                <!-- Card Form -->
+                <div id="form-card" class="method-form active">
+                    <div class="form-group">
+                        <label>الاسم على البطاقة</label>
+                        <input type="text" class="form-control" placeholder="Ahmed Mohamed">
+                    </div>
+                    <div class="form-group">
+                        <label>رقم البطاقة</label>
+                        <div style="position: relative;">
+                            <input type="text" class="form-control" placeholder="0000 0000 0000 0000"
+                                style="padding-left: 3rem;">
+                            <i class="fab fa-cc-visa"
+                                style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 1.5rem;"></i>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label>تاريخ الانتهاء</label>
+                                <input type="text" class="form-control" placeholder="MM/YY">
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label>رمز الأمان (CVC)</label>
+                                <input type="text" class="form-control" placeholder="123">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wallet Forms (Vodafone, Orange, etc.) -->
+                <div id="form-vodafone" class="method-form">
+                    <div class="form-group">
+                        <label>رقم فودافون كاش</label>
+                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                    </div>
+                    <div class="alert"
+                        style="background: #fee2e2; padding: 1rem; border-radius: 12px; color: #991b1b; margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
+                        <i class="fas fa-info-circle" style="font-size: 1.2rem;"></i>
+                        <div>سيتم إرسال طلب دفع إلى رقمك. يرجى تأكيد العملية من خلال كود #99#.</div>
+                    </div>
+                </div>
+
+                <div id="form-orange" class="method-form">
+                    <div class="form-group">
+                        <label>رقم أورنج كاش</label>
+                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                    </div>
+                </div>
+
+                <div id="form-etisalat" class="method-form">
+                    <div class="form-group">
+                        <label>رقم اتصالات كاش</label>
+                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                    </div>
+                </div>
+
+                <div id="form-we" class="method-form">
+                    <div class="form-group">
+                        <label>رقم WE Pay</label>
+                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                    </div>
+                </div>
+
+                <div id="form-fawry" class="method-form">
+                    <div class="form-group">
+                        <label>رقم الموبايل</label>
+                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                    </div>
+                    <div class="alert"
+                        style="background: #fef3c7; padding: 1rem; border-radius: 12px; color: #92400e; margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
+                        <i class="fas fa-store" style="font-size: 1.2rem;"></i>
+                        <div>يمكنك الدفع من أي فرع فوري باستخدام الكود المرجعي الذي سيصلك.</div>
+                    </div>
+                </div>
+
+                <!-- Installment Forms -->
+                <div id="form-valu" class="method-form">
+                    <div class="form-group">
+                        <label>رقم الموبايل المسجل في فاليو</label>
+                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                    </div>
+                    <div class="form-group">
+                        <label>عدد الأقساط</label>
+                        <select class="form-control">
+                            <option>3 أشهر</option>
+                            <option>6 أشهر</option>
+                            <option>9 أشهر</option>
+                            <option>12 شهر</option>
+                        </select>
+                    </div>
+                    <div class="alert"
+                        style="background: #dbeafe; padding: 1rem; border-radius: 12px; color: #1e40af; margin-bottom: 1rem;">
+                        <strong>القسط الشهري:</strong> <span id="valu-monthly">0</span> ج.م
+                    </div>
+                </div>
+
+                <div id="form-halan" class="method-form">
+                    <div class="form-group">
+                        <label>رقم الموبايل</label>
+                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                    </div>
+                    <div class="form-group">
+                        <label>مدة التقسيط</label>
+                        <select class="form-control">
+                            <option>3 أشهر</option>
+                            <option>6 أشهر</option>
+                            <option>12 شهر</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="form-contact" class="method-form">
+                    <div class="form-group">
+                        <label>رقم بطاقة كونتكت</label>
+                        <input type="text" class="form-control" placeholder="xxxx xxxx xxxx xxxx">
+                    </div>
+                </div>
+
+                <div id="form-aman" class="method-form">
+                    <div class="form-group">
+                        <label>رقم الموبايل</label>
+                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                    </div>
+                </div>
+
+                <div id="form-forsa" class="method-form">
+                    <div class="form-group">
+                        <label>رقم الموبايل</label>
+                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                    </div>
+                </div>
+
+                <div id="form-souhoola" class="method-form">
+                    <div class="form-group">
+                        <label>رقم الموبايل</label>
+                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                    </div>
+                </div>
+
+                <div id="form-true" class="method-form">
+                    <div class="form-group">
+                        <label>رقم الموبايل</label>
+                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                    </div>
+                </div>
+
+                <div id="form-clever" class="method-form">
+                    <div class="form-group">
+                        <label>رقم الموبايل</label>
+                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                    </div>
+                </div>
+
+                <div id="form-sympl" class="method-form">
+                    <div class="form-group">
+                        <label>رقم الموبايل</label>
+                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                    </div>
+                </div>
+
+                <div id="form-tabby" class="method-form">
+                    <div class="form-group">
+                        <label>رقم الموبايل</label>
+                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                    </div>
+                    <div class="alert"
+                        style="background: #d1fae5; padding: 1rem; border-radius: 12px; color: #065f46; margin-bottom: 1rem;">
+                        <strong>اقسط على 4 دفعات بدون فوائد!</strong>
+                    </div>
+                </div>
+
+                <div id="form-tamara" class="method-form">
+                    <div class="form-group">
+                        <label>رقم الموبايل</label>
+                        <input type="text" class="form-control" placeholder="05xxxxxxxxx">
+                    </div>
+                    <div class="alert"
+                        style="background: #f3f4f6; padding: 1rem; border-radius: 12px; color: #1f2937; margin-bottom: 1rem;">
+                        <strong>اقسط على 3 أو 4 دفعات بدون فوائد!</strong>
+                    </div>
+                </div>
+
+                <div id="form-cash" class="method-form">
+                    <div class="alert"
+                        style="background: #fef3c7; padding: 1.5rem; border-radius: 12px; color: #92400e; margin-bottom: 1rem; text-align: center;">
+                        <i class="fas fa-hand-holding-usd"
+                            style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                        <h4 style="margin-bottom: 0.5rem;">الدفع عند الاستلام</h4>
+                        <p style="margin: 0;">سيتم تحصيل المبلغ عند استلام العقار/السيارة.</p>
+                    </div>
+                </div>
+
+                <!-- InstaPay Form -->
+                <div id="form-instapay" class="method-form">
+                    <div class="form-group">
+                        <label>عنوان الدفع (IPA)</label>
+                        <input type="text" class="form-control" placeholder="username@instapay">
+                    </div>
+                    <div class="alert"
+                        style="background: #f0fdf4; padding: 1rem; border-radius: 12px; color: #166534; margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
+                        <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>
+                        <div>أسرع طريقة للدفع. سيصلك إشعار فوري على تطبيق InstaPay.</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-pay">
+                    <i class="fas fa-lock"></i> دفع آمن <span id="pay-amount"></span>
+                </button>
+            </form>
+        </div>
+
+        <div class="summary-section">
+            <h3 style="margin-top: 0; margin-bottom: 1.5rem;">ملخص الطلب</h3>
+
+            <div class="order-preview">
+                <img src="images/home1.jpg" alt="Product" class="order-img" id="order-image">
+                <div class="order-info">
+                    <h4 id="summary-title">جاري التحميل...</h4>
+                    <p id="summary-subtitle">مدة الحجز: 1 شهر</p>
+                </div>
+            </div>
+
+            <div class="summary-item">
+                <span>السعر الأساسي</span>
+                <span id="summary-price">0 ج.م</span>
+            </div>
+            <div class="summary-item">
+                <span>الضرائب والرسوم</span>
+                <span id="summary-fees">0 ج.م</span>
+            </div>
+            <div class="summary-item" style="color: #10b981;">
+                <span>الخصم</span>
+                <span>-0 ج.م</span>
+            </div>
+
+            <div class="summary-total">
+                <span>الإجمالي</span>
+                <span id="summary-total" style="color: #3b82f6;">0 ج.م</span>
+            </div>
+
+            <div style="margin-top: 2rem; font-size: 0.85rem; color: #94a3b8; text-align: center; line-height: 1.6;">
+                <i class="fas fa-shield-alt"></i> بضغطك على "دفع آمن" أنت توافق على <a href="terms.html"
+                    style="color: #3b82f6;">شروط الاستخدام</a> و <a href="privacy.html" style="color: #3b82f6;">سياسة
+                    الخصوصية</a>.
+            </div>
+
+            <div class="trust-badges">
+                <i class="fab fa-cc-visa"></i>
+                <i class="fab fa-cc-mastercard"></i>
+                <i class="fab fa-cc-amex"></i>
+                <i class="fas fa-lock"></i>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+    <script>
+        let currentMethod = 'card';
+        let currentCategory = 'instant';
+
+        // Switch Payment Category
+        function switchPaymentCategory(category) {
+            currentCategory = category;
+
+            // Update tabs styling
+            document.querySelectorAll('.payment-tab').forEach(tab => {
+                tab.style.borderBottomColor = 'transparent';
+                tab.style.color = '#64748b';
+                tab.style.fontWeight = '600';
+            });
+            const activeTab = document.getElementById('tab-' + category);
+            if (activeTab) {
+                activeTab.style.borderBottomColor = '#3b82f6';
+                activeTab.style.color = '#3b82f6';
+                activeTab.style.fontWeight = 'bold';
+            }
+
+            // Hide all categories first
+            document.querySelectorAll('.payment-category').forEach(cat => cat.style.display = 'none');
+
+            // Show selected category
+            const activeCategory = document.getElementById('category-' + category);
+            if (activeCategory) {
+                activeCategory.style.display = 'block';
+            }
+
+            // Auto-select first method in category to ensure a form is shown
+            if (category === 'instant') selectMethod('card');
+            else if (category === 'wallets') selectMethod('vodafone');
+            else if (category === 'installment') selectMethod('valu');
+        }
+
+        function selectMethod(method) {
+            currentMethod = method;
+
+            // Update Cards UI (Visual selection)
+            document.querySelectorAll('.payment-method-card').forEach(el => el.classList.remove('active'));
+            const methodCard = document.getElementById(method + '-option');
+            if (methodCard) methodCard.classList.add('active');
+
+            // Update Forms UI (Show relevant input form)
+            document.querySelectorAll('.method-form').forEach(el => el.classList.remove('active'));
+
+            // Special handling for methods that might share forms or have specific IDs
+            const methodForm = document.getElementById('form-' + method);
+            if (methodForm) {
+                methodForm.classList.add('active');
+            } else {
+                console.warn('Form not found for method:', method);
+            }
+        }
+
+        // Load Order Summary
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const plan = urlParams.get('plan');
+            const type = urlParams.get('type');
+
+            let booking = null;
+            let currency = LocalizationManager.countries[LocalizationManager.currentCountry].currency;
+
+            if (plan && type === 'owner') {
+                // Handle SaaS Subscription
+                let price = 0;
+                let title = '';
+
+                if (plan === 'basic') { price = 299; title = 'باقة أساسية (شهري)'; }
+                else if (plan === 'pro') { price = 599; title = 'باقة متقدمة (شهري)'; }
+                else if (plan === 'enterprise') { price = 999; title = 'باقة مؤسسات (شهري)'; }
+                else if (plan === 'gold') { price = 299; title = 'باقة ذهبية (شهري)'; }
+                else if (plan === 'premium') { price = 599; title = 'باقة بريميوم (شهري)'; }
+
+                // Convert price based on currency
+                price = Math.round(price * LocalizationManager.countries[LocalizationManager.currentCountry].exchangeRate);
+
+                booking = {
+                    itemTitle: `اشتراك إيجاري - ${title}`,
+                    price: price,
+                    totalCost: price,
+                    serviceFee: 0,
+                    isSubscription: true,
+                    image: 'images/logo-placeholder.png' // Placeholder for subscription
+                };
+            } else {
+                // Try to get booking from localStorage
+                booking = JSON.parse(localStorage.getItem('currentBooking'));
+            }
+
+            // Fallback for testing if no booking exists
+            if (!booking) {
+                console.warn('No booking found, using mock data for testing');
+                booking = {
+                    itemTitle: 'حجز تجريبي (للاختبار)',
+                    price: 5000,
+                    totalCost: 5250,
+                    serviceFee: 250,
+                    image: 'images/home1.jpg'
+                };
+            }
+
+            if (booking) {
+                document.getElementById('summary-title').textContent = booking.itemTitle || 'غير محدد';
+                document.getElementById('summary-price').textContent = (parseInt(booking.price) || 0).toLocaleString() + ' ' + currency;
+
+                // Calculate fees if not present
+                const fees = booking.serviceFee || Math.round((booking.totalCost - booking.price) || 0);
+                document.getElementById('summary-fees').textContent = fees.toLocaleString() + ' ' + currency;
+
+                document.getElementById('summary-total').textContent = (parseInt(booking.totalCost) || 0).toLocaleString() + ' ' + currency;
+                document.getElementById('pay-amount').textContent = '(' + (parseInt(booking.totalCost) || 0).toLocaleString() + ' ' + currency + ')';
+
+                // Set image if available
+                if (booking.image) {
+                    document.getElementById('order-image').src = booking.image;
+                }
+            }
+        });
+
+
+        function handlePayment(event) {
+            event.preventDefault();
+
+            const btn = document.querySelector('.btn-pay');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري المعالجة...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                // 1. Get Current Booking
+                let currentBooking = JSON.parse(localStorage.getItem('currentBooking'));
+                let currentUser = JSON.parse(localStorage.getItem('ejari_user')) || { id: 1, name: 'أحمد محمد', role: 'tenant' }; // Fallback
+
+                if (!currentBooking) {
+                    currentBooking = {
+                        id: Date.now(),
+                        itemTitle: 'حجز تجريبي',
+                        totalCost: 5250,
+                        startDate: new Date().toISOString(),
+                        duration: 1,
+                        durationUnit: 'months',
+                        type: 'property',
+                        location: 'القاهرة',
+                        ownerId: 2 // Default Owner ID for testing
+                    };
+                }
+
+                // 2. Finalize Booking Data
+                currentBooking.status = 'active';
+                currentBooking.paymentStatus = 'paid';
+                currentBooking.paymentMethod = currentMethod;
+                currentBooking.paymentDate = new Date().toISOString();
+                currentBooking.userId = currentUser.id;
+
+                // 3. Save to Permanent Storage
+                const allBookings = JSON.parse(localStorage.getItem('ejari_bookings')) || [];
+                allBookings.push(currentBooking);
+                localStorage.setItem('ejari_bookings', JSON.stringify(allBookings));
+
+                // --- BONUS POINTS LOGIC ---
+                const users = JSON.parse(localStorage.getItem('ejari_users')) || [];
+
+                // A. Add Points to Tenant (Current User)
+                const tenantPoints = 100;
+                currentUser.points = (currentUser.points || 0) + tenantPoints;
+                if (!currentUser.pointsHistory) currentUser.pointsHistory = [];
+                currentUser.pointsHistory.unshift({
+                    amount: tenantPoints,
+                    description: `مكافأة حجز: ${currentBooking.itemTitle}`,
+                    date: new Date().toISOString(),
+                    type: 'earn'
+                });
+                localStorage.setItem('ejari_user', JSON.stringify(currentUser)); // Update session
+
+                // Update Tenant in Users Array
+                const tenantIndex = users.findIndex(u => u.id === currentUser.id);
+                if (tenantIndex !== -1) {
+                    users[tenantIndex] = currentUser;
+                }
+
+                // B. Add Points to Owner
+                // Try to find owner ID from booking or property
+                let ownerId = currentBooking.ownerId;
+                if (!ownerId) {
+                    // Try to find property to get owner
+                    const properties = JSON.parse(localStorage.getItem('ejari_properties')) || [];
+                    const prop = properties.find(p => p.title === currentBooking.itemTitle);
+                    if (prop) ownerId = prop.ownerId;
+                }
+
+                if (ownerId) {
+                    const ownerIndex = users.findIndex(u => u.id === ownerId);
+                    if (ownerIndex !== -1) {
+                        const owner = users[ownerIndex];
+                        const ownerPoints = 100;
+                        owner.points = (owner.points || 0) + ownerPoints;
+                        if (!owner.pointsHistory) owner.pointsHistory = [];
+                        owner.pointsHistory.unshift({
+                            amount: ownerPoints,
+                            description: `مكافأة حجز جديد: ${currentBooking.itemTitle}`,
+                            date: new Date().toISOString(),
+                            type: 'earn'
+                        });
+                        users[ownerIndex] = owner;
+                    }
+                }
+
+                // Save updated users
+                localStorage.setItem('ejari_users', JSON.stringify(users));
+                // --------------------------
+
+                // 4. Clear Temp Data
+                localStorage.removeItem('currentBooking');
+
+                // 5. Redirect
+                window.location.href = 'success.html';
+            }, 2000);
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+    </script>
+</body>
+
+</html>

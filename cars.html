@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأجير سيارات - إيجاري</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/business-pitch.css">
+    <link rel="stylesheet" href="css/localization.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .cars-hero {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('images/car-hero.jpg') center/cover;
+            padding: 6rem 0;
+            color: white;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .cars-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .cars-hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .filters-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: -4rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .property-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .property-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-img {
+            height: 250px;
+            position: relative;
+        }
+
+        .card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .card-price-tag {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 5px 15px;
+            border-radius: 8px;
+            font-weight: 700;
+            color: #2c3e50;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-features {
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+            padding: 1rem 0;
+            border-top: 1px solid #f3f4f6;
+            border-bottom: 1px solid #f3f4f6;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-book {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-details {
+            flex: 1;
+            background: white;
+            color: #667eea;
+            border: 1px solid #667eea;
+            padding: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-book:hover {
+            opacity: 0.9;
+        }
+
+        .btn-details:hover {
+            background: #f3f4f6;
+        }
+
+        @media (max-width: 768px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">إيجاري</a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="properties.html">عقارات</a></li>
+                <li><a href="cars.html" class="active">سيارات</a></li>
+                <li><a href="services.html">الخدمات</a></li>
+                <li><a href="contact.html">تواصل معنا</a></li>
+            </ul>
+            <!-- Settings (Country & Language) -->
+            <div class="settings-container">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+            <div class="auth-buttons">
+                <button class="btn btn-outline" onclick="location.href='login.html'">تسجيل دخول</button>
+                <button class="btn btn-primary" onclick="location.href='signup.html'">إنشاء حساب</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="cars-hero">
+        <div class="container">
+            <h1>انطلق بحرية مع إيجاري</h1>
+            <p>أفخم السيارات بأفضل الأسعار، تجربة قيادة لا تُنسى</p>
+        </div>
+    </section>
+
+    <!-- Search & Filter -->
+    <div class="container">
+        <div class="filters-container">
+            <div class="search-grid">
+                <div class="filter-group">
+                    <input type="text" placeholder="ابحث عن نوع السيارة...">
+                </div>
+                <div class="filter-group">
+                    <select>
+                        <option value="">الفئة</option>
+                        <option>سيدان</option>
+                        <option>دفع رباعي</option>
+                        <option>رياضية</option>
+                        <option>فاخرة</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <select>
+                        <option value="">السعر اليومي</option>
+                        <option>أقل من 1,000</option>
+                        <option>1,000 - 3,000</option>
+                        <option>3,000 - 5,000</option>
+                        <option>أكثر من 5,000</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <select>
+                        <option value="">سنة الصنع</option>
+                        <option>2024</option>
+                        <option>2023</option>
+                        <option>2022</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" style="height: 100%;">
+                    <i class="fas fa-search"></i> بحث
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cars Grid -->
+    <section class="properties-section section-padding">
+        <div class="container">
+            <div class="section-header"
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2>أحدث السيارات المضافة</h2>
+                <div class="view-options">
+                    <span style="color: #6b7280;">عرض 1-12 من 45 سيارة</span>
+                </div>
+            </div>
+
+            <div class="properties-grid"
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;">
+
+                <!-- Car Card 1 -->
+                <div class="property-card">
+                    <div class="card-img">
+                        <img src="images/car.jpg" alt="تويوتا كورولا">
+                        <span class="card-badge">مميز</span>
+                        <div class="card-price-tag"><span class="price-amount" data-price="96">1,200</span> ج.م/يوم
+                        </div>
+                        <button class="favorite-btn"
+                            style="position: absolute; top: 15px; left: 15px; background: white; border: none; padding: 8px; border-radius: 50%; cursor: pointer;">
+                            <i class="far fa-heart" style="color: #ef4444;"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <h3 style="margin-bottom: 0.5rem;">تويوتا كورولا 2024</h3>
+                        <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">
+                            <i class="fas fa-map-marker-alt"></i> مدينة نصر، القاهرة
+                        </p>
+                        <div class="card-features">
+                            <div class="feature"><i class="fas fa-cog"></i> أوتوماتيك</div>
+                            <div class="feature"><i class="fas fa-gas-pump"></i> بنزين</div>
+                            <div class="feature"><i class="fas fa-users"></i> 5 ركاب</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-book"
+                                onclick="openBookingModal('تويوتا كورولا 2024', 1200, 'images/car.jpg', 'car')">حجز
+                                الآن</button>
+                            <button class="btn-details"
+                                onclick="window.location.href='car-details.html'">التفاصيل</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Car Card 2 -->
+                <div class="property-card">
+                    <div class="card-img">
+                        <img src="images/carc200.jpg" alt="مرسيدس">
+                        <span class="card-badge" style="background: #10b981;">جديد</span>
+                        <div class="card-price-tag"><span class="price-amount" data-price="400">5,000</span> ج.م/يوم
+                        </div>
+                        <button class="favorite-btn"
+                            style="position: absolute; top: 15px; left: 15px; background: white; border: none; padding: 8px; border-radius: 50%; cursor: pointer;">
+                            <i class="far fa-heart" style="color: #ef4444;"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <h3 style="margin-bottom: 0.5rem;">مرسيدس C200 2024</h3>
+                        <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">
+                            <i class="fas fa-map-marker-alt"></i> الشيخ زايد، الجيزة
+                        </p>
+                        <div class="card-features">
+                            <div class="feature"><i class="fas fa-cog"></i> أوتوماتيك</div>
+                            <div class="feature"><i class="fas fa-star"></i> فاخرة</div>
+                            <div class="feature"><i class="fas fa-users"></i> 4 ركاب</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-book"
+                                onclick="openBookingModal('مرسيدس C200 2024', 5000, 'images/carc200.jpg', 'car')">حجز
+                                الآن</button>
+                            <button class="btn-details"
+                                onclick="window.location.href='car-details.html'">التفاصيل</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Car Card 3 -->
+                <div class="property-card">
+                    <div class="card-img">
+                        <img src="images/car01.jpeg" alt="هيونداي توسان">
+                        <div class="card-price-tag"><span class="price-amount" data-price="200">2,500</span> ج.م/يوم
+                        </div>
+                        <button class="favorite-btn"
+                            style="position: absolute; top: 15px; left: 15px; background: white; border: none; padding: 8px; border-radius: 50%; cursor: pointer;">
+                            <i class="far fa-heart" style="color: #ef4444;"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <h3 style="margin-bottom: 0.5rem;">هيونداي توسان 2023</h3>
+                        <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">
+                            <i class="fas fa-map-marker-alt"></i> المعادي، القاهرة
+                        </p>
+                        <div class="card-features">
+                            <div class="feature"><i class="fas fa-cog"></i> أوتوماتيك</div>
+                            <div class="feature"><i class="fas fa-mountain"></i> SUV</div>
+                            <div class="feature"><i class="fas fa-users"></i> 5 ركاب</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-book"
+                                onclick="openBookingModal('هيونداي توسان 2023', 2500, 'images/car01.jpeg', 'car')">حجز
+                                الآن</button>
+                            <button class="btn-details"
+                                onclick="window.location.href='car-details.html'">التفاصيل</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Car Card 4 -->
+                <div class="property-card">
+                    <div class="card-img">
+                        <img src="images/car02.png" alt="كيا سبورتاج">
+                        <div class="card-price-tag"><span class="price-amount" data-price="224">2,800</span> ج.م/يوم
+                        </div>
+                        <button class="favorite-btn"
+                            style="position: absolute; top: 15px; left: 15px; background: white; border: none; padding: 8px; border-radius: 50%; cursor: pointer;">
+                            <i class="far fa-heart" style="color: #ef4444;"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <h3 style="margin-bottom: 0.5rem;">كيا سبورتاج 2024</h3>
+                        <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">
+                            <i class="fas fa-map-marker-alt"></i> التجمع الخامس، القاهرة
+                        </p>
+                        <div class="card-features">
+                            <div class="feature"><i class="fas fa-cog"></i> أوتوماتيك</div>
+                            <div class="feature"><i class="fas fa-mountain"></i> SUV</div>
+                            <div class="feature"><i class="fas fa-users"></i> 5 ركاب</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-book"
+                                onclick="openBookingModal('كيا سبورتاج 2024', 2800, 'images/car02.png', 'car')">حجز
+                                الآن</button>
+                            <button class="btn-details"
+                                onclick="window.location.href='car-details.html'">التفاصيل</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>إيجاري</h3>
+                    <p>منصتك المتكاملة لتأجير العقارات والسيارات</p>
+                </div>
+                <div class="footer-section">
+                    <h3>روابط سريعة</h3>
+                    <ul>
+                        <li><a href="#">عن الموقع</a></li>
+                        <li><a href="#">الشروط والأحكام</a></li>
+                        <li><a href="#">سياسة الخصوصية</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>تواصل معنا</h3>
+                    <ul>
+                        <li>info@ejari.com</li>
+                        <li>+20 123 456 789</li>
+                        <li>القاهرة، مصر</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>جميع الحقوق محفوظة © 2024 إيجاري</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Booking Modal (Hidden by default) -->
+    <div class="booking-modal" id="bookingModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div class="booking-card"
+            style="background: white; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+            <div class="booking-card-header"
+                style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: #2c3e50; font-size: 1.25rem;">حجز المركبة</h3>
+                <button class="close-btn" onclick="closeBookingModal()"
+                    style="background: none; border: none; color: #6b7280; cursor: pointer; padding: 0.5rem; border-radius: 50%; font-size: 1.5rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="booking-card-content" style="padding: 1.5rem;">
+                <div class="property-summary"
+                    style="display: flex; gap: 1rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e5e7eb; margin-bottom: 1.5rem;">
+                    <img src="" alt="المركبة"
+                        style="width: 100px; height: 100px; border-radius: 8px; object-fit: cover;">
+                    <div class="property-info">
+                        <h4 style="margin: 0 0 0.5rem 0; color: #2c3e50;"></h4>
+                        <p class="location"
+                            style="color: #6b7280; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.875rem;">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span class="location-text">القاهرة</span>
+                        </p>
+                        <div class="base-price" style="color: #667eea; font-weight: 600; font-size: 1.125rem;">
+                            <span class="price price-amount" data-price="0"></span>
+                            <span class="currency">ج.م</span>
+                            <span class="period">/يوم</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="duration-selector">
+                    <h4 style="color: #2c3e50; margin: 0 0 1rem 0; font-size: 1rem;">اختر مدة الإيجار</h4>
+                    <div class="duration-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                        <button class="duration-tab active" data-unit="days"
+                            style="flex: 1; padding: 0.75rem; border: 1px solid #667eea; border-radius: 6px; background: #667eea; color: white; cursor: pointer; transition: all 0.3s ease; font-size: 0.875rem;">أيام</button>
+                        <button class="duration-tab" data-unit="weeks"
+                            style="flex: 1; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; background: white; color: #6b7280; cursor: pointer; transition: all 0.3s ease; font-size: 0.875rem;">أسابيع</button>
+                        <button class="duration-tab" data-unit="months"
+                            style="flex: 1; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; background: white; color: #6b7280; cursor: pointer; transition: all 0.3s ease; font-size: 0.875rem;">شهور</button>
+                    </div>
+
+                    <div class="duration-input"
+                        style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="number-input"
+                            style="display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 6px; overflow: hidden;">
+                            <button class="decrease" onclick="decreaseDuration()"
+                                style="padding: 0.5rem 1rem; border: none; background: #f3f4f6; color: #6b7280; cursor: pointer;">-</button>
+                            <input type="number" id="durationValue" value="1" min="1" onchange="calculateTotal()"
+                                style="width: 60px; text-align: center; border: none; padding: 0.5rem; font-size: 1rem; color: #2c3e50;">
+                            <button class="increase" onclick="increaseDuration()"
+                                style="padding: 0.5rem 1rem; border: none; background: #f3f4f6; color: #6b7280; cursor: pointer;">+</button>
+                        </div>
+                        <span class="duration-label" id="durationLabel">يوم</span>
+                    </div>
+                </div>
+
+                <div class="cost-breakdown"
+                    style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0;">
+                    <h4 style="color: #2c3e50; margin: 0 0 1rem 0; font-size: 1rem;">تفاصيل التكلفة</h4>
+                    <div class="cost-item"
+                        style="display: flex; justify-content: space-between; margin-bottom: 1rem; color: #6b7280;">
+                        <span>قيمة الإيجار</span>
+                        <span id="rentCost"><span class="price-amount" data-price="0">0</span> ج.م</span>
+                    </div>
+                    <div class="cost-item"
+                        style="display: flex; justify-content: space-between; margin-bottom: 1rem; color: #6b7280;">
+                        <span>تأمين</span>
+                        <span id="insurance"><span class="price-amount" data-price="0">0</span> ج.م</span>
+                    </div>
+                    <div class="cost-item"
+                        style="display: flex; justify-content: space-between; margin-bottom: 1rem; color: #6b7280;">
+                        <span>رسوم الخدمة</span>
+                        <span id="serviceFee"><span class="price-amount" data-price="0">0</span> ج.م</span>
+                    </div>
+                    <div class="cost-total"
+                        style="display: flex; justify-content: space-between; padding-top: 1rem; border-top: 1px solid #d1d5db; font-weight: 600; color: #2c3e50;">
+                        <span>الإجمالي</span>
+                        <span id="totalCost"><span class="price-amount" data-price="0">0</span> ج.م</span>
+                    </div>
+                </div>
+
+                <div class="start-date">
+                    <h4 style="color: #2c3e50; margin: 0 0 1rem 0; font-size: 1rem;">تاريخ الاستلام</h4>
+                    <input type="date" id="startDate" onchange="updateEndDate()"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; color: #2c3e50; margin-bottom: 1rem;">
+                </div>
+
+                <div class="duration-preview"
+                    style="background: #f9fafb; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <div class="date-range" style="display: flex; justify-content: space-between;">
+                        <div class="range-item">
+                            <span class="label" style="color: #6b7280; font-size: 0.875rem;">من</span>
+                            <span class="value" id="startDatePreview"
+                                style="display: block; color: #2c3e50; font-weight: 500; margin-top: 0.25rem;">-</span>
+                        </div>
+                        <div class="range-item">
+                            <span class="label" style="color: #6b7280; font-size: 0.875rem;">إلى</span>
+                            <span class="value" id="endDatePreview"
+                                style="display: block; color: #2c3e50; font-weight: 500; margin-top: 0.25rem;">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="BookingManager.confirmBooking()"
+                    style="width: 100%; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 500; cursor: pointer; background: #667eea; color: white; border: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 1rem;">
+                    <i class="fas fa-check"></i>
+                    متابعة الحجز
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <!-- Scripts -->
+    <script src="js/enhanced.js"></script>
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+    <script src="js/bookingModal.js"></script>
+    <script src="js/car-flow.js"></script>
+    <script>
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+    </script>
+</body>
+
+</html>

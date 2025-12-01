@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شركاء النجاح ونظام MLS - إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/business-pitch.css">
+    <link rel="stylesheet" href="css/localization.css">
+    <style>
+        .partners-hero {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            padding: 6rem 0;
+            color: white;
+            text-align: center;
+            position: relative;
+        }
+
+        .partners-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(to right, #fff, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .mls-section {
+            padding: 5rem 0;
+            background: white;
+        }
+
+        .mls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .mls-content h2 {
+            font-size: 2.5rem;
+            color: #1e1b4b;
+            margin-bottom: 1.5rem;
+        }
+
+        .mls-content p {
+            font-size: 1.1rem;
+            color: #4b5563;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: #e0e7ff;
+            color: #4338ca;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .feature-text h4 {
+            margin: 0 0 0.5rem 0;
+            color: #1e1b4b;
+        }
+
+        .feature-text p {
+            margin: 0;
+            font-size: 0.95rem;
+            color: #6b7280;
+        }
+
+        .map-visual {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 2rem;
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed #cbd5e1;
+        }
+
+        .map-visual i {
+            font-size: 10rem;
+            color: #e2e8f0;
+        }
+
+        .region-badge {
+            position: absolute;
+            background: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-weight: 600;
+            color: #4338ca;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .partnership-models {
+            padding: 5rem 0;
+            background: #f8fafc;
+        }
+
+        .model-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .model-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .model-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            margin: 0 auto 1.5rem;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+            padding: 4rem 0;
+            text-align: center;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .mls-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">إيجاري</a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="services.html">الخدمات</a></li>
+                <li><a href="partners.html" class="active">شركاء النجاح</a></li>
+            </ul>
+            <!-- Settings (Country & Language) -->
+            <div class="settings-container">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+            <div class="auth-buttons">
+                <button class="btn btn-outline" onclick="location.href='login.html'">تسجيل دخول</button>
+                <button class="btn btn-primary" onclick="location.href='signup.html'">إنشاء حساب</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="partners-hero">
+        <div class="container">
+            <h1>نظام عقاري رقمي متكامل (MLS)</h1>
+            <p style="font-size: 1.2rem; opacity: 0.9; max-width: 700px; margin: 0 auto;">
+                نبني البنية التحتية الرقمية لمستقبل العقارات في الشرق الأوسط وشمال أفريقيا.
+                نظام موحد، بيانات شفافة، وفرص نمو لا محدودة.
+            </p>
+        </div>
+    </section>
+
+    <!-- MLS Vision -->
+    <section class="mls-section">
+        <div class="container">
+            <div class="mls-grid">
+                <div class="mls-content">
+                    <h2>لماذا نظام MLS من إيجاري؟</h2>
+                    <p>
+                        نقدم أول نظام لخدمات القوائم المتعددة (MLS) مصمم خصيصاً للسوق العربي، يحل مشاكل تشتت البيانات،
+                        انعدام الشفافية، وصعوبة الوصول للمعلومات الموثقة.
+                    </p>
+                    <ul class="feature-list">
+                        <li>
+                            <div class="feature-icon"><i class="fas fa-database"></i></div>
+                            <div class="feature-text">
+                                <h4>قاعدة بيانات مركزية موحدة</h4>
+                                <p>نربط جميع الوسطاء والمنصات في شبكة واحدة لتبادل البيانات العقارية بدقة ولحظية.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="feature-icon"><i class="fas fa-globe-africa"></i></div>
+                            <div class="feature-text">
+                                <h4>توسع إقليمي سهل</h4>
+                                <p>بنية تحتية جاهزة للتوسع في دول الخليج وشمال أفريقيا مع مراعاة القوانين المحلية لكل
+                                    دولة.</p>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                            <div class="feature-text">
+                                <h4>شفافية وتحليلات سوقية</h4>
+                                <p>بيانات حقيقية عن الأسعار واتجاهات السوق تساعد المستثمرين والمطورين على اتخاذ قرارات
+                                    صائبة.</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="map-visual">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <div class="region-badge" style="top: 20%; right: 20%;">
+                        <img src="https://flagcdn.com/w20/sa.png" alt="SA"> السعودية
+                    </div>
+                    <div class="region-badge" style="top: 40%; left: 20%;">
+                        <img src="https://flagcdn.com/w20/eg.png" alt="EG"> مصر
+                    </div>
+                    <div class="region-badge" style="bottom: 30%; right: 30%;">
+                        <img src="https://flagcdn.com/w20/ae.png" alt="AE"> الإمارات
+                    </div>
+                    <div class="region-badge" style="bottom: 20%; left: 10%;">
+                        <img src="https://flagcdn.com/w20/ma.png" alt="MA"> المغرب
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Partnership Models -->
+    <section class="partnership-models">
+        <div class="container">
+            <h2 style="text-align: center; margin-bottom: 3rem; color: #1e1b4b;">نماذج الشراكة المتاحة</h2>
+            <div class="services-grid">
+                <div class="model-card">
+                    <div class="model-icon"><i class="fas fa-handshake"></i></div>
+                    <h3>شركات الوساطة العقارية</h3>
+                    <p>اربط نظامك بنظامنا (API Integration) واعرض عقاراتك للملايين مقابل اشتراك شهري أو عمولة.</p>
+                </div>
+                <div class="model-card">
+                    <div class="model-icon"><i class="fas fa-tools"></i></div>
+                    <h3>مقدمي الخدمات</h3>
+                    <p>شركات الصيانة، النقل، والتنظيف. انضم لشبكة مزودي الخدمة المعتمدين بنظام مشاركة الأرباح.</p>
+                </div>
+                <div class="model-card">
+                    <div class="model-icon"><i class="fas fa-laptop-code"></i></div>
+                    <h3>المنصات المحلية</h3>
+                    <p>للمنصات في الدول الأخرى: استخدم تقنيتنا (White Label) لإطلاق منصتك العقارية في بلدك فوراً.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>هل أنت مستعد لتكون جزءاً من المستقبل؟</h2>
+            <p style="margin-bottom: 2rem; opacity: 0.9;">انضم لشبكة شركاء إيجاري وابدأ في توسيع نطاق أعمالك اليوم.</p>
+            <button class="btn btn-primary"
+                style="background: white; color: #4338ca; padding: 1rem 2rem; font-size: 1.1rem;">تواصل مع فريق
+                الشراكات</button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>إيجاري</h3>
+                    <p>نظام MLS الأول في المنطقة</p>
+                </div>
+                <div class="footer-section">
+                    <h3>روابط</h3>
+                    <ul>
+                        <li><a href="#">عن النظام</a></li>
+                        <li><a href="#">API Docs</a></li>
+                        <li><a href="#">بوابة الشركاء</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>تواصل للأعمال</h3>
+                    <ul>
+                        <li>partners@ejari.com</li>
+                        <li>+20 100 000 0000</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>جميع الحقوق محفوظة © 2024 إيجاري</p>
+            </div>
+        </div>
+    </footer>
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+    <script>
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+    </script>
+</body>
+
+</html>

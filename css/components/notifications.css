@@ -1,0 +1,176 @@
+/* notifications.css */
+
+/* النظام العام للإشعارات */
+.notification {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100%);
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1100;
+    transition: transform 0.3s ease;
+    direction: rtl;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-width: 300px;
+}
+
+.notification.show {
+    transform: translateX(-50%) translateY(0);
+}
+
+/* أنواع الإشعارات */
+.notification.success {
+    background: #10b981;
+    color: white;
+}
+
+.notification.warning {
+    background: #f59e0b;
+    color: white;
+}
+
+.notification.error {
+    background: #ef4444;
+    color: white;
+}
+
+.notification.info {
+    background: #3b82f6;
+    color: white;
+}
+
+/* أيقونات الإشعارات */
+.notification-icon {
+    font-size: 1.25rem;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* محتوى الإشعار */
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: 600;
+    margin: 0;
+}
+
+.notification-message {
+    margin: 0.25rem 0 0;
+    opacity: 0.9;
+}
+
+/* زر الإغلاق */
+.notification-close {
+    background: none;
+    border: none;
+    color: currentColor;
+    opacity: 0.7;
+    cursor: pointer;
+    padding: 0.25rem;
+    transition: opacity 0.2s;
+}
+
+.notification-close:hover {
+    opacity: 1;
+}
+
+/* قائمة الإشعارات في القائمة المنسدلة */
+.notifications-dropdown {
+    position: relative;
+}
+
+.notifications-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 360px;
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-height: 480px;
+    overflow-y: auto;
+    z-index: 100;
+    display: none;
+}
+
+.notifications-dropdown.active .notifications-list {
+    display: block;
+}
+
+.notifications-header {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.notifications-header h3 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.notification-item {
+    padding: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    transition: background-color 0.2s;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item:hover {
+    background-color: #f8fafc;
+}
+
+.notification-item.unread {
+    background-color: #f0f9ff;
+}
+
+.notification-item .time {
+    font-size: 0.875rem;
+    color: #64748b;
+}
+
+/* شارة عدد الإشعارات */
+.badge {
+    background: #ef4444;
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* التصميم المتجاوب */
+@media (max-width: 640px) {
+    .notifications-list {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+    
+    .notification {
+        width: 90%;
+        min-width: auto;
+    }
+}

@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المالك - إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #10b981;
+            /* Green for Owners */
+            --primary-dark: #059669;
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Cairo', sans-serif;
+            color: var(--text);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            padding: 2rem;
+            z-index: 1000;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-profile {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .user-avatar img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #ecfdf5;
+            margin-bottom: 1rem;
+            object-fit: cover;
+        }
+
+        .user-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-role {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.85rem 1rem;
+            color: #64748b;
+            text-decoration: none;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: #ecfdf5;
+            color: var(--primary);
+        }
+
+        .nav-item i {
+            margin-left: 1rem;
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-right: var(--sidebar-width);
+            padding: 2.5rem;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-top: 0.5rem;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        /* Views */
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Tables & Lists */
+        .card-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .property-row {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.2s;
+        }
+
+        .property-row:hover {
+            background: #f8fafc;
+        }
+
+        .property-row:last-child {
+            border-bottom: none;
+        }
+
+        .prop-img {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            margin-left: 1rem;
+        }
+
+        .prop-info {
+            flex: 1;
+        }
+
+        .prop-info h4 {
+            margin: 0 0 0.25rem 0;
+        }
+
+        .prop-info p {
+            margin: 0;
+            color: #94a3b8;
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-badge.active {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-badge.rented {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+
+        /* Wallet Section */
+        .wallet-card {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .wallet-balance h3 {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .wallet-balance .amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+        }
+
+        .payment-methods {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .method-card {
+            border: 1px solid #e2e8f0;
+            padding: 1rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .file-upload {
+            border: 2px dashed #cbd5e1;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .file-upload:hover {
+            border-color: var(--primary);
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+                padding: 1rem;
+            }
+
+            .user-profile,
+            .nav-item span {
+                display: none;
+            }
+
+            .nav-item {
+                justify-content: center;
+            }
+
+            .nav-item i {
+                margin: 0;
+                font-size: 1.25rem;
+            }
+
+            .main-content {
+                margin-right: 80px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="user-profile">
+            <div class="user-avatar">
+                <img src="images/owner-avatar.jpg" alt="User">
+            </div>
+            <h3 class="user-name">...</h3>
+            <p class="user-role">شريك عقاري</p>
+        </div>
+
+        <nav>
+            <div class="nav-item active" onclick="switchView('dashboard', this)">
+                <i class="fas fa-chart-pie"></i>
+                <span>نظرة عامة</span>
+            </div>
+            <div class="nav-item" onclick="switchView('properties', this)">
+                <i class="fas fa-building"></i>
+                <span>عقاراتي</span>
+            </div>
+            <div class="nav-item" onclick="switchView('tenants', this)">
+                <i class="fas fa-users"></i>
+                <span>المستأجرين</span>
+            </div>
+            <div class="nav-item" onclick="switchView('contracts', this)">
+                <i class="fas fa-file-contract"></i>
+                <span>العقود</span>
+            </div>
+            <div class="nav-item" onclick="switchView('wallet', this)">
+                <i class="fas fa-wallet"></i>
+                <span>المحفظة</span>
+            </div>
+            <div class="nav-item" onclick="switchView('rewards', this)">
+                <i class="fas fa-gift"></i>
+                <span>المكافآت</span>
+            </div>
+            <div class="nav-item logout-btn" style="margin-top: auto; color: #ef4444;">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>خروج</span>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="header">
+            <div>
+                <h1 id="page-title">نظرة عامة</h1>
+                <p style="color: #64748b;">إدارة استثماراتك العقارية</p>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button id="verify-btn" class="btn-primary" style="background: #f59e0b; display: none;"
+                    onclick="openVerificationModal()">
+                    <i class="fas fa-shield-alt"></i> توثيق الحساب
+                </button>
+                <div class="points-badge"
+                    style="background: linear-gradient(135deg, #ffd700 0%, #fdb931 100%); padding: 0.5rem 1rem; border-radius: 20px; color: #744210; font-weight: bold; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <i class="fas fa-star"></i>
+                    <span id="header-points">0</span> نقطة
+                </div>
+                <button class="btn-primary" onclick="openAddPropertyModal()">
+                    <i class="fas fa-plus"></i> إضافة عقار
+                </button>
+            </div>
+        </div>
+
+        <!-- Verification Alert Banner -->
+        <div id="verification-alert"
+            style="background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; padding: 1rem; border-radius: 12px; margin-bottom: 2rem; display: none; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem;"></i>
+                <div>
+                    <strong>حسابك غير موثق!</strong>
+                    <p style="margin: 0; font-size: 0.9rem;">يرجى استكمال بياناتك وتوثيق حسابك لتتمكن من استقبال
+                        الحجوزات وسحب الأرباح.</p>
+                </div>
+            </div>
+            <button onclick="openVerificationModal()"
+                style="background: #92400e; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">توثيق
+                الآن</button>
+        </div>
+
+        <!-- OVERVIEW VIEW -->
+        <div id="view-dashboard" class="view-section active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">إجمالي الدخل (شهري)</div>
+                    <div class="stat-value" id="owner-income">0 ج.م</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">نقاط المكافآت</div>
+                    <div class="stat-value" id="stat-points" style="color: #d97706;">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">طلبات المعاينة</div>
+                    <div class="stat-value">5</div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 1rem;">آخر العقارات المضافة</h3>
+            <div class="card-container" id="recent-properties-list">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- PROPERTIES VIEW -->
+        <div id="view-properties" class="view-section">
+            <div class="card-container" id="owner-properties-list">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- TENANTS VIEW -->
+        <div id="view-tenants" class="view-section">
+            <div class="card-container" id="owner-tenants-list">
+                <div style="padding: 2rem; text-align: center; color: #94a3b8;">
+                    <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <h3>لا يوجد مستأجرين حالياً</h3>
+                    <p>سيظهر المستأجرون هنا بمجرد إتمام أول عملية حجز.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTRACTS VIEW -->
+        <div id="view-contracts" class="view-section">
+            <div class="card-container" id="owner-contracts-list">
+                <div style="padding: 2rem; text-align: center; color: #94a3b8;">
+                    <i class="fas fa-file-signature" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <h3>سجل العقود</h3>
+                    <p>جميع العقود الإلكترونية الموثقة ستظهر هنا.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- WALLET VIEW -->
+        <div id="view-wallet" class="view-section">
+            <div class="wallet-card">
+                <div class="wallet-balance">
+                    <h3>الرصيد القابل للسحب</h3>
+                    <div class="amount" id="wallet-balance">0.00 ج.م</div>
+                </div>
+                <button class="btn-primary" style="background: white; color: var(--primary);"
+                    onclick="requestWithdrawal()">
+                    <i class="fas fa-money-bill-wave"></i> سحب الرصيد
+                </button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <div>
+                    <h3 style="margin-bottom: 1rem;">طرق الدفع المرتبطة</h3>
+                    <div id="linked-methods-list" class="payment-methods">
+                        <!-- Populated by JS -->
+                        <div class="method-card" style="border-style: dashed; justify-content: center; cursor: pointer;"
+                            onclick="openLinkMethodModal()">
+                            <span style="color: var(--primary); font-weight: 600;">+ ربط حساب بنكي / محفظة</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h3 style="margin-bottom: 1rem;">سجل المعاملات</h3>
+                    <div id="wallet-transactions-list" class="card-container" style="padding: 1rem;">
+                        <p style="color: #94a3b8; text-align: center;">لا توجد معاملات سابقة</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- REWARDS VIEW -->
+        <div id="view-rewards" class="view-section">
+            <div
+                style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 2rem; border-radius: 16px; margin-bottom: 2rem; text-align: center;">
+                <i class="fas fa-crown" style="font-size: 3rem; margin-bottom: 1rem; color: #ffd700;"></i>
+                <h2 style="margin-bottom: 0.5rem;">برنامج شركاء إيجاري</h2>
+                <p style="opacity: 0.9; font-size: 1.1rem;">اجمع النقاط لزيادة ظهور عقاراتك والحصول على مزايا
+                    حصرية</p>
+                <div style="font-size: 2.5rem; font-weight: 800; margin: 1.5rem 0; color: #ffd700;">
+                    <span id="rewards-points-display">0</span> نقطة
+                </div>
+                <p>قيمة النقاط الحالية: <span id="points-value">0</span> ج.م</p>
+                <button class="btn-primary"
+                    style="background: white; color: #10b981; margin: 1rem auto 0; display: block;"
+                    onclick="openRedeemPointsModal()">
+                    <i class="fas fa-exchange-alt"></i> استبدال النقاط
+                </button>
+            </div>
+
+            <h3 style="margin-bottom: 1rem;">كيف تكسب النقاط؟</h3>
+            <div class="stats-grid">
+                <div class="stat-card" style="text-align: center;">
+                    <i class="fas fa-home" style="font-size: 2rem; color: #10b981; margin-bottom: 1rem;"></i>
+                    <h4>إضافة عقار</h4>
+                    <p style="color: #64748b;">50 نقطة لكل عقار جديد</p>
+                </div>
+                <div class="stat-card" style="text-align: center;">
+                    <i class="fas fa-check-circle" style="font-size: 2rem; color: #3b82f6; margin-bottom: 1rem;"></i>
+                    <h4>تأكيد حجز</h4>
+                    <p style="color: #64748b;">100 نقطة لكل حجز مؤكد</p>
+                </div>
+                <div class="stat-card" style="text-align: center;">
+                    <i class="fas fa-star" style="font-size: 2rem; color: #eab308; margin-bottom: 1rem;"></i>
+                    <h4>تقييم عالي</h4>
+                    <p style="color: #64748b;">20 نقطة لكل تقييم 5 نجوم</p>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 1rem;">سجل النقاط</h3>
+            <div class="card-container" id="points-history-list">
+                <div style="padding: 2rem; text-align: center; color: #94a3b8;">
+                    لا يوجد سجل نقاط حتى الآن
+                </div>
+            </div>
+        </div>
+
+        <!-- SUBSCRIPTIONS VIEW -->
+        <div id="view-subscriptions" class="view-section">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <h2>اختر الباقة المناسبة لاستثماراتك</h2>
+                <p style="color: #64748b;">باقات مصممة لتلبية احتياجات جميع الشركاء العقاريين</p>
+            </div>
+
+            <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+                <!-- Basic Plan -->
+                <div class="stat-card" style="border: 1px solid #e2e8f0; position: relative;">
+                    <h3 style="margin-bottom: 0.5rem;">الباقة الأساسية</h3>
+                    <div style="font-size: 2rem; font-weight: 800; color: #1e293b; margin-bottom: 1rem;">مجاناً
+                    </div>
+                    <ul style="list-style: none; padding: 0; margin-bottom: 2rem; text-align: right;">
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check"
+                                style="color: #10b981; margin-left: 0.5rem;"></i> إضافة حتى 3 عقارات</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check"
+                                style="color: #10b981; margin-left: 0.5rem;"></i> عمولة منصة 10%</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check"
+                                style="color: #10b981; margin-left: 0.5rem;"></i> دعم فني عبر البريد</li>
+                    </ul>
+                    <button class="btn-primary" style="width: 100%; background: #e2e8f0; color: #475569;">الباقة
+                        الحالية</button>
+                </div>
+
+                <!-- Pro Plan -->
+                <div class="stat-card" style="border: 2px solid #10b981; position: relative; transform: scale(1.05);">
+                    <div style="color: #10b981; margin-left: 0.5rem;"></i> عقارات غير محدودة</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check"
+                                style="color: #10b981; margin-left: 0.5rem;"></i> عمولة منصة 2% فقط</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check"
+                                style="color: #10b981; margin-left: 0.5rem;"></i> مدير حساب خاص</li>
+                        <li style="margin-bottom: 0.5rem;"><i class="fas fa-check"
+                                style="color: #10b981; margin-left: 0.5rem;"></i> تقارير وتحليلات متقدمة</li>
+                        </ul>
+                        <button class="btn-primary" style="width: 100%; background: #1e293b;"
+                            onclick="alert('تواصل مع المبيعات لتفعيل هذه الباقة')">تواصل معنا</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROPERTIES VIEW -->
+            <div id="view-properties" class="view-section">
+                <div class="card-container" id="owner-properties-list">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- TENANTS VIEW -->
+            <div id="view-tenants" class="view-section">
+                <div class="card-container" id="owner-tenants-list">
+                    <div style="padding: 2rem; text-align: center; color: #94a3b8;">
+                        <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <h3>لا يوجد مستأجرين حالياً</h3>
+                        <p>سيظهر المستأجرون هنا بمجرد إتمام أول عملية حجز.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTRACTS VIEW -->
+            <div id="view-contracts" class="view-section">
+                <div class="card-container" id="owner-contracts-list">
+                    <div style="padding: 2rem; text-align: center; color: #94a3b8;">
+                        <i class="fas fa-file-signature"
+                            style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <h3>سجل العقود</h3>
+                        <p>جميع العقود الإلكترونية الموثقة ستظهر هنا.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WALLET VIEW -->
+            <div id="view-wallet" class="view-section">
+                <div class="wallet-card">
+                    <div class="wallet-balance">
+                        <h3>الرصيد القابل للسحب</h3>
+                        <div class="amount" id="wallet-balance">0.00 ج.م</div>
+                    </div>
+                    <button class="btn-primary" style="background: white; color: var(--primary);"
+                        onclick="requestWithdrawal()">
+                        <i class="fas fa-money-bill-wave"></i> سحب الرصيد
+                    </button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div>
+                        <h3 style="margin-bottom: 1rem;">طرق الدفع المرتبطة</h3>
+                        <div id="linked-methods-list" class="payment-methods">
+                            <!-- Populated by JS -->
+                            <div class="method-card"
+                                style="border-style: dashed; justify-content: center; cursor: pointer;"
+                                onclick="openLinkMethodModal()">
+                                <span style="color: var(--primary); font-weight: 600;">+ ربط حساب بنكي /
+                                    محفظة</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 1rem;">سجل المعاملات</h3>
+                        <div class="card-container" style="padding: 1rem;">
+                            <p style="color: #94a3b8; text-align: center;">لا توجد معاملات سابقة</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+    </main>
+
+    <!-- Add Property Modal -->
+    <div id="addPropertyModal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">إضافة عقار جديد</h2>
+                <button onclick="closeAddPropertyModal()"
+                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;"><i
+                        class="fas fa-times"></i></button>
+            </div>
+
+            <form onsubmit="submitNewProperty(event)">
+                <div class="form-group">
+                    <label>عنوان العقار *</label>
+                    <input type="text" id="p-title" placeholder="مثال: شقة 3 غرف بمدينة نصر" required>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>سعر الإيجار (شهري) *</label>
+                        <input type="number" id="p-price" placeholder="مثال: 5000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>المنطقة/المدينة *</label>
+                        <input type="text" id="p-location" placeholder="مثال: مدينة نصر، القاهرة" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>العنوان التفصيلي *</label>
+                    <textarea id="p-address" rows="2"
+                        placeholder="مثال: شارع مصطفى النحاس، برج رقم 15، الدور الخامس، شقة 503" required></textarea>
+                    <p style="font-size: 0.85rem; color: #64748b; margin-top: 0.5rem;">يرجى كتابة العنوان بالتفصيل
+                        (الشارع، رقم المبنى، الدور، رقم الشقة)</p>
+                </div>
+
+                <div class="form-group">
+                    <label>الموقع الجغرافي (GPS) - اختياري</label>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <input type="text" id="p-gps" placeholder="سيتم ملؤه تلقائياً عند الضغط على الزر" readonly
+                            style="flex: 1; background: #f8fafc;">
+                        <button type="button" onclick="getCurrentLocation()" class="btn-outline"
+                            style="white-space: nowrap; padding: 0.75rem 1rem;">
+                            <i class="fas fa-map-marker-alt"></i> تحديد موقعي
+                        </button>
+                    </div>
+                    <p style="font-size: 0.85rem; color: #64748b; margin-top: 0.5rem;">
+                        <i class="fas fa-info-circle"></i> يساعد تحديد الموقع الجغرافي المستأجرين في إيجاد العقار بسهولة
+                        على الخريطة
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <label>صور العقار (مطلوب 3 صور على الأقل) *</label>
+                    <div class="file-upload" onclick="document.getElementById('p-images').click()">
+                        <i class="fas fa-cloud-upload-alt"
+                            style="font-size: 2rem; color: #cbd5e1; margin-bottom: 0.5rem;"></i>
+                        <p>اضغط لرفع الصور</p>
+                        <input type="file" id="p-images" multiple accept="image/*" required style="display: none;"
+                            onchange="updateFileLabel(this, 'image-label')">
+                        <p id="image-label" style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem;"></p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>فيديو تفصيلي للعقار (إجباري) *</label>
+                    <div class="file-upload" onclick="document.getElementById('p-video').click()">
+                        <i class="fas fa-video" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 0.5rem;"></i>
+                        <p>اضغط لرفع جولة فيديو</p>
+                        <input type="file" id="p-video" accept="video/*" required style="display: none;"
+                            onchange="updateFileLabel(this, 'video-label')">
+                        <p id="video-label" style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem;"></p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>الوصف</label>
+                    <textarea id="p-desc" rows="3"></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary"
+                    style="width: 100%; justify-content: center; padding: 1rem;">نشر العقار</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Verification Modal -->
+    <div id="verificationModal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">توثيق الحساب</h2>
+                <button onclick="document.getElementById('verificationModal').style.display='none'"
+                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;"><i
+                        class="fas fa-times"></i></button>
+            </div>
+
+            <form onsubmit="submitVerification(event)">
+                <div class="alert"
+                    style="background: #eff6ff; padding: 1rem; border-radius: 8px; color: #1e40af; margin-bottom: 1.5rem;">
+                    <i class="fas fa-info-circle"></i> توثيق حسابك يزيد من ثقة المستأجرين ويمنحك علامة "موثق" بجانب
+                    اسمك.
+                </div>
+
+                <div class="form-group">
+                    <label>نوع الهوية</label>
+                    <select id="v-type" required>
+                        <option value="national_id">بطاقة رقم قومي</option>
+                        <option value="passport">جواز سفر</option>
+                        <option value="commercial_register">سجل تجاري (للشركات)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>رقم الهوية / السجل</label>
+                    <input type="text" id="v-number" required>
+                </div>
+
+                <div class="form-group">
+                    <label>صورة الهوية (الوجه الأمامي) *</label>
+                    <div class="file-upload" onclick="document.getElementById('v-doc-front').click()">
+                        <i class="fas fa-id-card" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 0.5rem;"></i>
+                        <p>اضغط لرفع الصورة</p>
+                        <input type="file" id="v-doc-front" accept="image/*" required style="display: none;"
+                            onchange="updateFileLabel(this, 'front-label')">
+                        <p id="front-label" style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem;"></p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>صورة الهوية (الوجه الخلفي) *</label>
+                    <div class="file-upload" onclick="document.getElementById('v-doc-back').click()">
+                        <i class="fas fa-id-card" style="font-size: 2rem; color: #cbd5e1; margin-bottom: 0.5rem;"></i>
+                        <p>اضغط لرفع الصورة</p>
+                        <input type="file" id="v-doc-back" accept="image/*" required style="display: none;"
+                            onchange="updateFileLabel(this, 'back-label')">
+                        <p id="back-label" style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem;"></p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>صورة شخصية حديثة *</label>
+                    <div class="file-upload" onclick="document.getElementById('v-doc-personal').click()">
+                        <i class="fas fa-user-circle"
+                            style="font-size: 2rem; color: #cbd5e1; margin-bottom: 0.5rem;"></i>
+                        <p>اضغط لرفع الصورة</p>
+                        <input type="file" id="v-doc-personal" accept="image/*" required style="display: none;"
+                            onchange="updateFileLabel(this, 'personal-label')">
+                        <p id="personal-label" style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem;">
+                        </p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>مستند إثبات ملكية / سجل تجاري *</label>
+                    <div class="file-upload" onclick="document.getElementById('v-doc-ownership').click()">
+                        <i class="fas fa-file-contract"
+                            style="font-size: 2rem; color: #cbd5e1; margin-bottom: 0.5rem;"></i>
+                        <p>اضغط لرفع المستند</p>
+                        <input type="file" id="v-doc-ownership" accept="image/*" required style="display: none;"
+                            onchange="updateFileLabel(this, 'ownership-label')">
+                        <p id="ownership-label" style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem;">
+                        </p>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary"
+                    style="width: 100%; justify-content: center; padding: 1rem;">إرسال للتوثيق</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Link Payment Method Modal -->
+    <div id="linkMethodModal" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <h3 style="margin-top: 0;">ربط وسيلة سحب</h3>
+            <form onsubmit="submitLinkMethod(event)">
+                <div class="form-group">
+                    <label>نوع الوسيلة</label>
+                    <select id="method-type">
+                        <option value="bank">حساب بنكي</option>
+                        <option value="wallet">محفظة إلكترونية (فودافون كاش، إلخ)</option>
+                        <option value="instapay">InstaPay</option>
+                        <option value="prepaid">كارت مسبق الدفع</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>رقم الحساب / المحفظة / العنوان</label>
+                    <input type="text" id="method-details" required placeholder="أدخل التفاصيل بدقة">
+                </div>
+                <div class="form-group">
+                    <label>الاسم بالكامل (كما في الحساب)</label>
+                    <input type="text" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">حفظ
+                    وربط</button>
+                <button type="button" onclick="document.getElementById('linkMethodModal').style.display='none'"
+                    style="width: 100%; padding: 0.75rem; border: none; background: none; cursor: pointer; margin-top: 0.5rem; color: #64748b;">إلغاء</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Property Modal -->
+    <div id="editPropertyModal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">تعديل العقار</h2>
+                <button onclick="document.getElementById('editPropertyModal').style.display='none'"
+                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;"><i
+                        class="fas fa-times"></i></button>
+            </div>
+
+            <form onsubmit="submitEditProperty(event)">
+                <input type="hidden" id="edit-p-id">
+                <div class="form-group">
+                    <label>عنوان العقار *</label>
+                    <input type="text" id="edit-p-title" required>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>سعر الإيجار (شهري) *</label>
+                        <input type="number" id="edit-p-price" required>
+                    </div>
+                    <div class="form-group">
+                        <label>المنطقة/المدينة *</label>
+                        <input type="text" id="edit-p-location" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>العنوان التفصيلي *</label>
+                    <textarea id="edit-p-address" rows="2" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>الموقع الجغرافي (GPS)</label>
+                    <input type="text" id="edit-p-gps" readonly style="background: #f8fafc;">
+                </div>
+
+                <div class="form-group">
+                    <label>حالة العقار</label>
+                    <select id="edit-p-status"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #cbd5e1; border-radius: 8px;">
+                        <option value="active">متاح للإيجار</option>
+                        <option value="rented">مؤجر حالياً</option>
+                        <option value="maintenance">تحت الصيانة</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary"
+                    style="width: 100%; justify-content: center; padding: 1rem;">حفظ التعديلات</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Redeem Points Modal -->
+    <div id="redeemPointsModal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">استبدال النقاط</h2>
+                <button onclick="document.getElementById('redeemPointsModal').style.display='none'"
+                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;"><i
+                        class="fas fa-times"></i></button>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="font-size: 2rem; font-weight: 800; color: #d97706;" id="modal-points-display">0</div>
+                <p style="color: #64748b;">رصيدك الحالي من النقاط</p>
+            </div>
+
+            <div style="display: grid; gap: 1rem;">
+                <div class="method-card" style="cursor: pointer;" onclick="redeemPoints('wallet')">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div
+                            style="width: 40px; height: 40px; background: #ecfdf5; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #10b981;">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: bold;">تحويل لرصيد المحفظة</div>
+                            <div style="font-size: 0.85rem; color: #64748b;">100 نقطة = 10 ج.م</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-left" style="color: #cbd5e1;"></i>
+                </div>
+
+                <div class="method-card" style="cursor: pointer;" onclick="redeemPoints('commission')">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div
+                            style="width: 40px; height: 40px; background: #eff6ff; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #3b82f6;">
+                            <i class="fas fa-percent"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: bold;">خصم على عمولة المنصة</div>
+                            <div style="font-size: 0.85rem; color: #64748b;">500 نقطة = خصم 50% لمدة شهر</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-left" style="color: #cbd5e1;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdrawal Modal -->
+    <div id="withdrawalModal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">سحب الرصيد</h2>
+                <button onclick="document.getElementById('withdrawalModal').style.display='none'"
+                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;"><i
+                        class="fas fa-times"></i></button>
+            </div>
+
+            <div class="form-group">
+                <label>المبلغ المراد سحبه (ج.م)</label>
+                <input type="number" id="w-amount" placeholder="أدخل المبلغ" oninput="calculateWithdrawalFees()">
+                <p style="font-size: 0.85rem; color: #64748b; margin-top: 0.5rem;">الرصيد المتاح: <span
+                        id="w-available-balance" style="font-weight: bold;">0</span> ج.م</p>
+            </div>
+
+            <div class="form-group">
+                <label>طريقة السحب</label>
+                <select id="w-method">
+                    <option value="bank">حساب بنكي (....1234)</option>
+                    <option value="wallet">محفظة إلكترونية (....0100)</option>
+                </select>
+            </div>
+
+            <div style="background: #f8fafc; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: #64748b;">المبلغ المطلوب:</span>
+                    <span style="font-weight: 600;" id="w-summary-amount">0 ج.م</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="color: #64748b;">رسوم السحب (1.55 ج.م / 1000):</span>
+                    <span style="font-weight: 600; color: #ef4444;" id="w-summary-fees">0 ج.م</span>
+                </div>
+                <div style="border-top: 1px solid #e2e8f0; margin: 0.5rem 0;"></div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="font-weight: bold;">صافي المبلغ المستلم:</span>
+                    <span style="font-weight: 800; color: #10b981;" id="w-summary-net">0 ج.م</span>
+                </div>
+            </div>
+
+            <button class="btn-primary" style="width: 100%; justify-content: center;" onclick="submitWithdrawal()">تأكيد
+                السحب</button>
+        </div>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+    <script>
+        function switchView(viewName, element) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (element) element.classList.add('active');
+
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + viewName).classList.add('active');
+
+            const titles = {
+                'dashboard': 'نظرة عامة',
+                'properties': 'إدارة العقارات',
+                'tenants': 'سجل المستأجرين',
+                'contracts': 'العقود الموثقة',
+                'wallet': 'المحفظة المالية',
+                'rewards': 'المكافآت والنقاط',
+                'subscriptions': 'باقات الاشتراك'
+            };
+            document.getElementById('page-title').textContent = titles[viewName];
+        }
+
+        function openVerificationModal() {
+            document.getElementById('verificationModal').style.display = 'flex';
+        }
+
+        function updateFileLabel(input, labelId) {
+            const label = document.getElementById(labelId);
+            if (input.files.length > 0) {
+                label.textContent = `تم اختيار ${input.files.length} ملف(ات)`;
+            }
+        }
+
+        function getCurrentLocation() {
+            const gpsInput = document.getElementById('p-gps');
+            const btn = event.target;
+
+            if (!navigator.geolocation) {
+                alert('المتصفح الخاص بك لا يدعم تحديد الموقع الجغرافي');
+                return;
+            }
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحديد...';
+            btn.disabled = true;
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude.toFixed(6);
+                    const lng = position.coords.longitude.toFixed(6);
+                    gpsInput.value = `${lat}, ${lng}`;
+                    btn.innerHTML = '<i class="fas fa-check"></i> تم التحديد';
+                    btn.style.background = '#10b981';
+                    btn.style.color = 'white';
+
+                    setTimeout(() => {
+                        btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> تحديد موقعي';
+                        btn.style.background = '';
+                        btn.style.color = '';
+                        btn.disabled = false;
+                    }, 2000);
+                },
+                (error) => {
+                    let errorMsg = 'لم نتمكن من تحديد موقعك. ';
+                    if (error.code === error.PERMISSION_DENIED) {
+                        errorMsg += 'يرجى السماح بالوصول للموقع من إعدادات المتصفح.';
+                    } else if (error.code === error.POSITION_UNAVAILABLE) {
+                        errorMsg += 'الموقع غير متاح حالياً.';
+                    } else {
+                        errorMsg += 'حدث خطأ في تحديد الموقع.';
+                    }
+                    alert(errorMsg);
+                    btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> تحديد موقعي';
+                    btn.disabled = false;
+                }
+            );
+        }
+    </script>
+</body>
+
+</html>

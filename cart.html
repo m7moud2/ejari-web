@@ -1,0 +1,283 @@
+<!-- HTML -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ملخص الطلب | إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --primary-dark: #357ABD;
+            --secondary-color: #2C3E50;
+            --success-color: #27AE60;
+            --warning-color: #F39C12;
+            --danger-color: #E74C3C;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--gray-50);
+            margin: 0;
+            padding: 1rem;
+        }
+
+        .cart-summary {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            max-width: 500px;
+            margin: 2rem auto;
+        }
+
+        .cart-summary h2 {
+            color: var(--secondary-color);
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .summary-items {
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            color: var(--gray-600);
+        }
+
+        .summary-total {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 1rem;
+            margin-top: 1rem;
+            border-top: 2px solid var(--gray-200);
+            font-weight: 600;
+            color: var(--secondary-color);
+            font-size: 1.125rem;
+        }
+
+        .promo-code {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .promo-input {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+
+        .promo-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-outline {
+            border: 1px solid var(--gray-300);
+            background: white;
+            color: var(--gray-700);
+        }
+
+        .btn-outline:hover {
+            background: var(--gray-50);
+            border-color: var(--gray-400);
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .checkout-btn {
+            width: 100%;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .checkout-btn i {
+            font-size: 1.125rem;
+        }
+
+        .promo-success {
+            border-color: var(--success-color) !important;
+            background-color: rgba(39, 174, 96, 0.1);
+        }
+
+        .promo-error {
+            border-color: var(--danger-color) !important;
+            background-color: rgba(231, 76, 60, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+
+            .cart-summary {
+                border-radius: 0;
+                margin: 0;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cart-summary">
+        <h2>ملخص الطلب</h2>
+        <div class="summary-items">
+            <div class="summary-item">
+                <span>إجمالي الحجوزات</span>
+                <span data-total="subtotal">0 ج.م</span>
+            </div>
+            <div class="summary-item">
+                <span>رسوم الخدمة</span>
+                <span data-total="service">0 ج.م</span>
+            </div>
+            <div class="summary-item">
+                <span>التأمين (10%)</span>
+                <span data-total="insurance">0 ج.م</span>
+            </div>
+            <div class="summary-total">
+                <span>الإجمالي</span>
+                <span data-total="final">0 ج.م</span>
+            </div>
+        </div>
+        
+        <div class="promo-code">
+            <input type="text" placeholder="كود الخصم" class="promo-input" id="promoInput">
+            <button class="btn btn-outline" id="promoButton">تطبيق</button>
+        </div>
+        <button class="btn btn-primary checkout-btn" id="checkoutButton">
+            <i class="fas fa-credit-card"></i>
+            متابعة للدفع
+        </button>
+    </div>
+
+    <script>
+        class CartSummary {
+            constructor() {
+                this.subtotal = 1200; // مثال للسعر
+                this.serviceRate = 0.05;
+                this.insuranceRate = 0.10;
+                this.discount = 0;
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.updateTotals();
+            }
+
+            setupEventListeners() {
+                const promoButton = document.getElementById('promoButton');
+                const promoInput = document.getElementById('promoInput');
+                const checkoutButton = document.getElementById('checkoutButton');
+
+                promoButton.addEventListener('click', () => this.applyPromoCode());
+                promoInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.applyPromoCode();
+                    }
+                });
+
+                checkoutButton.addEventListener('click', () => this.proceedToCheckout());
+            }
+
+            updateTotals() {
+                const service = this.subtotal * this.serviceRate;
+                const insurance = this.subtotal * this.insuranceRate;
+                const final = (this.subtotal + service + insurance) * (1 - this.discount);
+
+                this.updateElement('subtotal', this.subtotal);
+                this.updateElement('service', service);
+                this.updateElement('insurance', insurance);
+                this.updateElement('final', final);
+            }
+
+            updateElement(key, value) {
+                const element = document.querySelector(`[data-total="${key}"]`);
+                if (element) {
+                    element.textContent = this.formatCurrency(value);
+                }
+            }
+
+            formatCurrency(amount) {
+                return `${amount.toLocaleString('ar-EG')} ج.م`;
+            }
+
+            applyPromoCode() {
+                const promoInput = document.getElementById('promoInput');
+                const code = promoInput.value.trim().toUpperCase();
+                
+                // مثال للتحقق من كود الخصم
+                if (code === 'WELCOME') {
+                    this.discount = 0.1; // خصم 10%
+                    this.updateTotals();
+                    this.showPromoStatus(true, 'تم تطبيق الخصم بنجاح');
+                } else {
+                    this.showPromoStatus(false, 'كود الخصم غير صالح');
+                }
+            }
+
+            showPromoStatus(success, message) {
+                const promoInput = document.getElementById('promoInput');
+                promoInput.classList.remove('promo-success', 'promo-error');
+                promoInput.classList.add(success ? 'promo-success' : 'promo-error');
+                
+                setTimeout(() => {
+                    promoInput.classList.remove('promo-success', 'promo-error');
+                }, 3000);
+            }
+
+            proceedToCheckout() {
+                // هنا يمكنك إضافة منطق الانتقال إلى صفحة الدفع
+                window.location.href = 'payment.html';
+            }
+        }
+
+        // تهيئة الكلاس عند تحميل الصفحة
+        document.addEventListener('DOMContentLoaded', () => {
+            window.cartSummary = new CartSummary();
+        });
+    </script>
+</body>
+</html>

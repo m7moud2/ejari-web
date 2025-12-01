@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>العقارات - إيجاري</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/business-pitch.css">
+    <link rel="stylesheet" href="css/localization.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .properties-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 4rem 0;
+            color: white;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .properties-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .filters-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-top: -3rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .property-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: none;
+            border-radius: 15px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .property-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-img {
+            height: 250px;
+            position: relative;
+        }
+
+        .card-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .card-price-tag {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 5px 15px;
+            border-radius: 8px;
+            font-weight: 700;
+            color: #2c3e50;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-content {
+            padding: 1.5rem;
+        }
+
+        .card-features {
+            display: flex;
+            justify-content: space-between;
+            margin: 1rem 0;
+            padding: 1rem 0;
+            border-top: 1px solid #f3f4f6;
+            border-bottom: 1px solid #f3f4f6;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-book {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-details {
+            flex: 1;
+            background: white;
+            color: #667eea;
+            border: 1px solid #667eea;
+            padding: 0.8rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-book:hover {
+            opacity: 0.9;
+        }
+
+        .btn-details:hover {
+            background: #f3f4f6;
+        }
+
+        @media (max-width: 768px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">إيجاري</a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="properties.html" class="active">عقارات</a></li>
+                <li><a href="cars.html">سيارات</a></li>
+                <li><a href="contact.html">تواصل معنا</a></li>
+            </ul>
+            <!-- Settings (Country & Language) -->
+            <div class="settings-container">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+            <div class="auth-buttons">
+                <button class="btn btn-outline" onclick="location.href='login.html'">تسجيل دخول</button>
+                <button class="btn btn-primary" onclick="location.href='signup.html'">إنشاء حساب</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="properties-hero">
+        <div class="container">
+            <h1>ابحث عن منزلك المثالي</h1>
+            <p>آلاف العقارات المتاحة للإيجار في جميع أنحاء مصر</p>
+        </div>
+    </section>
+
+    <!-- Search & Filter -->
+    <div class="container">
+        <div class="filters-container">
+            <div class="search-grid">
+                <div class="filter-group">
+                    <input type="text" placeholder="ابحث بالمنطقة، الحي، أو الشارع...">
+                </div>
+                <div class="filter-group">
+                    <select>
+                        <option value="">نوع العقار</option>
+                        <option>شقة</option>
+                        <option>فيلا</option>
+                        <option>مكتب</option>
+                        <option>محل تجاري</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <select>
+                        <option value="">السعر</option>
+                        <option>أقل من 5,000</option>
+                        <option>5,000 - 10,000</option>
+                        <option>10,000 - 20,000</option>
+                        <option>أكثر من 20,000</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <select>
+                        <option value="">الغرف</option>
+                        <option>1 غرفة</option>
+                        <option>2 غرفة</option>
+                        <option>3 غرف</option>
+                        <option>4+ غرف</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" style="height: 100%;">
+                    <i class="fas fa-search"></i> بحث
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Properties Grid -->
+    <section class="properties-section section-padding">
+        <div class="container">
+            <div class="section-header"
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2>أحدث العقارات المضافة</h2>
+                <div class="view-options">
+                    <span style="color: #6b7280;">عرض 1-12 من 150 عقار</span>
+                </div>
+            </div>
+
+            <div class="properties-grid"
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;">
+                <!-- Property Card 1 -->
+                <div class="property-card">
+                    <div class="card-img">
+                        <img src="images/home1.jpg" alt="شقة فاخرة">
+                        <span class="card-badge">مميز</span>
+                        <div class="card-price-tag"><span class="price-amount" data-price="960">12,000</span> ج.م/شهر
+                        </div>
+                        <button class="favorite-btn"
+                            style="position: absolute; top: 15px; left: 15px; background: white; border: none; padding: 8px; border-radius: 50%; cursor: pointer;">
+                            <i class="far fa-heart" style="color: #ef4444;"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <h3 style="margin-bottom: 0.5rem;">شقة فاخرة في المعادي</h3>
+                        <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">
+                            <i class="fas fa-map-marker-alt"></i> المعادي، القاهرة
+                        </p>
+                        <div class="card-features">
+                            <div class="feature"><i class="fas fa-bed"></i> 3 غرف</div>
+                            <div class="feature"><i class="fas fa-bath"></i> 2 حمام</div>
+                            <div class="feature"><i class="fas fa-ruler-combined"></i> 150 م²</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-book"
+                                onclick="openBookingModal('شقة فاخرة في المعادي', 12000, 'images/home1.jpg', 'property')">حجز
+                                الآن</button>
+                            <button class="btn-details"
+                                onclick="window.location.href='property-details.html'">التفاصيل</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Card 2 -->
+                <div class="property-card">
+                    <div class="card-img">
+                        <img src="images/home2.jpg" alt="فيلا مودرن">
+                        <span class="card-badge" style="background: #10b981;">جديد</span>
+                        <div class="card-price-tag"><span class="price-amount" data-price="3600">45,000</span> ج.م/شهر
+                        </div>
+                        <button class="favorite-btn"
+                            style="position: absolute; top: 15px; left: 15px; background: white; border: none; padding: 8px; border-radius: 50%; cursor: pointer;">
+                            <i class="far fa-heart" style="color: #ef4444;"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <h3 style="margin-bottom: 0.5rem;">فيلا مودرن بالتجمع</h3>
+                        <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">
+                            <i class="fas fa-map-marker-alt"></i> التجمع الخامس، القاهرة الجديدة
+                        </p>
+                        <div class="card-features">
+                            <div class="feature"><i class="fas fa-bed"></i> 5 غرف</div>
+                            <div class="feature"><i class="fas fa-bath"></i> 4 حمام</div>
+                            <div class="feature"><i class="fas fa-ruler-combined"></i> 400 م²</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-book"
+                                onclick="openBookingModal('فيلا مودرن بالتجمع', 45000, 'images/home2.jpg', 'property')">حجز
+                                الآن</button>
+                            <button class="btn-details"
+                                onclick="window.location.href='property-details.html'">التفاصيل</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Card 3 -->
+                <div class="property-card">
+                    <div class="card-img">
+                        <img src="images/home3.jpg" alt="استوديو">
+                        <div class="card-price-tag"><span class="price-amount" data-price="640">8,000</span> ج.م/شهر
+                        </div>
+                        <button class="favorite-btn"
+                            style="position: absolute; top: 15px; left: 15px; background: white; border: none; padding: 8px; border-radius: 50%; cursor: pointer;">
+                            <i class="far fa-heart" style="color: #ef4444;"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <h3 style="margin-bottom: 0.5rem;">استوديو بمدينة نصر</h3>
+                        <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">
+                            <i class="fas fa-map-marker-alt"></i> مدينة نصر، القاهرة
+                        </p>
+                        <div class="card-features">
+                            <div class="feature"><i class="fas fa-bed"></i> 1 غرفة</div>
+                            <div class="feature"><i class="fas fa-bath"></i> 1 حمام</div>
+                            <div class="feature"><i class="fas fa-ruler-combined"></i> 70 م²</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-book"
+                                onclick="openBookingModal('استوديو بمدينة نصر', 8000, 'images/home3.jpg', 'property')">حجز
+                                الآن</button>
+                            <button class="btn-details"
+                                onclick="window.location.href='property-details.html'">التفاصيل</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Card 4 -->
+                <div class="property-card">
+                    <div class="card-img">
+                        <img src="images/home4.jpg" alt="مكتب إداري">
+                        <span class="card-badge" style="background: #f59e0b;">تجاري</span>
+                        <div class="card-price-tag"><span class="price-amount" data-price="2000">25,000</span> ج.م/شهر
+                        </div>
+                        <button class="favorite-btn"
+                            style="position: absolute; top: 15px; left: 15px; background: white; border: none; padding: 8px; border-radius: 50%; cursor: pointer;">
+                            <i class="far fa-heart" style="color: #ef4444;"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <h3 style="margin-bottom: 0.5rem;">مكتب إداري بالشيخ زايد</h3>
+                        <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">
+                            <i class="fas fa-map-marker-alt"></i> الشيخ زايد، الجيزة
+                        </p>
+                        <div class="card-features">
+                            <div class="feature"><i class="fas fa-door-open"></i> 3 مكاتب</div>
+                            <div class="feature"><i class="fas fa-bath"></i> 2 حمام</div>
+                            <div class="feature"><i class="fas fa-ruler-combined"></i> 120 م²</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-book"
+                                onclick="openBookingModal('مكتب إداري بالشيخ زايد', 25000, 'images/home4.jpg', 'property')">حجز
+                                الآن</button>
+                            <button class="btn-details"
+                                onclick="window.location.href='property-details.html'">التفاصيل</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Card 5 -->
+                <div class="property-card">
+                    <div class="card-img">
+                        <img src="images/home1.jpg" alt="شقة دوبلكس">
+                        <div class="card-price-tag"><span class="price-amount" data-price="1440">18,000</span> ج.م/شهر
+                        </div>
+                        <button class="favorite-btn"
+                            style="position: absolute; top: 15px; left: 15px; background: white; border: none; padding: 8px; border-radius: 50%; cursor: pointer;">
+                            <i class="far fa-heart" style="color: #ef4444;"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <h3 style="margin-bottom: 0.5rem;">دوبلكس في الدقي</h3>
+                        <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">
+                            <i class="fas fa-map-marker-alt"></i> الدقي، الجيزة
+                        </p>
+                        <div class="card-features">
+                            <div class="feature"><i class="fas fa-bed"></i> 4 غرف</div>
+                            <div class="feature"><i class="fas fa-bath"></i> 3 حمام</div>
+                            <div class="feature"><i class="fas fa-ruler-combined"></i> 220 م²</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-book"
+                                onclick="openBookingModal('دوبلكس في الدقي', 18000, 'images/home1.jpg', 'property')">حجز
+                                الآن</button>
+                            <button class="btn-details"
+                                onclick="window.location.href='property-details.html'">التفاصيل</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Property Card 6 -->
+                <div class="property-card">
+                    <div class="card-img">
+                        <img src="images/home2.jpg" alt="شقة">
+                        <span class="card-badge">مميز</span>
+                        <div class="card-price-tag"><span class="price-amount" data-price="800">10,000</span> ج.م/شهر
+                        </div>
+                        <button class="favorite-btn"
+                            style="position: absolute; top: 15px; left: 15px; background: white; border: none; padding: 8px; border-radius: 50%; cursor: pointer;">
+                            <i class="far fa-heart" style="color: #ef4444;"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <h3 style="margin-bottom: 0.5rem;">شقة بحدائق الأهرام</h3>
+                        <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 1rem;">
+                            <i class="fas fa-map-marker-alt"></i> حدائق الأهرام، الجيزة
+                        </p>
+                        <div class="card-features">
+                            <div class="feature"><i class="fas fa-bed"></i> 3 غرف</div>
+                            <div class="feature"><i class="fas fa-bath"></i> 2 حمام</div>
+                            <div class="feature"><i class="fas fa-ruler-combined"></i> 140 م²</div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-book"
+                                onclick="openBookingModal('شقة بحدائق الأهرام', 10000, 'images/home2.jpg', 'property')">حجز
+                                الآن</button>
+                            <button class="btn-details"
+                                onclick="window.location.href='property-details.html'">التفاصيل</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 3rem;">
+                <button class="btn btn-outline"><i class="fas fa-chevron-right"></i></button>
+                <button class="btn btn-primary">1</button>
+                <button class="btn btn-outline">2</button>
+                <button class="btn btn-outline">3</button>
+                <button class="btn btn-outline">...</button>
+                <button class="btn btn-outline"><i class="fas fa-chevron-left"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>إيجاري</h3>
+                    <p>منصتك المتكاملة للبحث عن العقارات</p>
+                </div>
+                <div class="footer-section">
+                    <h3>روابط سريعة</h3>
+                    <ul>
+                        <li><a href="#">عن الموقع</a></li>
+                        <li><a href="#">الشروط والأحكام</a></li>
+                        <li><a href="#">سياسة الخصوصية</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>تواصل معنا</h3>
+                    <ul>
+                        <li>info@ejari.com</li>
+                        <li>+20 123 456 789</li>
+                        <li>القاهرة، مصر</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>جميع الحقوق محفوظة © 2024 إيجاري</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Booking Modal -->
+    <div class="booking-modal" id="bookingModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div class="booking-card"
+            style="background: white; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+            <div class="booking-card-header"
+                style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: #2c3e50; font-size: 1.25rem;">حجز العقار</h3>
+                <button class="close-btn" onclick="closeBookingModal()"
+                    style="background: none; border: none; color: #6b7280; cursor: pointer; padding: 0.5rem; border-radius: 50%; font-size: 1.5rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="booking-card-content" style="padding: 1.5rem;">
+                <div class="property-summary"
+                    style="display: flex; gap: 1rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e5e7eb; margin-bottom: 1.5rem;">
+                    <img src="images/home1.jpg" alt="العقار"
+                        style="width: 100px; height: 100px; border-radius: 8px; object-fit: cover;">
+                    <div class="property-info">
+                        <h4 style="margin: 0 0 0.5rem 0; color: #2c3e50;">شقة فاخرة في المعادي</h4>
+                        <p class="location"
+                            style="color: #6b7280; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.875rem;">
+                            <i class="fas fa-map-marker-alt"></i>
+                            المعادي، القاهرة
+                        </p>
+                        <div class="base-price" style="color: #667eea; font-weight: 600; font-size: 1.125rem;">
+                            <span class="price price-amount" data-price="960">12,000</span>
+                            <span class="currency">ج.م</span>
+                            <span class="period">/شهر</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="duration-selector">
+                    <h4 style="color: #2c3e50; margin: 0 0 1rem 0; font-size: 1rem;">اختر مدة الإيجار</h4>
+                    <div class="duration-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                        <button class="duration-tab active" data-unit="days"
+                            style="flex: 1; padding: 0.75rem; border: 1px solid #667eea; border-radius: 6px; background: #667eea; color: white; cursor: pointer; transition: all 0.3s ease; font-size: 0.875rem;">أيام</button>
+                        <button class="duration-tab" data-unit="weeks"
+                            style="flex: 1; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; background: white; color: #6b7280; cursor: pointer; transition: all 0.3s ease; font-size: 0.875rem;">أسابيع</button>
+                        <button class="duration-tab" data-unit="months"
+                            style="flex: 1; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; background: white; color: #6b7280; cursor: pointer; transition: all 0.3s ease; font-size: 0.875rem;">شهور</button>
+                        <button class="duration-tab" data-unit="years"
+                            style="flex: 1; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; background: white; color: #6b7280; cursor: pointer; transition: all 0.3s ease; font-size: 0.875rem;">سنوات</button>
+                    </div>
+
+                    <div class="duration-input"
+                        style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="number-input"
+                            style="display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 6px; overflow: hidden;">
+                            <button class="decrease" onclick="decreaseDuration()"
+                                style="padding: 0.5rem 1rem; border: none; background: #f3f4f6; color: #6b7280; cursor: pointer;">-</button>
+                            <input type="number" id="durationValue" value="1" min="1" onchange="calculateTotal()"
+                                style="width: 60px; text-align: center; border: none; padding: 0.5rem; font-size: 1rem; color: #2c3e50;">
+                            <button class="increase" onclick="increaseDuration()"
+                                style="padding: 0.5rem 1rem; border: none; background: #f3f4f6; color: #6b7280; cursor: pointer;">+</button>
+                        </div>
+                        <span class="duration-label" id="durationLabel">يوم</span>
+                    </div>
+                </div>
+
+                <div class="cost-breakdown"
+                    style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0;">
+                    <h4 style="color: #2c3e50; margin: 0 0 1rem 0; font-size: 1rem;">تفاصيل التكلفة</h4>
+                    <div class="cost-item"
+                        style="display: flex; justify-content: space-between; margin-bottom: 1rem; color: #6b7280;">
+                        <span>قيمة الإيجار</span>
+                        <span id="rentCost"><span class="price-amount" data-price="32">400</span> ج.م</span>
+                    </div>
+                    <div class="cost-item"
+                        style="display: flex; justify-content: space-between; margin-bottom: 1rem; color: #6b7280;">
+                        <span>تأمين</span>
+                        <span id="insurance"><span class="price-amount" data-price="3.2">40</span> ج.م</span>
+                    </div>
+                    <div class="cost-item"
+                        style="display: flex; justify-content: space-between; margin-bottom: 1rem; color: #6b7280;">
+                        <span>رسوم الخدمة</span>
+                        <span id="serviceFee"><span class="price-amount" data-price="1.6">20</span> ج.م</span>
+                    </div>
+                    <div class="cost-total"
+                        style="display: flex; justify-content: space-between; padding-top: 1rem; border-top: 1px solid #d1d5db; font-weight: 600; color: #2c3e50;">
+                        <span>الإجمالي</span>
+                        <span id="totalCost"><span class="price-amount" data-price="36.8">460</span> ج.م</span>
+                    </div>
+                </div>
+
+                <div class="start-date">
+                    <h4 style="color: #2c3e50; margin: 0 0 1rem 0; font-size: 1rem;">تاريخ بداية الإيجار</h4>
+                    <input type="date" id="startDate" onchange="updateEndDate()"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; color: #2c3e50; margin-bottom: 1rem;">
+                </div>
+
+                <div class="duration-preview"
+                    style="background: #f9fafb; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <div class="date-range" style="display: flex; justify-content: space-between;">
+                        <div class="range-item">
+                            <span class="label" style="color: #6b7280; font-size: 0.875rem;">من</span>
+                            <span class="value" id="startDatePreview"
+                                style="display: block; color: #2c3e50; font-weight: 500; margin-top: 0.25rem;">-</span>
+                        </div>
+                        <div class="range-item">
+                            <span class="label" style="color: #6b7280; font-size: 0.875rem;">إلى</span>
+                            <span class="value" id="endDatePreview"
+                                style="display: block; color: #2c3e50; font-weight: 500; margin-top: 0.25rem;">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="booking-actions" style="display: flex; gap: 1rem;">
+                    <button class="btn btn-primary" onclick="BookingManager.confirmBooking()"
+                        style="flex: 1; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 500; cursor: pointer; background: #667eea; color: white; border: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 1rem;">
+                        <i class="fas fa-check"></i>
+                        تأكيد الحجز
+                    </button>
+                    <button class="btn btn-outline" onclick="closeBookingModal()"
+                        style="flex: 1; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 500; cursor: pointer; border: 1px solid #d1d5db; background: white; color: #374151; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 1rem;">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/session.js"></script>
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/bookingModal.js"></script>
+    <script src="js/verification.js"></script>
+    <script>
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+    </script>
+</body>
+
+</html>

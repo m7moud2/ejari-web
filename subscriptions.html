@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>باقات الاشتراك - إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/localization.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: #6b7280;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .account-type-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .toggle-btn {
+            padding: 1rem 2rem;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .toggle-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .pricing-card.featured {
+            border: 3px solid #667eea;
+            transform: scale(1.05);
+        }
+
+        .pricing-card.featured::before {
+            content: 'الأكثر شعبية';
+            position: absolute;
+            top: 20px;
+            left: -35px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.5rem 3rem;
+            transform: rotate(-45deg);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .card-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .free-icon {
+            color: #10b981;
+        }
+
+        .gold-icon {
+            color: #f59e0b;
+        }
+
+        .premium-icon {
+            color: #8b5cf6;
+        }
+
+        .card-title {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .card-price {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .price-amount {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #2c3e50;
+        }
+
+        .price-currency {
+            font-size: 1.5rem;
+            color: #6b7280;
+        }
+
+        .price-period {
+            color: #9ca3af;
+            font-size: 1rem;
+            display: block;
+            margin-top: 0.5rem;
+        }
+
+        .features-list {
+            margin: 2rem 0;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .feature-item:hover {
+            background: #f9fafb;
+        }
+
+        .feature-item i {
+            color: #10b981;
+            font-size: 1.25rem;
+            margin-top: 0.25rem;
+        }
+
+        .feature-item.disabled i {
+            color: #d1d5db;
+        }
+
+        .feature-item.disabled {
+            opacity: 0.5;
+        }
+
+        .feature-text {
+            flex: 1;
+            color: #374151;
+        }
+
+        .feature-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .btn-subscribe {
+            width: 100%;
+            padding: 1.25rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .btn-free {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-free:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-premium {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .btn-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .comparison-table {
+            margin-top: 4rem;
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .comparison-table h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        th:first-child {
+            border-radius: 12px 0 0 0;
+            text-align: right;
+        }
+
+        th:last-child {
+            border-radius: 0 12px 0 0;
+        }
+
+        .check-icon {
+            color: #10b981;
+            font-size: 1.5rem;
+        }
+
+        .cross-icon {
+            color: #ef4444;
+            font-size: 1.5rem;
+        }
+
+        .faq-section {
+            margin-top: 4rem;
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .faq-section h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            font-size: 2rem;
+        }
+
+        .faq-item {
+            margin-bottom: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 1.5rem;
+            background: #f9fafb;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .faq-question:hover {
+            background: #f3f4f6;
+        }
+
+        .faq-question h3 {
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .faq-answer {
+            padding: 0 1.5rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 1.5rem;
+            max-height: 500px;
+        }
+
+        .faq-answer p {
+            color: #6b7280;
+            line-height: 1.8;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .pricing-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .pricing-card.featured {
+                transform: scale(1);
+            }
+
+            .comparison-table {
+                overflow-x: auto;
+            }
+
+            table {
+                min-width: 600px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">إيجاري</a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="properties.html">عقارات</a></li>
+                <li><a href="services.html">الخدمات</a></li>
+                <li><a href="partners.html">شركاء النجاح</a></li>
+            </ul>
+
+            <!-- Settings (Country & Language) -->
+            <div class="settings-container">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+
+            <div class="auth-buttons" id="authButtons">
+                <button class="btn btn-outline" onclick="location.href='login.html'">تسجيل دخول</button>
+                <button class="btn btn-primary" onclick="location.href='signup.html'">إنشاء حساب</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style="margin-top: 2rem;">
+        <div class="header">
+            <h1>🎯 اختر الباقة المناسبة لك</h1>
+            <p>باقات مرنة تناسب احتياجاتك سواء كنت مستأجراً أو مالكاً</p>
+        </div>
+
+        <div class="account-type-toggle">
+            <button class="toggle-btn" onclick="switchAccountType('tenant')">
+                <i class="fas fa-user"></i> للمستأجرين
+            </button>
+            <button class="toggle-btn active" onclick="switchAccountType('owner')">
+                <i class="fas fa-building"></i> للشركات والملاك
+            </button>
+        </div>
+
+        <!-- Tenant Pricing -->
+        <div id="tenantPricing" class="pricing-cards" style="display: none;">
+            <div class="pricing-card">
+                <div class="card-header">
+                    <div class="card-icon free-icon">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <h2 class="card-title">مجاني</h2>
+                    <p class="card-subtitle">للبدء والتجربة</p>
+                </div>
+
+                <div class="card-price">
+                    <span class="price-amount" data-price="0">0</span>
+                    <span class="price-period">مجاناً للأبد</span>
+                </div>
+
+                <div class="features-list">
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">تصفح العقارات المتاحة</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">حفظ 5 عقارات في المفضلة</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">التواصل مع الملاك</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">إشعارات أساسية</span>
+                    </div>
+                    <div class="feature-item disabled">
+                        <i class="fas fa-times-circle"></i>
+                        <span class="feature-text">أولوية في الحجز</span>
+                    </div>
+                    <div class="feature-item disabled">
+                        <i class="fas fa-times-circle"></i>
+                        <span class="feature-text">تقارير مفصلة</span>
+                    </div>
+                    <div class="feature-item disabled">
+                        <i class="fas fa-times-circle"></i>
+                        <span class="feature-text">دعم فني مخصص</span>
+                    </div>
+                </div>
+
+                <button class="btn-subscribe btn-free" onclick="subscribe('free', 'tenant')">
+                    <i class="fas fa-rocket"></i> ابدأ مجاناً
+                </button>
+            </div>
+
+            <div class="pricing-card featured">
+                <div class="card-header">
+                    <div class="card-icon gold-icon">
+                        <i class="fas fa-crown"></i>
+                    </div>
+                    <h2 class="card-title">ذهبي</h2>
+                    <p class="card-subtitle">الأكثر شعبية</p>
+                </div>
+
+                <div class="card-price">
+                    <span class="price-amount" data-price="8">99</span>
+                    <span class="price-period">شهرياً</span>
+                </div>
+
+                <div class="features-list">
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">كل مميزات الباقة المجانية</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">حفظ عقارات غير محدودة</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">أولوية في الحجز</span>
+                        <span class="feature-badge">جديد</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">إشعارات فورية</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">خصم 10% على رسوم الحجز</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">تقارير شهرية</span>
+                    </div>
+                    <div class="feature-item disabled">
+                        <i class="fas fa-times-circle"></i>
+                        <span class="feature-text">دعم فني مخصص 24/7</span>
+                    </div>
+                </div>
+
+                <button class="btn-subscribe btn-gold" onclick="subscribe('gold', 'tenant')">
+                    <i class="fas fa-star"></i> اشترك الآن
+                </button>
+            </div>
+
+            <div class="pricing-card">
+
+                <div class="card-header">
+                    <div class="card-icon premium-icon">
+                        <i class="fas fa-gem"></i>
+                    </div>
+                    <h2 class="card-title">بريميوم</h2>
+                    <p class="card-subtitle">للمحترفين</p>
+                </div>
+
+                <div class="card-price">
+                    <span class="price-amount" data-price="16">199</span>
+                    <span class="price-period">شهرياً</span>
+                </div>
+
+                <div class="features-list">
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">كل مميزات الباقة الذهبية</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">أولوية قصوى في الحجز</span>
+                        <span class="feature-badge">VIP</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">خصم 20% على رسوم الحجز</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">دعم فني مخصص 24/7</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">مساعد شخصي للبحث</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">تقارير تفصيلية يومية</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">إمكانية التفاوض المباشر</span>
+                    </div>
+                </div>
+
+                <button class="btn-subscribe btn-premium" onclick="subscribe('premium', 'tenant')">
+                    <i class="fas fa-rocket"></i> اشترك الآن
+                </button>
+            </div>
+        </div>
+
+        <!-- Owner Pricing (SaaS) -->
+        <div id="ownerPricing" class="pricing-cards" style="display: grid;">
+            <div class="pricing-card">
+                <div class="card-header">
+                    <div class="card-icon free-icon">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <h2 class="card-title">الأساسية</h2>
+                    <p class="card-subtitle">للمكاتب الصغيرة</p>
+                </div>
+
+
+                <div class="card-price">
+                    <span class="price-amount" data-price="299">299</span>
+                    <span class="price-period">/شهرياً للفرع</span>
+                </div>
+
+                <div class="features-list">
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">إدارة حتى 50 عقار</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">عقود إلكترونية موحدة</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">إشعارات واتساب (50/شهر)</span>
+                        <span class="feature-badge">جديد</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">فواتير آلية أساسية</span>
+                    </div>
+                    <div class="feature-item disabled">
+                        <i class="fas fa-times-circle"></i>
+                        <span class="feature-text">بوابة دفع إلكتروني</span>
+                    </div>
+                    <div class="feature-item disabled">
+                        <i class="fas fa-times-circle"></i>
+                        <span class="feature-text">ربط مع منصة إيجار/ملاك</span>
+                    </div>
+                </div>
+
+                <button class="btn-subscribe btn-free" onclick="subscribe('basic', 'owner')">
+                    <i class="fas fa-rocket"></i> ابدأ التجربة
+                </button>
+            </div>
+
+            <div class="pricing-card featured">
+                <div class="card-header">
+                    <div class="card-icon gold-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h2 class="card-title">المتقدمة</h2>
+                    <p class="card-subtitle">للشركات المتوسطة</p>
+                </div>
+
+                <div class="card-price">
+                    <span class="price-amount" data-price="599">599</span>
+                    <span class="price-period">/شهرياً للفرع</span>
+                </div>
+
+                <div class="features-list">
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">إدارة عقارات غير محدودة</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">بوابة دفع إلكتروني متكاملة</span>
+                        <span class="feature-badge">مهم</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">إشعارات واتساب غير محدودة</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">نظام فواتير ضريبية آلي</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">تطبيق للمحصلين</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">تقارير مالية متقدمة</span>
+                    </div>
+                </div>
+
+                <button class="btn-subscribe btn-gold" onclick="subscribe('pro', 'owner')">
+                    <i class="fas fa-star"></i> اشترك الآن
+                </button>
+            </div>
+
+            <div class="pricing-card">
+                <div class="card-header">
+                    <div class="card-icon premium-icon">
+                        <i class="fas fa-city"></i>
+                    </div>
+                    <h2 class="card-title">المؤسسات</h2>
+                    <p class="card-subtitle">للشركات الكبرى وإدارة الأملاك</p>
+                </div>
+
+                <div class="card-price">
+                    <span class="price-amount" data-price="999">999</span>
+                    <span class="price-period">/شهرياً للفرع</span>
+                </div>
+
+                <div class="features-list">
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">كل مميزات الباقة المتقدمة</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">API للربط مع الأنظمة المحاسبية</span>
+                        <span class="feature-badge">VIP</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">دومين خاص (White Label)</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">مدير حساب خاص</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">دعم فني 24/7 عبر الهاتف</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-check-circle"></i>
+                        <span class="feature-text">تخصيص عقود حسب الطلب</span>
+                    </div>
+                </div>
+
+                <button class="btn-subscribe btn-premium" onclick="subscribe('enterprise', 'owner')">
+                    <i class="fas fa-rocket"></i> تواصل للمبيعات
+                </button>
+            </div>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="comparison-table">
+            <h2>مقارنة تفصيلية للباقات</h2>
+            <table id="comparisonTable">
+                <!-- Will be populated by JavaScript -->
+            </table>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="faq-section">
+            <h2>الأسئلة الشائعة</h2>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <h3>هل يمكنني تغيير الباقة لاحقاً؟</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>نعم، يمكنك الترقية أو التخفيض في أي وقت. عند الترقية، ستحصل على المميزات الجديدة فوراً، وعند
+                        التخفيض، ستستمر المميزات حتى نهاية فترة الاشتراك الحالية.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <h3>ما هي طرق الدفع المتاحة؟</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>نقبل جميع طرق الدفع: البطاقات الائتمانية (Visa, Mastercard)، المحافظ الإلكترونية (فودافون كاش،
+                        اتصالات كاش)، والتحويل البنكي.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <h3>هل هناك فترة تجريبية؟</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>نعم! نقدم فترة تجريبية مجانية لمدة 14 يوماً للباقة الذهبية و 7 أيام للباقة البريميوم. يمكنك
+                        الإلغاء في أي وقت خلال الفترة التجريبية دون أي رسوم.</p>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-question">
+                    <h3>ماذا يحدث عند انتهاء الاشتراك؟</h3>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    <p>عند انتهاء الاشتراك، سيتم تحويلك تلقائياً للباقة المجانية. ستحتفظ بجميع بياناتك، لكن ستفقد الوصول
+                        للمميزات المدفوعة حتى تجدد اشتراكك.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAccountType = 'owner';
+
+        function switchAccountType(type) {
+            currentAccountType = type;
+
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            if (type === 'tenant') {
+                document.getElementById('tenantPricing').style.display = 'grid';
+                document.getElementById('ownerPricing').style.display = 'none';
+            } else {
+                document.getElementById('tenantPricing').style.display = 'none';
+                document.getElementById('ownerPricing').style.display = 'grid';
+            }
+
+            updateComparisonTable(type);
+        }
+
+        function subscribe(plan, accountType) {
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            userData.subscription = plan;
+            userData.accountType = accountType;
+            userData.subscriptionDate = new Date().toISOString();
+
+            localStorage.setItem('userData', JSON.stringify(userData));
+
+            if (plan === 'free') {
+                alert('تم تفعيل الباقة المجانية بنجاح!');
+                redirectToDashboard(accountType);
+            } else {
+                window.location.href = `payment.html?plan=${plan}&type=${accountType}`;
+            }
+        }
+
+        function redirectToDashboard(accountType) {
+            if (accountType === 'owner') {
+                window.location.href = 'owner-dashboard.html';
+            } else {
+                window.location.href = 'tenant-dashboard.html';
+            }
+        }
+
+        function toggleFaq(element) {
+            element.classList.toggle('active');
+        }
+
+        function updateComparisonTable(type) {
+            const tenantFeatures = [
+                ['الميزة', 'مجاني', 'ذهبي', 'بريميوم'],
+                ['عدد العقارات المحفوظة', '5', 'غير محدود', 'غير محدود'],
+                ['أولوية الحجز', '❌', '✅', '✅ VIP'],
+                ['خصم رسوم الحجز', '-', '10%', '20%'],
+                ['إشعارات فورية', '❌', '✅', '✅'],
+                ['تقارير', '❌', 'شهرية', 'يومية'],
+                ['دعم فني', 'عادي', 'عادي', '24/7 مخصص'],
+                ['مساعد شخصي', '❌', '❌', '✅']
+            ];
+
+            const ownerFeatures = [
+                ['الميزة', 'الأساسية', 'المتقدمة', 'المؤسسات'],
+                ['عدد العقارات', '50', 'غير محدود', 'غير محدود'],
+                ['إشعارات واتساب', '50/شهر', 'غير محدود', 'غير محدود'],
+                ['بوابة دفع إلكتروني', '❌', '✅', '✅'],
+                ['فواتير ضريبية', 'أساسية', 'آلية (VAT)', 'آلية + API'],
+                ['عقود إلكترونية', 'موحدة', 'موحدة', 'مخصصة'],
+                ['دعم فني', 'بريد إلكتروني', 'أولوية', '24/7 هاتف'],
+                ['تطبيق للمحصلين', '❌', '✅', '✅'],
+                ['دومين خاص', '❌', '❌', '✅']
+            ];
+
+            const features = type === 'tenant' ? tenantFeatures : ownerFeatures;
+            const table = document.getElementById('comparisonTable');
+
+            let html = '<thead><tr>';
+            features[0].forEach(header => {
+                html += `<th>${header}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            for (let i = 1; i < features.length; i++) {
+                html += '<tr>';
+                features[i].forEach((cell, index) => {
+                    if (index === 0) {
+                        html += `<td style="text-align: right; font-weight: 600;">${cell}</td>`;
+                    } else {
+                        const isCheck = cell === '✅';
+                        const isCross = cell === '❌';
+                        if (isCheck) {
+                            html += `<td><i class="fas fa-check-circle check-icon"></i></td>`;
+                        } else if (isCross) {
+                            html += `<td><i class="fas fa-times-circle cross-icon"></i></td>`;
+                        } else {
+                            html += `<td>${cell}</td>`;
+                        }
+                    }
+                });
+                html += '</tr>';
+            }
+            html += '</tbody>';
+
+            table.innerHTML = html;
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            updateComparisonTable('owner');
+
+            // Check if new user
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('new') === 'true') {
+                alert('مرحباً بك في إيجاري! اختر الباقة المناسبة لك للبدء');
+            }
+        });
+
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            // Close settings dropdown
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+    </script>
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+</body>
+
+</html>

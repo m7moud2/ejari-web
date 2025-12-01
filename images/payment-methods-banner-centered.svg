@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80">
+  <!-- خلفية -->
+  <rect width="200" height="80" fill="#f8f9fa"/>
+  
+  <!-- مستطيل خلفية -->
+  <rect x="4" y="4" width="192" height="72" rx="6" fill="#ffffff" stroke="#e6e9ed" stroke-width="1.5"/>
+  
+  <!-- الصف الأول -->
+  <!-- فيزا -->
+  <rect x="10" y="25" width="22" height="16" rx="2" fill="#1a1f71"/>
+  <text x="12" y="36" fill="white" font-family="Arial" font-size="7" font-weight="bold">VISA</text>
+  
+  <!-- ماستر كارد -->
+  <circle cx="48" cy="33" r="8" fill="#eb001b"/>
+  <circle cx="54" cy="33" r="8" fill="#f79e1b" opacity="0.8"/>
+  
+  <!-- فوري -->
+  <rect x="72" y="25" width="22" height="16" rx="2" fill="#FFCB05"/>
+  <text x="74" y="34" fill="#00579D" font-family="Arial" font-size="6" font-weight="bold">FAWRY</text>
+  <text x="74" y="39" fill="#00579D" font-family="Arial" font-size="4">PAY</text>
+  
+  <!-- فودافون -->
+  <circle cx="110" cy="33" r="8" fill="#e60000"/>
+  <path d="M107 33 a3 3 0 1 0 6 0 a3 3 0 1 0 -6 0" fill="white"/>
+  <text x="105" y="35" fill="white" font-family="Arial" font-size="4" font-weight="bold">Cash</text>
+
+  <!-- WE Pay -->
+  <rect x="130" y="25" width="22" height="16" rx="2" fill="#662D91"/>
+  <text x="132" y="33" fill="white" font-family="Arial" font-size="5" font-weight="bold">WE</text>
+  <text x="132" y="38" fill="white" font-family="Arial" font-size="4">PAY</text>
+  
+  <!-- فاليو -->
+  <rect x="168" y="25" width="22" height="16" rx="2" fill="#00C7B1"/>
+  <text x="170" y="36" fill="white" font-family="Arial" font-size="6" font-weight="bold">valU</text>
+  <text x="186" y="33" fill="#FF6B00" font-family="Arial" font-size="7" font-weight="bold">*</text>
+  
+  <!-- الصف الثاني -->
+  <!-- فرصة - في المنتصف -->
+  <rect x="72" y="45" width="22" height="16" rx="2" fill="#00B3A7"/>
+  <path d="M77 50 l2 2 l2 -2 l2 2 l-3 4 l-3 -4" fill="white"/>
+  <text x="74" y="58" fill="white" font-family="Arial" font-size="5" font-weight="bold">FORSA</text>
+  
+  <!-- محفظة الهاتف -->
+  <rect x="110" y="45" width="22" height="16" rx="2" fill="#4CAF50"/>
+  <path d="M115 48 h10 v10 h-10 z" fill="none" stroke="white" stroke-width="1"/>
+  <text x="114" y="58" fill="white" font-family="Arial" font-size="4">E-Wallet</text>
+  
+  <!-- نص -->
+  <text x="100" y="70" text-anchor="middle" fill="#333" font-family="Arial" font-size="6" font-weight="bold">كل وسائل الدفع الإلكتروني</text>
+</svg>

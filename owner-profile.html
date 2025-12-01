@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الملف الشخصي - إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/localization.css">
+    <style>
+        body {
+            background: #f8fafc;
+            padding-top: 80px;
+        }
+
+        .profile-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid white;
+            object-fit: cover;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: #10b981;
+        }
+
+        .profile-details h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-meta {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .subscription-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .profile-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #e5e7eb;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 1rem 2rem;
+            border: none;
+            background: none;
+            color: #6b7280;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            color: #10b981;
+            border-bottom-color: #10b981;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .info-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+        }
+
+        .info-card h2 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .form-control:disabled {
+            background: #f9fafb;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #10b981;
+            padding: 1rem 2rem;
+            border: 2px solid #10b981;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: #10b981;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto 1rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .property-list {
+            list-style: none;
+        }
+
+        .property-item {
+            background: #f9fafb;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .property-item:hover {
+            background: #f3f4f6;
+            transform: translateX(-5px);
+        }
+
+        .property-info h3 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .property-meta {
+            display: flex;
+            gap: 1.5rem;
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-rented {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-available {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-maintenance {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .company-info {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .company-info h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .company-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .company-detail {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #4b5563;
+        }
+
+        @media (max-width: 768px) {
+            .profile-info {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-meta {
+                justify-content: center;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo"><a href="index.html">إيجاري</a></div>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="owner-dashboard.html">لوحة التحكم</a></li>
+                <li><a href="owner-profile.html" class="active">الملف الشخصي</a></li>
+            </ul>
+            <!-- Settings -->
+            <div class="settings-container">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+            <div class="auth-buttons" id="authButtons">
+                <button class="btn btn-outline" onclick="logout()">تسجيل الخروج</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="profile-container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="profile-info">
+                <div class="profile-avatar">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="profile-details">
+                    <h1 id="companyName">شركة العقارات المتميزة</h1>
+                    <p>مالك / شركة عقارية</p>
+                    <div class="subscription-badge">
+                        <i class="fas fa-crown"></i> باقة المؤسسات
+                    </div>
+                    <div class="profile-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-envelope"></i>
+                            <span id="companyEmail">info@realestate.com</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-phone"></i>
+                            <span id="companyPhone">+966 11 123 4567</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>عضو منذ: يناير 2023</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-building"></i></div>
+                <div class="stat-value">45</div>
+                <div class="stat-label">إجمالي العقارات</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-value">32</div>
+                <div class="stat-label">عقارات مؤجرة</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-home"></i></div>
+                <div class="stat-value">13</div>
+                <div class="stat-label">عقارات متاحة</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="stat-value"><span class="price-amount" data-price="96000">1,200,000</span></div>
+                <div class="stat-label">الإيرادات الشهرية</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="profile-tabs">
+            <button class="tab-btn active" onclick="switchTab('company')">معلومات الشركة</button>
+            <button class="tab-btn" onclick="switchTab('properties')">عقاراتي</button>
+            <button class="tab-btn" onclick="switchTab('subscription')">الاشتراك</button>
+            <button class="tab-btn" onclick="switchTab('security')">الأمان</button>
+        </div>
+
+        <!-- Company Info Tab -->
+        <div id="company" class="tab-content active">
+            <div class="company-info">
+                <h3><i class="fas fa-info-circle"></i> نبذة عن الشركة</h3>
+                <div class="company-details">
+                    <div class="company-detail">
+                        <i class="fas fa-certificate"></i>
+                        <span>رقم السجل التجاري: 1234567890</span>
+                    </div>
+                    <div class="company-detail">
+                        <i class="fas fa-id-card"></i>
+                        <span>الرقم الضريبي: 300123456789003</span>
+                    </div>
+                    <div class="company-detail">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>الرياض، المملكة العربية السعودية</span>
+                    </div>
+                    <div class="company-detail">
+                        <i class="fas fa-users"></i>
+                        <span>عدد الفروع: 3</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <h2><i class="fas fa-building"></i> المعلومات الأساسية</h2>
+                <form id="companyInfoForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>اسم الشركة</label>
+                            <input type="text" class="form-control" value="شركة العقارات المتميزة" required>
+                        </div>
+                        <div class="form-group">
+                            <label>البريد الإلكتروني</label>
+                            <input type="email" class="form-control" value="info@realestate.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label>رقم الهاتف</label>
+                            <input type="tel" class="form-control" value="+966 11 123 4567" required>
+                        </div>
+                        <div class="form-group">
+                            <label>رقم السجل التجاري</label>
+                            <input type="text" class="form-control" value="1234567890" required>
+                        </div>
+                        <div class="form-group">
+                            <label>الرقم الضريبي</label>
+                            <input type="text" class="form-control" value="300123456789003" required>
+                        </div>
+                        <div class="form-group">
+                            <label>المدينة</label>
+                            <select class="form-control">
+                                <option>الرياض</option>
+                                <option>جدة</option>
+                                <option>الدمام</option>
+                                <option>مكة المكرمة</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>العنوان الكامل</label>
+                        <input type="text" class="form-control" value="طريق الملك فهد، حي العليا، الرياض">
+                    </div>
+                    <div class="form-group">
+                        <label>نبذة عن الشركة</label>
+                        <textarea class="form-control"
+                            rows="4">شركة رائدة في مجال إدارة العقارات والاستثمار العقاري منذ عام 2010</textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> حفظ التغييرات
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Properties Tab -->
+        <div id="properties" class="tab-content">
+            <div class="info-card">
+                <h2><i class="fas fa-home"></i> عقاراتي</h2>
+                <ul class="property-list">
+                    <li class="property-item">
+                        <div class="property-info">
+                            <h3>شقة فاخرة في حي النرجس</h3>
+                            <div class="property-meta">
+                                <span><i class="fas fa-bed"></i> 3 غرف</span>
+                                <span><i class="fas fa-bath"></i> 2 حمام</span>
+                                <span><i class="fas fa-ruler-combined"></i> 180 م²</span>
+                                <span><i class="fas fa-money-bill"></i> <span class="price-amount"
+                                        data-price="960">12,000</span>/شهرياً</span>
+                            </div>
+                        </div>
+                        <span class="status-badge status-rented">مؤجر</span>
+                    </li>
+                    <li class="property-item">
+                        <div class="property-info">
+                            <h3>فيلا في حي الياسمين</h3>
+                            <div class="property-meta">
+                                <span><i class="fas fa-bed"></i> 5 غرف</span>
+                                <span><i class="fas fa-bath"></i> 4 حمام</span>
+                                <span><i class="fas fa-ruler-combined"></i> 400 م²</span>
+                                <span><i class="fas fa-money-bill"></i> <span class="price-amount"
+                                        data-price="3200">40,000</span>/شهرياً</span>
+                            </div>
+                        </div>
+                        <span class="status-badge status-available">متاح</span>
+                    </li>
+                    <li class="property-item">
+                        <div class="property-info">
+                            <h3>مكتب تجاري في برج الفيصلية</h3>
+                            <div class="property-meta">
+                                <span><i class="fas fa-ruler-combined"></i> 120 م²</span>
+                                <span><i class="fas fa-money-bill"></i> <span class="price-amount"
+                                        data-price="2400">30,000</span>/شهرياً</span>
+                            </div>
+                        </div>
+                        <span class="status-badge status-maintenance">قيد الصيانة</span>
+                    </li>
+                </ul>
+                <button class="btn-secondary" onclick="location.href='add-property.html'">
+                    <i class="fas fa-plus"></i> إضافة عقار جديد
+                </button>
+            </div>
+        </div>
+
+        <!-- Subscription Tab -->
+        <div id="subscription" class="tab-content">
+            <div class="info-card">
+                <h2><i class="fas fa-crown"></i> باقة الاشتراك الحالية</h2>
+                <div
+                    style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); padding: 2rem; border-radius: 12px; margin-bottom: 1.5rem;">
+                    <h3 style="color: #10b981; margin-bottom: 1rem;">باقة المؤسسات</h3>
+                    <div style="font-size: 2rem; font-weight: 700; color: #2c3e50; margin-bottom: 1rem;">
+                        <span class="price-amount" data-price="999">999</span> / شهرياً
+                    </div>
+                    <p style="color: #6b7280;">تاريخ التجديد: 2024-12-01</p>
+                </div>
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="padding: 1rem; background: #f9fafb; border-radius: 8px;">
+                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                        <span style="margin-right: 0.5rem;">عقارات غير محدودة</span>
+                    </div>
+                    <div style="padding: 1rem; background: #f9fafb; border-radius: 8px;">
+                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                        <span style="margin-right: 0.5rem;">API متكامل</span>
+                    </div>
+                    <div style="padding: 1rem; background: #f9fafb; border-radius: 8px;">
+                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                        <span style="margin-right: 0.5rem;">دعم فني 24/7</span>
+                    </div>
+                    <div style="padding: 1rem; background: #f9fafb; border-radius: 8px;">
+                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                        <span style="margin-right: 0.5rem;">مدير حساب خاص</span>
+                    </div>
+                </div>
+                <button class="btn-secondary" onclick="location.href='subscriptions.html'">
+                    <i class="fas fa-exchange-alt"></i> تغيير الباقة
+                </button>
+            </div>
+        </div>
+
+        <!-- Security Tab -->
+        <div id="security" class="tab-content">
+            <div class="info-card">
+                <h2><i class="fas fa-lock"></i> تغيير كلمة المرور</h2>
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label>كلمة المرور الحالية</label>
+                        <input type="password" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>كلمة المرور الجديدة</label>
+                        <input type="password" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label>تأكيد كلمة المرور الجديدة</label>
+                        <input type="password" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-key"></i> تحديث كلمة المرور
+                    </button>
+                </form>
+            </div>
+
+            <div class="info-card">
+                <h2><i class="fas fa-shield-alt"></i> المصادقة الثنائية</h2>
+                <p style="color: #6b7280; margin-bottom: 1rem;">قم بتفعيل المصادقة الثنائية لحماية حسابك بشكل أفضل</p>
+                <button class="btn-secondary">
+                    <i class="fas fa-mobile-alt"></i> تفعيل المصادقة الثنائية
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+    <script src="js/session.js"></script>
+    <script>
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Handle form submissions
+        document.getElementById('companyInfoForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('تم حفظ التغييرات بنجاح!');
+        });
+
+        document.getElementById('passwordForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert('تم تحديث كلمة المرور بنجاح!');
+        });
+
+        function logout() {
+            localStorage.removeItem('userData');
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+
+        // Load company data
+        window.addEventListener('load', () => {
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            if (userData.companyName) {
+                document.getElementById('companyName').textContent = userData.companyName;
+            }
+            if (userData.email) {
+                document.getElementById('companyEmail').textContent = userData.email;
+            }
+            if (userData.phone) {
+                document.getElementById('companyPhone').textContent = userData.phone;
+            }
+        });
+    </script>
+</body>
+
+</html>

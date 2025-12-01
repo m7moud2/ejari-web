@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تأمين الوحدات السكنية - إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/localization.css">
+    <style>
+        body {
+            background: #f8fafc;
+            padding-top: 80px;
+        }
+
+        .service-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .service-header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .service-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .coverage-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .coverage-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid #10b981;
+        }
+
+        .coverage-card h3 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .coverage-card p {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .quote-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .pricing-table {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            margin: 2rem 0;
+        }
+
+        .pricing-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .pricing-row:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo"><a href="index.html">إيجاري</a></div>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="services.html" class="active">الخدمات</a></li>
+            </ul>
+            <!-- Settings (Country & Language) -->
+            <div class="settings-container">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="service-container">
+        <div class="service-header">
+            <h1><i class="fas fa-shield-alt"></i> تأمين الوحدات السكنية</h1>
+            <p style="font-size: 1.2rem; opacity: 0.9;">احمِ ممتلكاتك من الأضرار والحوادث الطارئة</p>
+        </div>
+
+        <div class="coverage-grid">
+            <div class="coverage-card">
+                <h3><i class="fas fa-fire" style="color: #ef4444;"></i> الحريق</h3>
+                <p>تغطية شاملة ضد أضرار الحريق والدخان</p>
+            </div>
+            <div class="coverage-card">
+                <h3><i class="fas fa-user-secret" style="color: #8b5cf6;"></i> السرقة</h3>
+                <p>تعويض كامل في حالة السرقة أو الاقتحام</p>
+            </div>
+            <div class="coverage-card">
+                <h3><i class="fas fa-tint" style="color: #3b82f6;"></i> تسرب المياه</h3>
+                <p>تغطية أضرار تسرب المياه والفيضانات</p>
+            </div>
+            <div class="coverage-card">
+                <h3><i class="fas fa-bolt" style="color: #f59e0b;"></i> الكوارث الطبيعية</h3>
+                <p>حماية ضد الزلازل والعواصف</p>
+            </div>
+            <div class="coverage-card">
+                <h3><i class="fas fa-balance-scale" style="color: #10b981;"></i> المسؤولية المدنية</h3>
+                <p>تغطية الأضرار التي تلحق بالغير</p>
+            </div>
+            <div class="coverage-card">
+                <h3><i class="fas fa-tools" style="color: #6366f1;"></i> الأعطال المفاجئة</h3>
+                <p>تغطية إصلاح الأعطال الكهربائية والميكانيكية</p>
+            </div>
+        </div>
+
+        <div class="pricing-table">
+            <h2 style="text-align: center; margin-bottom: 1.5rem; color: #2c3e50;">باقات التأمين</h2>
+            <div class="pricing-row">
+                <span style="font-weight: 600;">الباقة الأساسية</span>
+                <span style="color: #10b981; font-weight: 700;"><span class="price-amount" data-price="500">500</span>
+                    /سنوياً</span>
+            </div>
+            <div class="pricing-row">
+                <span style="font-weight: 600;">الباقة الشاملة</span>
+                <span style="color: #10b981; font-weight: 700;"><span class="price-amount"
+                        data-price="1200">1,200</span> /سنوياً</span>
+            </div>
+            <div class="pricing-row">
+                <span style="font-weight: 600;">الباقة الذهبية</span>
+                <span style="color: #10b981; font-weight: 700;"><span class="price-amount"
+                        data-price="2500">2,500</span> /سنوياً</span>
+            </div>
+        </div>
+
+        <div class="quote-form">
+            <h2 style="text-align: center; margin-bottom: 1.5rem; color: #2c3e50;">احصل على عرض سعر مخصص</h2>
+            <form onsubmit="submitQuote(event)">
+                <div class="form-group">
+                    <label>الاسم الكامل</label>
+                    <input type="text" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>رقم الهاتف</label>
+                    <input type="tel" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>البريد الإلكتروني</label>
+                    <input type="email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>نوع العقار</label>
+                    <select class="form-control" required>
+                        <option value="">اختر نوع العقار</option>
+                        <option>شقة</option>
+                        <option>فيلا</option>
+                        <option>مكتب</option>
+                        <option>محل تجاري</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>مساحة العقار (م²)</label>
+                    <input type="number" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>الباقة المطلوبة</label>
+                    <select class="form-control" required>
+                        <option value="">اختر الباقة</option>
+                        <option>الباقة الأساسية</option>
+                        <option>الباقة الشاملة</option>
+                        <option>الباقة الذهبية</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-paper-plane"></i> احصل على عرض السعر
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function submitQuote(e) {
+            e.preventDefault();
+            alert('شكراً لك! سيتم التواصل معك خلال 24 ساعة بعرض سعر مخصص.');
+            e.target.reset();
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+    </script>
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+</body>
+
+</html>

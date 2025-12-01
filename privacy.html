@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سياسة الخصوصية - إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/localization.css">
+    <style>
+        body {
+            background: #f8fafc;
+            padding-top: 80px;
+        }
+
+        .legal-header {
+            background: white;
+            padding: 4rem 0;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .legal-header h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .legal-header p {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+
+        .legal-content {
+            max-width: 900px;
+            margin: 3rem auto;
+            padding: 0 1.5rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 3rem;
+        }
+
+        .legal-section {
+            margin-bottom: 3rem;
+        }
+
+        .legal-section h2 {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .legal-section p {
+            color: #4b5563;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .legal-section ul {
+            list-style: disc;
+            margin-right: 1.5rem;
+            color: #4b5563;
+            line-height: 1.8;
+        }
+
+        .legal-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: #9ca3af;
+            margin-top: 3rem;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo"><a href="index.html">إيجاري</a></div>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="properties.html">عقارات</a></li>
+                <li><a href="services.html">الخدمات</a></li>
+                <li><a href="contact.html">تواصل معنا</a></li>
+            </ul>
+            <!-- Settings -->
+            <div class="settings-container">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="legal-header">
+        <div class="container">
+            <h1>سياسة الخصوصية</h1>
+            <p>نحن نلتزم بحماية خصوصيتك وبياناتك الشخصية</p>
+        </div>
+    </header>
+
+    <div class="legal-content">
+        <div class="legal-section">
+            <h2>1. المعلومات التي نجمعها</h2>
+            <p>قد نقوم بجمع وتخزين واستخدام أنواع المعلومات الشخصية التالية:</p>
+            <ul>
+                <li>معلومات حول جهاز الكمبيوتر الخاص بك وزياراتك لهذا الموقع واستخدامه (بما في ذلك عنوان IP والموقع
+                    الجغرافي ونوع المتصفح والإصدار ونظام التشغيل).</li>
+                <li>المعلومات التي تقدمها لنا عند التسجيل في موقعنا (بما في ذلك عنوان بريدك الإلكتروني).</li>
+                <li>المعلومات التي تقدمها عند إكمال ملفك الشخصي على موقعنا (بما في ذلك اسمك وصور ملفك الشخصي والجنس
+                    وتاريخ الميلاد وحالة العلاقة والاهتمامات والهوايات).</li>
+                <li>المعلومات المتعلقة بأي عملية شراء تقوم بها لخدماتنا أو أي معاملات أخرى تجريها من خلال موقعنا.</li>
+            </ul>
+        </div>
+
+        <div class="legal-section">
+            <h2>2. استخدام معلوماتك الشخصية</h2>
+            <p>قد نستخدم معلوماتك الشخصية للأغراض التالية:</p>
+            <ul>
+                <li>إدارة موقعنا وأعمالنا.</li>
+                <li>تخصيص موقعنا لك.</li>
+                <li>تمكينك من استخدام الخدمات المتاحة على موقعنا.</li>
+                <li>إرسال البضائع التي اشتريتها من خلال موقعنا إليك.</li>
+                <li>تزويدك بالخدمات المشتراة من خلال موقعنا.</li>
+                <li>إرسال البيانات والفواتير وإشعارات الدفع إليك، وتحصيل المدفوعات منك.</li>
+            </ul>
+        </div>
+
+        <div class="legal-section">
+            <h2>3. الكشف عن المعلومات الشخصية</h2>
+            <p>قد نكشف عن معلوماتك الشخصية لأي من موظفينا أو مسؤولينا أو شركات التأمين أو المستشارين المحترفين أو
+                الوكلاء أو الموردين أو المقاولين من الباطن، بقدر ما هو ضروري بشكل معقول للأغراض المنصوص عليها في هذه
+                السياسة.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>4. أمن بياناتك الشخصية</h2>
+            <p>سنتخذ احتياطات تقنية وتنظيمية معقولة لمنع فقدان أو سوء استخدام أو تغيير معلوماتك الشخصية. سنقوم بتخزين
+                جميع المعلومات الشخصية التي تقدمها على خوادمنا الآمنة (المحمية بكلمة مرور وجدار حماية).</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>5. حقوقك</h2>
+            <p>قد تطلب منا تزويدك بأي معلومات شخصية نحتفظ بها عنك. يخضع توفير هذه المعلومات لدفع رسوم وعرض إثبات مناسب
+                لهويتك.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>6. ملفات تعريف الارتباط (Cookies)</h2>
+            <p>يستخدم موقعنا ملفات تعريف الارتباط. ملف تعريف الارتباط هو ملف يحتوي على معرف (سلسلة من الحروف والأرقام)
+                يتم إرساله بواسطة خادم الويب إلى متصفح الويب ويتم تخزينه بواسطة المتصفح. يتم بعد ذلك إرسال المعرف مرة
+                أخرى إلى الخادم في كل مرة يطلب فيها المتصفح صفحة من الخادم.</p>
+        </div>
+
+        <div class="last-updated">
+            آخر تحديث: 1 يناير 2024
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>إيجاري</h3>
+                    <p>منصتك المتكاملة للبحث عن العقارات والخدمات</p>
+                </div>
+                <div class="footer-section">
+                    <h3>روابط سريعة</h3>
+                    <ul>
+                        <li><a href="index.html">الرئيسية</a></li>
+                        <li><a href="services.html">الخدمات</a></li>
+                        <li><a href="contact.html">تواصل معنا</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>قانوني</h3>
+                    <ul>
+                        <li><a href="terms.html">الشروط والأحكام</a></li>
+                        <li><a href="privacy.html">سياسة الخصوصية</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>جميع الحقوق محفوظة © 2024 إيجاري</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+    <script>
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+    </script>
+</body>
+
+</html>

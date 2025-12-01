@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة الفواتير - إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/localization.css">
+    <style>
+        body {
+            background: #f8fafc;
+            padding-top: 80px;
+        }
+
+        .invoices-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .page-header {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .page-header h1 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .page-header p {
+            color: #6b7280;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid;
+        }
+
+        .stat-card.total {
+            border-left-color: #667eea;
+        }
+
+        .stat-card.paid {
+            border-left-color: #10b981;
+        }
+
+        .stat-card.pending {
+            border-left-color: #f59e0b;
+        }
+
+        .stat-card.overdue {
+            border-left-color: #ef4444;
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-card.total .stat-icon {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .stat-card.paid .stat-icon {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .stat-card.pending .stat-icon {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+        }
+
+        .stat-card.overdue .stat-icon {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            color: #2c3e50;
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .filters-bar {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #6b7280;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 1rem;
+        }
+
+        .invoices-table {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #f8fafc;
+        }
+
+        th {
+            padding: 1rem;
+            text-align: right;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .invoice-number {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .status-paid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-overdue {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-left: 0.5rem;
+        }
+
+        .btn-view {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .btn-view:hover {
+            background: #c7d2fe;
+        }
+
+        .btn-download {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .btn-download:hover {
+            background: #bfdbfe;
+        }
+
+        .btn-send {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .btn-send:hover {
+            background: #a7f3d0;
+        }
+
+        .btn-create {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-create:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: #d1d5db;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            color: #9ca3af;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">إيجاري</a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="owner-dashboard.html">لوحة التحكم</a></li>
+                <li><a href="invoices.html" class="active">الفواتير</a></li>
+            </ul>
+            <!-- Settings (Country & Language) -->
+            <div class="settings-container">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="invoices-container">
+        <div class="page-header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1><i class="fas fa-file-invoice-dollar"></i> إدارة الفواتير</h1>
+                    <p>تتبع وإدارة جميع فواتير الإيجار الخاصة بك</p>
+                </div>
+                <button class="btn-create" onclick="createNewInvoice()">
+                    <i class="fas fa-plus"></i> إنشاء فاتورة جديدة
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card total">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-label">إجمالي الفواتير</div>
+                        <div class="stat-value" id="totalInvoices">24</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card paid">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-label">مدفوعة</div>
+                        <div class="stat-value" id="paidInvoices">18</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card pending">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-label">قيد الانتظار</div>
+                        <div class="stat-value" id="pendingInvoices">4</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stat-card overdue">
+                <div class="stat-header">
+                    <div>
+                        <div class="stat-label">متأخرة</div>
+                        <div class="stat-value" id="overdueInvoices">2</div>
+                    </div>
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-bar">
+            <div class="filter-group">
+                <label>الحالة</label>
+                <select class="filter-select" id="statusFilter" onchange="filterInvoices()">
+                    <option value="all">جميع الفواتير</option>
+                    <option value="paid">مدفوعة</option>
+                    <option value="pending">قيد الانتظار</option>
+                    <option value="overdue">متأخرة</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>الفترة</label>
+                <select class="filter-select" id="periodFilter" onchange="filterInvoices()">
+                    <option value="all">كل الفترات</option>
+                    <option value="this_month">هذا الشهر</option>
+                    <option value="last_month">الشهر الماضي</option>
+                    <option value="this_year">هذا العام</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>العقار</label>
+                <select class="filter-select" id="propertyFilter" onchange="filterInvoices()">
+                    <option value="all">جميع العقارات</option>
+                    <option value="1">شقة المعادي</option>
+                    <option value="2">فيلا التجمع</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Invoices Table -->
+        <div class="invoices-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>رقم الفاتورة</th>
+                        <th>العقار</th>
+                        <th>المستأجر</th>
+                        <th>المبلغ</th>
+                        <th>تاريخ الإصدار</th>
+                        <th>تاريخ الاستحقاق</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody id="invoicesTableBody">
+                    <tr>
+                        <td><span class="invoice-number">#INV-2024-001</span></td>
+                        <td>شقة فاخرة في المعادي</td>
+                        <td>أحمد محمد</td>
+                        <td><strong><span class="price-amount" data-price="12000">12,000</span> ر.س</strong></td>
+                        <td>2024-01-01</td>
+                        <td>2024-01-05</td>
+                        <td><span class="status-badge status-paid">مدفوعة</span></td>
+                        <td>
+                            <button class="action-btn btn-view" onclick="viewInvoice(1)">
+                                <i class="fas fa-eye"></i> عرض
+                            </button>
+                            <button class="action-btn btn-download" onclick="downloadInvoice(1)">
+                                <i class="fas fa-download"></i> تحميل
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="invoice-number">#INV-2024-002</span></td>
+                        <td>فيلا مستقلة في التجمع</td>
+                        <td>سارة علي</td>
+                        <td><strong><span class="price-amount" data-price="35000">35,000</span> ر.س</strong></td>
+                        <td>2024-01-01</td>
+                        <td>2024-01-05</td>
+                        <td><span class="status-badge status-pending">قيد الانتظار</span></td>
+                        <td>
+                            <button class="action-btn btn-view" onclick="viewInvoice(2)">
+                                <i class="fas fa-eye"></i> عرض
+                            </button>
+                            <button class="action-btn btn-send" onclick="sendReminder(2)">
+                                <i class="fas fa-paper-plane"></i> تذكير
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="invoice-number">#INV-2024-003</span></td>
+                        <td>شقة فاخرة في المعادي</td>
+                        <td>محمد خالد</td>
+                        <td><strong><span class="price-amount" data-price="12000">12,000</span> ر.س</strong></td>
+                        <td>2023-12-01</td>
+                        <td>2023-12-05</td>
+                        <td><span class="status-badge status-overdue">متأخرة</span></td>
+                        <td>
+                            <button class="action-btn btn-view" onclick="viewInvoice(3)">
+                                <i class="fas fa-eye"></i> عرض
+                            </button>
+                            <button class="action-btn btn-send" onclick="sendReminder(3)">
+                                <i class="fas fa-exclamation-circle"></i> تذكير عاجل
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Initialize demo invoices
+        function initializeInvoices() {
+            const invoices = JSON.parse(localStorage.getItem('ejari_invoices')) || [];
+            if (invoices.length === 0) {
+                const demoInvoices = [
+                    {
+                        id: 1,
+                        number: 'INV-2024-001',
+                        propertyId: 1,
+                        propertyName: 'شقة فاخرة في المعادي',
+                        tenantName: 'أحمد محمد',
+                        amount: 12000,
+                        issueDate: '2024-01-01',
+                        dueDate: '2024-01-05',
+                        status: 'paid',
+                        paidDate: '2024-01-03'
+                    },
+                    {
+                        id: 2,
+                        number: 'INV-2024-002',
+                        propertyId: 2,
+                        propertyName: 'فيلا مستقلة في التجمع',
+                        tenantName: 'سارة علي',
+                        amount: 35000,
+                        issueDate: '2024-01-01',
+                        dueDate: '2024-01-05',
+                        status: 'pending'
+                    },
+                    {
+                        id: 3,
+                        number: 'INV-2024-003',
+                        propertyId: 1,
+                        propertyName: 'شقة فاخرة في المعادي',
+                        tenantName: 'محمد خالد',
+                        amount: 12000,
+                        issueDate: '2023-12-01',
+                        dueDate: '2023-12-05',
+                        status: 'overdue'
+                    }
+                ];
+                localStorage.setItem('ejari_invoices', JSON.stringify(demoInvoices));
+            }
+        }
+
+        function filterInvoices() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const periodFilter = document.getElementById('periodFilter').value;
+            const propertyFilter = document.getElementById('propertyFilter').value;
+
+            // Here you would filter the invoices based on the selected filters
+            console.log('Filtering:', { statusFilter, periodFilter, propertyFilter });
+        }
+
+        function viewInvoice(id) {
+            alert(`عرض تفاصيل الفاتورة #${id}`);
+            // Here you would show invoice details in a modal or navigate to details page
+        }
+
+        function downloadInvoice(id) {
+            alert(`تحميل الفاتورة #${id} بصيغة PDF...`);
+            // Here you would generate and download the PDF
+        }
+
+        function sendReminder(id) {
+            alert(`تم إرسال تذكير للمستأجر بخصوص الفاتورة #${id}`);
+            // Here you would send WhatsApp/Email reminder
+        }
+
+        function createNewInvoice() {
+            alert('سيتم فتح نموذج إنشاء فاتورة جديدة...');
+            // Here you would open a modal or navigate to create invoice page
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeInvoices();
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+    </script>
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+</body>
+
+</html>

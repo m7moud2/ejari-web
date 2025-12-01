@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إضافة عقار جديد - إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/localization.css">
+    <style>
+        body {
+            background: #f8fafc;
+            padding-top: 80px;
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .page-header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .form-container {
+            max-width: 1000px;
+            margin: 0 auto 4rem;
+            padding: 0 1rem;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-title i {
+            color: #10b981;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4b5563;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 15px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+
+        .upload-area:hover {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-hint {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .amenities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .amenity-checkbox {
+            display: none;
+        }
+
+        .amenity-label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #64748b;
+        }
+
+        .amenity-checkbox:checked+.amenity-label {
+            border-color: #10b981;
+            background: #f0fdf4;
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 1.25rem 3rem;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .preview-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .preview-img {
+            width: 100%;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo"><a href="index.html">إيجاري</a></div>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="owner-dashboard.html">لوحة التحكم</a></li>
+                <li><a href="owner-profile.html">الملف الشخصي</a></li>
+            </ul>
+            <!-- Settings -->
+            <div class="settings-container">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <div class="container">
+            <h1>إضافة عقار جديد</h1>
+            <p>أضف عقارك وابدأ في استقبال طلبات الإيجار خلال دقائق</p>
+        </div>
+    </header>
+
+    <div class="form-container">
+        <form id="addPropertyForm" onsubmit="handleSubmit(event)">
+
+            <!-- Basic Info -->
+            <div class="form-card">
+                <h2 class="section-title"><i class="fas fa-info-circle"></i> المعلومات الأساسية</h2>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label class="form-label">عنوان الإعلان</label>
+                        <input type="text" class="form-control" placeholder="مثال: شقة فاخرة للإيجار في حي النرجس"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">نوع العقار</label>
+                        <select class="form-control" required>
+                            <option value="">اختر النوع</option>
+                            <option value="apartment">شقة</option>
+                            <option value="villa">فيلا</option>
+                            <option value="office">مكتب</option>
+                            <option value="shop">محل تجاري</option>
+                            <option value="studio">استوديو</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">الغرض</label>
+                        <select class="form-control" required>
+                            <option value="rent">لإيجار</option>
+                            <option value="sale">للبيع</option>
+                        </select>
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">وصف العقار</label>
+                        <textarea class="form-control" rows="5" placeholder="اكتب وصفاً تفصيلياً للعقار ومميزاته..."
+                            required></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div class="form-card">
+                <h2 class="section-title"><i class="fas fa-map-marker-alt"></i> الموقع</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">المدينة</label>
+                        <select class="form-control" required>
+                            <option value="">اختر المدينة</option>
+                            <option value="riyadh">الرياض</option>
+                            <option value="jeddah">جدة</option>
+                            <option value="dammam">الدمام</option>
+                            <option value="cairo">القاهرة</option>
+                            <option value="dubai">دبي</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">الحي</label>
+                        <input type="text" class="form-control" placeholder="اسم الحي" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label class="form-label">العنوان التفصيلي</label>
+                        <input type="text" class="form-control" placeholder="اسم الشارع، رقم المبنى..." required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details -->
+            <div class="form-card">
+                <h2 class="section-title"><i class="fas fa-home"></i> تفاصيل العقار</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">المساحة (م²)</label>
+                        <input type="number" class="form-control" placeholder="150" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">عدد الغرف</label>
+                        <input type="number" class="form-control" placeholder="3" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">عدد الحمامات</label>
+                        <input type="number" class="form-control" placeholder="2" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">الدور</label>
+                        <input type="number" class="form-control" placeholder="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">عمر العقار (سنة)</label>
+                        <input type="number" class="form-control" placeholder="5">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">التشطيب</label>
+                        <select class="form-control">
+                            <option>سوبر لوكس</option>
+                            <option>لوكس</option>
+                            <option>نصف تشطيب</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amenities -->
+            <div class="form-card">
+                <h2 class="section-title"><i class="fas fa-star"></i> المميزات والخدمات</h2>
+                <div class="amenities-grid">
+                    <label>
+                        <input type="checkbox" class="amenity-checkbox">
+                        <div class="amenity-label"><i class="fas fa-parking"></i> موقف سيارات</div>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="amenity-checkbox">
+                        <div class="amenity-label"><i class="fas fa-wifi"></i> واي فاي</div>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="amenity-checkbox">
+                        <div class="amenity-label"><i class="fas fa-elevator"></i> مصعد</div>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="amenity-checkbox">
+                        <div class="amenity-label"><i class="fas fa-swimming-pool"></i> مسبح</div>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="amenity-checkbox">
+                        <div class="amenity-label"><i class="fas fa-dumbbell"></i> نادي رياضي</div>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="amenity-checkbox">
+                        <div class="amenity-label"><i class="fas fa-shield-alt"></i> أمن وحراسة</div>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="amenity-checkbox">
+                        <div class="amenity-label"><i class="fas fa-snowflake"></i> تكييف مركزي</div>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="amenity-checkbox">
+                        <div class="amenity-label"><i class="fas fa-couch"></i> مفروش</div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Media -->
+            <div class="form-card">
+                <h2 class="section-title"><i class="fas fa-images"></i> الصور والفيديو</h2>
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <input type="file" id="fileInput" multiple accept="image/*" style="display: none"
+                        onchange="handleFileSelect(event)">
+                    <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <h3 class="upload-text">اضغط هنا لرفع الصور أو اسحبها وأفلتها</h3>
+                    <p class="upload-hint">يمكنك رفع حتى 10 صور (JPG, PNG) بحد أقصى 5MB للصورة</p>
+                </div>
+                <div id="previewContainer" class="preview-images"></div>
+            </div>
+
+            <!-- Pricing -->
+            <div class="form-card">
+                <h2 class="section-title"><i class="fas fa-money-bill-wave"></i> السعر وشروط الدفع</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">السعر المطلوب</label>
+                        <input type="number" class="form-control" placeholder="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">دورية الدفع</label>
+                        <select class="form-control">
+                            <option>شهري</option>
+                            <option>ربع سنوي</option>
+                            <option>نصف سنوي</option>
+                            <option>سنوي</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">مبلغ التأمين</label>
+                        <input type="number" class="form-control" placeholder="0">
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <i class="fas fa-check-circle"></i> نشر العقار
+            </button>
+        </form>
+    </div>
+
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+    <script>
+        // Handle file selection for preview
+        function handleFileSelect(event) {
+            const files = event.target.files;
+            const container = document.getElementById('previewContainer');
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'preview-img';
+                        container.appendChild(img);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        // Handle form submission
+        function handleSubmit(event) {
+            event.preventDefault();
+
+            // Simulate loading
+            const btn = event.target.querySelector('.btn-submit');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري النشر...';
+            btn.disabled = true;
+
+            // Collect Form Data
+            const form = event.target;
+            const inputs = form.querySelectorAll('input, select, textarea');
+            const propertyData = {
+                id: Date.now(),
+                ownerId: JSON.parse(localStorage.getItem('ejari_user'))?.id || 2, // Default to owner 2 if not logged in
+                status: 'pending',
+                dateAdded: new Date().toISOString(),
+                amenities: []
+            };
+
+            // Map inputs to propertyData (Simplified mapping)
+            propertyData.title = inputs[0].value; // Title
+            propertyData.type = inputs[1].value;
+            propertyData.purpose = inputs[2].value;
+            propertyData.description = inputs[3].value;
+            propertyData.city = inputs[4].value;
+            propertyData.district = inputs[5].value;
+            propertyData.address = inputs[6].value;
+            propertyData.area = inputs[7].value;
+            propertyData.rooms = inputs[8].value;
+            propertyData.bathrooms = inputs[9].value;
+            propertyData.price = inputs[inputs.length - 3].value; // Price is near the end
+
+            // Collect Amenities
+            form.querySelectorAll('.amenity-checkbox:checked').forEach(cb => {
+                propertyData.amenities.push(cb.nextElementSibling.textContent.trim());
+            });
+
+            setTimeout(() => {
+                // Save to LocalStorage
+                const properties = JSON.parse(localStorage.getItem('ejari_properties')) || [];
+                properties.push(propertyData);
+                localStorage.setItem('ejari_properties', JSON.stringify(properties));
+
+                alert('تم تقديم طلب إضافة العقار بنجاح! سيتم مراجعته ونشره قريباً.');
+                window.location.href = 'owner-dashboard.html';
+            }, 2000);
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نقل العفش - إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/localization.css">
+    <style>
+        body {
+            background: #f8fafc;
+            padding-top: 80px;
+        }
+
+        .service-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .service-header {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .service-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .feature-card h3 {
+            color: #2c3e50;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .feature-card p {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .calculator {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            margin: 2rem 0;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .btn-calculate {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-calculate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        .estimate-result {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.1) 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            margin-top: 2rem;
+            text-align: center;
+            display: none;
+            border: 2px solid #8b5cf6;
+        }
+
+        .estimate-result h3 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+
+        .estimate-result .price {
+            font-size: 3rem;
+            color: #8b5cf6;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo"><a href="index.html">إيجاري</a></div>
+            <ul class="nav-links">
+                <li><a href="index.html">الرئيسية</a></li>
+                <li><a href="services.html" class="active">الخدمات</a></li>
+            </ul>
+            <!-- Settings (Country & Language) -->
+            <div class="settings-container">
+                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                    <i class="fas fa-globe"></i>
+                    <span id="countrySelector">🇸🇦 السعودية</span>
+                </button>
+                <div id="settingsDropdownContainer"></div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="service-container">
+        <div class="service-header">
+            <h1><i class="fas fa-truck-loading"></i> نقل العفش والأثاث</h1>
+            <p style="font-size: 1.2rem; opacity: 0.9;">انتقل لمنزلك الجديد براحة بال</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3><i class="fas fa-box" style="color: #8b5cf6;"></i> تغليف آمن</h3>
+                <p>نستخدم مواد تغليف عالية الجودة لحماية أثاثك من الكسر والخدش</p>
+            </div>
+            <div class="feature-card">
+                <h3><i class="fas fa-truck" style="color: #8b5cf6;"></i> عربات مجهزة</h3>
+                <p>أسطول من العربات المجهزة بأحدث المعدات لنقل آمن</p>
+            </div>
+            <div class="feature-card">
+                <h3><i class="fas fa-users" style="color: #8b5cf6;"></i> فريق محترف</h3>
+                <p>عمال مدربون على فك وتركيب جميع أنواع الأثاث</p>
+            </div>
+            <div class="feature-card">
+                <h3><i class="fas fa-hard-hat" style="color: #8b5cf6;"></i> أوناش رفع</h3>
+                <p>نوفر أوناش رفع للأدوار العليا بأسعار تنافسية</p>
+            </div>
+            <div class="feature-card">
+                <h3><i class="fas fa-clock" style="color: #8b5cf6;"></i> التزام بالمواعيد</h3>
+                <p>نحترم وقتك ونلتزم بالمواعيد المحددة</p>
+            </div>
+            <div class="feature-card">
+                <h3><i class="fas fa-shield-alt" style="color: #8b5cf6;"></i> تأمين شامل</h3>
+                <p>جميع عملياتنا مؤمنة ضد أي أضرار محتملة</p>
+            </div>
+        </div>
+
+        <div class="calculator">
+            <h2 style="text-align: center; margin-bottom: 1.5rem; color: #2c3e50;">احسب تكلفة النقل</h2>
+            <form onsubmit="calculateCost(event)">
+                <div class="form-group">
+                    <label>الاسم الكامل</label>
+                    <input type="text" class="form-control" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label>رقم الهاتف</label>
+                    <input type="tel" class="form-control" id="phone" required>
+                </div>
+                <div class="form-group">
+                    <label>من (العنوان الحالي)</label>
+                    <input type="text" class="form-control" id="fromAddress" required>
+                </div>
+                <div class="form-group">
+                    <label>إلى (العنوان الجديد)</label>
+                    <input type="text" class="form-control" id="toAddress" required>
+                </div>
+                <div class="form-group">
+                    <label>نوع السكن</label>
+                    <select class="form-control" id="propertyType" required>
+                        <option value="">اختر نوع السكن</option>
+                        <option value="studio">استوديو</option>
+                        <option value="1br">شقة غرفة واحدة</option>
+                        <option value="2br">شقة غرفتين</option>
+                        <option value="3br">شقة 3 غرف</option>
+                        <option value="villa">فيلا</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>الدور (الحالي)</label>
+                    <input type="number" class="form-control" id="currentFloor" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>الدور (الجديد)</label>
+                    <input type="number" class="form-control" id="newFloor" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>هل تحتاج أونش رفع؟</label>
+                    <select class="form-control" id="needCrane">
+                        <option value="no">لا</option>
+                        <option value="yes">نعم</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>تاريخ النقل المطلوب</label>
+                    <input type="date" class="form-control" id="moveDate" required>
+                </div>
+                <button type="submit" class="btn-calculate">
+                    <i class="fas fa-calculator"></i> احسب التكلفة
+                </button>
+            </form>
+
+            <div class="estimate-result" id="estimateResult">
+                <h3>التكلفة التقديرية</h3>
+                <div class="price"><span id="estimatedPrice" class="price-amount" data-price="0">0</span></div>
+                <p style="color: #6b7280; margin-top: 1rem;">خصم 10% لعملاء إيجاري</p>
+                <button class="btn-calculate" style="margin-top: 1.5rem;" onclick="confirmBooking()">
+                    <i class="fas fa-check"></i> تأكيد الحجز
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculateCost(e) {
+            e.preventDefault();
+            const propertyType = document.getElementById('propertyType').value;
+            const currentFloor = parseInt(document.getElementById('currentFloor').value);
+            const newFloor = parseInt(document.getElementById('newFloor').value);
+            const needCrane = document.getElementById('needCrane').value;
+
+            let baseCost = 0;
+            switch (propertyType) {
+                case 'studio': baseCost = 500; break;
+                case '1br': baseCost = 800; break;
+                case '2br': baseCost = 1200; break;
+                case '3br': baseCost = 1800; break;
+                case 'villa': baseCost = 3000; break;
+            }
+
+            const floorCost = (currentFloor + newFloor) * 50;
+            const craneCost = needCrane === 'yes' ? 500 : 0;
+            const total = baseCost + floorCost + craneCost;
+            const discount = total * 0.1;
+            const finalCost = total - discount;
+
+            const priceElement = document.getElementById('estimatedPrice');
+            priceElement.setAttribute('data-price', finalCost);
+            priceElement.textContent = finalCost;
+
+            // Update currency if LocalizationManager is available
+            if (typeof LocalizationManager !== 'undefined') {
+                LocalizationManager.updatePrices();
+            } else {
+                priceElement.textContent = finalCost.toLocaleString();
+            }
+
+            document.getElementById('estimateResult').style.display = 'block';
+        }
+
+        function confirmBooking() {
+            alert('تم تأكيد الحجز! سيتواصل معك فريق النقل خلال 24 ساعة.');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+    </script>
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+</body>
+
+</html>

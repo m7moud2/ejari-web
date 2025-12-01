@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إيجاري - منصة الإيجارات في مصر</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/components/modal.css">
+    <link rel="stylesheet" href="css/components/notifications.css">
+    <link rel="stylesheet" href="css/business-pitch.css">
+    <link rel="stylesheet" href="css/localization.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <header class="navbar">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html"
+                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-home" style="color: var(--primary-color);"></i>
+                    إيجاري
+                </a>
+            </div>
+
+            <nav class="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="index.html" class="active">الرئيسية</a></li>
+                    <li><a href="properties.html">عقارات</a></li>
+                    <li><a href="cars.html">سيارات</a></li>
+                    <li><a href="services.html">الخدمات</a></li>
+                    <li><a href="contact.html">تواصل معنا</a></li>
+                </ul>
+            </nav>
+
+            <div class="nav-icons">
+                <!-- Cart -->
+                <div class="cart-wrapper">
+                    <button class="cart-btn" onclick="toggleCart()" aria-label="عربة التسوق">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count">0</span>
+                    </button>
+
+                    <div class="cart-dropdown" id="cartDropdown">
+                        <div class="cart-header">
+                            <h3>عربة التسوق</h3>
+                            <span class="cart-total">الإجمالي: 0 ج.م</span>
+                        </div>
+                        <div class="cart-items" id="cartItems">
+                            <div class="empty-cart">
+                                <i class="fas fa-shopping-basket"></i>
+                                <p>السلة فارغة</p>
+                            </div>
+                        </div>
+                        <div class="cart-footer">
+                            <button class="btn btn-primary checkout-btn" onclick="checkout()" disabled>
+                                إتمام الشراء
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings (Country & Language) -->
+                <div class="settings-container">
+                    <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                        <i class="fas fa-globe"></i>
+                        <span id="countrySelector">🇸🇦 السعودية</span>
+                    </button>
+                    <div id="settingsDropdownContainer"></div>
+                </div>
+
+                <!-- Auth Buttons (Will be toggled by JS) -->
+                <div class="auth-buttons" id="authButtons">
+                    <a href="signup.html" class="btn btn-primary">إنشاء حساب</a>
+                    <a href="login.html" class="btn btn-outline">تسجيل الدخول</a>
+                </div>
+
+                <!-- User Menu (Hidden by default, shown when logged in) -->
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <button class="user-btn" onclick="toggleUserMenu()">
+                        <img src="images/avatar-placeholder.png" alt="User" id="userAvatar">
+                        <span id="userName">المستخدم</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a href="dashboard.html" id="dashboardLink"><i class="fas fa-tachometer-alt"></i> لوحة
+                            التحكم</a>
+                        <a href="profile.html"><i class="fas fa-user"></i> الملف الشخصي</a>
+                        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> تسجيل الخروج</a>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="menu-btn" onclick="toggleMobileMenu()" aria-label="القائمة">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <style>
+        /* Header Styles */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            height: 70px;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 100%;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color, #667eea);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #4b5563;
+            font-weight: 600;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--primary-color, #667eea);
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            right: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary-color, #667eea);
+            border-radius: 2px;
+        }
+
+        .nav-icons {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Cart Styles */
+        .cart-wrapper {
+            position: relative;
+        }
+
+        .cart-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #4b5563;
+            cursor: pointer;
+            position: relative;
+            padding: 0.5rem;
+            transition: color 0.3s;
+        }
+
+        .cart-btn:hover {
+            color: var(--primary-color, #667eea);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #ef4444;
+            color: white;
+            font-size: 0.7rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .cart-dropdown {
+            position: absolute;
+            top: 120%;
+            left: 0;
+            width: 300px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            display: none;
+            flex-direction: column;
+            z-index: 1001;
+            border: 1px solid #f3f4f6;
+        }
+
+        .cart-dropdown.active {
+            display: flex;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 0.5rem;
+        }
+
+        .cart-items {
+            max-height: 250px;
+            overflow-y: auto;
+            min-height: 100px;
+        }
+
+        .empty-cart {
+            text-align: center;
+            color: #9ca3af;
+            padding: 2rem 0;
+        }
+
+        .empty-cart i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Auth Buttons */
+        .auth-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            padding: 0.5rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: #4b5563;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-outline:hover {
+            border-color: #667eea;
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        /* User Menu */
+        .user-menu {
+            position: relative;
+        }
+
+        .user-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.25rem;
+            color: #4b5563;
+        }
+
+        .user-btn img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e5e7eb;
+        }
+
+        .user-dropdown {
+            position: absolute;
+            top: 120%;
+            left: 0;
+            width: 200px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 0.5rem;
+            display: none;
+            flex-direction: column;
+            z-index: 1001;
+            border: 1px solid #f3f4f6;
+        }
+
+        .user-dropdown.active {
+            display: flex;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        .user-dropdown a {
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .user-dropdown a:hover {
+            background: #f3f4f6;
+            color: var(--primary-color, #667eea);
+        }
+
+        /* Mobile Menu */
+        .menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #4b5563;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+                /* Hide nav links on mobile */
+            }
+
+            .auth-buttons {
+                display: none;
+                /* Hide auth buttons on mobile, move to menu */
+            }
+
+            .menu-btn {
+                display: block;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+    <script>
+        let cart = {
+            items: [],
+            total: 0
+        };
+
+        function toggleCart() {
+            const dropdown = document.querySelector('.cart-dropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        function addToCart(item) {
+            cart.items.push(item);
+            cart.total += item.price;
+            updateCartUI();
+        }
+
+        function removeFromCart(index) {
+            cart.total -= cart.items[index].price;
+            cart.items.splice(index, 1);
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const cartCount = document.querySelector('.cart-count');
+            const cartTotal = document.querySelector('.cart-total');
+            const cartItems = document.querySelector('.cart-items');
+
+            cartCount.textContent = cart.items.length;
+            cartTotal.textContent = `الإجمالي: ${cart.total} ج.م`;
+
+            cartItems.innerHTML = cart.items.map((item, index) => `
+                   <div class="cart-item">
+                       <img src="${item.image}" alt="${item.title}" class="cart-item-image">
+                       <div class="cart-item-details">
+                           <div class="cart-item-title">${item.title}</div>
+                           <div class="cart-item-price">${item.price} ج.م</div>
+                       </div>
+                       <button class="cart-item-remove" onclick="removeFromCart(${index})">
+                           <i class="fas fa-times"></i>
+                       </button>
+                   </div>
+               `).join('');
+        }
+
+        function checkout() {
+            if (cart.items.length === 0) {
+                alert('عربة التسوق فارغة');
+                return;
+            }
+            location.href = 'checkout.html';
+        }
+
+        // Close cart when clicking outside
+        document.addEventListener('click', (e) => {
+            const cart = document.querySelector('.cart');
+            if (!cart.contains(e.target)) {
+                document.querySelector('.cart-dropdown').classList.remove('active');
+            }
+        });
+    </script>
+    <!-- Enhanced Hero Section for Business Pitch -->
+    <section class="hero-enhanced">
+        <div class="container hero-content">
+            <h1>🏢 نظام إيجاري السحابي</h1>
+            <p class="subtitle">الحل المتكامل لإدارة الأملاك والعقارات في السعودية والإمارات ومصر</p>
+            <p class="tagline">
+                حول مكتبك العقاري إلى مؤسسة رقمية مع نظام أتمتة شامل:
+                <br>
+                تحصيل إيجارات إلكتروني • فواتير ضريبية آلية • إشعارات واتساب • عقود موحدة
+            </p>
+
+            <!-- Search Box -->
+            <div class="search-box"
+                style="background: white; padding: 1.5rem; border-radius: 12px; max-width: 700px; margin: 2rem auto; display: flex; gap: 1rem; box-shadow: 0 4px 20px rgba(0,0,0,0.1); animation: fadeInUp 0.8s ease 0.8s backwards;">
+                <input type="text" placeholder="ابحث عن منطقة، عنوان، أو نوع عقار..."
+                    style="flex: 1; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 1rem; color: #2c3e50;">
+                <button class="btn btn-outline"
+                    style="padding: 0.75rem 1.5rem; border: 1px solid #e5e7eb; background: white; color: #6b7280; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.3s; white-space: nowrap;">
+                    <i class="fas fa-filter"></i> فلترة
+                </button>
+                <button class="btn btn-primary"
+                    style="padding: 0.75rem 2rem; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.3s; white-space: nowrap;">
+                    <i class="fas fa-search"></i> بحث
+                </button>
+            </div>
+
+            <div class="cta-buttons">
+                <a href="#features" class="btn-hero btn-hero-primary">اكتشف المزايا</a>
+                <a href="#stats" class="btn-hero btn-hero-secondary">شاهد الإحصائيات</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section" id="stats">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-number">10,000+</span>
+                <span class="stat-label">عقار متاح</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">5,000+</span>
+                <span class="stat-label">مستخدم نشط</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">95%</span>
+                <span class="stat-label">معدل الرضا</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">24/7</span>
+                <span class="stat-label">دعم فني</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section" id="about">
+        <div class="about-content">
+            <div class="about-text">
+                <h2>عن منصة إيجاري</h2>
+                <p>
+                    <strong>إيجاري</strong> هو نظام SaaS متكامل لإدارة الأملاك، مصمم خصيصاً لتلبية احتياجات السوق
+                    العقاري في السعودية والإمارات ومصر.
+                    نحن نوفر حلاً تقنياً يربط بين المكاتب العقارية والملاك والمستأجرين.
+                </p>
+                <p>
+                    من خلال الأتمتة الكاملة، نساعدك على تحصيل الإيجارات، إصدار الفواتير الضريبية، وتوثيق العقود
+                    دون أي تدخل يدوي، مما يرفع كفاءة التشغيل ويزيد الأرباح.
+                </p>
+                <p>
+                    <strong>رؤيتنا:</strong> أن نكون الشريك التقني الأول لشركات إدارة الأملاك في الشرق الأوسط،
+                    وتمكين التحول الرقمي في القطاع العقاري.
+                </p>
+            </div>
+            <div class="about-image">
+                <img src="images/home3.jpg" alt="منصة إيجاري">
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>لماذا إيجاري؟</h2>
+                <p>مميزات تجعلنا الخيار الأفضل في سوق الإيجارات</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fab fa-whatsapp"></i>
+                    </div>
+                    <h3>إشعارات واتساب آلية</h3>
+                    <p>تذكير تلقائي بمواعيد الإيجار والفواتير عبر واتساب لضمان التحصيل في الموعد</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <h3>فواتير ضريبية آلية</h3>
+                    <p>إصدار فواتير متوافقة مع هيئة الزكاة والضريبة (KSA) والضرائب المصرية والإماراتية</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <h3>بوابة دفع وتحصيل</h3>
+                    <p>استقبل الإيجارات أونلاين (مدى، فيزا، أبل باي) مع تسوية تلقائية للحسابات</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3>لوحة تحكم للملاك</h3>
+                    <p>تقارير مالية وتشغيلية دقيقة لكل فرع من فروعك العقارية</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-signature"></i>
+                    </div>
+                    <h3>عقود إلكترونية</h3>
+                    <p>إنشاء وتوثيق العقود إلكترونياً (Ejar/Tawtheeq) بضغطة زر</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3>دعم فني للشركات</h3>
+                    <p>فريق متخصص لدعم عملياتك في السعودية ومصر والإمارات</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works">
+        <div class="container">
+            <div class="section-header">
+                <h2>كيف تعمل المنصة؟</h2>
+                <p>ثلاث خطوات بسيطة للبدء</p>
+            </div>
+            <div class="steps-container">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>إنشاء حساب</h3>
+                    <p>سجل كمالك أو مستأجر في دقائق معدودة</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>تصفح أو أضف عقار</h3>
+                    <p>ابحث عن عقارك المثالي أو أضف عقارك للإيجار</p>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>احجز وادفع بأمان</h3>
+                    <p>أتمم الحجز والدفع بكل سهولة وأمان</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories -->
+    <!-- قسم التصنيفات -->
+    <section class="categories-section">
+        <div class="container">
+            <h2 class="section-title">تصفح حسب النوع</h2>
+
+            <!-- تبويبات التصنيفات -->
+            <div class="categories-tabs">
+                <button class="tab-btn active" data-category="residential">عقارات سكنية</button>
+                <button class="tab-btn" data-category="commercial">عقارات تجارية</button>
+                <button class="tab-btn" data-category="cars">سيارات</button>
+            </div>
+
+            <!-- محتوى العقارات السكنية -->
+            <div class="category-content active" id="residential">
+                <div class="items-grid">
+                    <!-- شقة -->
+
+                    <div class="category-item">
+                        <div class="item-image">
+                            <img src="images/home3.jpg" alt="شقة">
+                            <span class="tag">شقة</span>
+                            <button class="favorite-btn">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="item-content">
+                            <h3>شقة فاخرة في المعادي</h3>
+                            <p class="location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                المعادي، القاهرة
+                            </p>
+                            <div class="specs">
+                                <span><i class="fas fa-bed"></i> 3 غرف</span>
+                                <span><i class="fas fa-bath"></i> 2 حمام</span>
+                                <span><i class="fas fa-ruler-combined"></i> 150م²</span>
+                            </div>
+                            <div class="price">
+                                <span class="amount">12,000 ج.م</span>
+                                <span class="period">/شهر</span>
+                            </div>
+                            <div class="item-footer">
+                                <button class="btn btn-primary"
+                                    onclick="openBookingModal('شقة فاخرة في المعادي', 12000, 'images/home1.jpg', 'property')">
+                                    حجز الآن
+                                </button> <button class="btn btn-outline"
+                                    onclick="location.href='Property Details Page.html'">تفاصيل أكثر</button>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- فيلا -->
+                    <div class="category-item">
+                        <div class="item-image">
+                            <img src="images/home5.jpg" alt="فيلا">
+                            <span class="tag">فيلا</span>
+                            <button class="favorite-btn">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="item-content">
+                            <h3>فيلا مستقلة في التجمع</h3>
+                            <p class="location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                التجمع الخامس، القاهرة
+                            </p>
+                            <div class="specs">
+                                <span><i class="fas fa-bed"></i> 5 غرف</span>
+                                <span><i class="fas fa-bath"></i> 4 حمام</span>
+                                <span><i class="fas fa-ruler-combined"></i> 300م²</span>
+                            </div>
+                            <div class="price">
+                                <span class="amount">35,000 ج.م</span>
+                                <span class="period">/شهر</span>
+                            </div>
+                            <div class="item-footer">
+                                <button class="btn btn-primary"
+                                    onclick="openBookingModal('فيلا مودرن بالتجمع', 35000, 'images/home2.jpg', 'property')">
+                                    حجز الآن
+                                </button> <button class="btn btn-outline"
+                                    onclick="location.href='Property Details Page.html'">تفاصيل أكثر</button>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- محتوى العقارات التجارية -->
+            <div class="category-content" id="commercial">
+                <div class="items-grid">
+                    <!-- مكتب -->
+                    <div class="category-item">
+                        <div class="item-image">
+                            <img src="images/home7.jpg" alt="مكتب">
+                            <span class="tag">مكتب</span>
+                            <button class="favorite-btn">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="item-content">
+                            <h3>مكتب إداري في وسط البلد</h3>
+                            <p class="location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                وسط البلد، القاهرة
+                            </p>
+                            <div class="specs">
+                                <span><i class="fas fa-door-open"></i> 4 غرف</span>
+                                <span><i class="fas fa-users"></i> 20 موظف</span>
+                                <span><i class="fas fa-ruler-combined"></i> 200م²</span>
+                            </div>
+                            <div class="price">
+                                <span class="amount">25,000 ج.م</span>
+                                <span class="period">/شهر</span>
+                            </div>
+                            <div class="item-footer">
+                                <button class="btn btn-primary" onclick="addToCart(3)">حجز الآن</button>
+                                <button class="btn btn-outline"
+                                    onclick="location.href='Property Details Page.html'">تفاصيل أكثر</button>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- محل تجاري -->
+                    <div class="category-item">
+                        <div class="item-image">
+                            <img src="images/home7.jpg" alt="محل">
+                            <span class="tag">محل</span>
+                            <button class="favorite-btn">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="item-content">
+                            <h3>محل تجاري في شارع رئيسي</h3>
+                            <p class="location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                مدينة نصر، القاهرة
+                            </p>
+                            <div class="specs">
+                                <span><i class="fas fa-door-open"></i> واجهة 8م</span>
+                                <span><i class="fas fa-warehouse"></i> مخزن</span>
+                                <span><i class="fas fa-ruler-combined"></i> 120م²</span>
+                            </div>
+                            <div class="price">
+                                <span class="amount">20,000 ج.م</span>
+                                <span class="period">/شهر</span>
+                            </div>
+                            <div class="item-footer">
+                                <button class="btn btn-primary" onclick="addToCart(4)">حجز الآن</button>
+                                <button class="btn btn-outline"
+                                    onclick="location.href='Property Details Page.html'">تفاصيل أكثر</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- محتوى السيارات -->
+            <div class="category-content" id="cars">
+                <div class="items-grid">
+                    <!-- سيارة 1 -->
+                    <div class="category-item">
+                        <div class="item-image">
+                            <img src="images/car.jpg" alt="سيارة">
+                            <span class="tag">اقتصادية</span>
+                            <button class="favorite-btn">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="item-content">
+                            <h3>تويوتا كورولا 2024</h3>
+                            <div class="specs">
+                                <span><i class="fas fa-cog"></i> أوتوماتيك</span>
+                                <span><i class="fas fa-gas-pump"></i> بنزين</span>
+                                <span><i class="fas fa-users"></i> 4 ركاب</span>
+                            </div>
+                            <div class="price">
+                                <span class="amount">500 ج.م</span>
+                                <span class="period">/يوم</span>
+                            </div>
+                            <div class="item-footer">
+                                <button class="btn btn-primary" onclick="addToCart(5)">حجز الآن</button>
+                                <button class="btn btn-outline"
+                                    onclick="location.href='Property Details Page.html'">تفاصيل أكثر</button>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- سيارة 2 -->
+                    <div class="category-item">
+                        <div class="item-image">
+                            <img src="images/carc200.jpg" alt="سيارة">
+                            <span class="tag">فاخرة</span>
+                            <button class="favorite-btn">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </div>
+                        <div class="item-content">
+                            <h3>مرسيدس C200 2024</h3>
+                            <div class="specs">
+                                <span><i class="fas fa-cog"></i> أوتوماتيك</span>
+                                <span><i class="fas fa-gas-pump"></i> بنزين</span>
+                                <span><i class="fas fa-users"></i> 4 ركاب</span>
+                            </div>
+                            <div class="price">
+                                <span class="amount">1,500 ج.م</span>
+                                <span class="period">/يوم</span>
+                            </div>
+                            <div class="item-footer">
+                                <button class="btn btn-primary" onclick="addToCart(6)">حجز الآن</button>
+                                <button class="btn btn-outline"
+                                    onclick="location.href='Property Details Page.html'">تفاصيل أكثر</button>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ecosystem Section (New) -->
+    <section class="ecosystem-section" style="padding: 5rem 0; background: #f8fafc;">
+        <div class="container">
+            <div class="section-header" style="text-align: center; margin-bottom: 3rem;">
+                <h2 style="font-size: 2.5rem; color: #1e293b; margin-bottom: 1rem;">نظام بيئي متكامل</h2>
+                <p style="font-size: 1.2rem; color: #64748b;">أكثر من مجرد منصة.. نحن شريكك في كل خطوة</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
+                <div style="background: white; padding: 2rem; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.3s;"
+                    onmouseover="this.style.transform='translateY(-5px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
+                    <div
+                        style="width: 60px; height: 60px; background: #e0e7ff; color: #4338ca; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 1rem;">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <h3 style="margin-bottom: 0.5rem; color: #1e293b;">عقود إلكترونية</h3>
+                    <p style="color: #64748b; font-size: 0.95rem;">وثق عقودك قانونياً في دقائق واضمن حقوقك.</p>
+                </div>
+                <div style="background: white; padding: 2rem; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.3s;"
+                    onmouseover="this.style.transform='translateY(-5px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
+                    <div
+                        style="width: 60px; height: 60px; background: #dcfce7; color: #15803d; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 1rem;">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 style="margin-bottom: 0.5rem; color: #1e293b;">تأمين شامل</h3>
+                    <p style="color: #64748b; font-size: 0.95rem;">غطاء تأميني يحميك من المخاطر والأضرار.</p>
+                </div>
+                <div style="background: white; padding: 2rem; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.3s;"
+                    onmouseover="this.style.transform='translateY(-5px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
+                    <div
+                        style="width: 60px; height: 60px; background: #ffedd5; color: #c2410c; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 1rem;">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <h3 style="margin-bottom: 0.5rem; color: #1e293b;">خدمات صيانة</h3>
+                    <p style="color: #64748b; font-size: 0.95rem;">شبكة من الفنيين المعتمدين لخدمتك 24/7.</p>
+                </div>
+                <div style="background: white; padding: 2rem; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.3s;"
+                    onmouseover="this.style.transform='translateY(-5px)'"
+                    onmouseout="this.style.transform='translateY(0)'">
+                    <div
+                        style="width: 60px; height: 60px; background: #fae8ff; color: #86198f; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 1rem;">
+                        <i class="fas fa-truck-loading"></i>
+                    </div>
+                    <h3 style="margin-bottom: 0.5rem; color: #1e293b;">نقل عفش</h3>
+                    <p style="color: #64748b; font-size: 0.95rem;">انتقل لمنزلك الجديد بسهولة وأمان.</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 3rem;">
+                <a href="services.html" class="btn btn-outline"
+                    style="padding: 1rem 2rem; border: 2px solid #667eea; color: #667eea; font-weight: bold;">اكتشف جميع
+                    الخدمات</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-content">
+            <h2>هل أنت مستعد للاستثمار في المستقبل؟</h2>
+            <p>انضم إلينا في رحلة تحويل سوق الإيجارات في مصر والمنطقة</p>
+            <div class="cta-buttons">
+                <a href="contact.html" class="btn-hero btn-hero-primary">تواصل معنا</a>
+                <a href="signup.html" class="btn-hero btn-hero-secondary">ابدأ الآن مجاناً</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>إيجاري</h3>
+                    <p>منصتك المتكاملة للبحث عن العقارات</p>
+                </div>
+                <div class="footer-section">
+                    <h3>روابط سريعة</h3>
+                    <ul>
+                        <li><a href="#">عن الموقع</a></li>
+                        <li><a href="#">الشروط والأحكام</a></li>
+                        <li><a href="#">سياسة الخصوصية</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>تواصل معنا</h3>
+                    <ul>
+                        <li>info@ejari.com</li>
+                        <li>+20 123 456 789</li>
+                        <li>القاهرة، مصر</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>جميع الحقوق محفوظة © 2024 إيجاري</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Booking Modal -->
+    <div class="booking-modal" id="bookingModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div class="booking-card"
+            style="background: white; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+            <div class="booking-card-header"
+                style="padding: 1.5rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: #2c3e50; font-size: 1.25rem;">حجز العقار</h3>
+                <button class="close-btn" onclick="closeBookingModal()"
+                    style="background: none; border: none; color: #6b7280; cursor: pointer; padding: 0.5rem; border-radius: 50%; font-size: 1.5rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="booking-card-content" style="padding: 1.5rem;">
+                <div class="property-summary"
+                    style="display: flex; gap: 1rem; padding-bottom: 1.5rem; border-bottom: 1px solid #e5e7eb; margin-bottom: 1.5rem;">
+                    <img src="images/home3.jpg" alt="العقار"
+                        style="width: 100px; height: 100px; border-radius: 8px; object-fit: cover;">
+                    <div class="property-info">
+                        <h4 style="margin: 0 0 0.5rem 0; color: #2c3e50;">شقة فاخرة في المعادي</h4>
+                        <p class="location"
+                            style="color: #6b7280; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.875rem;">
+                            <i class="fas fa-map-marker-alt"></i>
+                            المعادي، القاهرة
+                        </p>
+                        <div class="base-price" style="color: #667eea; font-weight: 600; font-size: 1.125rem;">
+                            <span class="price">12,000</span>
+                            <span class="currency">ج.م</span>
+                            <span class="period">/شهر</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="duration-selector">
+                    <h4 style="color: #2c3e50; margin: 0 0 1rem 0; font-size: 1rem;">اختر مدة الإيجار</h4>
+                    <div class="duration-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                        <button class="duration-tab active" data-unit="days"
+                            style="flex: 1; padding: 0.75rem; border: 1px solid #667eea; border-radius: 6px; background: #667eea; color: white; cursor: pointer; transition: all 0.3s ease; font-size: 0.875rem;">أيام</button>
+                        <button class="duration-tab" data-unit="weeks"
+                            style="flex: 1; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; background: white; color: #6b7280; cursor: pointer; transition: all 0.3s ease; font-size: 0.875rem;">أسابيع</button>
+                        <button class="duration-tab" data-unit="months"
+                            style="flex: 1; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; background: white; color: #6b7280; cursor: pointer; transition: all 0.3s ease; font-size: 0.875rem;">شهور</button>
+                        <button class="duration-tab" data-unit="years"
+                            style="flex: 1; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; background: white; color: #6b7280; cursor: pointer; transition: all 0.3s ease; font-size: 0.875rem;">سنوات</button>
+                    </div>
+
+                    <div class="duration-input"
+                        style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="number-input"
+                            style="display: flex; align-items: center; border: 1px solid #d1d5db; border-radius: 6px; overflow: hidden;">
+                            <button class="decrease" onclick="decreaseDuration()"
+                                style="padding: 0.5rem 1rem; border: none; background: #f3f4f6; color: #6b7280; cursor: pointer;">-</button>
+                            <input type="number" id="durationValue" value="1" min="1" onchange="calculateTotal()"
+                                style="width: 60px; text-align: center; border: none; padding: 0.5rem; font-size: 1rem; color: #2c3e50;">
+                            <button class="increase" onclick="increaseDuration()"
+                                style="padding: 0.5rem 1rem; border: none; background: #f3f4f6; color: #6b7280; cursor: pointer;">+</button>
+                        </div>
+                        <span class="duration-label" id="durationLabel">يوم</span>
+                    </div>
+                </div>
+
+                <div class="cost-breakdown"
+                    style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; margin: 1.5rem 0;">
+                    <h4 style="color: #2c3e50; margin: 0 0 1rem 0; font-size: 1rem;">تفاصيل التكلفة</h4>
+                    <div class="cost-item"
+                        style="display: flex; justify-content: space-between; margin-bottom: 1rem; color: #6b7280;">
+                        <span>قيمة الإيجار</span>
+                        <span id="rentCost">400 ج.م</span>
+                    </div>
+                    <div class="cost-item"
+                        style="display: flex; justify-content: space-between; margin-bottom: 1rem; color: #6b7280;">
+                        <span>تأمين</span>
+                        <span id="insurance">40 ج.م</span>
+                    </div>
+                    <div class="cost-item"
+                        style="display: flex; justify-content: space-between; margin-bottom: 1rem; color: #6b7280;">
+                        <span>رسوم الخدمة</span>
+                        <span id="serviceFee">20 ج.م</span>
+                    </div>
+                    <div class="cost-total"
+                        style="display: flex; justify-content: space-between; padding-top: 1rem; border-top: 1px solid #d1d5db; font-weight: 600; color: #2c3e50;">
+                        <span>الإجمالي</span>
+                        <span id="totalCost">460 ج.م</span>
+                    </div>
+                </div>
+
+                <div class="start-date">
+                    <h4 style="color: #2c3e50; margin: 0 0 1rem 0; font-size: 1rem;">تاريخ بداية الإيجار</h4>
+                    <input type="date" id="startDate" onchange="updateEndDate()"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; color: #2c3e50; margin-bottom: 1rem;">
+                </div>
+
+                <div class="duration-preview"
+                    style="background: #f9fafb; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <div class="date-range" style="display: flex; justify-content: space-between;">
+                        <div class="range-item">
+                            <span class="label" style="color: #6b7280; font-size: 0.875rem;">من</span>
+                            <span class="value" id="startDatePreview"
+                                style="display: block; color: #2c3e50; font-weight: 500; margin-top: 0.25rem;">-</span>
+                        </div>
+                        <div class="range-item">
+                            <span class="label" style="color: #6b7280; font-size: 0.875rem;">إلى</span>
+                            <span class="value" id="endDatePreview"
+                                style="display: block; color: #2c3e50; font-weight: 500; margin-top: 0.25rem;">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="booking-actions" style="display: flex; gap: 1rem;">
+                    <button class="btn btn-primary" onclick="window.location.href='payment.html'"
+                        style="flex: 1; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 500; cursor: pointer; background: #667eea; color: white; border: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 1rem;">
+                        <i class="fas fa-check"></i>
+                        تأكيد الحجز
+                    </button>
+                    <button class="btn btn-outline" onclick="closeBookingModal()"
+                        style="flex: 1; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 500; cursor: pointer; border: 1px solid #d1d5db; background: white; color: #374151; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 1rem;">
+                        إلغاء
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notifications-container"></div>
+
+    <!-- السكربتات -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
+    <script src="js/session.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/bookingModal.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/enhanced.js"></script>
+    <script>
+        // Session Management for Homepage
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('ejari_user'));
+            const authButtons = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+
+            if (user) {
+                // User is logged in - show user menu
+                authButtons.style.display = 'none';
+                userMenu.style.display = 'block';
+
+                // Update user info
+                document.getElementById('userName').textContent = user.name;
+                document.getElementById('userAvatar').src = user.avatar || 'images/avatar-placeholder.png';
+
+                // Update dashboard link based on role
+                const dashboardLink = document.getElementById('dashboardLink');
+                if (user.role === 'admin') {
+                    dashboardLink.href = 'admin-dashboard.html';
+                } else if (user.role === 'owner') {
+                    dashboardLink.href = 'owner-dashboard.html';
+                } else {
+                    dashboardLink.href = 'tenant-dashboard.html';
+                }
+            } else {
+                // User is not logged in - show auth buttons
+                authButtons.style.display = 'flex';
+                userMenu.style.display = 'none';
+            }
+        });
+
+        function toggleUserMenu() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        function logout() {
+            if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+                localStorage.removeItem('ejari_user');
+                localStorage.removeItem('ejari_token');
+                window.location.reload();
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const userMenu = document.getElementById('userMenu');
+            const dropdown = document.getElementById('userDropdown');
+            if (userMenu && !userMenu.contains(e.target)) {
+                dropdown.classList.remove('active');
+            }
+
+            // Close settings dropdown
+            const settingsBtn = document.getElementById('settingsBtn');
+            const settingsDropdown = document.querySelector('.settings-dropdown');
+            if (settingsBtn && settingsDropdown && !settingsBtn.contains(e.target) && !settingsDropdown.contains(e.target)) {
+                settingsDropdown.classList.remove('active');
+            }
+        });
+
+        // Toggle settings dropdown
+        function toggleSettings() {
+            const container = document.getElementById('settingsDropdownContainer');
+            let dropdown = container.querySelector('.settings-dropdown');
+
+            if (!dropdown) {
+                container.innerHTML = LocalizationManager.createSettingsDropdown();
+                dropdown = container.querySelector('.settings-dropdown');
+            }
+
+            dropdown.classList.toggle('active');
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المستأجر - إيجاري</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            /* Blue for Tenants */
+            --primary-dark: #2563eb;
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Cairo', sans-serif;
+            color: var(--text);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: white;
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            padding: 2rem;
+            z-index: 1000;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-profile {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .user-avatar img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #eff6ff;
+            margin-bottom: 1rem;
+            object-fit: cover;
+        }
+
+        .user-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-role {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.85rem 1rem;
+            color: #64748b;
+            text-decoration: none;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: #eff6ff;
+            color: var(--primary);
+        }
+
+        .nav-item i {
+            margin-left: 1rem;
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-right: var(--sidebar-width);
+            padding: 2.5rem;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-top: 0.5rem;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        /* Views */
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Lists & Cards */
+        .card-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .booking-item {
+            padding: 1.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .booking-item:last-child {
+            border-bottom: none;
+        }
+
+        .booking-img {
+            width: 100px;
+            height: 80px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .booking-info {
+            flex: 1;
+        }
+
+        .booking-info h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.1rem;
+        }
+
+        .booking-info p {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-badge.active {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        /* Maintenance Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #334155;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+                padding: 1rem;
+            }
+
+            .user-profile,
+            .nav-item span {
+                display: none;
+            }
+
+            .nav-item {
+                justify-content: center;
+            }
+
+            .nav-item i {
+                margin: 0;
+                font-size: 1.25rem;
+            }
+
+            .main-content {
+                margin-right: 80px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <aside class="sidebar">
+        <div class="user-profile">
+            <div class="user-avatar">
+                <img src="images/tenant-2.jpg" alt="User">
+            </div>
+            <h3 class="user-name">...</h3>
+            <p class="user-role">مستأجر مميز</p>
+        </div>
+
+        <nav>
+            <div class="nav-item active" onclick="switchView('dashboard', this)">
+                <i class="fas fa-th-large"></i>
+                <span>نظرة عامة</span>
+            </div>
+            <div class="nav-item" onclick="switchView('bookings', this)">
+                <i class="fas fa-key"></i>
+                <span>حجوزاتي</span>
+            </div>
+            <div class="nav-item" onclick="switchView('payments', this)">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>الفواتير</span>
+            </div>
+            <div class="nav-item" onclick="switchView('maintenance', this)">
+                <i class="fas fa-tools"></i>
+                <span>طلبات الصيانة</span>
+            </div>
+            <div class="nav-item" onclick="switchView('rewards', this)">
+                <i class="fas fa-gift"></i>
+                <span>المكافآت والنقاط</span>
+            </div>
+            <div class="nav-item" onclick="window.location.href='properties.html'">
+                <i class="fas fa-search"></i>
+                <span>تصفح العقارات</span>
+            </div>
+            <div class="nav-item logout-btn" style="margin-top: auto; color: #ef4444;">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>خروج</span>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <div class="header">
+            <div>
+                <h1 id="page-title">نظرة عامة</h1>
+                <p style="color: #64748b;">مرحباً بك في لوحة التحكم الخاصة بك</p>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button id="tenant-verify-btn" class="btn-primary" style="background: #3b82f6; display: none;"
+                    onclick="openTenantVerificationModal()">
+                    <i class="fas fa-shield-alt"></i> توثيق الحساب
+                </button>
+                <div class="points-badge"
+                    style="background: linear-gradient(135deg, #ffd700 0%, #fdb931 100%); padding: 0.5rem 1rem; border-radius: 20px; color: #744210; font-weight: bold; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <i class="fas fa-star"></i>
+                    <span id="header-points">0</span> نقطة
+                </div>
+                <a href="properties.html" class="btn-primary">
+                    <i class="fas fa-plus"></i> حجز جديد
+                </a>
+            </div>
+        </div>
+
+        <!-- Tenant Verification Alert Banner -->
+        <div id="tenant-verification-alert"
+            style="background: #dbeafe; border: 1px solid #3b82f6; color: #1e40af; padding: 1rem; border-radius: 12px; margin-bottom: 2rem; display: none; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <i class="fas fa-info-circle" style="font-size: 1.5rem;"></i>
+                <div>
+                    <strong>وثّق حسابك الآن!</strong>
+                    <p style="margin: 0; font-size: 0.9rem;">احصل على مزايا إضافية وزد من فرص قبول طلباتك.</p>
+                </div>
+            </div>
+            <button onclick="openTenantVerificationModal()"
+                style="background: #1e40af; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;">توثيق
+                الآن</button>
+        </div>
+
+        <!-- OVERVIEW VIEW -->
+        <div id="view-dashboard" class="view-section active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">الإيجارات النشطة</div>
+                    <div class="stat-value" id="stat-active-rentals">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">إجمالي المدفوعات</div>
+                    <div class="stat-value" id="stat-total-spent">0 ج.م</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">نقاط المكافآت</div>
+                    <div class="stat-value" id="stat-points" style="color: #d97706;">0</div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 1rem;">حجوزاتك الحالية</h3>
+            <div class="card-container" id="recent-bookings-list">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- BOOKINGS VIEW -->
+        <div id="view-bookings" class="view-section">
+            <div class="card-container" id="tenant-bookings-list">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- PAYMENTS VIEW -->
+        <div id="view-payments" class="view-section">
+            <div class="card-container" id="tenant-payments-list">
+                <!-- Populated by JS -->
+                <div class="booking-item">
+                    <div
+                        style="width: 50px; height: 50px; background: #dcfce7; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #16a34a; font-size: 1.5rem;">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="booking-info">
+                        <h4>دفعة إيجار - نوفمبر 2024</h4>
+                        <p>تم الدفع في 1 نوفمبر 2024</p>
+                    </div>
+                    <div style="font-weight: bold;">12,000 ج.م</div>
+                    <button class="btn-sm btn-outline" onclick="DashboardEngine.downloadInvoice(123)"
+                        style="padding: 0.5rem; border: 1px solid #e2e8f0; background: white; border-radius: 6px; cursor: pointer;">تحميل
+                        الفاتورة</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAINTENANCE VIEW -->
+        <div id="view-maintenance" class="view-section">
+            <div style="text-align: left; margin-bottom: 1rem;">
+                <button class="btn-primary" onclick="openMaintenanceModal()">
+                    <i class="fas fa-plus"></i> طلب صيانة جديد
+                </button>
+            </div>
+            <div class="card-container" id="maintenance-requests-list">
+                <div style="padding: 2rem; text-align: center; color: #94a3b8;">
+                    <i class="fas fa-tools" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <h3>لا توجد طلبات صيانة</h3>
+                    <p>يمكنك تقديم طلب صيانة لأي مشكلة تواجهك في العقار.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- REWARDS VIEW -->
+        <div id="view-rewards" class="view-section">
+            <div
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem; border-radius: 16px; margin-bottom: 2rem; text-align: center;">
+                <i class="fas fa-crown" style="font-size: 3rem; margin-bottom: 1rem; color: #ffd700;"></i>
+                <h2 style="margin-bottom: 0.5rem;">برنامج مكافآت إيجاري</h2>
+                <p style="opacity: 0.9; font-size: 1.1rem;">اجمع النقاط واستبدلها بخصومات ومزايا حصرية</p>
+                <div style="font-size: 2.5rem; font-weight: 800; margin: 1.5rem 0; color: #ffd700;">
+                    <span id="rewards-points-display">0</span> نقطة
+                </div>
+                <p>قيمة النقاط الحالية: <span id="points-value">0</span> ج.م</p>
+                <button class="btn-primary"
+                    style="background: white; color: #667eea; margin: 1rem auto 0; display: block;"
+                    onclick="openTenantRedeemPointsModal()">
+                    <i class="fas fa-exchange-alt"></i> استبدال النقاط
+                </button>
+            </div>
+
+            <h3 style="margin-bottom: 1rem;">كيف تكسب النقاط؟</h3>
+            <div class="stats-grid">
+                <div class="stat-card" style="text-align: center;">
+                    <i class="fas fa-calendar-check" style="font-size: 2rem; color: #3b82f6; margin-bottom: 1rem;"></i>
+                    <h4>حجز عقار</h4>
+                    <p style="color: #64748b;">100 نقطة لكل حجز</p>
+                </div>
+                <div class="stat-card" style="text-align: center;">
+                    <i class="fas fa-star" style="font-size: 2rem; color: #eab308; margin-bottom: 1rem;"></i>
+                    <h4>تقييم تجربة</h4>
+                    <p style="color: #64748b;">50 نقطة لكل تقييم</p>
+                </div>
+                <div class="stat-card" style="text-align: center;">
+                    <i class="fas fa-user-friends" style="font-size: 2rem; color: #10b981; margin-bottom: 1rem;"></i>
+                    <h4>دعوة صديق</h4>
+                    <p style="color: #64748b;">200 نقطة لكل دعوة ناجحة</p>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 1rem;">سجل النقاط</h3>
+            <div class="card-container" id="points-history-list">
+                <div style="padding: 2rem; text-align: center; color: #94a3b8;">
+                    لا يوجد سجل نقاط حتى الآن
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Maintenance Modal -->
+    <div id="maintenanceModal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">تقديم طلب صيانة</h2>
+                <button onclick="closeMaintenanceModal()"
+                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;"><i
+                        class="fas fa-times"></i></button>
+            </div>
+
+            <form onsubmit="submitMaintenance(event)">
+                <div class="form-group">
+                    <label>العقار / الوحدة</label>
+                    <select id="m-property" required>
+                        <option value="">اختر العقار...</option>
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>نوع المشكلة</label>
+                    <select id="m-type" required>
+                        <option value="plumbing">سباكة</option>
+                        <option value="electricity">كهرباء</option>
+                        <option value="ac">تكييف</option>
+                        <option value="other">أخرى</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>وصف المشكلة</label>
+                    <textarea id="m-desc" rows="3" required placeholder="اشرح المشكلة بالتفصيل..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>صورة للمشكلة (اختياري)</label>
+                    <input type="file" accept="image/*">
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">إرسال
+                    الطلب</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tenant Verification Modal -->
+    <div id="tenantVerificationModal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">توثيق الحساب</h2>
+                <button onclick="document.getElementById('tenantVerificationModal').style.display='none'"
+                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="alert"
+                style="background: #eff6ff; padding: 1rem; border-radius: 8px; color: #1e40af; margin-bottom: 1.5rem;">
+                <i class="fas fa-info-circle"></i> توثيق حسابك يمنحك مزايا إضافية ويزيد من ثقة الملاك
+            </div>
+
+            <form onsubmit="submitTenantVerification(event)">
+                <div class="form-group">
+                    <label>الاسم الكامل *</label>
+                    <input type="text" id="tv-fullname" required>
+                </div>
+
+                <div class="form-group">
+                    <label>رقم البطاقة / جواز السفر *</label>
+                    <input type="text" id="tv-id-number" required>
+                </div>
+
+                <div class="form-group">
+                    <label>صورة البطاقة (الوجه الأمامي) *</label>
+                    <input type="file" id="tv-id-front" accept="image/*" required>
+                </div>
+
+                <div class="form-group">
+                    <label>صورة شخصية واضحة *</label>
+                    <input type="file" id="tv-photo" accept="image/*" required>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+                    إرسال طلب التوثيق
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Redeem Points Modal for Tenant -->
+    <div id="tenantRedeemPointsModal" class="modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="margin: 0;">استبدال النقاط</h2>
+                <button onclick="document.getElementById('tenantRedeemPointsModal').style.display='none'"
+                    style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="font-size: 2rem; font-weight: 800; color: #3b82f6;" id="tenant-modal-points-display">0</div>
+                <p style="color: #64748b;">رصيدك الحالي من النقاط</p>
+            </div>
+
+            <div style="display: grid; gap: 1rem;">
+                <div class="method-card" style="cursor: pointer;" onclick="redeemTenantPoints('rent')">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div
+                            style="width: 40px; height: 40px; background: #dbeafe; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #3b82f6;">
+                            <i class="fas fa-home"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: bold;">خصم على الإيجار القادم</div>
+                            <div style="font-size: 0.85rem; color: #64748b;">100 نقطة = 10 ج.م خصم</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-left" style="color: #cbd5e1;"></i>
+                </div>
+
+                <div class="method-card" style="cursor: pointer;" onclick="redeemTenantPoints('voucher')">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div
+                            style="width: 40px; height: 40px; background: #fef3c7; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #f59e0b;">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: bold;">قسيمة شرائية</div>
+                            <div style="font-size: 0.85rem; color: #64748b;">500 نقطة = قسيمة 50 ج.م</div>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-left" style="color: #cbd5e1;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+    <script>
+        function switchView(viewName, element) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (element) element.classList.add('active');
+
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + viewName).classList.add('active');
+
+            const titles = {
+                'dashboard': 'نظرة عامة',
+                'bookings': 'حجوزاتي',
+                'payments': 'سجل المدفوعات',
+                'maintenance': 'طلبات الصيانة'
+            };
+            document.getElementById('page-title').textContent = titles[viewName];
+        }
+
+        function openMaintenanceModal() {
+            document.getElementById('maintenanceModal').style.display = 'flex';
+        }
+
+        function closeMaintenanceModal() {
+            document.getElementById('maintenanceModal').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>
