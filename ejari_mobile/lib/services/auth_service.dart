@@ -8,7 +8,10 @@ import '../config/app_config.dart';
 /// AuthService — يتصل مباشرة بالباكند (Express + MongoDB)
 /// لا يحتاج Firebase على الإطلاق
 class AuthService {
-  static String get _baseUrl => AppConfig.resolvedApiBaseUrl;
+  static String? get _baseUrl {
+    final configured = AppConfig.apiBaseUrl.trim().replaceAll(RegExp(r'/$'), '');
+    return configured.isNotEmpty ? configured : null;
+  }
   static const String _userRoleKey = 'current_user_role';
   static const String _userTokenKey = 'user_token';
   static const String _userDataKey = 'user_data';
@@ -20,34 +23,133 @@ class AuthService {
   static const List<Map<String, String>> _demoAccounts = [
     {
       'name': 'مالك تجريبي',
-      'email': 'owner@keyo.app',
+      'email': 'owner@ejari.app',
       'password': 'owner123',
       'role': 'owner',
     },
     {
       'name': 'مستأجر تجريبي',
-      'email': 'user@keyo.app',
+      'email': 'user@ejari.app',
       'password': 'user123',
       'role': 'tenant',
     },
     {
       'name': 'فني صيانة تجريبي',
-      'email': 'tech@keyo.app',
+      'email': 'tech@ejari.app',
       'password': 'tech123',
       'role': 'provider',
     },
     {
       'name': 'مدير تجريبي',
-      'email': 'admin@keyo.app',
+      'email': 'admin@ejari.app',
       'password': 'admin123',
       'role': 'admin',
     },
   ];
 
+  static bool get _useLocalAuth => AppConfig.demoMode || _baseUrl == null;
+
+  static Map<String, dynamic> _buildLocalUser({
+    required String name,
+    required String email,
+    required String role,
+    String? password,
+    bool offlineSignup = false,
+  }) {
+    return {
+      'id': email,
+      '_id': email,
+      'name': name,
+      'email': email,
+      'role': role,
+      'type': role,
+      if (password != null) 'password': password,
+      if (offlineSignup) 'offlineSignup': true,
+    };
+  }
+
+  static Future<void> _storeLocalAccount(
+    Map<String, dynamic> userData, {
+    String token = 'local-demo-token',
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = (userData['email'] ?? '').toString().trim().toLowerCase();
+    if (email.isEmpty) return;
+
+    await prefs.setString('user_$email', jsonEncode(userData));
+
+    final users = prefs.getStringList(_usersListKey) ?? <String>[];
+    if (!users.contains(email)) {
+      users.add(email);
+      await prefs.setStringList(_usersListKey, users);
+    }
+
+    await prefs.setString(_userRoleKey, userData['role'] ?? userData['type'] ?? 'tenant');
+    await prefs.setString(_userIdKey, userData['id']?.toString() ?? email);
+    await prefs.setString(_currentUserEmailKey, email);
+    await prefs.setString(_userDataKey, jsonEncode(userData));
+    await prefs.setString(_userTokenKey, token);
+    await prefs.setBool(_guestModeKey, false);
+  }
+
+  static Future<Map<String, dynamic>?> _findLocalAccount(
+    String email,
+    String password,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final normalizedEmail = email.trim().toLowerCase();
+
+    final candidates = <Map<String, dynamic>>[
+      ..._demoAccounts.map((a) => {
+            'id': a['email'],
+            '_id': a['email'],
+            'name': a['name'],
+            'email': a['email'],
+            'role': a['role'],
+            'type': a['role'],
+            'password': a['password'],
+          }),
+    ];
+
+    final storedRaw = prefs.getString('user_$normalizedEmail');
+    if (storedRaw != null && storedRaw.isNotEmpty) {
+      try {
+        final parsed = jsonDecode(storedRaw);
+        if (parsed is Map<String, dynamic>) {
+          candidates.add(parsed);
+        }
+      } catch (_) {}
+    }
+
+    final match = candidates.cast<Map<String, dynamic>?>().firstWhere(
+          (user) =>
+              user?['email']?.toString().toLowerCase() == normalizedEmail &&
+              user?['password'] == password,
+          orElse: () => null,
+        );
+    return match;
+  }
+
   // ─────────────────────────────────────────────
   // SIGN UP
   // ─────────────────────────────────────────────
   static Future<bool> signUp(Map<String, dynamic> userData) async {
+    if (_useLocalAuth) {
+      final role = userData['type'] ?? 'tenant';
+      final fallbackUser = _buildLocalUser(
+        name: userData['name'] ?? '',
+        email: userData['email'] ?? '',
+        role: role,
+        password: userData['password'] ?? '',
+        offlineSignup: true,
+      );
+      await _storeLocalAccount(
+        fallbackUser,
+        token: 'local-demo-token',
+      );
+      return true;
+    }
+
     try {
       final response = await http
           .post(
@@ -88,27 +190,20 @@ class AuthService {
           e.toString().contains('ClientException') ||
           e.toString().contains('HandshakeException');
 
-      if (AppConfig.demoMode || isNetworkError) {
-        final prefs = await SharedPreferences.getInstance();
+      if (AppConfig.demoMode || isNetworkError || _baseUrl == null) {
         final role = userData['type'] ?? 'tenant';
-        final uid = userData['email'] ?? 'local-user';
-        final fallbackUser = {
-          'id': uid,
-          '_id': uid,
-          'name': userData['name'] ?? '',
-          'email': userData['email'] ?? '',
-          'role': role,
-          'type': role,
-          'status': 'pending_review',
-          'offlineSignup': true,
-        };
+        final fallbackUser = _buildLocalUser(
+          name: userData['name'] ?? '',
+          email: userData['email'] ?? '',
+          role: role,
+          password: userData['password'] ?? '',
+          offlineSignup: true,
+        )..['status'] = 'pending_review';
 
-        await prefs.setString(_userRoleKey, role);
-        await prefs.setString(_userIdKey, uid);
-        await prefs.setString(_currentUserEmailKey, userData['email'] ?? '');
-        await prefs.setString(_userDataKey, jsonEncode(fallbackUser));
-        await prefs.setString(_userTokenKey, 'local-demo-token');
-        await prefs.setBool(_guestModeKey, false);
+        await _storeLocalAccount(
+          fallbackUser,
+          token: 'local-demo-token',
+        );
         return true;
       }
 
@@ -121,6 +216,30 @@ class AuthService {
   // ─────────────────────────────────────────────
   static Future<Map<String, dynamic>?> login(
       String email, String password) async {
+    if (_useLocalAuth) {
+      final localAccount = await _findLocalAccount(email, password);
+      if (localAccount == null) {
+        throw 'بيانات الدخول غير صحيحة';
+      }
+
+      final role = localAccount['role'] ?? localAccount['type'] ?? 'tenant';
+      final user = _buildLocalUser(
+        name: localAccount['name'] ?? 'مستخدم إيجاري',
+        email: localAccount['email'] ?? email,
+        role: role.toString(),
+        password: localAccount['password'] ?? password,
+        offlineSignup: localAccount['offlineSignup'] == true,
+      )..addAll({
+          if (localAccount['status'] != null) 'status': localAccount['status'],
+        });
+
+      await _storeLocalAccount(
+        user,
+        token: 'local-demo-token',
+      );
+      return user;
+    }
+
     if (AppConfig.demoMode) {
       await initDemoAccounts();
       final normalizedEmail = email.trim().toLowerCase();
@@ -153,7 +272,7 @@ class AuthService {
     }
 
     // Admin shortcut — يدخل بدون اتصال بالشبكة
-    if (email == 'admin@keyo.app' && password == 'admin123') {
+    if (email == 'admin@ejari.app' && password == 'admin123') {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_userRoleKey, 'admin');
       await prefs.setString(_userDataKey,
@@ -278,6 +397,13 @@ class AuthService {
   // UPDATE PROFILE
   // ─────────────────────────────────────────────
   static Future<bool> updateProfile(Map<String, dynamic> updatedData) async {
+    if (_useLocalAuth) {
+      final current = await getCurrentUser();
+      if (current == null) return false;
+      final merged = <String, dynamic>{...current, ...updatedData};
+      await _storeLocalAccount(merged, token: 'local-demo-token');
+      return true;
+    }
     try {
       final token = await getToken();
       final prefs = await SharedPreferences.getInstance();
@@ -310,6 +436,20 @@ class AuthService {
   // ADMIN: GET ALL USERS
   // ─────────────────────────────────────────────
   static Future<List<Map<String, dynamic>>> getAllUsers() async {
+    if (_useLocalAuth) {
+      final prefs = await SharedPreferences.getInstance();
+      final emails = prefs.getStringList(_usersListKey) ?? <String>[];
+      final users = <Map<String, dynamic>>[];
+      for (final email in emails) {
+        final raw = prefs.getString('user_$email');
+        if (raw == null || raw.isEmpty) continue;
+        try {
+          final parsed = jsonDecode(raw);
+          if (parsed is Map<String, dynamic>) users.add(parsed);
+        } catch (_) {}
+      }
+      return users;
+    }
     try {
       final token = await getToken();
       final response = await http.get(
@@ -331,6 +471,24 @@ class AuthService {
   // ADMIN: UPDATE USER ROLE
   // ─────────────────────────────────────────────
   static Future<bool> updateUserRole(String uid, String newRole) async {
+    if (_useLocalAuth) {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('user_$uid');
+      if (raw == null || raw.isEmpty) return false;
+      try {
+        final user = jsonDecode(raw) as Map<String, dynamic>;
+        user['role'] = newRole;
+        user['type'] = newRole;
+        await prefs.setString('user_$uid', jsonEncode(user));
+        final currentEmail = prefs.getString(_currentUserEmailKey);
+        if (currentEmail == uid) {
+          await _storeLocalAccount(user, token: 'local-demo-token');
+        }
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
     try {
       final token = await getToken();
       final response = await http
@@ -353,6 +511,19 @@ class AuthService {
   // ADMIN: TOGGLE BLOCK
   // ─────────────────────────────────────────────
   static Future<bool> toggleUserBlock(String uid) async {
+    if (_useLocalAuth) {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('user_$uid');
+      if (raw == null || raw.isEmpty) return false;
+      try {
+        final user = jsonDecode(raw) as Map<String, dynamic>;
+        user['isBlocked'] = !(user['isBlocked'] == true);
+        await prefs.setString('user_$uid', jsonEncode(user));
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
     try {
       final token = await getToken();
       final response = await http.put(
@@ -369,6 +540,17 @@ class AuthService {
   // DELETE ACCOUNT
   // ─────────────────────────────────────────────
   static Future<bool> deleteAccount(String uid) async {
+    if (_useLocalAuth) {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('user_$uid');
+      if (raw == null || raw.isEmpty) return false;
+      await prefs.remove('user_$uid');
+      final users = prefs.getStringList(_usersListKey) ?? <String>[];
+      users.remove(uid);
+      await prefs.setStringList(_usersListKey, users);
+      await logout();
+      return true;
+    }
     try {
       final token = await getToken();
       final response = await http.delete(
