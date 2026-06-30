@@ -38,14 +38,14 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     final planDetails = SubscriptionService.getPlanDetails(planId, _userType);
 
     if (planDetails != null && planDetails['price'] > 0) {
+      final navigator = Navigator.of(context);
       final allowed = await AuthGate.requireLogin(
         context,
         actionLabel: 'الاشتراك في باقة مدفوعة',
       );
       if (!allowed || !mounted) return;
       // Navigate to payment screen for paid plans
-      await Navigator.push(
-        context,
+      await navigator.push(
         MaterialPageRoute(
           builder: (context) => SubscriptionPaymentScreen(
             planId: planId,
@@ -54,6 +54,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           ),
         ),
       );
+      if (!mounted) return;
       _loadUserData(); // Reload after payment
     } else {
       // Free plan - subscribe directly

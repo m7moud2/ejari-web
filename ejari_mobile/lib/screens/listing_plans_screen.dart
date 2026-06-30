@@ -309,6 +309,7 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
   }
 
   void _handleSelection(String planId) async {
+    final navigator = Navigator.of(context);
       final allowed = await AuthGate.requireLogin(
         context,
         actionLabel: 'الاشتراك في الباقات المدفوعة',
@@ -325,8 +326,7 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
         amount = _isAnnual ? 12990 : 1299;
       }
 
-      final result = await Navigator.push(
-        context,
+      final result = await navigator.push(
         MaterialPageRoute(
           builder: (context) => PaymentScreen(
             itemType: 'subscription',
