@@ -73,21 +73,44 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _notifications.isEmpty
-              ? _buildEmptyState()
-              : RefreshIndicator(
-                  onRefresh: _loadNotifications,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _notifications.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final item = _notifications[index];
-                      return _buildNotificationItem(item, index);
-                    },
+          : RefreshIndicator(
+              onRefresh: _loadNotifications,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withOpacity(0.06),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withOpacity(0.12),
+                      ),
+                    ),
+                    child: const Text(
+                      'هنا ستجد تحديثات الحجوزات، المدفوعات، والعقود. اقرأها لتعرف كل خطوة حصلت داخل الحساب.',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                        height: 1.5,
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 14),
+                  if (_notifications.isEmpty)
+                    _buildEmptyState()
+                  else
+                    ...List.generate(_notifications.length, (index) {
+                      final item = _notifications[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _buildNotificationItem(item, index),
+                      );
+                    }),
+                ],
+              ),
+            ),
     );
   }
 
@@ -168,9 +191,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildEmptyState() {
-    return const Center(
+    return const Padding(
+      padding: EdgeInsets.symmetric(vertical: 64),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.notifications_none,
               size: 80, color: AppTheme.primaryColor),
@@ -178,6 +201,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           Text(
             'لا توجد تنبيهات جديدة',
             style: TextStyle(fontSize: 18, color: AppTheme.textSecondary),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 8),
+          Text(
+            'أول ما يحصل حجز، دفع، أو تحديث مهم، هتظهر التفاصيل هنا.',
+            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
