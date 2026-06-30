@@ -4,21 +4,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>قصة كيو | Keyo</title>
+  <title>قصة إيجاري | Ejari</title>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root{
-      --bg:#f6f1e8; --card:#ffffff; --text:#2f3e4b; --muted:#6d7b87;
-      --primary:#5d7ebd; --secondary:#4e9d95; --accent:#b48a57;
-      --border:rgba(93,126,189,.14); --shadow:0 20px 50px rgba(76,92,122,.10);
+      --bg:#f7f3ea; --card:#ffffff; --text:#2f4039; --muted:#6f7d76;
+      --primary:#4f7d70; --secondary:#88a996; --accent:#d7c2a0;
+      --border:rgba(79,125,112,.14); --shadow:0 20px 50px rgba(73,92,84,.10);
     }
     *{box-sizing:border-box}
     body{
       margin:0; font-family:'Cairo',sans-serif; color:var(--text);
       background:
-        radial-gradient(circle at top right, rgba(93,126,189,.14), transparent 30%),
-        radial-gradient(circle at left top, rgba(78,157,149,.12), transparent 26%),
+        radial-gradient(circle at top right, rgba(79,125,112,.14), transparent 30%),
+        radial-gradient(circle at left top, rgba(136,169,150,.12), transparent 26%),
         linear-gradient(180deg,#f6f1e8 0%,#fbf8f1 100%);
       line-height:1.9;
     }
@@ -28,20 +28,26 @@
       position:sticky; top:0; z-index:10;
       backdrop-filter: blur(16px);
       background:rgba(251,248,241,.88);
-      border-bottom:1px solid rgba(93,126,189,.08);
+      border-bottom:1px solid rgba(79,125,112,.08);
     }
     .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0}
     .brand{display:flex;align-items:center;gap:10px;font-weight:900}
     .brand .icon{
       width:40px;height:40px;border-radius:14px;display:grid;place-items:center;
-      background:linear-gradient(135deg,rgba(93,126,189,.18),rgba(78,157,149,.18));color:var(--primary)
+      background:linear-gradient(135deg,rgba(79,125,112,.18),rgba(136,169,150,.18));color:var(--primary)
     }
     .nav-links{display:flex;flex-wrap:wrap;gap:14px;color:var(--muted);font-weight:800;font-size:.95rem}
     .nav-links a{padding:8px 0;border-bottom:2px solid transparent}
-    .nav-links a:hover{color:var(--primary);border-bottom-color:rgba(93,126,189,.25)}
+    .nav-links a:hover{color:var(--primary);border-bottom-color:rgba(79,125,112,.25)}
     .cta{
       display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:999px;
       background:linear-gradient(135deg,var(--primary),var(--secondary));color:white;font-weight:800
+    }
+    .social-links{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .social-links a{
+      display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;
+      background:rgba(255,255,255,.72);border:1px solid var(--border);color:var(--primary);
+      font-weight:800;font-size:.92rem
     }
     .hero{padding:56px 0 20px}
     .hero-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;align-items:center}
@@ -66,7 +72,7 @@
     .hero-card{padding:22px}
     .metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
     .metric{
-      background:rgba(93,126,189,.06);border:1px solid rgba(93,126,189,.10);border-radius:18px;padding:14px
+      background:rgba(79,125,112,.06);border:1px solid rgba(79,125,112,.10);border-radius:18px;padding:14px
     }
     .metric .label{color:var(--muted);font-size:.82rem}
     .metric .value{margin-top:6px;font-weight:900}
@@ -78,14 +84,14 @@
     .section-card{padding:22px}
     .icon-box{
       width:52px;height:52px;border-radius:16px;display:grid;place-items:center;margin-bottom:14px;
-      background:linear-gradient(135deg,rgba(93,126,189,.12),rgba(78,157,149,.12));color:var(--primary)
+      background:linear-gradient(135deg,rgba(79,125,112,.12),rgba(136,169,150,.12));color:var(--primary)
     }
     .list{display:grid;gap:10px;margin-top:12px}
     .item{display:flex;gap:10px;align-items:flex-start;color:var(--muted)}
     .item i{color:var(--secondary);margin-top:5px}
     .story-bar{
-      margin-top:18px;padding:18px;border-radius:22px;background:linear-gradient(135deg,rgba(93,126,189,.10),rgba(78,157,149,.08));
-      border:1px solid rgba(93,126,189,.10)
+      margin-top:18px;padding:18px;border-radius:22px;background:linear-gradient(135deg,rgba(79,125,112,.10),rgba(136,169,150,.08));
+      border:1px solid rgba(79,125,112,.10)
     }
     .timeline{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
     .step{padding:18px}
@@ -106,6 +112,8 @@
       .hero-grid,.grid-2,.grid-3,.timeline,.metric-row{grid-template-columns:1fr}
       .nav-inner{flex-wrap:wrap}
       .nav-links{width:100%;justify-content:flex-start}
+      .social-links{width:100%}
+      .social-links a{flex:1;justify-content:center}
     }
   </style>
 </head>
@@ -116,16 +124,25 @@
       <div class="nav-inner">
         <a class="brand" href="index.html">
           <span class="icon"><i class="fa-solid fa-key"></i></span>
-          <span>كيو Keyo</span>
+          <span>إيجاري Ejari</span>
         </a>
         <div class="nav-links">
           <a href="#story">القصة</a>
           <a href="#problem">المشكلة</a>
           <a href="#vision">الرؤية</a>
           <a href="#launch">الإطلاق</a>
+          <a href="download.html">التحميل</a>
           <a href="#faq">FAQ</a>
         </div>
-        <a class="cta" href="index.html"><i class="fa-solid fa-arrow-left"></i> صفحة الهبوط</a>
+        <div class="social-links">
+          <a href="https://www.facebook.com/people/%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-EjariApp/61591649755623/" target="_blank" rel="noopener">
+            <i class="fa-brands fa-facebook-f"></i> فيسبوك
+          </a>
+          <a href="https://www.linkedin.com/company/%E2%80%8E%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-ejariapp/?viewAsMember=true" target="_blank" rel="noopener">
+            <i class="fa-brands fa-linkedin-in"></i> لينكدإن
+          </a>
+          <a class="cta" href="index.html"><i class="fa-solid fa-arrow-left"></i> صفحة الهبوط</a>
+        </div>
       </div>
     </div>
   </nav>
@@ -135,10 +152,10 @@
       <div class="hero-grid">
         <div>
           <div class="eyebrow"><i class="fa-solid fa-seedling"></i> قصة مشروع حقيقي له هدف حقيقي</div>
-          <h1>كيو ليست مجرد منصة إيجار، <span>بل محاولة لإعادة الثقة للسكن.</span></h1>
+          <h1>إيجاري ليست مجرد منصة إيجار، <span>بل محاولة لإعادة الثقة للسكن.</span></h1>
           <p class="lead">
             الفكرة بدأت من مشكلة واضحة: المستأجر يشعر بالضغط والاستغلال والغموض، والمالك يشعر بضياع الوقت وعدم الجدية.
-            كيو تحاول أن تبني طريقًا أهدأ: أوضح، أعدل، وأكثر احترامًا للفلوس والالتزامات.
+            إيجاري تحاول أن تبني طريقًا أهدأ: أوضح، أعدل، وأكثر احترامًا للفلوس والالتزامات.
           </p>
           <div class="actions">
             <a class="btn btn-primary" href="index.html"><i class="fa-solid fa-house"></i> صفحة الهبوط</a>
@@ -148,7 +165,7 @@
 
         <div class="hero-card">
           <div class="icon-box" style="margin-bottom:12px"><i class="fa-solid fa-shield-heart"></i></div>
-          <h3 style="margin:0 0 8px;color:var(--primary)">وعد كيو</h3>
+          <h3 style="margin:0 0 8px;color:var(--primary)">وعد إيجاري</h3>
           <p style="margin:0;color:var(--muted)">
             وضوح قبل القرار، دفع مرحلي مفهوم، وعقد يحترم الطرفين.
           </p>
@@ -161,8 +178,30 @@
       </div>
     </section>
 
+    <section class="section" id="latest">
+      <h2>ما الذي تغيّر مؤخرًا؟</h2>
+      <p class="sub">القصة الآن متوافقة مع أحدث تحديثات إيجاري: هوية موحدة، ألوان أهدأ، وروابط رسمية تعزز الثقة.</p>
+      <div class="grid-3" style="margin-top:16px">
+        <div class="card section-card">
+          <div class="icon-box"><i class="fa-solid fa-swatchbook"></i></div>
+          <h3 style="margin:0 0 10px;color:var(--primary)">هوية بصرية موحدة</h3>
+          <p style="margin:0;color:var(--muted)">ألوان أهدأ ومريحة للعين على كل الصفحات.</p>
+        </div>
+        <div class="card section-card">
+          <div class="icon-box"><i class="fa-solid fa-shield-heart"></i></div>
+          <h3 style="margin:0 0 10px;color:var(--primary)">ثقة أعلى</h3>
+          <p style="margin:0;color:var(--muted)">شرح أوضح للدفع المرحلي والعربون والاستكمال.</p>
+        </div>
+        <div class="card section-card">
+          <div class="icon-box"><i class="fa-solid fa-share-nodes"></i></div>
+          <h3 style="margin:0 0 10px;color:var(--primary)">قنوات رسمية</h3>
+          <p style="margin:0;color:var(--muted)">فيسبوك ولينكدإن للمتابعة والتعريف المهني.</p>
+        </div>
+      </div>
+    </section>
+
     <section class="section" id="problem">
-      <h2>المشكلة التي جاءت كيو لتحلها</h2>
+      <h2>المشكلة التي جاءت إيجاري لتحلها</h2>
       <p class="sub">المشكلة ليست فقط “إيجاد شقة”، بل إيجاد طريقة آمنة وواضحة ومفهومة للتعامل بين الطرفين.</p>
       <div class="grid-2" style="margin-top:16px">
         <div class="card section-card">
@@ -188,9 +227,9 @@
 
     <section class="section" id="vision">
       <h2>الرؤية: سكن أهدأ وأعدل</h2>
-      <p class="sub">كيو لا تحاول “تجميل” السوق، بل جعل العلاقة بين المستأجر والمالك أكثر احترامًا وتنظيمًا.</p>
+      <p class="sub">إيجاري لا تحاول “تجميل” السوق، بل جعل العلاقة بين المستأجر والمالك أكثر احترامًا وتنظيمًا.</p>
       <div class="story-bar">
-        كيو تقول للمستخدم: <strong>أنت مش هتدفع كل شيء من أول خطوة بدون فهم.</strong>
+        إيجاري تقول للمستخدم: <strong>أنت مش هتدفع كل شيء من أول خطوة بدون فهم.</strong>
         هنوضح لك العربون، ونوضح لك المتبقي، ونوضح لك متى ولماذا يتم الاسترداد أو الاستكمال.
       </div>
       <div class="grid-3" style="margin-top:16px">
@@ -213,7 +252,7 @@
     </section>
 
     <section class="section" id="money-flow">
-      <h2>كيف يمر المال داخل كيو؟</h2>
+      <h2>كيف يمر المال داخل إيجاري؟</h2>
       <p class="sub">نشرح للعميل من البداية أن العملية ليست “ادفع مرة وخلاص”، بل مسار واضح يطمّن الطرفين.</p>
       <div class="grid-3" style="margin-top:16px">
         <div class="card section-card">
@@ -239,10 +278,15 @@
       <p class="sub">بدل ما نحاول نعمل كل شيء مرة واحدة، نبدأ بالجزء الذي يصنع الثقة ويثبت القيمة.</p>
       <div class="timeline" style="margin-top:16px">
         <div class="card step"><div class="num">1</div><h3 style="margin:0 0 8px;color:var(--primary)">الثقة</h3><p style="margin:0;color:var(--muted)">تثبيت صفحة الدفع، الرسائل القانونية، والعربون.</p></div>
-        <div class="card step"><div class="num">2</div><h3 style="margin:0 0 8px;color:var(--primary)">الإقناع</h3><p style="margin:0;color:var(--muted)">صفحة هبوط ورسائل تسويقية تشرح لماذا كيو مهم.</p></div>
+        <div class="card step"><div class="num">2</div><h3 style="margin:0 0 8px;color:var(--primary)">الإقناع</h3><p style="margin:0;color:var(--muted)">صفحة هبوط ورسائل تسويقية تشرح لماذا إيجاري مهم.</p></div>
         <div class="card step"><div class="num">3</div><h3 style="margin:0 0 8px;color:var(--primary)">التجربة</h3><p style="margin:0;color:var(--muted)">إطلاق أولي لمستخدمين حقيقيين وقياس التفاعل.</p></div>
         <div class="card step"><div class="num">4</div><h3 style="margin:0 0 8px;color:var(--primary)">التوسع</h3><p style="margin:0;color:var(--muted)">بعد التحقق، نوسع ونزيد الخدمات خطوة خطوة.</p></div>
       </div>
+    </section>
+
+    <section class="section">
+      <h2>مناسبة لكل الشاشات</h2>
+      <p class="sub">تم ضبط القصة لتفتح بشكل مريح على الموبايل أولًا، مع الحفاظ على شكل احترافي على الشاشات الكبيرة.</p>
     </section>
 
     <section class="section" id="faq">
@@ -250,8 +294,8 @@
       <p class="sub">هنا الجواب المختصر على أكثر نقطة ممكن توقف ثقة المستخدم.</p>
       <div style="display:grid;gap:12px;margin-top:16px">
         <details open>
-          <summary>هل كيو مجرد صفحة عرض عقارات؟</summary>
-          <p>لا. كيو تحاول بناء تجربة ثقة كاملة: عرض، معاينة، عربون، استكمال، وعقد أوضح.</p>
+          <summary>هل إيجاري مجرد صفحة عرض عقارات؟</summary>
+          <p>لا. إيجاري تحاول بناء تجربة ثقة كاملة: عرض، معاينة، عربون، استكمال، وعقد أوضح.</p>
         </details>
         <details>
           <summary>هل القصة دي مناسبة كمحتوى رسمي للموقع؟</summary>
@@ -266,6 +310,6 @@
 
   </main>
 
-  <footer class="footer">© 2026 كيو Keyo — صفحة قصة المشروع بصيغة HTML/CSS.</footer>
+  <footer class="footer">© 2026 إيجاري Ejari — صفحة قصة المشروع بصيغة HTML/CSS.</footer>
 </body>
 </html>
