@@ -309,11 +309,11 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
   }
 
   void _handleSelection(String planId) async {
-    final allowed = await AuthGate.requireLogin(
-      context,
-      actionLabel: 'الاشتراك في الباقات المدفوعة',
-    );
-    if (!allowed || !mounted) return;
+      final allowed = await AuthGate.requireLogin(
+        context,
+        actionLabel: 'الاشتراك في الباقات المدفوعة',
+      );
+      if (!allowed || !mounted) return;
 
     if (planId != 'commission') {
       double amount = 0;

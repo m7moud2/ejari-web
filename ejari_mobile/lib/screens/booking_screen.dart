@@ -191,6 +191,7 @@ class _BookingScreenState extends State<BookingScreen> {
       actionLabel: 'إتمام الحجز والدفع',
     );
     if (!allowed) return;
+    if (!mounted) return;
 
     // 1. Validation
     if (_selfieImage == null) {
@@ -219,6 +220,7 @@ class _BookingScreenState extends State<BookingScreen> {
     if (_selectedPaymentMethod != 'cash') {
       bool otpConfirmed = await _showOtpDialog();
       if (!otpConfirmed) return;
+      if (!mounted) return;
     }
 
     setState(() => _isLoading = true);
@@ -1467,6 +1469,7 @@ class _BookingScreenState extends State<BookingScreen> {
       actionLabel: 'توقيع العقد',
     );
     if (!allowed) return;
+    if (!mounted) return;
 
     final result = await Navigator.push(
       context,

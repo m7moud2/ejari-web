@@ -419,8 +419,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () {
-                AuthGate.requireLogin(context, actionLabel: 'حجز الوحدة')
-                    .then((allowed) {
+                () async {
+                  final allowed = await AuthGate.requireLogin(
+                    context,
+                    actionLabel: 'حجز الوحدة',
+                  );
                   if (!allowed || !mounted) return;
                   Navigator.push(
                     context,
@@ -428,7 +431,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         builder: (context) => BookingScreen(
                             itemType: 'property', itemData: property)),
                   );
-                });
+                }();
               },
               child: const Text('احجز الآن',
                   style: TextStyle(fontSize: 18, color: Colors.white)),
