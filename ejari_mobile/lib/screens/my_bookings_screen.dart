@@ -39,32 +39,70 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       appBar: AppBar(title: const Text('حجوزاتي')),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _bookings.isEmpty
-              ? _buildEmptyState()
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _bookings.length,
-                  itemBuilder: (context, index) {
-                    final booking = _bookings[index];
-                    return _buildBookingCard(booking);
-                  },
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withOpacity(0.06),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withOpacity(0.12),
+                      ),
+                    ),
+                    child: const Text(
+                      'هنا ستجد حالة كل عملية: عربون، استكمال، أو استرداد. كل خطوة مالية واضحة ومربوطة بصفقة محددة.',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
                 ),
+                Expanded(
+                  child: _bookings.isEmpty
+                      ? _buildEmptyState()
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: _bookings.length,
+                          itemBuilder: (context, index) {
+                            final booking = _bookings[index];
+                            return _buildBookingCard(booking);
+                          },
+                        ),
+                ),
+              ],
+            ),
     );
   }
 
   Widget _buildEmptyState() {
     return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.calendar_today_outlined,
-              size: 80, color: AppTheme.primaryColor),
-          SizedBox(height: 16),
-          Text(
-            'لا توجد حجوزات حالياً',
-            style: TextStyle(fontSize: 18, color: AppTheme.textSecondary),
-          ),
-        ],
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.calendar_today_outlined,
+                size: 80, color: AppTheme.primaryColor),
+            SizedBox(height: 16),
+            Text(
+              'لا توجد حجوزات حالياً',
+              style: TextStyle(fontSize: 18, color: AppTheme.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 8),
+            Text(
+              'أول ما تعمل حجز أو تدفع عربون، هتظهر الحالة هنا بشكل واضح.',
+              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
