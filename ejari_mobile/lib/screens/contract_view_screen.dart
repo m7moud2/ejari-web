@@ -48,6 +48,7 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('العقد الإلكتروني 📜'),
+        centerTitle: true,
         actions: [
           if (_isSigned)
             IconButton(
@@ -70,123 +71,189 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
             ),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardTheme.color ??
-                    Theme.of(context).cardColor,
-                border: Border.all(color: AppTheme.primaryColor),
-                borderRadius: BorderRadius.circular(8),
-                boxShadow: const [],
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _contractText,
-                      style: const TextStyle(fontSize: 14, height: 1.8),
-                    ),
-                    if (_isSigned) ...[
-                      const SizedBox(height: 20),
-                      const Divider(),
-                      const SizedBox(height: 10),
-                      const Row(
-                        children: [
-                          Icon(Icons.check_circle,
-                              color: AppTheme.primaryColor),
-                          SizedBox(width: 8),
-                          Text(
-                            'تم التوقيع إلكترونياً بواسطة المستأجر',
-                            style: TextStyle(
-                                color: AppTheme.primaryColor,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 760),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Container(
+                      margin: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).cardTheme.color ??
+                            Theme.of(context).cardColor,
+                        border: Border.all(color: AppTheme.primaryColor),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: const [],
                       ),
-                      Text(
-                        'بتاريخ: ${DateTime.now().toString().split('.')[0]}',
-                        style: const TextStyle(
-                            color: AppTheme.primaryColor, fontSize: 12),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardTheme.color ??
-                  Theme.of(context).cardColor,
-              boxShadow: [],
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Checkbox(
-                        value: _isSigned,
-                        onChanged: null), // Checked when signed
-                    const Expanded(
-                      child: Text(
-                        'أقر بأنني قرأت كافة الشروط والأحكام وأوافق عليها.',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isSigned
-                        ? () {
-                            Navigator.pop(context,
-                                true); // Return true indicating success
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                  content: Text('تم توثيق العقد بنجاح! ✅'),
-                                  backgroundColor: AppTheme.primaryColor),
-                            );
-                          }
-                        : () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SignatureScreen(
-                                  onSigned: (points) {
-                                    setState(() => _isSigned = true);
-                                  },
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildHeader(),
+                            const SizedBox(height: 14),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: const Text(
+                                'هذه المعاينة تساعدك تراجع الحقوق والالتزامات بشكل واضح قبل الاعتماد النهائي.',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppTheme.textSecondary,
+                                  height: 1.5,
                                 ),
                               ),
-                            );
-                          },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      backgroundColor: _isSigned
-                          ? AppTheme.primaryColor
-                          : AppTheme.primaryColor,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text(
-                      _isSigned ? 'إتمام وتأكيد' : 'توقيع العقد',
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              _contractText,
+                              style: const TextStyle(fontSize: 14, height: 1.9),
+                            ),
+                            if (_isSigned) ...[
+                              const SizedBox(height: 20),
+                              const Divider(),
+                              const SizedBox(height: 10),
+                              const Row(
+                                children: [
+                                  Icon(Icons.check_circle,
+                                      color: AppTheme.primaryColor),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'تم التوقيع إلكترونياً بواسطة المستأجر',
+                                    style: TextStyle(
+                                        color: AppTheme.primaryColor,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'بتاريخ: ${DateTime.now().toString().split('.')[0]}',
+                                style: const TextStyle(
+                                  color: AppTheme.primaryColor,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardTheme.color ??
+                          Theme.of(context).cardColor,
+                      boxShadow: const [],
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Checkbox(
+                                value: _isSigned,
+                                onChanged: null), // Checked when signed
+                            const Expanded(
+                              child: Text(
+                                'أقر بأنني قرأت كافة الشروط والأحكام وأوافق عليها.',
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: _isSigned
+                                ? () {
+                                    Navigator.pop(context, true);
+                                  }
+                                : () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => SignatureScreen(
+                                          onSigned: (points) {
+                                            setState(() => _isSigned = true);
+                                          },
+                                        ),
+                                      ),
+                                    );
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 16),
+                              backgroundColor: AppTheme.primaryColor,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: Text(
+                              _isSigned ? 'إتمام وتأكيد' : 'توقيع العقد',
+                              style: const TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          );
+        },
       ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withOpacity(0.1),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.description_rounded,
+              color: AppTheme.primaryColor),
+        ),
+        const SizedBox(width: 12),
+        const Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'مراجعة العقد قبل الاعتماد',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'تأكد من البيانات الأساسية ثم أكمل التوقيع بثقة.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                  height: 1.5,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
