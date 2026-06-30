@@ -418,20 +418,18 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
-              onPressed: () {
-                () async {
-                  final allowed = await AuthGate.requireLogin(
-                    context,
-                    actionLabel: 'حجز الوحدة',
-                  );
-                  if (!allowed || !mounted) return;
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => BookingScreen(
-                            itemType: 'property', itemData: property)),
-                  );
-                }();
+              onPressed: () async {
+                final allowed = await AuthGate.requireLogin(
+                  context,
+                  actionLabel: 'حجز الوحدة',
+                );
+                if (!allowed || !mounted) return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => BookingScreen(
+                          itemType: 'property', itemData: property)),
+                );
               },
               child: const Text('احجز الآن',
                   style: TextStyle(fontSize: 18, color: Colors.white)),

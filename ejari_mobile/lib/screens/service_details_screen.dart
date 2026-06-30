@@ -354,15 +354,16 @@ class ServiceDetailsScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (!formKey.currentState!.validate()) return;
-                    AuthGate.requireLogin(context, actionLabel: 'توثيق الطلب')
-                        .then((allowed) {
-                      if (!allowed || !context.mounted) return;
-                      Navigator.pop(context); // Close sheet
-                      _showSuccessDialog(
-                          context, dateController.text, timeController.text);
-                    });
+                    final allowed = await AuthGate.requireLogin(
+                      context,
+                      actionLabel: 'توثيق الطلب',
+                    );
+                    if (!allowed || !context.mounted) return;
+                    Navigator.pop(context); // Close sheet
+                    _showSuccessDialog(
+                        context, dateController.text, timeController.text);
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
