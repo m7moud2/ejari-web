@@ -244,6 +244,7 @@
 
 <body>
   <script>
+    const APP_VERSION = '1.1.2';
     const APK_URL = 'https://github.com/m7moud2/ejari-web/releases/download/ejari-v1.1.2/Ejari-Latest.apk';
     const APK_FILENAME = 'Ejari-Latest.apk';
 
@@ -280,6 +281,12 @@
     }
 
     window.addEventListener('DOMContentLoaded', applyDownloadLinks);
+    window.addEventListener('DOMContentLoaded', () => {
+      const label = document.getElementById('appVersionLabel');
+      if (label) {
+        label.textContent = APP_VERSION;
+      }
+    });
   </script>
   <nav class="nav">
     <div class="container">
@@ -310,6 +317,10 @@
           <p class="lead">
             الصفحة دي اتظبطت عشان تعرض آخر تحديثات الهوية والتصميم، وتوصلك لملف APK مباشرة بشكل واضح وآمن وسهل من أي شاشة.
           </p>
+          <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:14px;padding:10px 14px;border-radius:999px;background:rgba(79,125,112,.08);border:1px solid rgba(79,125,112,.16);color:var(--accent);font-weight:800;">
+            <i class="fa-solid fa-tag"></i>
+            الإصدار الحالي: v<span id="appVersionLabel"></span>
+          </div>
           <div class="actions">
             <a class="btn btn-primary" data-apk-link href="https://github.com/m7moud2/ejari-web/releases/download/ejari-v1.1.2/Ejari-Latest.apk" type="application/vnd.android.package-archive">
               <i class="fa-solid fa-cloud-arrow-down"></i> تحميل APK
@@ -317,7 +328,7 @@
             <a class="btn btn-secondary" href="https://github.com/m7moud2/ejari-web/releases/tag/ejari-v1.1.2" target="_blank" rel="noopener"><i class="fa-solid fa-box-open"></i> صفحة الإصدار</a>
           </div>
           <div class="metric-grid">
-            <div class="metric"><div class="label">النسخة</div><div class="value">آخر إصدار متاح</div></div>
+            <div class="metric"><div class="label">النسخة</div><div class="value">v1.1.2</div></div>
             <div class="metric"><div class="label">المنصة</div><div class="value">Android APK</div></div>
             <div class="metric"><div class="label">الغرض</div><div class="value">تجربة التطبيق</div></div>
           </div>
