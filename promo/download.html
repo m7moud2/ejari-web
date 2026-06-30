@@ -114,6 +114,48 @@
       color:#fff;
       font-weight:800;
     }
+    .qr-wrap{
+      display:flex;
+      align-items:center;
+      gap:18px;
+      padding:22px;
+    }
+    .qr-code{
+      width:176px;
+      min-width:176px;
+      aspect-ratio:1/1;
+      border-radius:22px;
+      padding:14px;
+      background:#fff;
+      border:1px solid rgba(93,126,189,.12);
+      box-shadow:0 14px 40px rgba(76,92,122,.08);
+    }
+    .qr-code img{
+      width:100%;
+      height:100%;
+      display:block;
+    }
+    .qr-copy h3{
+      margin:0 0 8px;
+      color:var(--primary);
+      font-size:1.2rem;
+    }
+    .qr-copy p{
+      margin:0;
+      color:var(--muted);
+    }
+    .mini-link{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      margin-top:14px;
+      padding:10px 14px;
+      border-radius:14px;
+      background:rgba(93,126,189,.08);
+      color:var(--primary);
+      font-weight:800;
+      word-break:break-all;
+    }
     @media (max-width: 900px){
       .hero-grid,.grid-2,.steps,.metric-grid{grid-template-columns:1fr}
       .nav-inner{flex-wrap:wrap}
@@ -121,6 +163,8 @@
       .actions .btn{width:100%}
       .hero{padding-bottom:84px}
       .mobile-download-bar{display:block}
+      .qr-wrap{flex-direction:column;align-items:flex-start}
+      .qr-code{width:min(100%,220px);min-width:0}
     }
   </style>
 </head>
@@ -149,8 +193,8 @@
             مع خطوات بسيطة وواضحة قبل التثبيت.
           </p>
           <div class="actions">
-            <a class="btn btn-primary" href="../ejari_mobile/dist/keyo-professional-payment.apk" download="Keyo-Latest.apk" type="application/vnd.android.package-archive">
-              <i class="fa-solid fa-file-arrow-down"></i> تنزيل APK
+            <a class="btn btn-primary" href="https://m7moud2.github.io/ejari-web/promo/download.html">
+              <i class="fa-solid fa-cloud-arrow-down"></i> فتح صفحة التحميل
             </a>
             <a class="btn btn-secondary" href="index.html"><i class="fa-solid fa-eye"></i> مشاهدة الرسالة</a>
           </div>
@@ -165,13 +209,35 @@
           <div class="icon-box"><i class="fa-solid fa-shield-heart"></i></div>
           <h2 style="margin:0 0 8px;">قبل التثبيت</h2>
           <div class="list">
-            <div class="item"><i class="fa-solid fa-check"></i><span>اضغط تنزيل APK من الزر بالأعلى.</span></div>
+            <div class="item"><i class="fa-solid fa-check"></i><span>افتح صفحة التحميل المنشورة من الزر بالأعلى أو من الـ QR.</span></div>
             <div class="item"><i class="fa-solid fa-check"></i><span>إذا طلب الهاتف السماح بالتثبيت من مصدر غير معروف، فعّله مؤقتًا.</span></div>
             <div class="item"><i class="fa-solid fa-check"></i><span>افتح الملف بعد اكتمال التحميل وابدأ التجربة.</span></div>
           </div>
           <div style="margin-top:16px;padding:16px;border-radius:18px;background:rgba(93,126,189,.06);border:1px solid rgba(93,126,189,.10);color:var(--muted);">
             لو كنت على iPhone أو داخل متصفح لا يدعم APK، استخدم صفحة الهبوط واطّلع على القصة والنسخة التجريبية من الموقع.
           </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>امسح الكود وشارك الصفحة</h2>
+      <p class="sub">هذا هو الرابط الأفضل للمستخدمين الآن: صفحة التحميل المنشورة على GitHub Pages.</p>
+      <div class="card qr-wrap">
+        <div class="qr-code">
+          <img alt="QR Code to Keyo download page"
+               src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=https%3A%2F%2Fm7moud2.github.io%2Fejari-web%2Fpromo%2Fdownload.html">
+        </div>
+        <div class="qr-copy">
+          <h3>رابط المستخدم النهائي</h3>
+          <p>
+            <strong>https://m7moud2.github.io/ejari-web/promo/download.html</strong>
+            هو الرابط الأنسب للمشاركة، لأنه صفحة نظيفة، مفهومة، ومهيأة للموبايل.
+          </p>
+          <a class="mini-link" href="https://m7moud2.github.io/ejari-web/promo/download.html">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            افتح الرابط النهائي
+          </a>
         </div>
       </div>
     </section>
@@ -208,11 +274,11 @@
   <div class="mobile-download-bar">
     <div class="inner container">
       <div class="copy">
-        <strong>تنزيل آخر نسخة من كيو</strong>
-        <span>اضغط للتنزيل مباشرة على جهاز أندرويد</span>
+        <strong>صفحة التحميل المنشورة</strong>
+        <span>أفضل رابط للمستخدمين الآن</span>
       </div>
-      <a href="../ejari_mobile/dist/keyo-professional-payment.apk" download="Keyo-Latest.apk" type="application/vnd.android.package-archive">
-        تنزيل APK
+      <a href="https://m7moud2.github.io/ejari-web/promo/download.html">
+        فتح الصفحة
       </a>
     </div>
   </div>
