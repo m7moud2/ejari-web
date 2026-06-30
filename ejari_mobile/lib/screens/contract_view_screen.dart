@@ -17,6 +17,22 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
   bool _isSigned = false;
   late String _contractText;
 
+  int _parseLeaseMonths(String? duration) {
+    final text = duration ?? '';
+    final numberMatch = RegExp(r'(\d+)').firstMatch(text);
+    final count = int.tryParse(numberMatch?.group(1) ?? '') ?? 1;
+
+    if (text.contains('سنة')) return count * 12;
+    if (text.contains('شهر')) return count;
+    if (text.contains('أسبوع')) {
+      return ((count * 7) / 30).ceil().clamp(1, 12).toInt();
+    }
+    if (text.contains('يوم')) {
+      return (count / 30).ceil().clamp(1, 12).toInt();
+    }
+    return count;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -24,6 +40,13 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
   }
 
   void _generateContract() {
+    final monthlyValue = double.tryParse(
+            widget.bookingDetails['monthlyRent']?.toString() ??
+                widget.bookingDetails['price']?.toString() ??
+                '0') ??
+        0.0;
+    final leaseMonths =
+        _parseLeaseMonths(widget.bookingDetails['duration']?.toString());
     final depositValue = double.tryParse(
         widget.bookingDetails['depositAmount']?.toString() ?? '');
     final remainingValue = double.tryParse(
@@ -34,10 +57,17 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
       ownerName: widget.bookingDetails['ownerName'] ?? 'المالك',
       propertyTitle: widget.bookingDetails['title'] ?? 'العقار',
       propertyAddress: 'القاهرة، مصر', // Should come from property details
-      price: double.tryParse(widget.bookingDetails['price'].toString()) ?? 0.0,
-      startDate: DateParsing.parse(widget.bookingDetails['startDate']) ?? DateTime.now(),
+      price: monthlyValue,
+      startDate: DateParsing.parse(widget.bookingDetails['startDate']) ??
+          DateTime.now(),
       endDate: DateParsing.parse(widget.bookingDetails['endDate']) ??
           DateTime.now().add(const Duration(days: 1)),
+      monthlyRent: monthlyValue,
+      leaseMonths: leaseMonths,
+      currentDueAmount: double.tryParse(
+              widget.bookingDetails['currentAmount']?.toString() ??
+                  monthlyValue.toString()) ??
+          monthlyValue,
       depositAmount: depositValue,
       remainingAmount: remainingValue,
     );
@@ -63,7 +93,8 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('تم الحفظ في التنزيلات: Contract_Keyo.pdf ✅'),
+                    content:
+                        Text('تم الحفظ في التنزيلات: Contract_Ejari.pdf ✅'),
                     backgroundColor: AppTheme.primaryColor,
                   ),
                 );
@@ -190,8 +221,7 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
                                     );
                                   },
                             style: ElevatedButton.styleFrom(
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 16),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
                               backgroundColor: AppTheme.primaryColor,
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12)),

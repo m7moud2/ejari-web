@@ -41,8 +41,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                _buildOverviewCard(),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
@@ -80,26 +81,93 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     );
   }
 
+  Widget _buildOverviewCard() {
+    final total = _bookings.length;
+    final depositPaid =
+        _bookings.where((b) => b['status'] == 'deposit_paid').length;
+    final approved = _bookings.where((b) => b['status'] == 'approved').length;
+    final refunded =
+        _bookings.where((b) => b['status'] == 'deposit_refunded').length;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.12)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.account_balance_wallet_outlined,
+                color: AppTheme.primaryColor, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'ملخص الحجوزات المالية',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'إجمالي $total • عربون مدفوع $depositPaid • موافقات $approved • استرداد $refunded',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    height: 1.4,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEmptyState() {
-    return const Center(
+    return Center(
       child: SingleChildScrollView(
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.calendar_today_outlined,
+            const Icon(Icons.calendar_today_outlined,
                 size: 80, color: AppTheme.primaryColor),
-            SizedBox(height: 16),
-            Text(
+            const SizedBox(height: 16),
+            const Text(
               'لا توجد حجوزات حالياً',
               style: TextStyle(fontSize: 18, color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 8),
-            Text(
-              'أول ما تعمل حجز أو تدفع عربون، هتظهر الحالة هنا بشكل واضح.',
-              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-              textAlign: TextAlign.center,
+            const SizedBox(height: 8),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 320),
+              child: const Text(
+                'أول ما تعمل حجز أو تدفع عربون، هتظهر الحالة هنا بشكل واضح، ومعها المتبقي أو الاسترداد لو حصل تغيير.',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         ),
@@ -122,6 +190,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         statusColor = AppTheme.primaryColor;
         statusText = 'عربون المعاينة';
         break;
+      case 'deposit_refunded':
+        statusColor = AppTheme.borderColor;
+        statusText = 'تم استرداد العربون';
+        break;
       case 'approved': // Was accepted
         statusColor = AppTheme.primaryColor;
         statusText = 'تمت الموافقة';
@@ -139,10 +211,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         statusColor = AppTheme.primaryColor;
         statusText = 'مكتمل';
         break;
-      case 'deposit_refunded':
-        statusColor = AppTheme.borderColor;
-        statusText = 'تم استرداد العربون';
-        break;
       default:
         statusColor = AppTheme.primaryColor;
         statusText = status;
@@ -154,8 +222,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       dateStr = DateParsing.display(booking['startDate'],
           fallback: booking['startDate'].toString());
     } else if (booking['requestDate'] != null) {
-      dateStr =
-          DateParsing.display(booking['requestDate'], fallback: 'اليوم');
+      dateStr = DateParsing.display(booking['requestDate'], fallback: 'اليوم');
     }
 
     return Container(
@@ -243,18 +310,34 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                     color: AppTheme.textSecondary,
                                     fontSize: 12)),
                           const SizedBox(height: 4),
-                          Text('${booking['price']} ج.م',
+                          Text(
+                              '${booking['monthlyRent'] ?? booking['price']} ج.م${booking['itemType'] == 'car' ? '' : ' / شهر'}',
                               style: const TextStyle(
                                   color: AppTheme.primaryColor,
                                   fontWeight: FontWeight.bold)),
+                          if (booking['leaseTotal'] != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'إجمالي مدة التعاقد: ${booking['leaseTotal']} ج.م',
+                              style: const TextStyle(
+                                  color: AppTheme.textSecondary, fontSize: 12),
+                            ),
+                          ],
                           if (booking['depositAmount'] != null ||
                               booking['remainingAmount'] != null) ...[
                             const SizedBox(height: 4),
-                            Text(
-                                'عربون: ${booking['depositAmount'] ?? '0'} ج.م • متبقي: ${booking['remainingAmount'] ?? '0'} ج.م',
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 220),
+                              child: Text(
+                                booking['itemType'] == 'car'
+                                    ? 'عربون: ${booking['depositAmount'] ?? '0'} ج.م • متبقي: ${booking['remainingAmount'] ?? '0'} ج.م'
+                                    : 'عربون: ${booking['depositAmount'] ?? '0'} ج.م • متبقي الشهر الأول: ${booking['remainingAmount'] ?? '0'} ج.م',
                                 style: const TextStyle(
                                     color: AppTheme.textSecondary,
-                                    fontSize: 12)),
+                                    fontSize: 12,
+                                    height: 1.4),
+                              ),
+                            ),
                           ],
                         ],
                       ),
@@ -280,8 +363,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             builder: (context) => PaymentScreen(
                               itemType: 'booking',
                               itemData: booking,
-                              amount: double.tryParse(
-                                      booking['price'].toString()) ??
+                              amount: double.tryParse((booking['monthlyRent'] ??
+                                          booking['price'] ??
+                                          0)
+                                      .toString()) ??
                                   0.0,
                             ),
                           ),
@@ -293,6 +378,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                       },
                       icon: const Icon(Icons.payment, size: 18),
                       label: const Text('ادفع الآن واصدر العقد'),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'بعد الدفع، سيظهر لك العقد الإلكتروني وتتبع العملية من نفس الصفحة.',
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 11,
+                      height: 1.4,
                     ),
                   ),
                 ],
@@ -307,20 +401,23 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                           onPressed: () async {
                             final allowed = await AuthGate.requireLogin(
                               context,
-                              actionLabel: 'استكمال الدفعة النهائية',
+                              actionLabel: 'استكمال دفعة الشهر الأول',
                             );
                             if (!allowed || !mounted) return;
-                            final total = double.tryParse(
-                                    booking['price']?.toString() ?? '0') ??
+                            final monthly = double.tryParse(
+                                    (booking['monthlyRent'] ??
+                                            booking['price'] ??
+                                            0)
+                                        .toString()) ??
                                 0.0;
                             final deposit = double.tryParse(
                                     booking['depositAmount']?.toString() ??
-                                        (total * 0.10).toString()) ??
-                                (total * 0.10);
+                                        (monthly * 0.10).toString()) ??
+                                (monthly * 0.10);
                             final remaining = double.tryParse(
                                     booking['remainingAmount']?.toString() ??
-                                        (total - deposit).toString()) ??
-                                (total - deposit);
+                                        (monthly - deposit).toString()) ??
+                                (monthly - deposit);
 
                             final result = await Navigator.push(
                               context,
@@ -330,7 +427,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                   itemData: booking,
                                   amount: remaining,
                                   paymentStage: 'remaining',
-                                  totalAmount: total,
+                                  totalAmount: monthly,
                                   depositAmount: deposit,
                                   remainingAmount: remaining,
                                 ),
@@ -342,20 +439,23 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             }
                           },
                           icon: const Icon(Icons.payment, size: 18),
-                          label: const Text('استكمال الصفقة'),
+                          label: const Text('استكمال دفعة الشهر الأول'),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: OutlinedButton.icon(
                           onPressed: () async {
-                            final total = double.tryParse(
-                                    booking['price']?.toString() ?? '0') ??
+                            final monthly = double.tryParse(
+                                    (booking['monthlyRent'] ??
+                                            booking['price'] ??
+                                            0)
+                                        .toString()) ??
                                 0.0;
                             final deposit = double.tryParse(
                                     booking['depositAmount']?.toString() ??
-                                        (total * 0.10).toString()) ??
-                                (total * 0.10);
+                                        (monthly * 0.10).toString()) ??
+                                (monthly * 0.10);
                             await WalletService.refundBookingDeposit(
                               title:
                                   'استرداد عربون ${booking['title'] ?? 'الحجز'}',
@@ -364,12 +464,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             );
                             await DataService.refundBookingDeposit(
                                 booking['id'].toString());
-                            _loadBookings();
                             if (!mounted) return;
+                            _loadBookings();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                    'تم طلب استرداد عربون بقيمة ${deposit.toStringAsFixed(0)} ج.م'),
+                                    'تم طلب استرداد عربون بقيمة ${deposit.toStringAsFixed(0)} ج.م بنجاح'),
                                 backgroundColor: AppTheme.primaryColor,
                               ),
                             );

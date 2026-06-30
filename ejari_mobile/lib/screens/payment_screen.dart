@@ -3,7 +3,7 @@ import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../services/wallet_service.dart';
 import '../utils/image_utils.dart';
-import '../widgets/keyo_image.dart';
+import '../widgets/ejari_image.dart';
 import 'package:image_picker/image_picker.dart';
 import 'success_screen.dart';
 
@@ -150,14 +150,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   String get _purposeTitle {
-    if (widget.paymentStage == 'remaining') return 'استكمال الدفعة النهائية';
+    if (widget.paymentStage == 'remaining') return 'استكمال دفعة الشهر الأول';
     if (widget.paymentStage == 'deposit') return 'عربون معاينة قابل للاسترداد';
     return 'دفع آمن وموثق';
   }
 
   String get _purposeDescription {
     if (widget.paymentStage == 'remaining') {
-      return 'هذا الجزء يُسدَّد فقط بعد الموافقة النهائية على إتمام الصفقة.';
+      return 'هذا الجزء يُسدَّد لاستكمال الشهر الأول فقط، ثم تُستكمل الدفعات شهرياً وفق العقد.';
     }
     if (widget.paymentStage == 'deposit') {
       return 'هذا المبلغ يُستخدم لحجز المعاينة وتثبيت الجدية، ويظهر لك بوضوح قبل التأكيد.';
@@ -166,14 +166,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   String get _flowTitle {
-    if (widget.paymentStage == 'remaining') return 'استكمال الصفقة بعد الموافقة';
+    if (widget.paymentStage == 'remaining') return 'استكمال دفعة الشهر الأول';
     if (widget.paymentStage == 'deposit') return 'عربون حجز واضح وقابل للتتبع';
     return 'دفع كامل موضح قبل التأكيد';
   }
 
   String get _flowSubtitle {
     if (widget.paymentStage == 'remaining') {
-      return 'أنت هنا في مرحلة استكمال الباقي فقط بعد أن قررت الإتمام.';
+      return 'أنت هنا في مرحلة استكمال المتبقي من الشهر الأول فقط بعد الموافقة.';
     }
     if (widget.paymentStage == 'deposit') {
       return 'أنت تدفع عربونًا أوليًا لحجز المعاينة وتثبيت الجدية.';
@@ -184,9 +184,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   List<String> get _legalNotes {
     if (widget.paymentStage == 'remaining') {
       return [
-        'لن يتم احتساب الدفعة النهائية إلا بعد موافقتك على الاستكمال.',
+        'لن يتم احتساب سوى المتبقي من الشهر الأول هنا، ثم تُفعل المتابعة الشهرية.',
         'ستصل لك فاتورة/إيصال رقمي ورقم مرجعي للعملية.',
-        'العقد النهائي يجب أن يوضح قيمة العربون والمتبقي والالتزامات.',
+        'العقد النهائي يوضح قيمة الإيجار الشهري والعربون والالتزامات.',
       ];
     }
 
@@ -216,7 +216,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     if (widget.itemType == 'booking') {
       if (widget.paymentStage == 'remaining') {
         await WalletService.recordExternalPayment(
-          title: 'استكمال ${widget.itemData['title'] ?? 'الحجز'}',
+          title:
+              'استكمال دفعة الشهر الأول ${widget.itemData['title'] ?? 'الحجز'}',
           amount: _displayAmount,
           method: _selectedCategory,
           bookingId: widget.itemData['id']?.toString() ?? '',
@@ -246,7 +247,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final successMessage = _selectedCategory == 'manual'
         ? 'لقد تم إرسال إيصال الدفع للمراجعة. سيتم تفعيل الخدمة فور التأكد من التحويل.'
         : widget.paymentStage == 'remaining'
-            ? 'تم استلام باقي المبلغ (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح عبر ${_getFriendlyMethodName()}.'
+            ? 'تم استلام المتبقي من الشهر الأول (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح عبر ${_getFriendlyMethodName()}.'
             : 'تم استلام عربون المعاينة (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح عبر ${_getFriendlyMethodName()}.';
 
     _showSuccessVibe(successMessage);
@@ -303,6 +304,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
                   child: _buildHeroSummary(),
                 ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                  child: _buildStageBanner(),
+                ),
+                if (widget.paymentStage != 'full')
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                    child: _buildPaymentPlanCard(),
+                  ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                   child: _buildLegalClarityCard(),
@@ -396,8 +406,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('المبلغ الحالي',
-                          style: TextStyle(
+                      Text(
+                          widget.paymentStage == 'remaining'
+                              ? 'المتبقي من الشهر الأول'
+                              : widget.paymentStage == 'deposit'
+                                  ? 'العربون الآن'
+                                  : 'المبلغ الحالي',
+                          style: const TextStyle(
                               color: AppTheme.textSecondary, fontSize: 12)),
                       const SizedBox(height: 4),
                       Text('${_displayAmount.toStringAsFixed(0)} ج.م',
@@ -417,7 +432,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                   child: Text(
                     widget.paymentStage == 'remaining'
-                        ? 'استكمال'
+                        ? 'استكمال شهري'
                         : widget.paymentStage == 'deposit'
                             ? 'عربون'
                             : 'دفع كامل',
@@ -431,15 +446,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          _buildMiniRow('إجمالي العملية', widget.totalAmount ?? widget.amount),
           _buildMiniRow(
-              widget.paymentStage == 'remaining' ? 'المتبقي الآن' : 'العربون',
+              widget.paymentStage == 'remaining'
+                  ? 'قيمة الشهر الحالي'
+                  : 'إجمالي العملية',
+              widget.totalAmount ?? widget.amount),
+          _buildMiniRow(
+              widget.paymentStage == 'remaining'
+                  ? 'العربون المحجوز'
+                  : 'العربون',
               widget.paymentStage == 'remaining'
                   ? _displayAmount
                   : (widget.depositAmount ??
                       ((widget.totalAmount ?? widget.amount) * 0.10))),
           _buildMiniRow(
-              'المبلغ المتبقي',
+              widget.paymentStage == 'remaining'
+                  ? 'المتبقي بعد العربون'
+                  : 'المبلغ المتبقي',
               widget.paymentStage == 'remaining'
                   ? 0
                   : (widget.remainingAmount ??
@@ -451,6 +474,76 @@ class _PaymentScreenState extends State<PaymentScreen> {
           Text(_purposeDescription,
               style: const TextStyle(
                   color: AppTheme.textSecondary, height: 1.5, fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStageBanner() {
+    final isDeposit = widget.paymentStage == 'deposit';
+    final isRemaining = widget.paymentStage == 'remaining';
+    final accent = isRemaining ? AppTheme.borderColor : AppTheme.primaryColor;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: accent.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: accent.withOpacity(0.14)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: accent.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              isRemaining
+                  ? Icons.check_circle_outline_rounded
+                  : isDeposit
+                      ? Icons.how_to_reg_rounded
+                      : Icons.verified_outlined,
+              color: accent,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isRemaining
+                      ? 'أنت في مرحلة الاستكمال النهائية'
+                      : isDeposit
+                          ? 'أنت في مرحلة العربون المبدئي'
+                          : 'أنت في مرحلة الدفع الكامل',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  isRemaining
+                      ? 'ادفع الجزء المتبقي فقط بعد موافقتك النهائية على الإتمام.'
+                      : isDeposit
+                          ? 'العربون يثبت الجدية ويُوضح لك المتبقي قبل أي خطوة لاحقة.'
+                          : 'راجع المبلغ، اختر وسيلة الدفع، وأكد العملية بوضوح.',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    height: 1.5,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -574,11 +667,148 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  Widget _buildPaymentPlanCard() {
+    final isRemaining = widget.paymentStage == 'remaining';
+    final isDeposit = widget.paymentStage == 'deposit';
+    final title = isRemaining
+        ? 'خطة استكمال الشهر الأول'
+        : isDeposit
+            ? 'خطة الحجز المبدئي'
+            : 'خطة الدفع الحالية';
+    final subtitle = isRemaining
+        ? 'لن تدفع دفعة كبيرة مرة واحدة؛ فقط المتبقي من الشهر الأول، ثم سداد شهري لاحقًا.'
+        : isDeposit
+            ? 'العربون يحجز المعاينة ويثبت الجدية بشكل واضح.'
+            : 'كل شيء ظاهر قبل التأكيد بدون التباس.';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(
+                  isRemaining
+                      ? Icons.event_repeat_rounded
+                      : isDeposit
+                          ? Icons.verified_user_rounded
+                          : Icons.payments_rounded,
+                  color: AppTheme.primaryColor,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        height: 1.45,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _buildPlanChip(
+                'الآن',
+                '${_displayAmount.toStringAsFixed(0)} ج.م',
+                AppTheme.primaryColor,
+              ),
+              _buildPlanChip(
+                'العربون',
+                '${(widget.depositAmount ?? widget.amount).toStringAsFixed(0)} ج.م',
+                AppTheme.borderColor,
+              ),
+              _buildPlanChip(
+                isRemaining ? 'بعدها' : 'المتبقي',
+                isRemaining
+                    ? 'سداد شهري'
+                    : '${(widget.remainingAmount ?? 0).toStringAsFixed(0)} ج.م',
+                AppTheme.textSecondary,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlanChip(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.18)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFlowCard() {
     final steps = widget.paymentStage == 'remaining'
         ? const [
-            ('راجع ملخص الإتمام', 'تأكد أن الصفقة النهائية مناسبة لك.'),
-            ('ادفع الباقي فقط', 'لا توجد أي دفعة إضافية غير المبلغ المتبقي.'),
+            ('راجع ملخص الشهر', 'تأكد أن استكمال الشهر الأول مناسب لك.'),
+            (
+              'ادفع الباقي فقط',
+              'لا توجد أي دفعة إضافية غير المتبقي من الشهر الأول.'
+            ),
             ('أكمل التوثيق', 'سيتم تسجيل العملية وإصدار الإشعار.'),
           ]
         : widget.paymentStage == 'deposit'
@@ -790,7 +1020,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 const SizedBox(height: 12),
                 const Text(
                   '• العربون هنا مخصص لحجز المعاينة أو تثبيت الجدية.\n'
-                  '• المبلغ المتبقي لا يُسدَّد إلا بعد قرارك بالاستكمال.\n'
+                  '• المبلغ المتبقي هنا هو فقط المتبقي من دفعة الشهر الأول.\n'
                   '• أي استرداد أو ترحيل مالي يجب أن يتبع حالة الصفقة الموثقة في العقد.\n'
                   '• يفضّل مراجعة النسخة النهائية من العقد أو المستشار القانوني قبل التوقيع.',
                   style: TextStyle(height: 1.7, fontSize: 13),
@@ -1029,7 +1259,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 Text('InstaPay IPA:',
                     style: TextStyle(
                         color: Theme.of(context).textTheme.bodyMedium?.color)),
-                const Text('keyo@instapay',
+                const Text('ejari@instapay',
                     style: TextStyle(fontWeight: FontWeight.bold))
               ]),
             ],
@@ -1055,7 +1285,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           : AppTheme.textPrimary)
                       : AppTheme.primaryColor),
               image: _receiptPath != null
-                  ? KeyoImage.decoration(path: _receiptPath!, isLocalFile: true)
+                  ? EjariImage.decoration(
+                      path: _receiptPath!, isLocalFile: true)
                   : null,
             ),
             child: _receiptPath == null
@@ -1104,7 +1335,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   Widget _buildBottomPayBar() {
     final buttonText = widget.paymentStage == 'remaining'
-        ? 'تأكيد استكمال المبلغ (${_displayAmount.toStringAsFixed(0)} ج.م)'
+        ? 'تأكيد استكمال دفعة الشهر الأول (${_displayAmount.toStringAsFixed(0)} ج.م)'
         : widget.paymentStage == 'deposit'
             ? 'تأكيد العربون (${_displayAmount.toStringAsFixed(0)} ج.م)'
             : 'تأكيد الدفع (${_displayAmount.toStringAsFixed(0)} ج.م)';
@@ -1147,6 +1378,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
                         fontSize: 15,
                         color: Colors.white)),
               ),
+              if (widget.paymentStage == 'deposit') ...[
+                const SizedBox(height: 8),
+                const Text(
+                  'العربون قابل للتتبع داخل العملية، والمتبقي يظهر لك لاحقًا قبل الإتمام النهائي.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: AppTheme.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -1173,6 +1416,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   String _getItemTitle() {
-    return widget.itemData['title'] ?? widget.itemData['name'] ?? 'وحدة كيو';
+    return widget.itemData['title'] ?? widget.itemData['name'] ?? 'وحدة إيجاري';
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
@@ -10,7 +11,7 @@ import 'success_payment_screen.dart';
 import '../utils/auth_gate.dart';
 import '../utils/date_utils.dart';
 import '../widgets/image_upload_widget.dart';
-import '../widgets/keyo_image.dart';
+import '../widgets/ejari_image.dart';
 import '../l10n/app_localizations.dart';
 
 class BookingScreen extends StatefulWidget {
@@ -65,19 +66,54 @@ class _BookingScreenState extends State<BookingScreen> {
   final _otpController = TextEditingController();
 
   bool get isSale => widget.itemData['listingMode'] == 'for_sale';
+  bool get _isCar => widget.itemType == 'car';
+  double get _monthlyRent => _basePrice;
+
+  int get _leaseMonths {
+    if (isSale) return 0;
+    switch (_selectedDurationType) {
+      case 'يوم':
+        return math.max(1, (_duration / 30).ceil());
+      case 'أسبوع':
+        return math.max(1, ((_duration * 7) / 30).ceil());
+      case 'شهر':
+        return math.max(1, _duration);
+      case 'سنة':
+        return math.max(1, _duration * 12);
+      default:
+        return math.max(1, _duration);
+    }
+  }
+
+  double get _leaseTotalAmount =>
+      isSale || _isCar ? _finalTotal : (_monthlyRent * _leaseMonths);
+
+  double get _currentMonthTotal => isSale || _isCar
+      ? _finalTotal
+      : _monthlyRent + _adminFees + _profit + _insurancePrice;
+
   double get _bookingDepositAmount {
-    final calculated = (_finalTotal * 0.10).roundToDouble();
+    if (isSale || _isCar) {
+      final calculated = (_finalTotal * 0.10).roundToDouble();
+      final safeDeposit = calculated < 500 ? 500.0 : calculated;
+      return safeDeposit > _finalTotal ? _finalTotal : safeDeposit;
+    }
+
+    final calculated = (_monthlyRent * 0.10).roundToDouble();
     final safeDeposit = calculated < 500 ? 500.0 : calculated;
-    return safeDeposit > _finalTotal ? _finalTotal : safeDeposit;
+    return safeDeposit > _currentMonthTotal ? _currentMonthTotal : safeDeposit;
   }
 
   double get _remainingAfterDepositAmount {
-    final remaining = _finalTotal - _bookingDepositAmount;
+    final remaining = _currentMonthTotal - _bookingDepositAmount;
     return remaining < 0 ? 0 : remaining;
   }
 
-  String get _paymentStageLabel =>
-      isSale ? 'عربون المعاينة' : 'عربون الحجز والمعاينة';
+  String get _paymentStageLabel => isSale
+      ? 'عربون المعاينة'
+      : _isCar
+          ? 'عربون الحجز'
+          : 'عربون الشهر الأول';
 
   @override
   void initState() {
@@ -123,46 +159,36 @@ class _BookingScreenState extends State<BookingScreen> {
   void _calculatePrice() {
     if (isSale) {
       _totalPrice = _basePrice;
-      // Fixed 2% commission for Keyo Sale
+      // Fixed 2% commission for Ejari Sale
       _profit = _totalPrice * 0.02;
       _adminFees = 5000; // Fixed admin fee for legal checking
       _finalTotal = _totalPrice + _adminFees + _profit;
       return;
     }
 
-    double pricePerUnit = _basePrice;
-
-    if (widget.itemType == 'car') {
+    if (_isCar) {
       if (_selectedDurationType == 'يوم') {
-        pricePerUnit = _basePrice;
+        _totalPrice = _basePrice;
       } else if (_selectedDurationType == 'أسبوع') {
-        pricePerUnit = (_basePrice * 7) * 0.90;
+        _totalPrice = (_basePrice * 7) * 0.90;
       } else if (_selectedDurationType == 'شهر') {
-        pricePerUnit = (_basePrice * 30) * 0.80;
+        _totalPrice = (_basePrice * 30) * 0.80;
       } else if (_selectedDurationType == 'سنة') {
-        pricePerUnit = (_basePrice * 365) * 0.70;
+        _totalPrice = (_basePrice * 365) * 0.70;
+      } else {
+        _totalPrice = _basePrice;
       }
-    } else {
-      if (_selectedDurationType == 'يوم') {
-        pricePerUnit = _basePrice / 30;
-      } else if (_selectedDurationType == 'أسبوع') {
-        pricePerUnit = (_basePrice / 30 * 7) * 0.95;
-      } else if (_selectedDurationType == 'شهر') {
-        pricePerUnit = _basePrice;
-      } else if (_selectedDurationType == 'سنة') {
-        pricePerUnit = (_basePrice * 12) * 0.85;
-      }
+      _adminFees = _totalPrice * 0.05;
+      _profit = _totalPrice * 0.10;
+      _finalTotal = _totalPrice + _adminFees + _profit + _insurancePrice;
+      return;
     }
 
-    if (_bookingRange != null) {
-      _duration = _bookingRange!.duration.inDays + 1;
-      _selectedDurationType = 'يوم';
-    }
-
-    _totalPrice = pricePerUnit * _duration;
+    // الإيجار الشهري هو الأساس، والمدة فقط تحدد مدة التعاقد وليس دفعة واحدة.
+    _totalPrice = _monthlyRent;
     _adminFees = _totalPrice * 0.05;
     _profit = _totalPrice * 0.10;
-    _finalTotal = _totalPrice + _adminFees + _profit + _insurancePrice;
+    _finalTotal = _currentMonthTotal;
   }
 
   Future<void> _showInsuranceSelection() async {
@@ -186,6 +212,7 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Future<void> _submitBooking() async {
+    final messenger = ScaffoldMessenger.of(context);
     final allowed = await AuthGate.requireLogin(
       context,
       actionLabel: 'إتمام الحجز والدفع',
@@ -195,7 +222,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
     // 1. Validation
     if (_selfieImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(
             content: Text('يرجى التقاط صورة سيلفي للتحقق من هويتك'),
             backgroundColor: AppTheme.errorColor),
@@ -207,7 +234,7 @@ class _BookingScreenState extends State<BookingScreen> {
     if (_selectedPaymentMethod != 'wallet' &&
         _selectedPaymentMethod != 'cash') {
       if (_paymentDetailController.text.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(
               content: Text('يرجى إدخال بيانات وسيلة الدفع المختارة'),
               backgroundColor: AppTheme.errorColor),
@@ -303,11 +330,18 @@ class _BookingScreenState extends State<BookingScreen> {
       'itemType': widget.itemType,
       'title': widget.itemData['title'],
       'image': widget.itemData['image'],
-      'price': _finalTotal.toStringAsFixed(0),
-      'totalAmount': _finalTotal.toStringAsFixed(0),
+      'price': _monthlyRent.toStringAsFixed(0),
+      'monthlyRent': _monthlyRent.toStringAsFixed(0),
+      'leaseTotal': _leaseTotalAmount.toStringAsFixed(0),
+      'totalAmount': _leaseTotalAmount.toStringAsFixed(0),
+      'currentAmount': _currentMonthTotal.toStringAsFixed(0),
       'depositAmount': _bookingDepositAmount.toStringAsFixed(0),
       'remainingAmount': _remainingAfterDepositAmount.toStringAsFixed(0),
-      'duration': isSale ? 'تملك نهائي' : '$_duration $_selectedDurationType',
+      'duration': isSale
+          ? 'تملك نهائي'
+          : _isCar
+              ? '$_duration $_selectedDurationType'
+              : '$_duration $_selectedDurationType (سداد شهري)',
       'startDate': DateTime.now().toIso8601String(),
       'ownerId': widget.itemData['ownerId'] ?? 'admin',
       'status': 'viewing_scheduled',
@@ -339,8 +373,9 @@ class _BookingScreenState extends State<BookingScreen> {
           transactionId: transactionId,
           paymentMethod: _selectedPaymentMethod,
           successTitle: 'تم حجز المعاينة بنجاح',
-          successMessage:
-              'تم استلام العربون بشكل آمن. يمكنك استكمال باقي المبلغ فقط بعد تأكيدك على إتمام الصفقة.',
+          successMessage: _isCar
+              ? 'تم استلام العربون بشكل آمن. ستظهر لك باقي تفاصيل الحجز وفق مدة السيارة المختارة.'
+              : 'تم استلام العربون بشكل آمن. يمكنك استكمال المتبقي من الشهر الأول فقط بعد تأكيدك على إتمام الصفقة.',
         ),
       ),
     );
@@ -495,6 +530,12 @@ class _BookingScreenState extends State<BookingScreen> {
                 children: [
                   _buildItemSummary(),
                   const SizedBox(height: 16),
+                  _buildBookingTrustCard(),
+                  if (!isSale && !_isCar) ...[
+                    const SizedBox(height: 16),
+                    _buildMonthlyPlanCard(),
+                  ],
+                  const SizedBox(height: 16),
                   if (widget.itemData['isDemo'] == true)
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -639,7 +680,7 @@ class _BookingScreenState extends State<BookingScreen> {
                           SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              'أنت الآن بصدد تقديم طلب شراء لهذا العقار بموجب عمولات كيو المخفضة (2%)',
+                              'أنت الآن بصدد تقديم طلب شراء لهذا العقار بموجب عمولات إيجاري المخفضة (2%)',
                               style: TextStyle(
                                   fontSize: 12, fontWeight: FontWeight.w600),
                             ),
@@ -667,8 +708,12 @@ class _BookingScreenState extends State<BookingScreen> {
                     child: Column(
                       children: [
                         _buildPriceRow(
-                            isSale ? 'قيمة العقار' : 'الإيجار', _totalPrice),
-                        _buildPriceRow(isSale ? 'عمولة كيو (2%)' : 'الرسوم',
+                            isSale ? 'قيمة العقار' : 'الإيجار الشهري',
+                            _totalPrice),
+                        if (!isSale && !_isCar)
+                          _buildPriceRow(
+                              'إجمالي مدة التعاقد', _leaseTotalAmount),
+                        _buildPriceRow(isSale ? 'عمولة إيجاري (2%)' : 'الرسوم',
                             isSale ? _profit : (_adminFees + _profit)),
                         if (isSale)
                           _buildPriceRow('مصاريف إدارية وقانونية', _adminFees),
@@ -677,14 +722,22 @@ class _BookingScreenState extends State<BookingScreen> {
                         ...[
                           _buildPriceRow(
                               _paymentStageLabel, _bookingDepositAmount),
-                          _buildPriceRow('المتبقي بعد الموافقة',
+                          _buildPriceRow(
+                              _isCar
+                                  ? 'المتبقي بعد العربون'
+                                  : 'المتبقي من دفعة الشهر الأول',
                               _remainingAfterDepositAmount),
                         ],
                         const Divider(),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(isSale ? 'إجمالي قيمة التعاقد' : 'الإجمالي',
+                            Text(
+                                isSale
+                                    ? 'إجمالي قيمة التعاقد'
+                                    : _isCar
+                                        ? 'المطلوب الآن'
+                                        : 'المطلوب الآن',
                                 style: const TextStyle(
                                     fontWeight: FontWeight.bold)),
                             Text(
@@ -929,7 +982,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                       MaterialPageRoute(
                                         builder: (context) => ContractScreen(
                                           itemLabel: 'سند لأمر',
-                                          ownerName: 'إدارة كيو (الضامن)',
+                                          ownerName: 'إدارة إيجاري (الضامن)',
                                           tenantName: _currentUser?['name'] ??
                                               'المستأجر',
                                           propertyTitle:
@@ -1102,7 +1155,7 @@ class _BookingScreenState extends State<BookingScreen> {
                           1.0, // Changed from 0.85 to be more square/stable
                       children: [
                         _buildPaymentOption(
-                            'محفظة كيو',
+                            'محفظة إيجاري',
                             Icons.account_balance_wallet_rounded,
                             'wallet',
                             AppTheme.primaryColor),
@@ -1148,7 +1201,7 @@ class _BookingScreenState extends State<BookingScreen> {
                             style: TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold))),
                     const SizedBox(height: 12),
-                    const Text('سيقوم مستشار كيو بالتواصل معك خلال 24 ساعة.',
+                    const Text('سيقوم مستشار إيجاري بالتواصل معك خلال 24 ساعة.',
                         style: TextStyle(
                             color: AppTheme.textSecondary, height: 1.4)),
                   ],
@@ -1184,7 +1237,7 @@ class _BookingScreenState extends State<BookingScreen> {
         ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Image(
-            image: KeyoImage.provider(
+            image: EjariImage.provider(
               widget.itemData['image'],
               isLocalFile: !widget.itemData['image'].startsWith('assets/'),
             ),
@@ -1211,6 +1264,189 @@ class _BookingScreenState extends State<BookingScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildBookingTrustCard() {
+    final accent = isSale ? AppTheme.borderColor : AppTheme.primaryColor;
+    final firstLine = isSale
+        ? 'أنت هنا في خطوة التملك، والمبلغ يوضح الإجمالي بشكل كامل قبل الاستمرار.'
+        : 'أنت هنا في خطوة المعاينة والحجز، والعربون يُحجز مؤقتًا إلى حين قرارك النهائي.';
+    final secondLine = isSale
+        ? 'سترى العمولة، الرسوم، والإجمالي النهائي بوضوح قبل توقيع الطلب.'
+        : 'بعد المعاينة، لو قررت الاستكمال يظهر لك المتبقي فقط بدون أي التباس.';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: accent.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accent.withOpacity(0.14)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: accent.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              isSale ? Icons.storefront_rounded : Icons.how_to_reg_rounded,
+              color: accent,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isSale ? 'ملخص التملك والرسوم' : 'ملخص الحجز والعربون',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  firstLine,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    height: 1.45,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  secondLine,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    height: 1.45,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthlyPlanCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.event_repeat_rounded,
+                    color: AppTheme.primaryColor, size: 22),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'خطة السداد الشهرية',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'العربون يثبت الجدية، ثم يُستكمل الشهر الأول فقط، وبعدها السداد يكون شهريًا.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.4,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _buildPlanChip(
+                'الإيجار الشهري',
+                '${_monthlyRent.toStringAsFixed(0)} ج.م',
+                AppTheme.primaryColor,
+              ),
+              _buildPlanChip(
+                'عربون الحجز',
+                '${_bookingDepositAmount.toStringAsFixed(0)} ج.م',
+                AppTheme.borderColor,
+              ),
+              _buildPlanChip(
+                'إجمالي التعاقد',
+                '${_leaseTotalAmount.toStringAsFixed(0)} ج.م',
+                AppTheme.textSecondary,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlanChip(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.18)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w900,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1464,6 +1700,7 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   Future<void> _openContractScreen() async {
+    final navigator = Navigator.of(context);
     final allowed = await AuthGate.requireLogin(
       context,
       actionLabel: 'توقيع العقد',
@@ -1471,14 +1708,13 @@ class _BookingScreenState extends State<BookingScreen> {
     if (!allowed) return;
     if (!mounted) return;
 
-    final result = await Navigator.push(
-      context,
+    final result = await navigator.push(
       MaterialPageRoute(
         builder: (context) => ContractScreen(
           ownerName: 'الشركة المالكة',
           tenantName: _currentUser?['name'] ?? 'المستأجر',
           propertyTitle: widget.itemData['title'],
-          price: _finalTotal.toStringAsFixed(0),
+          price: _monthlyRent.toStringAsFixed(0),
           startDate: DateTime.now().toString().split(' ')[0],
           duration: '$_duration $_selectedDurationType',
           deposit: _bookingDepositAmount.toStringAsFixed(0),
@@ -1643,7 +1879,7 @@ class _BookingScreenState extends State<BookingScreen> {
         hint = 'أدخل تفاصيل التحويل المرجعية';
         break;
       case 'wallet':
-        label = 'تأكيد الدفع من محفظة كيو';
+        label = 'تأكيد الدفع من محفظة إيجاري';
         hint = 'سيتم الخصم من رصيدك المتاح';
         return Container(
           padding: const EdgeInsets.all(16),
@@ -1658,7 +1894,7 @@ class _BookingScreenState extends State<BookingScreen> {
               SizedBox(width: 12),
               Expanded(
                   child: Text(
-                      'سيتم الخصم مباشرة من رصيد محفظة كيو الخاص بك المتوفر حالياً.',
+                      'سيتم الخصم مباشرة من رصيد محفظة إيجاري الخاص بك المتوفر حالياً.',
                       style: TextStyle(
                           fontSize: 12, color: AppTheme.primaryColor))),
             ],

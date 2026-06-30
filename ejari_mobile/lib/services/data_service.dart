@@ -23,7 +23,7 @@ class DataService {
     await prefs.setStringList(_appFeedbackKey, list);
 
     // Notify admin
-    await addNotificationToUser('admin@keyo.app', 'تقييم جديد للتطبيق ⭐',
+    await addNotificationToUser('admin@ejari.app', 'تقييم جديد للتطبيق ⭐',
         'قام أحد المستخدمين بتقييم التطبيق بـ ${feedback['rating']} نجوم.');
   }
 
@@ -79,12 +79,12 @@ class DataService {
     // Categories: شقق | فلل | استوديو طلاب | مكاتب | شاليهات | فندقي | للبيع
     // =====================================================================
     final List<Map<String, dynamic>> defaults = [
-      // ===== 🏢 شقق كيو =====
+      // ===== 🏢 شقق إيجاري =====
       {
         'id': 'b1',
         'title': 'شقة فاخرة منطقة الفلل — إطلالة نيلية',
         'price': '9,000',
-        'location': 'منطقة الفلل، كيو',
+        'location': 'منطقة الفلل، إيجاري',
         'image': 'assets/images/home1.jpg',
         'beds': '3',
         'baths': '2',
@@ -111,7 +111,7 @@ class DataService {
         'id': 'b2',
         'title': 'شقة تشطيب ألترا مودرن — فريد ندا',
         'price': '6,500',
-        'location': 'شارع فريد ندا، كيو',
+        'location': 'شارع فريد ندا، إيجاري',
         'image': 'assets/images/home2.jpg',
         'beds': '2',
         'baths': '1',
@@ -128,7 +128,7 @@ class DataService {
         'id': 'b3',
         'title': 'شقة دور أرضي — المنشية',
         'price': '2,500',
-        'location': 'المنشية، كيو',
+        'location': 'المنشية، إيجاري',
         'image': 'assets/images/home7.jpg',
         'beds': '2',
         'baths': '1',
@@ -145,7 +145,7 @@ class DataService {
         'id': 'b4',
         'title': 'شقة لقطة 200م — بطا',
         'price': '3,000',
-        'location': 'بطا، كيو',
+        'location': 'بطا، إيجاري',
         'image': 'assets/images/home1.jpg',
         'beds': '3',
         'baths': '2',
@@ -162,7 +162,7 @@ class DataService {
         'id': 'b5',
         'title': 'شقة ريفية مريحة — الرملة',
         'price': '1,200',
-        'location': 'الرملة، كيو',
+        'location': 'الرملة، إيجاري',
         'image': 'assets/images/home5.jpg',
         'beds': '2',
         'baths': '1',
@@ -189,7 +189,7 @@ class DataService {
         'id': 'b6',
         'title': 'شقة بنتهاوس — مجمع النخبة',
         'price': '18,000',
-        'location': 'مجمع النخبة، كيو',
+        'location': 'مجمع النخبة، إيجاري',
         'image': 'assets/images/home2.jpg',
         'beds': '4',
         'baths': '3',
@@ -212,9 +212,9 @@ class DataService {
       },
       {
         'id': 'b7',
-        'title': 'شقة كومباوند مسورة — كيو فيو',
+        'title': 'شقة كومباوند مسورة — إيجاري فيو',
         'price': '8,500',
-        'location': 'كيو فيو كومباوند',
+        'location': 'إيجاري فيو كومباوند',
         'image': 'assets/images/home3.jpg',
         'beds': '3',
         'baths': '2',
@@ -233,7 +233,7 @@ class DataService {
         'id': 'c1',
         'title': 'فيلا مستقلة للبيع — منطقة الفلل',
         'price': '3,900,000',
-        'location': 'الفلل، كيو',
+        'location': 'الفلل، إيجاري',
         'image': 'assets/images/home3.jpg',
         'beds': '5',
         'baths': '4',
@@ -250,9 +250,9 @@ class DataService {
       },
       {
         'id': 'c2',
-        'title': 'فيلا تاون هاوس للإيجار — كيو جاردنز',
+        'title': 'فيلا تاون هاوس للإيجار — إيجاري جاردنز',
         'price': '22,000',
-        'location': 'كيو جاردنز',
+        'location': 'إيجاري جاردنز',
         'image': 'assets/images/home3.jpg',
         'beds': '4',
         'baths': '3',
@@ -269,7 +269,7 @@ class DataService {
         'id': 'c3',
         'title': 'قصر للبيع — ضفة النيل',
         'price': '15,000,000',
-        'location': 'ضفة النيل، كيو',
+        'location': 'ضفة النيل، إيجاري',
         'image': 'assets/images/home1.jpg',
         'beds': '7',
         'baths': '6',
@@ -288,7 +288,7 @@ class DataService {
         'id': 'c4',
         'title': 'دوبلكس عائلي — حي الياسمين',
         'price': '14,000',
-        'location': 'حي الياسمين، كيو',
+        'location': 'حي الياسمين، إيجاري',
         'image': 'assets/images/home3.jpg',
         'beds': '5',
         'baths': '3',
@@ -307,7 +307,7 @@ class DataService {
         'id': 'd1',
         'title': 'استوديو طالبات — بجوار كلية الطب',
         'price': '3,500',
-        'location': 'بجوار كلية طب، كيو',
+        'location': 'بجوار كلية طب، إيجاري',
         'image': 'assets/images/home1.jpg',
         'beds': '1',
         'baths': '1',
@@ -330,7 +330,7 @@ class DataService {
         'id': 'd2',
         'title': 'غرفة مشتركة للطلاب — شارع الجامعة',
         'price': '1,800',
-        'location': 'شارع الجامعة، كيو',
+        'location': 'شارع الجامعة، إيجاري',
         'image': 'assets/images/home5.jpg',
         'beds': '1',
         'baths': '1',
@@ -347,7 +347,7 @@ class DataService {
         'id': 'd3',
         'title': 'شقة طلابية كاملة — المدينة الجامعية',
         'price': '4,500',
-        'location': 'المدينة الجامعية، كيو',
+        'location': 'المدينة الجامعية، إيجاري',
         'image': 'assets/images/home4.jpg',
         'beds': '3',
         'baths': '1',
@@ -364,9 +364,9 @@ class DataService {
       // ===== 🏢 مكاتب ومحلات =====
       {
         'id': 'e1',
-        'title': 'محل تجاري — كيو الجديدة',
+        'title': 'محل تجاري — إيجاري الجديدة',
         'price': '12,000',
-        'location': 'كيو الجديدة، كيو',
+        'location': 'إيجاري الجديدة، إيجاري',
         'image': 'assets/images/home4.jpg',
         'beds': '0',
         'baths': '1',
@@ -383,7 +383,7 @@ class DataService {
         'id': 'e2',
         'title': 'مكتب إداري راقي — برج الأعمال',
         'price': '25,000',
-        'location': 'برج الأعمال، كيو',
+        'location': 'برج الأعمال، إيجاري',
         'image': 'assets/images/home4.jpg',
         'beds': '0',
         'baths': '2',
@@ -401,7 +401,7 @@ class DataService {
         'id': 'e3',
         'title': 'محل تجاري أرضي — الشارع الرئيسي',
         'price': '8,000',
-        'location': 'الشارع الرئيسي، كيو',
+        'location': 'الشارع الرئيسي، إيجاري',
         'image': 'assets/images/home4.jpg',
         'beds': '0',
         'baths': '1',
@@ -416,9 +416,9 @@ class DataService {
       },
       {
         'id': 'e4',
-        'title': 'وحدة إدارية — مجمع كيو بيزنس',
+        'title': 'وحدة إدارية — مجمع إيجاري بيزنس',
         'price': '18,000',
-        'location': 'كيو بيزنس بارك',
+        'location': 'إيجاري بيزنس بارك',
         'image': 'assets/images/home4.jpg',
         'beds': '0',
         'baths': '2',
@@ -437,7 +437,7 @@ class DataService {
         'id': 'f1',
         'title': 'شاليه نيلي بالشاطئ الخاص — سيدي كرير',
         'price': '15,000',
-        'location': 'سيدي كرير، كيو',
+        'location': 'سيدي كرير، إيجاري',
         'image': 'assets/images/home3.jpg',
         'beds': '4',
         'baths': '2',
@@ -453,9 +453,9 @@ class DataService {
       },
       {
         'id': 'f2',
-        'title': 'جناح فندقي بالخدمات — فندق كيو بالاس',
+        'title': 'جناح فندقي بالخدمات — فندق إيجاري بالاس',
         'price': '6,000',
-        'location': 'فندق كيو بالاس',
+        'location': 'فندق إيجاري بالاس',
         'image': 'assets/images/home2.jpg',
         'beds': '1',
         'baths': '1',
@@ -480,7 +480,7 @@ class DataService {
         'id': 'g1',
         'title': 'منزل كامل للإيجار — كفر الجزار',
         'price': '5,000',
-        'location': 'كفر الجزار، كيو',
+        'location': 'كفر الجزار، إيجاري',
         'image': 'assets/images/home3.jpg',
         'beds': '4',
         'baths': '2',
@@ -499,7 +499,7 @@ class DataService {
         'id': 'h1',
         'title': 'شقة تمليك 160م — شارع الإشارة',
         'price': '2,200,000',
-        'location': 'الإشارة، كيو',
+        'location': 'الإشارة، إيجاري',
         'image': 'assets/images/home2.jpg',
         'beds': '3',
         'baths': '2',
@@ -518,7 +518,7 @@ class DataService {
         'id': 'h2',
         'title': 'شقة تمليك 90م — حي الهنا',
         'price': '950,000',
-        'location': 'حي الهنا، كيو',
+        'location': 'حي الهنا، إيجاري',
         'image': 'assets/images/home5.jpg',
         'beds': '2',
         'baths': '1',
@@ -536,7 +536,7 @@ class DataService {
         'id': 'h3',
         'title': 'فيلا تمليك مودرن — هايد بارك',
         'price': '8,500,000',
-        'location': 'هايد بارك، كيو',
+        'location': 'هايد بارك، إيجاري',
         'image': 'assets/images/home3.jpg',
         'beds': '5',
         'baths': '4',
@@ -670,7 +670,7 @@ class DataService {
     await prefs.setStringList(_propertiesKey, props);
 
     // Notify admin? (In this local demo, we just add it)
-    await addNotificationToUser('admin@keyo.app', 'طلب إضافة عقار جديد',
+    await addNotificationToUser('admin@ejari.app', 'طلب إضافة عقار جديد',
         'لديك طلب جديد لإضافة عقار (${property['title']}) ينتظر المراجعة.');
   }
 
@@ -791,7 +791,7 @@ class DataService {
     if (list.isEmpty) {
       return [
         {
-          'title': 'مرحباً بك في كيو! 👋',
+          'title': 'مرحباً بك في إيجاري! 👋',
           'body': 'استكشف مئات العقارات المتاحة الآن.',
           'date': DateTime.now()
               .subtract(const Duration(hours: 2))
@@ -914,6 +914,16 @@ class DataService {
         'startDate': request['startDate'] ?? DateTime.now().toIso8601String(),
         'endDate': request['endDate'] ??
             DateTime.now().add(const Duration(days: 30)).toIso8601String(),
+        'price': request['price'],
+        'monthlyRent': request['monthlyRent'],
+        'leaseTotal': request['leaseTotal'],
+        'currentAmount': request['currentAmount'],
+        'depositAmount': request['depositAmount'],
+        'remainingAmount': request['remainingAmount'],
+        'duration': request['duration'],
+        'status': request['status'],
+        'paymentStatus': request['paymentStatus'],
+        'paymentPhase': request['paymentPhase'],
       };
 
       final response = await ApiClient.post('/bookings', body);
@@ -1744,11 +1754,11 @@ class DataService {
         .toList();
   }
 
-  // === Keyo Intelligence (Market Trends) ===
+  // === Ejari Intelligence (Market Trends) ===
 
   static Future<List<Map<String, dynamic>>> getMarketTrends(
       String location) async {
-    // Simulated market trend data for Keyo users
+    // Simulated market trend data for Ejari users
     await Future.delayed(const Duration(milliseconds: 500));
 
     final bool isUp = location.contains('التجمع') || location.contains('زايد');
@@ -1766,7 +1776,7 @@ class DataService {
   // === Property Verification ===
 
   static bool isPropertyVerified(String propertyId) {
-    // Demo: Specific IDs are verified for 'Keyo' status
+    // Demo: Specific IDs are verified for 'Ejari' status
     final verifiedIds = ['1', '3', '5', '7', '10', '15', '20', '27'];
     return verifiedIds.contains(propertyId);
   }
