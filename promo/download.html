@@ -82,9 +82,45 @@
       background:linear-gradient(135deg,var(--primary),var(--secondary));color:#fff;font-weight:900
     }
     .footer{padding:28px 0 46px;text-align:center;color:var(--muted)}
+    .mobile-download-bar{
+      display:none;
+      position:fixed;
+      left:0; right:0; bottom:0;
+      z-index:20;
+      padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+      background:rgba(251,248,241,.96);
+      backdrop-filter:blur(18px);
+      border-top:1px solid rgba(93,126,189,.12);
+      box-shadow:0 -10px 30px rgba(76,92,122,.08);
+    }
+    .mobile-download-bar .inner{
+      display:flex; align-items:center; gap:12px;
+    }
+    .mobile-download-bar .copy{
+      flex:1;
+      min-width:0;
+    }
+    .mobile-download-bar .copy strong{
+      display:block; font-size: .98rem; color:var(--text);
+    }
+    .mobile-download-bar .copy span{
+      display:block; font-size:.8rem; color:var(--muted);
+    }
+    .mobile-download-bar a{
+      white-space:nowrap;
+      padding:12px 16px;
+      border-radius:14px;
+      background:linear-gradient(135deg,var(--primary),var(--secondary));
+      color:#fff;
+      font-weight:800;
+    }
     @media (max-width: 900px){
       .hero-grid,.grid-2,.steps,.metric-grid{grid-template-columns:1fr}
       .nav-inner{flex-wrap:wrap}
+      .actions{flex-direction:column}
+      .actions .btn{width:100%}
+      .hero{padding-bottom:84px}
+      .mobile-download-bar{display:block}
     }
   </style>
 </head>
@@ -168,5 +204,17 @@
   </main>
 
   <footer class="footer">© 2026 كيو Keyo — صفحة تحميل النسخة التجريبية.</footer>
+
+  <div class="mobile-download-bar">
+    <div class="inner container">
+      <div class="copy">
+        <strong>تنزيل آخر نسخة من كيو</strong>
+        <span>اضغط للتنزيل مباشرة على جهاز أندرويد</span>
+      </div>
+      <a href="../ejari_mobile/dist/keyo-professional-payment.apk" download="Keyo-Latest.apk" type="application/vnd.android.package-archive">
+        تنزيل APK
+      </a>
+    </div>
+  </div>
 </body>
 </html>
