@@ -92,6 +92,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
   Future<void> _startInternalChat() async {
     final currentUser = await AuthService.getCurrentUser();
+    if (!mounted) return;
     if (currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('يجب تسجيل الدخول أولاً للمراسلة')),
@@ -100,7 +101,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     }
 
     final ownerId = widget.property['ownerId']?.toString() ?? 'admin';
-    final ownerName = 'مالك العقار'; // Or fetch actual owner name
+    const ownerName = 'مالك العقار'; // Or fetch actual owner name
 
     // Show loading
     showDialog(
@@ -110,6 +111,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           child: CircularProgressIndicator(color: AppTheme.primaryColor)),
     );
 
+    if (!mounted) return;
     final chatId = await FirestoreChatService.startChat(
       currentUser['uid'],
       ownerId,
@@ -118,6 +120,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
 
     // Hide loading
+    if (!mounted) return;
     Navigator.pop(context);
 
     if (chatId.isNotEmpty && mounted) {
@@ -423,7 +426,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   context,
                   actionLabel: 'حجز الوحدة',
                 );
-                if (!allowed || !mounted) return;
+                if (!allowed || !context.mounted) return;
                 Navigator.push(
                   context,
                   MaterialPageRoute(
