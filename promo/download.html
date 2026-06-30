@@ -156,6 +156,40 @@
       font-weight:800;
       word-break:break-all;
     }
+    .copy-link{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      margin-top:12px;
+      padding:10px 14px;
+      border-radius:14px;
+      background:rgba(78,157,149,.10);
+      color:var(--secondary);
+      font-weight:800;
+      border:0;
+      cursor:pointer;
+      font-family:inherit;
+      font-size:.95rem;
+    }
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%) translateY(18px);
+      background:rgba(47,62,75,.96);
+      color:#fff;
+      padding:12px 16px;
+      border-radius:999px;
+      opacity:0;
+      pointer-events:none;
+      transition:.25s ease;
+      z-index:30;
+      box-shadow:0 12px 26px rgba(0,0,0,.16);
+    }
+    .toast.show{
+      opacity:1;
+      transform:translateX(-50%) translateY(0);
+    }
     @media (max-width: 900px){
       .hero-grid,.grid-2,.steps,.metric-grid{grid-template-columns:1fr}
       .nav-inner{flex-wrap:wrap}
@@ -172,6 +206,41 @@
 <body>
   <script>
     const APK_URL = 'https://github.com/m7moud2/ejari-web/releases/download/keyo-v1.1.0/keyo-professional-payment.apk';
+    const APK_FILENAME = 'Keyo-Latest.apk';
+
+    function applyDownloadLinks() {
+      document.querySelectorAll('[data-apk-link]').forEach((link) => {
+        link.setAttribute('href', APK_URL);
+        link.setAttribute('download', APK_FILENAME);
+      });
+
+      const qr = document.querySelector('[data-apk-qr]');
+      if (qr) {
+        qr.setAttribute(
+          'src',
+          `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(APK_URL)}`
+        );
+      }
+
+      const text = document.querySelector('[data-apk-text]');
+      if (text) {
+        text.textContent = APK_URL;
+      }
+    }
+
+    async function copyDownloadLink() {
+      try {
+        await navigator.clipboard.writeText(APK_URL);
+        const toast = document.getElementById('copyToast');
+        if (toast) {
+          toast.textContent = 'تم نسخ رابط التحميل';
+          toast.classList.add('show');
+          setTimeout(() => toast.classList.remove('show'), 1800);
+        }
+      } catch (_) {}
+    }
+
+    window.addEventListener('DOMContentLoaded', applyDownloadLinks);
   </script>
   <nav class="nav">
     <div class="container">
@@ -196,7 +265,7 @@
             مع خطوات بسيطة وواضحة قبل التثبيت.
           </p>
           <div class="actions">
-            <a class="btn btn-primary" href="https://github.com/m7moud2/ejari-web/releases/download/keyo-v1.1.0/keyo-professional-payment.apk" download="Keyo-Latest.apk" type="application/vnd.android.package-archive">
+            <a class="btn btn-primary" data-apk-link href="https://github.com/m7moud2/ejari-web/releases/download/keyo-v1.1.0/keyo-professional-payment.apk" type="application/vnd.android.package-archive">
               <i class="fa-solid fa-cloud-arrow-down"></i> تحميل APK
             </a>
             <a class="btn btn-secondary" href="https://github.com/m7moud2/ejari-web/releases/tag/keyo-v1.1.0" target="_blank" rel="noopener"><i class="fa-solid fa-box-open"></i> صفحة الإصدار</a>
@@ -228,19 +297,24 @@
       <p class="sub">هذا الـ QR يفتح ملف الـ APK نفسه، وليس صفحة وسيطة.</p>
       <div class="card qr-wrap">
         <div class="qr-code">
-               <img alt="QR Code to Keyo download page"
+               <img alt="QR Code to Keyo APK download"
+               data-apk-qr
                src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=https%3A%2F%2Fgithub.com%2Fm7moud2%2Fejari-web%2Freleases%2Fdownload%2Fkeyo-v1.1.0%2Fkeyo-professional-payment.apk">
         </div>
         <div class="qr-copy">
           <h3>رابط التنزيل المباشر</h3>
             <p>
-            <strong>https://github.com/m7moud2/ejari-web/releases/download/keyo-v1.1.0/keyo-professional-payment.apk</strong>
+            <strong data-apk-text>https://github.com/m7moud2/ejari-web/releases/download/keyo-v1.1.0/keyo-professional-payment.apk</strong>
             هو الرابط المباشر للملف. لو حبيت تشاركه للناس، ده هو رابط التحميل الحقيقي.
           </p>
-          <a class="mini-link" href="https://github.com/m7moud2/ejari-web/releases/download/keyo-v1.1.0/keyo-professional-payment.apk" download="Keyo-Latest.apk">
+          <a class="mini-link" data-apk-link href="https://github.com/m7moud2/ejari-web/releases/download/keyo-v1.1.0/keyo-professional-payment.apk">
             <i class="fa-solid fa-arrow-up-right-from-square"></i>
             افتح ملف الـ APK
           </a>
+          <button class="copy-link" type="button" onclick="copyDownloadLink()">
+            <i class="fa-regular fa-copy"></i>
+            نسخ رابط التحميل
+          </button>
         </div>
       </div>
     </section>
@@ -280,10 +354,11 @@
         <strong>تحميل مباشر للـ APK</strong>
         <span>اضغط لتحميل الملف النهائي</span>
       </div>
-      <a href="https://github.com/m7moud2/ejari-web/releases/download/keyo-v1.1.0/keyo-professional-payment.apk" download="Keyo-Latest.apk">
+      <a data-apk-link href="https://github.com/m7moud2/ejari-web/releases/download/keyo-v1.1.0/keyo-professional-payment.apk">
         تحميل الآن
       </a>
     </div>
   </div>
+  <div id="copyToast" class="toast">تم نسخ رابط التحميل</div>
 </body>
 </html>
