@@ -81,6 +81,115 @@
     .sub{margin:0;color:var(--muted);max-width:70ch}
     .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .gallery{
+      display:grid;
+      grid-template-columns:1.3fr .9fr;
+      gap:16px;
+      margin-top:16px;
+    }
+    .gallery-main{
+      position:relative;
+      min-height:360px;
+      overflow:hidden;
+      border-radius:28px;
+      background:linear-gradient(135deg, rgba(79,125,112,.08), rgba(255,255,255,.95));
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+    }
+    .gallery-main img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .gallery-main .overlay{
+      position:absolute;
+      inset:auto 18px 18px 18px;
+      background:rgba(255,255,255,.88);
+      border:1px solid rgba(79,125,112,.12);
+      border-radius:20px;
+      padding:16px;
+      backdrop-filter:blur(8px);
+    }
+    .gallery-main .overlay h3{
+      margin:0 0 6px;
+      font-size:1.1rem;
+      color:var(--primary);
+    }
+    .gallery-main .overlay p{
+      margin:0;
+      font-size:.95rem;
+      color:var(--muted);
+      line-height:1.6;
+    }
+    .gallery-side{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    .shot{
+      overflow:hidden;
+      border-radius:22px;
+      background:#fff;
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+      min-height:172px;
+      position:relative;
+    }
+    .shot img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .shot .caption{
+      position:absolute;
+      left:12px;
+      right:12px;
+      bottom:12px;
+      padding:10px 12px;
+      border-radius:16px;
+      background:rgba(255,255,255,.86);
+      backdrop-filter:blur(8px);
+      color:var(--text);
+      font-weight:800;
+      font-size:.9rem;
+      text-align:center;
+    }
+    .design-tiles{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+      margin-top:16px;
+    }
+    .design-tile{
+      padding:18px;
+      border-radius:22px;
+      background:linear-gradient(180deg, rgba(255,255,255,.95), rgba(247,243,234,.88));
+      border:1px solid var(--border);
+      box-shadow:var(--shadow);
+    }
+    .design-tile .mini{
+      width:44px;
+      height:44px;
+      border-radius:14px;
+      display:grid;
+      place-items:center;
+      margin-bottom:12px;
+      background:rgba(79,125,112,.10);
+      color:var(--primary);
+    }
+    .design-tile h3{
+      margin:0 0 8px;
+      font-size:1rem;
+      color:var(--primary);
+    }
+    .design-tile p{
+      margin:0;
+      color:var(--muted);
+      font-size:.92rem;
+      line-height:1.6;
+    }
     .section-card{padding:22px}
     .icon-box{
       width:52px;height:52px;border-radius:16px;display:grid;place-items:center;margin-bottom:14px;
@@ -110,6 +219,7 @@
     }
     @media (max-width: 980px){
       .hero-grid,.grid-2,.grid-3,.timeline,.metric-row{grid-template-columns:1fr}
+      .gallery,.gallery-side,.design-tiles{grid-template-columns:1fr}
       .nav-inner{flex-wrap:wrap}
       .nav-links{width:100%;justify-content:flex-start}
       .social-links{width:100%}
@@ -196,6 +306,63 @@
           <div class="icon-box"><i class="fa-solid fa-share-nodes"></i></div>
           <h3 style="margin:0 0 10px;color:var(--primary)">قنوات رسمية</h3>
           <p style="margin:0;color:var(--muted)">فيسبوك ولينكدإن للمتابعة والتعريف المهني.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="gallery">
+      <h2>لقطات بصرية من هوية إيجاري</h2>
+      <p class="sub">معرض سريع يوضح الشكل العام، والثقة البصرية، وطابع التصميم الهادئ الذي اخترناه للتطبيق والويب.</p>
+      <div class="gallery">
+        <div class="gallery-main">
+          <img
+            src="https://m7moud2.github.io/ejari-web/images/secure-payment.jpg"
+            alt="تصميم الأمان المالي في إيجاري"
+          />
+          <div class="overlay">
+            <h3>ثقة الدفع والحجز</h3>
+            <p>صممنا المسار المالي ليكون واضحًا وهادئًا، بحيث يفهم المستخدم كل خطوة قبل ما يقرر.</p>
+          </div>
+        </div>
+        <div class="gallery-side">
+          <div class="shot">
+            <img src="https://m7moud2.github.io/ejari-web/images/home1.jpg" alt="واجهة وحدة سكنية في إيجاري" />
+            <div class="caption">عرض عقار واضح</div>
+          </div>
+          <div class="shot">
+            <img src="https://m7moud2.github.io/ejari-web/images/home2.jpg" alt="واجهة بحث ومحتوى بصري في إيجاري" />
+            <div class="caption">تجربة بحث مريحة</div>
+          </div>
+          <div class="shot">
+            <img src="https://m7moud2.github.io/ejari-web/images/home3.jpg" alt="واجهة معاينة وحجز في إيجاري" />
+            <div class="caption">حجز المعاينة</div>
+          </div>
+          <div class="shot">
+            <img src="https://m7moud2.github.io/ejari-web/images/home4.jpg" alt="واجهة ملف شخصي أو قائمة مميزة في إيجاري" />
+            <div class="caption">عرض مميز ومنظم</div>
+          </div>
+        </div>
+      </div>
+      <div class="design-tiles">
+        <div class="design-tile">
+          <div class="mini"><i class="fa-solid fa-palette"></i></div>
+          <h3>ألوان هادئة</h3>
+          <p>اخترنا palette مريحة للعين بعيدًا عن السواد الحاد، لتبقى الصفحة راقية وسهلة القراءة.</p>
+        </div>
+        <div class="design-tile">
+          <div class="mini"><i class="fa-solid fa-mobile-screen"></i></div>
+          <h3>موبايل أولًا</h3>
+          <p>كل البلوكات اتصممت عشان تتنقل بوضوح على الشاشات الصغيرة قبل الكبيرة.</p>
+        </div>
+        <div class="design-tile">
+          <div class="mini"><i class="fa-solid fa-shield-heart"></i></div>
+          <h3>ثقة ووضوح</h3>
+          <p>المحتوى البصري مخصص ليشرح الفكرة بسرعة: أمان، حجز، معاينة، واستكمال.</p>
+        </div>
+        <div class="design-tile">
+          <div class="mini"><i class="fa-solid fa-swatchbook"></i></div>
+          <h3>هوية واحدة</h3>
+          <p>صفحة القصة والتحميل والواجهة كلها ماشية بنفس روح إيجاري، بدل التشتت القديم.</p>
         </div>
       </div>
     </section>
