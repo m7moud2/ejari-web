@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/contract_service.dart';
 import '../utils/date_utils.dart';
+import '../utils/rental_schedule_utils.dart';
 import 'signature_screen.dart';
 
 class ContractViewScreen extends StatefulWidget {
@@ -16,6 +17,7 @@ class ContractViewScreen extends StatefulWidget {
 class _ContractViewScreenState extends State<ContractViewScreen> {
   bool _isSigned = false;
   late String _contractText;
+  Map<String, dynamic> _leaseSnapshot = {};
 
   int _parseLeaseMonths(String? duration) {
     final text = duration ?? '';
@@ -71,6 +73,7 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
       depositAmount: depositValue,
       remainingAmount: remainingValue,
     );
+    _leaseSnapshot = RentalScheduleUtils.buildLeaseSnapshot(widget.bookingDetails);
   }
 
   @override
@@ -142,6 +145,8 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
                                 ),
                               ),
                             ),
+                            const SizedBox(height: 16),
+                            _buildLeaseTransparencyCard(),
                             const SizedBox(height: 16),
                             Text(
                               _contractText,
@@ -284,6 +289,127 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLeaseTransparencyCard() {
+    final totalMonths = (_leaseSnapshot['leaseMonths'] as num? ?? 1).toInt();
+    final remainingMonths =
+        (_leaseSnapshot['remainingMonths'] as num? ?? 0).toInt();
+    final elapsedMonths =
+        (_leaseSnapshot['elapsedMonths'] as num? ?? 0).toInt();
+    final progress = ((_leaseSnapshot['progress'] as num?) ?? 0.0)
+        .toDouble()
+        .clamp(0.0, 1.0)
+        .toDouble();
+    final monthlyRent = (_leaseSnapshot['monthlyRent'] as num? ?? 0).toDouble();
+    final nextDueAmount =
+        (_leaseSnapshot['nextDueAmount'] as num? ?? 0).toDouble();
+    final nextDueDate = DateParsing.display(
+      _leaseSnapshot['nextDueDate'],
+      fallback: 'قريباً',
+      pattern: 'dd/MM/yyyy',
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.verified_outlined,
+                    color: AppTheme.primaryColor, size: 18),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'ملخص السداد الشفاف',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              minHeight: 8,
+              value: progress,
+              backgroundColor: AppTheme.primaryColor.withOpacity(0.12),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'أنقضى $elapsedMonths من $totalMonths شهر • المتبقي $remainingMonths شهر',
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondary,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _leaseChip('القسط الشهري', '${monthlyRent.toStringAsFixed(0)} ج.م'),
+              _leaseChip('أقرب قسط', '${nextDueAmount.toStringAsFixed(0)} ج.م'),
+              _leaseChip('موعد القسط', nextDueDate),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _leaseChip(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.22)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

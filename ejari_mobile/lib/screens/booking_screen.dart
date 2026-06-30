@@ -10,6 +10,7 @@ import '../services/wallet_service.dart';
 import 'success_payment_screen.dart';
 import '../utils/auth_gate.dart';
 import '../utils/date_utils.dart';
+import '../utils/rental_schedule_utils.dart';
 import '../widgets/image_upload_widget.dart';
 import '../widgets/ejari_image.dart';
 import '../l10n/app_localizations.dart';
@@ -324,6 +325,22 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Future<void> _finalizeBooking(String transactionId) async {
     setState(() => _isLoading = true);
+    final leaseMonths = _isCar || isSale
+        ? 0
+        : RentalScheduleUtils.parseLeaseMonths(
+            '$_duration $_selectedDurationType',
+            fallback: 1,
+          );
+    final leaseStartDate = DateTime.now();
+    final leaseEndDate = leaseMonths > 0
+        ? RentalScheduleUtils.addMonths(leaseStartDate, leaseMonths)
+        : leaseStartDate;
+    final monthlyRent = _monthlyRent;
+    final nextDueAmount = _isCar || isSale
+        ? _remainingAfterDepositAmount
+        : _remainingAfterDepositAmount > 0
+            ? _remainingAfterDepositAmount
+            : monthlyRent;
 
     // Save to backend
     await DataService.sendBookingRequest({
@@ -332,11 +349,22 @@ class _BookingScreenState extends State<BookingScreen> {
       'image': widget.itemData['image'],
       'price': _monthlyRent.toStringAsFixed(0),
       'monthlyRent': _monthlyRent.toStringAsFixed(0),
+      'leaseMonths': leaseMonths,
+      'leaseStartDate': leaseStartDate.toIso8601String(),
+      'leaseEndDate': leaseEndDate.toIso8601String(),
       'leaseTotal': _leaseTotalAmount.toStringAsFixed(0),
       'totalAmount': _leaseTotalAmount.toStringAsFixed(0),
       'currentAmount': _currentMonthTotal.toStringAsFixed(0),
       'depositAmount': _bookingDepositAmount.toStringAsFixed(0),
       'remainingAmount': _remainingAfterDepositAmount.toStringAsFixed(0),
+      'nextDueAmount': nextDueAmount.toStringAsFixed(0),
+      'nextDueDate': RentalScheduleUtils.addMonths(leaseStartDate, 1)
+          .toIso8601String(),
+      'paidMonths': 0,
+      'remainingMonths': leaseMonths,
+      'paymentSchedule': _isCar || isSale
+          ? 'مرة واحدة'
+          : 'شهري بعد دفعة البداية',
       'duration': isSale
           ? 'تملك نهائي'
           : _isCar

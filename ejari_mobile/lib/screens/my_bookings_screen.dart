@@ -7,6 +7,7 @@ import 'payment_screen.dart';
 import 'chat_details_screen.dart';
 import '../utils/auth_gate.dart';
 import '../utils/date_utils.dart';
+import '../utils/rental_schedule_utils.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -175,6 +176,136 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     );
   }
 
+  Widget _buildRentalTransparencyCard(Map<String, dynamic> booking) {
+    final snapshot = RentalScheduleUtils.buildLeaseSnapshot(booking);
+    final totalMonths = snapshot['leaseMonths'] as int;
+    final remainingMonths = snapshot['remainingMonths'] as int;
+    final elapsedMonths = snapshot['elapsedMonths'] as int;
+    final progress =
+        ((snapshot['progress'] as num?) ?? 0.0).toDouble().clamp(0.0, 1.0);
+    final monthlyRent = (snapshot['monthlyRent'] as num).toDouble();
+    final nextDueAmount = (snapshot['nextDueAmount'] as num).toDouble();
+    final remainingAmount = (snapshot['remainingAmount'] as num).toDouble();
+    final nextDueDate = DateParsing.display(
+      snapshot['nextDueDate'],
+      fallback: 'قريباً',
+      pattern: 'dd/MM/yyyy',
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.10)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.timeline_rounded,
+                    color: AppTheme.primaryColor, size: 18),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'شفافية السداد الشهري',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              minHeight: 8,
+              value: progress,
+              backgroundColor: AppTheme.primaryColor.withOpacity(0.12),
+              valueColor:
+                  const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'أنقضى $elapsedMonths من $totalMonths شهر • المتبقي $remainingMonths شهر',
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondary,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildTinyStat('القسط الشهري',
+                  '${monthlyRent.toStringAsFixed(0)} ج.م'),
+              _buildTinyStat('أقرب قسط', '${nextDueAmount.toStringAsFixed(0)} ج.م'),
+              _buildTinyStat('موعد القسط', nextDueDate),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'المبلغ المتبقي الحالي: ${remainingAmount.toStringAsFixed(0)} ج.م',
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.primaryColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTinyStat(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBookingCard(Map<String, dynamic> booking) {
     String status = booking['status'] ?? 'pending';
     Color statusColor;
@@ -338,6 +469,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                     height: 1.4),
                               ),
                             ),
+                          ],
+                          if (booking['itemType'] != 'car' &&
+                              !(booking['duration']?.toString() ?? '')
+                                  .contains('مرة واحدة')) ...[
+                            const SizedBox(height: 12),
+                            _buildRentalTransparencyCard(booking),
                           ],
                         ],
                       ),

@@ -880,6 +880,8 @@ class DataService {
     String title = prop['title'] ?? b['propertyTitle'] ?? 'طلب حجز وحدة';
     String price =
         (b['totalPrice'] ?? b['price'] ?? prop['price'] ?? '0').toString();
+    final leaseMonths =
+        (b['leaseMonths'] ?? b['duration'] ?? 1).toString();
 
     final imagesList = prop['images'] as List<dynamic>?;
     String imageStr = 'assets/images/home1.jpg';
@@ -897,6 +899,13 @@ class DataService {
       'image': imageStr,
       'startDate': b['startDate'] ?? b['date'] ?? '',
       'endDate': b['endDate'] ?? '',
+      'leaseStartDate': b['leaseStartDate'] ?? b['startDate'] ?? '',
+      'leaseEndDate': b['leaseEndDate'] ?? b['endDate'] ?? '',
+      'leaseMonths': leaseMonths,
+      'remainingMonths': b['remainingMonths'] ?? '',
+      'paidMonths': b['paidMonths'] ?? '',
+      'nextDueDate': b['nextDueDate'] ?? '',
+      'nextDueAmount': b['nextDueAmount'] ?? '',
       'requestDate': b['createdAt'] ?? b['requestDate'] ?? '',
       'status': status,
       'tenantEmail': user['email'] ?? b['tenantEmail'] ?? '',
@@ -920,6 +929,13 @@ class DataService {
         'currentAmount': request['currentAmount'],
         'depositAmount': request['depositAmount'],
         'remainingAmount': request['remainingAmount'],
+        'leaseMonths': request['leaseMonths'],
+        'leaseStartDate': request['leaseStartDate'],
+        'leaseEndDate': request['leaseEndDate'],
+        'nextDueDate': request['nextDueDate'],
+        'nextDueAmount': request['nextDueAmount'],
+        'paidMonths': request['paidMonths'],
+        'remainingMonths': request['remainingMonths'],
         'duration': request['duration'],
         'status': request['status'],
         'paymentStatus': request['paymentStatus'],
@@ -953,6 +969,12 @@ class DataService {
     request['status'] = request['status'] ?? 'pending';
     request['requestDate'] = DateTime.now().toIso8601String();
     request['tenantEmail'] = currentEmail; // Record who made the request
+    request['leaseMonths'] = request['leaseMonths'] ?? request['duration'];
+    request['leaseStartDate'] =
+        request['leaseStartDate'] ?? request['startDate'];
+    request['leaseEndDate'] = request['leaseEndDate'] ?? request['endDate'];
+    request['paidMonths'] = request['paidMonths'] ?? 0;
+    request['remainingMonths'] = request['remainingMonths'];
 
     List<String> bookings = prefs.getStringList(_bookingsKey) ?? [];
     bookings.add(jsonEncode(request));
