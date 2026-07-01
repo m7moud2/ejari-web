@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>كيو Keyo - المنصة العالمية للإيجارات الفاخرة</title>
+    <title>إيجاري Ejari - المنصة العالمية للإيجارات الفاخرة</title>
 
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -26,7 +26,7 @@
                 <a href="index.html"
                     style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
                     <i class="fas fa-key" style="color: var(--elite-gold, #bca374);"></i>
-                    كيو KEYO
+                    إيجاري EJARI
                 </a>
             </div>
 
@@ -34,7 +34,7 @@
                 <ul class="nav-links">
                     <li><a href="index.html" class="active">الرئيسية</a></li>
                     <li><a href="promo/story.html">قصة المشروع</a></li>
-                    <li><a href="promo/index.html">قصة كيو</a></li>
+                    <li><a href="promo/index.html">قصة إيجاري</a></li>
                     <li><a href="properties.html">عقارات</a></li>
                     <li><a href="cars.html">سيارات</a></li>
                     <li><a href="services.html">الخدمات</a></li>
@@ -82,6 +82,17 @@
                 <div class="auth-buttons" id="authButtons">
                     <a href="signup.html" class="btn btn-primary">إنشاء حساب</a>
                     <a href="login.html" class="btn btn-outline">تسجيل الدخول</a>
+                </div>
+
+                <div class="social-header-links" style="display: flex; align-items: center; gap: 0.5rem; margin-inline-start: 0.75rem;">
+                    <a href="https://www.facebook.com/people/%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-EjariApp/61591649755623/" target="_blank" rel="noopener" aria-label="Facebook"
+                        style="width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: rgba(80, 123, 110, 0.10); color: #507b6e; text-decoration: none;">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/company/%E2%80%8E%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-ejariapp/?viewAsMember=true" target="_blank" rel="noopener" aria-label="LinkedIn"
+                        style="width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: rgba(80, 123, 110, 0.10); color: #507b6e; text-decoration: none;">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
                 </div>
 
                 <!-- User Menu (Hidden by default, shown when logged in) -->
@@ -133,7 +144,7 @@
         .logo {
             font-size: 1.5rem;
             font-weight: 800;
-            color: var(--primary-color, #667eea);
+            color: var(--primary-color, #4f7d70);
         }
 
         .nav-links {
@@ -154,7 +165,7 @@
 
         .nav-links a:hover,
         .nav-links a.active {
-            color: var(--primary-color, #667eea);
+            color: var(--primary-color, #4f7d70);
         }
 
         .nav-links a.active::after {
@@ -164,7 +175,7 @@
             right: 0;
             width: 100%;
             height: 2px;
-            background: var(--primary-color, #667eea);
+            background: var(--primary-color, #4f7d70);
             border-radius: 2px;
         }
 
@@ -191,7 +202,7 @@
         }
 
         .cart-btn:hover {
-            color: var(--primary-color, #667eea);
+            color: var(--primary-color, #4f7d70);
         }
 
         .cart-count {
@@ -273,7 +284,7 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4f7d70 0%, #88a996 100%);
             color: white;
             border: none;
         }
@@ -290,8 +301,8 @@
         }
 
         .btn-outline:hover {
-            border-color: #667eea;
-            color: #667eea;
+            border-color: #4f7d70;
+            color: #4f7d70;
             background: rgba(102, 126, 234, 0.05);
         }
 
@@ -352,7 +363,7 @@
 
         .user-dropdown a:hover {
             background: #f3f4f6;
-            color: var(--primary-color, #667eea);
+            color: var(--primary-color, #4f7d70);
         }
 
         /* Mobile Menu */
@@ -390,6 +401,143 @@
             to {
                 opacity: 1;
                 transform: translateY(0);
+            }
+        }
+    </style>
+    <style>
+        :root {
+            --landing-bg: #f6f1e8;
+            --landing-bg-2: #fbf8f1;
+            --landing-card: rgba(255, 255, 255, 0.94);
+            --landing-text: #32433d;
+            --landing-muted: #5d746c;
+            --landing-primary: #4f7d70;
+            --landing-secondary: #88a996;
+            --landing-accent: #d8c3a5;
+            --landing-border: rgba(79, 125, 112, 0.12);
+            --landing-shadow: 0 20px 55px rgba(76, 92, 84, 0.10);
+        }
+
+        body {
+            background:
+                radial-gradient(circle at top right, rgba(79, 125, 112, 0.14), transparent 28%),
+                radial-gradient(circle at left top, rgba(216, 195, 165, 0.14), transparent 22%),
+                linear-gradient(180deg, var(--landing-bg) 0%, var(--landing-bg-2) 100%);
+            color: var(--landing-text);
+        }
+
+        .hero-enhanced {
+            position: relative;
+            overflow: hidden;
+            background:
+                linear-gradient(180deg, rgba(246, 241, 232, 0.76), rgba(251, 248, 241, 0.84)),
+                url('images/promo/hero_building.jpg') center/cover no-repeat;
+            color: var(--landing-text);
+        }
+
+        .hero-enhanced::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(255,255,255,.24), rgba(246,241,232,.84));
+            pointer-events: none;
+        }
+
+        .hero-enhanced .hero-content,
+        .hero-enhanced .container {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-enhanced h1,
+        .hero-enhanced .subtitle,
+        .hero-enhanced .tagline,
+        .hero-enhanced p {
+            color: var(--landing-text);
+        }
+
+        .hero-enhanced .cta-buttons .btn-hero-primary,
+        .hero-enhanced .cta-buttons .btn-hero-secondary {
+            border-radius: 18px;
+        }
+
+        .hero-enhanced .btn-hero-primary {
+            background: linear-gradient(135deg, var(--landing-primary), var(--landing-secondary));
+            color: white;
+        }
+
+        .hero-enhanced .btn-hero-secondary {
+            background: rgba(255,255,255,.78);
+            color: var(--landing-text);
+            border-color: var(--landing-border);
+        }
+
+        .stats-section,
+        .about-section,
+        .features-section,
+        .how-it-works {
+            background: transparent;
+        }
+
+        .stat-card,
+        .feature-card,
+        .step-card,
+        .about-content {
+            background: var(--landing-card);
+            border: 1px solid var(--landing-border);
+            border-radius: 26px;
+            box-shadow: var(--landing-shadow);
+        }
+
+        .stat-number,
+        .feature-icon,
+        .step-number {
+            color: var(--landing-primary);
+        }
+
+        .section-header h2,
+        .section-header p,
+        .about-text h2,
+        .about-text p,
+        .feature-card h3,
+        .feature-card p,
+        .step-card h3,
+        .step-card p {
+            color: var(--landing-text);
+        }
+
+        .feature-icon,
+        .step-number {
+            background: linear-gradient(135deg, rgba(79,125,112,.12), rgba(216,195,165,.12));
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--landing-primary), var(--landing-secondary));
+            color: white;
+            border: none;
+        }
+
+        .btn-outline {
+            background: rgba(255,255,255,.7);
+            border-color: var(--landing-border);
+            color: var(--landing-text);
+        }
+
+        .trust-strip .trust,
+        .stats-grid .stat-card,
+        .features-grid .feature-card,
+        .steps-container .step-card {
+            border-radius: 24px;
+        }
+
+        .about-image img {
+            border-radius: 28px;
+            box-shadow: var(--landing-shadow);
+        }
+
+        @media (max-width: 768px) {
+            .hero-enhanced {
+                background-position: center top;
             }
         }
     </style>
@@ -457,7 +605,7 @@
     <!-- Enhanced Hero Section for Business Pitch -->
     <section class="hero-enhanced">
         <div class="container hero-content">
-            <h1>🔑 منصة كيو (Keyo) الفاخرة</h1>
+            <h1>🔑 منصة إيجاري (Ejari) الفاخرة</h1>
             <p class="subtitle">الحل العالمي المتكامل لحجز وإدارة العقارات والسيارات والخدمات</p>
             <p class="tagline">
                 حول مكتبك العقاري إلى مؤسسة رقمية مع نظام أتمتة شامل:
@@ -514,9 +662,9 @@
     <section class="about-section" id="about">
         <div class="about-content">
             <div class="about-text">
-                <h2>عن منصة كيو (Keyo)</h2>
+                <h2>عن منصة إيجاري (Ejari)</h2>
                 <p>
-                    <strong>كيو (Keyo)</strong> هي منصة عالمية متكاملة لإدارة وتأجير العقارات والسيارات، مصممة خصيصاً لتلبية تطلعات عملاء النخبة.
+                    <strong>إيجاري (Ejari)</strong> هي منصة عالمية متكاملة لإدارة وتأجير العقارات والسيارات، مصممة خصيصاً لتلبية تطلعات عملاء النخبة.
                     نحن نقدم تجربة رقمية فريدة تربط بسلاسة بين الملاك والمستأجرين لضمان أعلى مستويات الرفاهية والأمان.
                 </p>
                 <p>
@@ -529,7 +677,7 @@
                 </p>
             </div>
             <div class="about-image">
-                <img src="images/home3.jpg" alt="منصة كيو (Keyo)">
+                <img src="images/home3.jpg" alt="منصة إيجاري (Ejari)">
             </div>
         </div>
     </section>
@@ -538,7 +686,7 @@
     <section class="features-section" id="features">
         <div class="container">
             <div class="section-header">
-                <h2>لماذا كيو (Keyo)؟</h2>
+                <h2>لماذا إيجاري (Ejari)؟</h2>
                 <p>الميزات الاستثنائية التي تجعلنا الخيار الأول عالمياً</p>
             </div>
             <div class="features-grid">
@@ -890,7 +1038,7 @@
             </div>
             <div style="text-align: center; margin-top: 3rem;">
                 <a href="services.html" class="btn btn-outline"
-                    style="padding: 1rem 2rem; border: 2px solid #667eea; color: #667eea; font-weight: bold;">اكتشف جميع
+                    style="padding: 1rem 2rem; border: 2px solid #4f7d70; color: #4f7d70; font-weight: bold;">اكتشف جميع
                     الخدمات</a>
             </div>
         </div>
@@ -913,7 +1061,7 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>كيو KEYO</h3>
+                    <h3>إيجاري EJARI</h3>
                     <p>منصتك المتكاملة لتأجير العقارات والسيارات الفاخرة</p>
                 </div>
                 <div class="footer-section">
@@ -927,14 +1075,21 @@
                 <div class="footer-section">
                     <h3>تواصل معنا</h3>
                     <ul>
-                        <li>info@keyo.app</li>
+                        <li>info@ejari.app</li>
                         <li>+20 123 456 789</li>
                         <li>القاهرة، مصر</li>
                     </ul>
                 </div>
+                <div class="footer-section">
+                    <h3>تابعنا</h3>
+                    <ul>
+                        <li><a href="https://www.facebook.com/people/%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-EjariApp/61591649755623/" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i> فيسبوك</a></li>
+                        <li><a href="https://www.linkedin.com/company/%E2%80%8E%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-ejariapp/?viewAsMember=true" target="_blank" rel="noopener"><i class="fab fa-linkedin-in"></i> لينكدإن</a></li>
+                    </ul>
+                </div>
             </div>
             <div class="footer-bottom">
-                <p>جميع الحقوق محفوظة © 2026 كيو KEYO</p>
+                <p>جميع الحقوق محفوظة © 2026 إيجاري EJARI</p>
             </div>
         </div>
     </footer>
@@ -965,7 +1120,7 @@
                             <i class="fas fa-map-marker-alt"></i>
                             المعادي، القاهرة
                         </p>
-                        <div class="base-price" style="color: #667eea; font-weight: 600; font-size: 1.125rem;">
+                        <div class="base-price" style="color: #4f7d70; font-weight: 600; font-size: 1.125rem;">
                             <span class="price">12,000</span>
                             <span class="currency">ج.م</span>
                             <span class="period">/شهر</span>
@@ -977,7 +1132,7 @@
                     <h4 style="color: #2c3e50; margin: 0 0 1rem 0; font-size: 1rem;">اختر مدة الإيجار</h4>
                     <div class="duration-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
                         <button class="duration-tab active" data-unit="days"
-                            style="flex: 1; padding: 0.75rem; border: 1px solid #667eea; border-radius: 6px; background: #667eea; color: white; cursor: pointer; transition: all 0.3s ease; font-size: 0.875rem;">أيام</button>
+                            style="flex: 1; padding: 0.75rem; border: 1px solid #4f7d70; border-radius: 6px; background: #4f7d70; color: white; cursor: pointer; transition: all 0.3s ease; font-size: 0.875rem;">أيام</button>
                         <button class="duration-tab" data-unit="weeks"
                             style="flex: 1; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 6px; background: white; color: #6b7280; cursor: pointer; transition: all 0.3s ease; font-size: 0.875rem;">أسابيع</button>
                         <button class="duration-tab" data-unit="months"
@@ -1050,7 +1205,7 @@
 
                 <div class="booking-actions" style="display: flex; gap: 1rem;">
                     <button class="btn btn-primary" onclick="window.location.href='payment.html'"
-                        style="flex: 1; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 500; cursor: pointer; background: #667eea; color: white; border: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 1rem;">
+                        style="flex: 1; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 500; cursor: pointer; background: #4f7d70; color: white; border: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 1rem;">
                         <i class="fas fa-check"></i>
                         تأكيد الحجز
                     </button>
@@ -1077,7 +1232,7 @@
     <script>
         // Session Management for Homepage
         document.addEventListener('DOMContentLoaded', () => {
-            const user = JSON.parse(localStorage.getItem('keyo_user'));
+            const user = JSON.parse(localStorage.getItem('ejari_user'));
             const authButtons = document.getElementById('authButtons');
             const userMenu = document.getElementById('userMenu');
 
@@ -1113,8 +1268,8 @@
 
         function logout() {
             if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
-                localStorage.removeItem('keyo_user');
-                localStorage.removeItem('keyo_token');
+                localStorage.removeItem('ejari_user');
+                localStorage.removeItem('ejari_token');
                 window.location.reload();
             }
         }

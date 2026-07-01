@@ -4,24 +4,24 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>كيو Keyo — السكن أوضح. الدفع أأمن. العقد أصدق.</title>
+  <title>إيجاري Ejari — السكن أوضح. الدفع أأمن. العقد أصدق.</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --bg: #f5f0e7;
+      --bg: #f6f1e8;
       --bg-2: #fbf8f1;
-      --card: rgba(255, 255, 255, 0.92);
-      --text: #30404d;
-      --muted: #6c7a86;
-      --primary: #5f7fbf;
-      --primary-2: #7f9ad8;
-      --secondary: #4a9d95;
-      --gold: #b88f5a;
-      --border: rgba(95, 127, 191, 0.14);
-      --shadow: 0 20px 55px rgba(77, 94, 126, 0.10);
+      --card: rgba(255, 255, 255, 0.94);
+      --text: #32433d;
+      --muted: #5d746c;
+      --primary: #4f7d70;
+      --primary-2: #88a996;
+      --secondary: #88a996;
+      --gold: #d8c3a5;
+      --border: rgba(79, 125, 112, 0.12);
+      --shadow: 0 20px 55px rgba(76, 92, 84, 0.10);
       --radius: 24px;
     }
 
@@ -31,8 +31,8 @@
       margin: 0;
       font-family: 'Cairo', sans-serif;
       background:
-        radial-gradient(circle at top right, rgba(127, 154, 216, 0.18), transparent 28%),
-        radial-gradient(circle at left top, rgba(74, 157, 149, 0.12), transparent 22%),
+        radial-gradient(circle at top right, rgba(79, 125, 112, 0.14), transparent 28%),
+        radial-gradient(circle at left top, rgba(216, 195, 165, 0.14), transparent 22%),
         linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
       color: var(--text);
       line-height: 1.8;
@@ -43,7 +43,7 @@
       position: sticky; top: 0; z-index: 50;
       backdrop-filter: blur(18px);
       background: rgba(251, 248, 241, 0.82);
-      border-bottom: 1px solid rgba(95, 127, 191, 0.08);
+      border-bottom: 1px solid rgba(79, 125, 112, 0.08);
     }
     .nav-inner {
       display: flex; align-items: center; justify-content: space-between;
@@ -57,7 +57,7 @@
     .brand-badge {
       width: 42px; height: 42px; border-radius: 14px;
       display: grid; place-items: center;
-      background: linear-gradient(135deg, rgba(95,127,191,.18), rgba(74,157,149,.18));
+      background: linear-gradient(135deg, rgba(79,125,112,.18), rgba(216,195,165,.18));
       color: var(--primary);
       box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
     }
@@ -67,7 +67,7 @@
       color: var(--muted); font-weight: 700; font-size: .96rem;
     }
     .nav-links a { padding: 8px 2px; border-bottom: 2px solid transparent; }
-    .nav-links a:hover { color: var(--primary); border-bottom-color: rgba(95,127,191,.28); }
+    .nav-links a:hover { color: var(--primary); border-bottom-color: rgba(79,125,112,.28); }
     .nav-cta {
       display: inline-flex; align-items: center; gap: 10px;
       padding: 12px 18px;
@@ -75,7 +75,7 @@
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       color: white;
       font-weight: 800;
-      box-shadow: 0 16px 35px rgba(95,127,191,.22);
+      box-shadow: 0 16px 35px rgba(79,125,112,.18);
     }
 
     .hero { padding: 60px 0 18px; }
@@ -90,7 +90,7 @@
       padding: 8px 14px; border-radius: 999px;
       background: rgba(255,255,255,.62);
       color: var(--primary);
-      border: 1px solid rgba(95,127,191,.12);
+      border: 1px solid rgba(79,125,112,.12);
       font-weight: 800;
       font-size: .9rem;
       margin-bottom: 18px;
@@ -125,16 +125,29 @@
     }
     .btn-secondary {
       background: rgba(255,255,255,.74);
-      border-color: rgba(95,127,191,.14);
+      border-color: rgba(79,125,112,.14);
       color: var(--text);
     }
 
     .hero-card {
       background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(249,246,239,.9));
-      border: 1px solid rgba(95,127,191,.14);
+      border: 1px solid rgba(79,125,112,.14);
       border-radius: 30px;
       box-shadow: var(--shadow);
       padding: 22px;
+    }
+    .hero-visual {
+      overflow: hidden;
+      border-radius: 22px;
+      margin-bottom: 16px;
+      border: 1px solid rgba(79,125,112,.12);
+      box-shadow: 0 18px 34px rgba(76,92,84,.10);
+    }
+    .hero-visual img {
+      width: 100%;
+      display: block;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
     }
     .hero-card .top {
       display: flex; align-items: center; justify-content: space-between; gap: 14px;
@@ -143,7 +156,7 @@
     .pill {
       display: inline-flex; align-items: center; gap: 8px;
       padding: 8px 12px; border-radius: 999px;
-      background: rgba(95,127,191,.08);
+      background: rgba(79,125,112,.08);
       color: var(--primary);
       font-size: .86rem; font-weight: 800;
     }
@@ -160,8 +173,8 @@
     }
     .amount-box {
       border-radius: 18px; padding: 14px;
-      background: rgba(95,127,191,.06);
-      border: 1px solid rgba(95,127,191,.10);
+      background: rgba(79,125,112,.06);
+      border: 1px solid rgba(79,125,112,.10);
     }
     .amount-box .label { color: var(--muted); font-size: .82rem; }
     .amount-box .value { margin-top: 4px; font-weight: 900; color: var(--text); }
@@ -196,7 +209,7 @@
     .card .icon {
       width: 50px; height: 50px; border-radius: 16px; display: grid; place-items: center;
       margin-bottom: 14px; color: var(--primary);
-      background: linear-gradient(135deg, rgba(95,127,191,.12), rgba(74,157,149,.10));
+      background: linear-gradient(135deg, rgba(79,125,112,.12), rgba(216,195,165,.10));
     }
 
     .split {
@@ -204,12 +217,12 @@
       align-items: stretch;
     }
     .problem {
-      background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(249,244,235,.9));
-      border: 1px solid rgba(184,143,90,.16);
+      background: linear-gradient(180deg, rgba(255,255,255,.94), rgba(247,243,234,.9));
+      border: 1px solid rgba(216,195,165,.16);
     }
     .solution {
-      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(241,248,246,.92));
-      border: 1px solid rgba(74,157,149,.14);
+      background: linear-gradient(180deg, rgba(255,255,255,.96), rgba(244,248,245,.92));
+      border: 1px solid rgba(79,125,112,.14);
     }
     .check-list {
       display: grid; gap: 10px; margin-top: 16px;
@@ -251,8 +264,8 @@
     details p { margin: 10px 0 0; color: var(--muted); }
     .final-cta {
       margin: 34px 0 64px;
-      background: linear-gradient(135deg, rgba(95,127,191,.16), rgba(74,157,149,.14));
-      border: 1px solid rgba(95,127,191,.10);
+      background: linear-gradient(135deg, rgba(79,125,112,.16), rgba(216,195,165,.14));
+      border: 1px solid rgba(79,125,112,.10);
       border-radius: 30px;
       padding: 28px;
       text-align: center;
@@ -270,7 +283,7 @@
     }
     .trust {
       background: rgba(255,255,255,.75);
-      border: 1px solid rgba(95,127,191,.10);
+      border: 1px solid rgba(79,125,112,.10);
       border-radius: 18px;
       padding: 14px;
       text-align: center;
@@ -294,7 +307,7 @@
       <div class="nav-inner">
         <a class="brand" href="index.html">
           <span class="brand-badge"><i class="fa-solid fa-key"></i></span>
-          <span>كيو Keyo</span>
+          <span>إيجاري Ejari</span>
         </a>
         <div class="nav-links">
           <a href="#problem">المشكلة</a>
@@ -316,14 +329,14 @@
             <div class="eyebrow"><i class="fa-solid fa-shield-heart"></i> منصة سكن وإيجار أوضح وأهدأ</div>
             <h1>سكن <span>أوضح</span>، دفع <span>أأمن</span>، وعقد <span>أصدق</span>.</h1>
             <p class="lead">
-              كيو تساعد المستأجر والمالك على التعامل بثقة ووضوح من أول المعاينة إلى التسوية النهائية،
+              إيجاري تساعد المستأجر والمالك على التعامل بثقة ووضوح من أول المعاينة إلى التسوية النهائية،
               مع عربون واضح، وملخص مالي مفهوم، وتجربة تقلل الفوضى والاستغلال.
             </p>
             <div class="hero-actions">
               <a class="btn btn-primary" href="download.html">
                 <i class="fa-solid fa-download"></i> جرّب النسخة
               </a>
-              <a class="btn btn-secondary" href="#solution"><i class="fa-regular fa-circle-play"></i> اعرف كيو بتعمل إيه</a>
+              <a class="btn btn-secondary" href="#solution"><i class="fa-regular fa-circle-play"></i> اعرف إيجاري بتعمل إيه</a>
             </div>
             <p style="margin:12px 0 0; color:var(--muted); font-size:.95rem;">
               الزر بيحمّل آخر نسخة APK الجاهزة للتجربة على أندرويد مباشرة.
@@ -336,6 +349,9 @@
           </div>
 
           <div class="hero-card">
+            <div class="hero-visual">
+              <img src="../images/promo/hero_building.jpg" alt="واجهة عقار راقية داخل إيجاري">
+            </div>
             <div class="top">
               <div class="pill"><i class="fa-solid fa-circle-check"></i> نموذج ثقة</div>
               <div class="amount">
@@ -343,8 +359,8 @@
                 <small>عربون معاينة مثال</small>
               </div>
             </div>
-            <div class="card" style="box-shadow:none; padding:18px; background:rgba(95,127,191,.05);">
-              <h3 style="margin-top:0;">كيف يظهر الدفع داخل كيو؟</h3>
+            <div class="card" style="box-shadow:none; padding:18px; background:rgba(79,125,112,.05);">
+              <h3 style="margin-top:0;">كيف يظهر الدفع داخل إيجاري؟</h3>
               <p>تدفع العربون أولاً، ثم يظهر لك المتبقي بوضوح بعد المعاينة والموافقة النهائية.</p>
               <div class="amount-grid">
                 <div class="amount-box">
@@ -390,7 +406,7 @@
           </div>
           <div class="card solution" id="solution">
             <div class="icon"><i class="fa-solid fa-lightbulb"></i></div>
-            <h3>حل كيو</h3>
+            <h3>حل إيجاري</h3>
             <div class="check-list">
               <div class="check-item"><i class="fa-solid fa-check"></i><span>عرض واضح للمبلغ والمرحلة الحالية قبل أي تأكيد.</span></div>
               <div class="check-item"><i class="fa-solid fa-check"></i><span>عربون معاينة بدل دفع شامل غير مبرر.</span></div>
@@ -406,7 +422,7 @@
       <div class="container">
         <div class="section-head">
           <div>
-            <h2>ما الذي يميز كيو؟</h2>
+            <h2>ما الذي يميز إيجاري؟</h2>
             <p class="sub">مش هدفنا نبهر المستخدم بشكل فقط. هدفنا نكسب ثقته لأن التجربة نفسها محترمة ومفهومة.</p>
           </div>
         </div>
@@ -434,7 +450,7 @@
       <div class="container">
         <div class="section-head">
           <div>
-            <h2>كيف يعمل كيو؟</h2>
+            <h2>كيف يعمل إيجاري؟</h2>
             <p class="sub">فلو بسيط جدًا، لكنه منظم بما يكفي ليحس المستخدم أن الأمور تحت السيطرة.</p>
           </div>
         </div>
@@ -468,7 +484,7 @@
         <div class="section-head">
           <div>
             <h2>الثقة والقانون</h2>
-            <p class="sub">كيو لا يدّعي أنه بديل عن العقد النهائي، لكنه ينظم الطريق إليه بطريقة أوضح وأكثر شفافية.</p>
+            <p class="sub">إيجاري لا يدّعي أنه بديل عن العقد النهائي، لكنه ينظم الطريق إليه بطريقة أوضح وأكثر شفافية.</p>
           </div>
         </div>
         <div class="split">
@@ -504,8 +520,8 @@
             <p>نعم، وفق الحالة المتفق عليها والشروط الموثقة داخل النظام والعقد النهائي.</p>
           </details>
           <details>
-            <summary>هل كيو يضمن العقد النهائي؟</summary>
-            <p>كيو ينظم ويوضح ويوثق المسار، أما الالتزام النهائي فيتم من خلال العقد والإجراءات القانونية المناسبة.</p>
+            <summary>هل إيجاري يضمن العقد النهائي؟</summary>
+            <p>إيجاري ينظم ويوضح ويوثق المسار، أما الالتزام النهائي فيتم من خلال العقد والإجراءات القانونية المناسبة.</p>
           </details>
           <details>
             <summary>لماذا صفحة الدفع بسيطة؟</summary>
@@ -517,7 +533,7 @@
 
     <section class="container final-cta">
       <h2>ابدأ رحلة سكن أوضح وأكثر أمانًا</h2>
-      <p style="margin:0; color:var(--muted);">كيو صُممت لتخفيف التوتر، تنظيم المال، وبناء ثقة عملية بين المستأجر والمالك.</p>
+      <p style="margin:0; color:var(--muted);">إيجاري صُممت لتخفيف التوتر، تنظيم المال، وبناء ثقة عملية بين المستأجر والمالك.</p>
       <div class="hero-actions" style="justify-content:center; margin-top:20px;">
         <a class="btn btn-primary" href="index.html"><i class="fa-solid fa-house"></i> العودة للتطبيق</a>
         <a class="btn btn-secondary" href="story.html"><i class="fa-regular fa-file-lines"></i> اقرأ قصة المشروع</a>
@@ -526,7 +542,7 @@
   </main>
 
   <footer class="footer">
-    © 2026 كيو Keyo — صفحة تعريفية أولى قابلة للتطوير.
+    © 2026 إيجاري Ejari — صفحة تعريفية أولى قابلة للتطوير.
   </footer>
 </body>
 </html>
