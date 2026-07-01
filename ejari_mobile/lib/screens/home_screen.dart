@@ -13,7 +13,6 @@ import '../services/auth_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/property_provider.dart';
 import 'notifications_screen.dart';
-import 'search_results_screen.dart';
 import 'advanced_filters_screen.dart';
 import 'service_details_screen.dart';
 import '../l10n/app_localizations.dart';
@@ -113,74 +112,8 @@ class _HomeContentState extends State<HomeContent> {
     });
   }
 
-  void _performLiveSearch(String query) {
-    setState(() {
-      _applyFilters();
-    });
-  }
-
   void _applyFilters() {
     setState(() {});
-  }
-
-  Widget _buildSearchBar(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: const [],
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 16),
-          const Icon(Icons.search_rounded, color: AppTheme.primaryColor),
-          const SizedBox(width: 8),
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              onChanged: _performLiveSearch,
-              onSubmitted: (value) {
-                if (value.trim().isNotEmpty) {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            SearchResultsScreen(query: value)),
-                  );
-                }
-              },
-              textInputAction: TextInputAction.search,
-              decoration: InputDecoration(
-                hintText: context.tr('search_hint'),
-                hintStyle:
-                    const TextStyle(color: AppTheme.primaryColor, fontSize: 13),
-                border: InputBorder.none,
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, size: 18),
-                        onPressed: () {
-                          _searchController.clear();
-                          _performLiveSearch('');
-                        })
-                    : null,
-              ),
-            ),
-          ),
-          Container(
-              height: 50,
-              width: 1,
-              color: AppTheme.primaryColor.withOpacity(0.2)),
-          IconButton(
-            icon: Icon(Icons.tune_rounded,
-                color: Theme.of(context).iconTheme.color),
-            onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const AdvancedFiltersScreen())),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildCategoriesGrid(BuildContext context) {
@@ -308,313 +241,490 @@ class _HomeContentState extends State<HomeContent> {
         child: Scaffold(
           body: SafeArea(
             top: false,
-            child: Column(
-              children: [
-                Expanded(
-                  child: CustomScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    slivers: [
-                      SliverAppBar(
-                        expandedHeight: 224,
-                        floating: true,
-                        pinned: true,
-                        elevation: 0,
-                        backgroundColor: AppTheme.backgroundColor,
-                        flexibleSpace: FlexibleSpaceBar(
-                          background: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Image.asset('assets/images/promo/hero_building.jpg',
-                                  fit: BoxFit.cover,
-                                  color: AppTheme.textPrimary.withOpacity(0.18),
-                                  colorBlendMode: BlendMode.darken),
-                              Container(
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverAppBar(
+                  pinned: true,
+                  floating: false,
+                  elevation: 0,
+                  toolbarHeight: 74,
+                  titleSpacing: 12,
+                  backgroundColor: AppTheme.backgroundColor.withOpacity(0.95),
+                  surfaceTintColor: Colors.transparent,
+                  title: _buildHeader(context),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.notifications_none_rounded,
+                          color: AppTheme.textPrimary),
+                      onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const NotificationsScreen())),
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    child: _buildHeroShowcase(context, propertyProvider),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 18),
+                    child: _buildFeatureStorySection(context),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 18),
+                    child: _buildTenantOverviewCard(context, propertyProvider),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 18),
+                    child: _buildUserNeedsSection(context),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: _buildCategoriesGrid(context),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 28, 20, 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _selectedCategory == null
+                                ? context.tr('featured_properties')
+                                : 'عقارات في $_selectedCategory',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                        ),
+                        if (propertyProvider.userCity != null)
+                          Padding(
+                            padding:
+                                const EdgeInsetsDirectional.only(start: 12),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.location_on,
+                                    size: 16, color: AppTheme.primaryColor),
+                                const SizedBox(width: 4),
+                                ConstrainedBox(
+                                  constraints:
+                                      const BoxConstraints(maxWidth: 110),
+                                  child: Text(
+                                    propertyProvider.userCity!,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                _isLoading
+                    ? const SliverToBoxAdapter(
+                        child: SizedBox(
+                            height: 200,
+                            child: Center(child: CircularProgressIndicator())))
+                    : _filteredProperties.isEmpty
+                        ? SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 20, vertical: 10),
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(18),
                                 decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Colors.transparent,
-                                      AppTheme.primaryColor.withOpacity(0.46),
-                                    ],
+                                  color: Theme.of(context).cardTheme.color ??
+                                      Theme.of(context).cardColor,
+                                  borderRadius: BorderRadius.circular(18),
+                                  border: Border.all(
+                                    color:
+                                        AppTheme.primaryColor.withOpacity(0.12),
                                   ),
                                 ),
-                              ),
-                              Positioned(
-                                left: 18,
-                                right: 18,
-                                bottom: 98,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.74),
-                                    borderRadius: BorderRadius.circular(18),
-                                    border: Border.all(
-                                      color: AppTheme.borderColor.withOpacity(0.28),
+                                child: const Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(Icons.search_off_rounded,
+                                            color: AppTheme.primaryColor),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'لا توجد نتائج مطابقة',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppTheme.textPrimary,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                  child: const Text(
-                                    'منصة إيجاري الذكية للإيجار • بأسلوب هادئ وراقي',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      color: AppTheme.textPrimary,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w800,
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'جرّب تغيير الفئة أو كلمة البحث أو افتح كل العقارات لعرض المزيد من الخيارات.',
+                                      style: TextStyle(
+                                        color: AppTheme.textSecondary,
+                                        fontSize: 12,
+                                        height: 1.5,
+                                      ),
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        bottom: PreferredSize(
-                          preferredSize: const Size.fromHeight(108),
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                            child: _buildSearchBar(context),
-                          ),
-                        ),
-                        title: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          widget.role == 'owner'
-                                              ? 'مرحباً، مستثمر إيجاري'
-                                              : 'مرحباً بك في إيجاري',
-                                          style: const TextStyle(
-                                              color: AppTheme.textPrimary,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 6, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.76),
-                                          borderRadius:
-                                              BorderRadius.circular(4),
-                                          border: Border.all(
-                                              color: AppTheme.borderColor.withOpacity(0.5),
-                                              width: 0.5),
-                                        ),
-                                        child: const Text('عضو مؤسس',
-                                            style: TextStyle(
-                                                color: AppTheme.primaryColor,
-                                                fontSize: 9,
-                                                fontWeight: FontWeight.bold)),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                      widget.role == 'owner'
-                                          ? 'إدارة استثماراتك'
-                                          : 'استأجر أفضل الشقق في إيجاري والمنطقة',
-                                      style: const TextStyle(
-                                          color: AppTheme.textPrimary, fontSize: 12),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis),
-                                ],
                               ),
                             ),
-                          ],
-                        ),
-                        actions: [
-                          IconButton(
-                            icon: const Icon(Icons.notifications_active_rounded,
-                                color: AppTheme.textPrimary),
-                            onPressed: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const NotificationsScreen())),
+                          )
+                        : SliverPadding(
+                            padding: const EdgeInsets.only(bottom: 120),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final property = _filteredProperties[index];
+                                  return PropertyCard(
+                                    id: property['id'] ?? '0',
+                                    title: property['title'] ?? '',
+                                    price: property['price'] ?? '0',
+                                    location: property['location'] ?? '',
+                                    image: property['image'] ??
+                                        'assets/images/home1.jpg',
+                                    beds: property['beds'] ?? '0',
+                                    baths: property['baths'] ?? '0',
+                                    area: property['area'] ?? '0',
+                                    listingMode: property['listingMode'],
+                                    isDemo: property['isDemo'] ?? false,
+                                    onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                PropertyDetailsScreen(
+                                                    property: property))),
+                                    onBook: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => BookingScreen(
+                                                itemType: 'property',
+                                                itemData: property))),
+                                  );
+                                },
+                                childCount: _filteredProperties.length,
+                              ),
+                            ),
                           ),
-                        ],
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 120),
+                    child: _buildEjariServicesSection(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ));
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceColor.withOpacity(0.92),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppTheme.borderColor.withOpacity(0.5)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.asset(
+                  'assets/images/app_icon.png',
+                  width: 24,
+                  height: 24,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.key_rounded,
+                    color: AppTheme.primaryColor,
+                    size: 22,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'إيجاري',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  Text(
+                    widget.role == 'owner'
+                        ? 'لوحة المالك'
+                        : 'تجربة الإيجار الأوضح',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeroShowcase(
+      BuildContext context, PropertyProvider propertyProvider) {
+    final width = MediaQuery.of(context).size.width;
+    final compact = width < 700;
+    final locationLabel = propertyProvider.userCity ?? 'السكن، القاهرة';
+
+    final bullets = [
+      (
+        icon: Icons.search_rounded,
+        title: 'ابحث عن العقار المناسب',
+        subtitle: 'شقق • فيلات • مكاتب • محلات',
+      ),
+      (
+        icon: Icons.verified_user_outlined,
+        title: 'عقود إلكترونية موثوقة',
+        subtitle: 'توثيق واضح يحفظ الحقوق',
+      ),
+      (
+        icon: Icons.account_balance_wallet_outlined,
+        title: 'دفع إلكتروني آمن',
+        subtitle: 'مدفوعات متتالية وشفافة',
+      ),
+      (
+        icon: Icons.design_services_outlined,
+        title: 'خدمات صيانة معتمدة',
+        subtitle: 'اختيار سريع ومتابعة مستمرة',
+      ),
+      (
+        icon: Icons.groups_rounded,
+        title: 'تواصل مباشر',
+        subtitle: 'بين المستأجر والمالك والفني',
+      ),
+    ];
+
+    final heroText = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Align(
+          alignment: Alignment.centerRight,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.96),
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(26),
+                bottomLeft: Radius.circular(26),
+                topLeft: Radius.circular(12),
+                bottomRight: Radius.circular(12),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryColor.withOpacity(0.18),
+                  blurRadius: 22,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: const Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  'قريباً',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'الإطلاق الرسمي',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        Row(
+          children: [
+            Container(
+              width: 58,
+              height: 58,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                borderRadius: BorderRadius.circular(18),
+                border:
+                    Border.all(color: AppTheme.borderColor.withOpacity(0.55)),
+              ),
+              child: Image.asset(
+                'assets/images/app_icon.png',
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.key_rounded,
+                  color: AppTheme.primaryColor,
+                  size: 30,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'إيجاري',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'Ejari',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 18),
+        RichText(
+          text: const TextSpan(
+            children: [
+              TextSpan(
+                text: 'قريباً.. ',
+                style: TextStyle(
+                  color: AppTheme.primaryColor,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              TextSpan(
+                text: 'تجربة إيجار أسهل وأكثر أماناً',
+                style: TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          'منصة ذكية تربط بين المستأجرين والمالكين في مكان واحد، لتجربة إيجار متكاملة وموثوقة.',
+          style: TextStyle(
+            color: AppTheme.textPrimary,
+            fontSize: 14,
+            height: 1.75,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            _heroChip(Icons.location_on_outlined, locationLabel),
+            _heroChip(Icons.verified_outlined, 'عقود موثقة'),
+            _heroChip(Icons.security_rounded, 'دفع آمن'),
+          ],
+        ),
+        const SizedBox(height: 18),
+        ...bullets.map(
+          (item) => Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppTheme.surfaceColor.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppTheme.borderColor.withOpacity(0.5)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withOpacity(0.10),
+                    shape: BoxShape.circle,
+                  ),
+                  child:
+                      Icon(item.icon, color: AppTheme.primaryColor, size: 24),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.title,
+                        style: const TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.textPrimary,
+                        ),
                       ),
-                      SliverToBoxAdapter(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 20),
-                            _buildTrustStrip(context),
-                            const SizedBox(height: 20),
-                            _buildHowItWorksSection(context),
-                            const SizedBox(height: 20),
-                            _buildTenantOverviewCard(context, propertyProvider),
-                            const SizedBox(height: 20),
-                            _buildUserNeedsSection(context),
-                            const SizedBox(height: 24),
-                            _buildCategoriesGrid(context),
-                            const SizedBox(height: 28),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      _selectedCategory == null
-                                          ? context.tr('featured_properties')
-                                          : 'عقارات في $_selectedCategory',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w900,
-                                        color: AppTheme.textPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                  if (propertyProvider.userCity != null)
-                                    Padding(
-                                      padding: const EdgeInsetsDirectional.only(
-                                          start: 12),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(Icons.location_on,
-                                              size: 16,
-                                              color: AppTheme.primaryColor),
-                                          const SizedBox(width: 4),
-                                          ConstrainedBox(
-                                            constraints: const BoxConstraints(
-                                                maxWidth: 110),
-                                            child: Text(
-                                              propertyProvider.userCity!,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: AppTheme.primaryColor,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                          ],
-                        ),
-                      ),
-                      _isLoading
-                          ? const SliverToBoxAdapter(
-                              child: SizedBox(
-                                  height: 200,
-                                  child: Center(
-                                      child: CircularProgressIndicator())))
-                          : _filteredProperties.isEmpty
-                              ? SliverToBoxAdapter(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20, vertical: 10),
-                                    child: Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.all(18),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                                .cardTheme
-                                                .color ??
-                                            Theme.of(context).cardColor,
-                                        borderRadius: BorderRadius.circular(18),
-                                        border: Border.all(
-                                          color: AppTheme.primaryColor
-                                              .withOpacity(0.12),
-                                        ),
-                                      ),
-                                      child: const Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Icon(Icons.search_off_rounded,
-                                                  color:
-                                                      AppTheme.primaryColor),
-                                              SizedBox(width: 8),
-                                              Text(
-                                                'لا توجد نتائج مطابقة',
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.bold,
-                                                  color:
-                                                      AppTheme.textPrimary,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          SizedBox(height: 8),
-                                          Text(
-                                            'جرّب تغيير الفئة أو كلمة البحث أو افتح كل العقارات لعرض المزيد من الخيارات.',
-                                            style: TextStyle(
-                                              color: AppTheme.textSecondary,
-                                              fontSize: 12,
-                                              height: 1.5,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                )
-                          : SliverPadding(
-                              padding: const EdgeInsets.only(bottom: 120),
-                              sliver: SliverList(
-                                delegate: SliverChildBuilderDelegate(
-                                  (context, index) {
-                                    final property = _filteredProperties[index];
-                                    return PropertyCard(
-                                      id: property['id'] ?? '0',
-                                      title: property['title'] ?? '',
-                                      price: property['price'] ?? '0',
-                                      location: property['location'] ?? '',
-                                      image: property['image'] ??
-                                          'assets/images/home1.jpg',
-                                      beds: property['beds'] ?? '0',
-                                      baths: property['baths'] ?? '0',
-                                      area: property['area'] ?? '0',
-                                      listingMode: property['listingMode'],
-                                      isDemo: property['isDemo'] ?? false,
-                                      onTap: () => Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  PropertyDetailsScreen(
-                                                      property: property))),
-                                      onBook: () => Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                              builder: (context) =>
-                                                  BookingScreen(
-                                                      itemType: 'property',
-                                                      itemData: property))),
-                                    );
-                                  },
-                                  childCount: _filteredProperties.length,
-                                ),
-                              ),
-                            ),
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 120),
-                          child: _buildEjariServicesSection(context),
+                      const SizedBox(height: 2),
+                      Text(
+                        item.subtitle,
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textSecondary,
                         ),
                       ),
                     ],
@@ -623,7 +733,456 @@ class _HomeContentState extends State<HomeContent> {
               ],
             ),
           ),
-        ));
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const AdvancedFiltersScreen())),
+                icon: const Icon(Icons.search_rounded),
+                label: const Text('ابحث الآن'),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const PropertiesScreen())),
+                icon: const Icon(Icons.explore_outlined),
+                label: const Text('استعرض الكل'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+
+    final phoneMockup = Container(
+      width: compact ? double.infinity : width * 0.38,
+      constraints: const BoxConstraints(minHeight: 420, maxWidth: 420),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.88),
+        borderRadius: BorderRadius.circular(34),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.42)),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.16),
+            blurRadius: 30,
+            offset: const Offset(0, 18),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: AspectRatio(
+              aspectRatio: 0.75,
+              child: Image.asset(
+                'assets/images/promo/hero_download.jpg',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: AppTheme.surfaceColor,
+                  child: const Center(
+                    child: Icon(Icons.phone_iphone_rounded,
+                        size: 70, color: AppTheme.primaryColor),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              _miniStat('بحث', 'سهل وسريع'),
+              const SizedBox(width: 10),
+              _miniStat('عقود', 'موثقة وواضحة'),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withOpacity(0.10),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.qr_code_2_rounded,
+                          color: AppTheme.primaryColor),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'امسح الكود للوصول للتجربة',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    if (compact) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(34),
+          gradient: LinearGradient(
+            colors: [
+              Colors.white.withOpacity(0.94),
+              AppTheme.backgroundColor.withOpacity(0.94),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          border: Border.all(color: AppTheme.borderColor.withOpacity(0.35)),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryColor.withOpacity(0.08),
+              blurRadius: 24,
+              offset: const Offset(0, 14),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            heroText,
+            const SizedBox(height: 18),
+            phoneMockup,
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(36),
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withOpacity(0.94),
+            AppTheme.backgroundColor.withOpacity(0.94),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.35)),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(flex: 6, child: heroText),
+          const SizedBox(width: 18),
+          Expanded(flex: 4, child: phoneMockup),
+        ],
+      ),
+    );
+  }
+
+  Widget _heroChip(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.45)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: AppTheme.primaryColor),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: const TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w800,
+              color: AppTheme.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _miniStat(String title, String subtitle) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.borderColor.withOpacity(0.35)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w900,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureStorySection(BuildContext context) {
+    final items = [
+      (
+        icon: Icons.home_rounded,
+        title: 'ابحث بسهولة عن العقار المناسب',
+        subtitle: 'شقق، فيلات، مكاتب، ومحلات',
+      ),
+      (
+        icon: Icons.description_outlined,
+        title: 'عقود إلكترونية موثوقة',
+        subtitle: 'تحافظ على الحقوق وتوضح التفاصيل',
+      ),
+      (
+        icon: Icons.account_balance_wallet_rounded,
+        title: 'دفع إلكتروني آمن',
+        subtitle: 'طرق دفع متعددة ومتابعة واضحة',
+      ),
+      (
+        icon: Icons.handyman_rounded,
+        title: 'خدمات صيانة معتمدة',
+        subtitle: 'فنيون موثوقون يصلون إليك',
+      ),
+      (
+        icon: Icons.forum_rounded,
+        title: 'تواصل مباشر بين الأطراف',
+        subtitle: 'المستأجر والمالك ومقدمو الخدمة',
+      ),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: AppTheme.borderColor.withOpacity(0.45)),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryColor.withOpacity(0.06),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withOpacity(0.10),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(Icons.auto_awesome_rounded,
+                      color: AppTheme.primaryColor),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'إيجاري يسهّل عليك كل خطوة',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'رحلة واضحة من أول بحث لحد الحجز والمتابعة.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            ...items.map(
+              (item) => Column(
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 54,
+                        height: 54,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withOpacity(0.10),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(item.icon,
+                            color: AppTheme.primaryColor, size: 28),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.title,
+                              style: const TextStyle(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w900,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item.subtitle,
+                              style: const TextStyle(
+                                fontSize: 11.5,
+                                height: 1.45,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (item != items.last)
+                    Padding(
+                      padding: const EdgeInsetsDirectional.only(
+                          start: 68, top: 14, bottom: 14),
+                      child: Divider(
+                        height: 1,
+                        thickness: 1,
+                        color: AppTheme.borderColor.withOpacity(0.45),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppTheme.primaryColor,
+                    AppTheme.primaryColor.withOpacity(0.9),
+                    AppTheme.accentColor,
+                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(26),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primaryColor.withOpacity(0.16),
+                    blurRadius: 24,
+                    offset: const Offset(0, 12),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'سجّل بياناتك الآن',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          'وأكن من أوائل المستفيدين عند الإطلاق الرسمي.',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w600,
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    width: 58,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.16),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: Colors.white.withOpacity(0.22)),
+                    ),
+                    child: const Icon(Icons.qr_code_2_rounded,
+                        color: Colors.white, size: 32),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildUserNeedsSection(BuildContext context) {
@@ -740,258 +1299,6 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
-  Widget _buildTrustStrip(BuildContext context) {
-    final items = [
-      {
-        'icon': Icons.verified_outlined,
-        'title': 'عقارات موثقة',
-        'subtitle': 'تفاصيل وصور أوضح قبل القرار',
-      },
-      {
-        'icon': Icons.description_outlined,
-        'title': 'عقد واضح',
-        'subtitle': 'حماية حقوق الطرفين',
-      },
-      {
-        'icon': Icons.support_agent_outlined,
-        'title': 'متابعة مستمرة',
-        'subtitle': 'طلبك لا يضيع',
-      },
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: items
-            .map(
-              (item) => Expanded(
-                child: Container(
-                  margin: const EdgeInsets.only(left: 8),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppTheme.surfaceColor,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppTheme.borderColor.withOpacity(0.5),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(item['icon'] as IconData,
-                          color: AppTheme.primaryColor, size: 18),
-                      const SizedBox(height: 10),
-                      Text(
-                        item['title'] as String,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item['subtitle'] as String,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          height: 1.35,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            )
-            .toList(),
-      ),
-    );
-  }
-
-  Widget _buildHowItWorksSection(BuildContext context) {
-    final steps = [
-      (
-        title: 'ابحث',
-        subtitle: 'فلتر على السعر، الموقع، ونوع الوحدة بسرعة',
-        icon: Icons.search_rounded,
-      ),
-      (
-        title: 'عاين',
-        subtitle: 'افتح التفاصيل واحجز المعاينة لو مناسب',
-        icon: Icons.event_available_rounded,
-      ),
-      (
-        title: 'كمّل بثقة',
-        subtitle: 'استكمل بخطوات واضحة بدل اللفة الطويلة',
-        icon: Icons.verified_user_outlined,
-      ),
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppTheme.primaryColor.withOpacity(0.08),
-              Colors.white,
-            ],
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-          ),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppTheme.primaryColor.withOpacity(0.10)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(Icons.route_rounded,
-                      color: AppTheme.primaryColor),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'إزاي إيجاري بيمشي؟',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'رحلة مختصرة وواضحة من أول بحث لحد حجز المعاينة.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: steps.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 0.82,
-              ),
-              itemBuilder: (context, index) {
-                final step = steps[index];
-                return Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: AppTheme.primaryColor.withOpacity(0.08),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.10),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Icon(step.icon,
-                            color: AppTheme.primaryColor, size: 22),
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        step.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w900,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Expanded(
-                        child: Text(
-                          step.subtitle,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 10.5,
-                            height: 1.35,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const AdvancedFiltersScreen(),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.tune_rounded),
-                    label: const Text('ابدأ البحث'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const PropertiesScreen(),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.apartment_rounded),
-                    label: const Text('كل العقارات'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildTenantOverviewCard(
       BuildContext context, PropertyProvider propertyProvider) {
     final totalRent = propertyProvider.rentProperties.length;
@@ -1004,7 +1311,8 @@ class _HomeContentState extends State<HomeContent> {
         width: double.infinity,
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
+          color:
+              Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(color: AppTheme.primaryColor.withOpacity(0.08)),
         ),
