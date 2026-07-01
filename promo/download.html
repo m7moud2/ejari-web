@@ -119,6 +119,39 @@
       margin:0;
       color:var(--muted);
     }
+    .promo-strip{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:14px;
+      margin-top:16px;
+    }
+    .promo-shot{
+      overflow:hidden;
+      border-radius:24px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.86);
+      box-shadow:var(--shadow);
+    }
+    .promo-shot img{
+      width:100%;
+      aspect-ratio: 4 / 5;
+      object-fit:cover;
+      display:block;
+    }
+    .promo-shot .meta{
+      padding:14px 16px 16px;
+    }
+    .promo-shot h3{
+      margin:0 0 6px;
+      color:var(--primary);
+      font-size:1rem;
+    }
+    .promo-shot p{
+      margin:0;
+      color:var(--muted);
+      font-size:.92rem;
+      line-height:1.7;
+    }
     .mobile-download-bar{
       display:none;
       position:fixed;
@@ -228,7 +261,7 @@
       transform:translateX(-50%) translateY(0);
     }
     @media (max-width: 900px){
-      .hero-grid,.grid-2,.steps,.metric-grid,.updates-grid{grid-template-columns:1fr}
+      .hero-grid,.grid-2,.steps,.metric-grid,.updates-grid,.promo-strip{grid-template-columns:1fr}
       .nav-inner{flex-wrap:wrap}
       .actions{flex-direction:column}
       .actions .btn{width:100%}
@@ -371,6 +404,34 @@
           <h3>روابط السوشيال الرسمية</h3>
           <p>إضافة فيسبوك ولينكدإن لتقوية الثقة، وتسهيل متابعة الأخبار والتحديثات.</p>
         </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>لقطات منتقاة من هوية إيجاري</h2>
+      <p class="sub">اختيار بصري بسيط وأنيق يوضح الفكرة بدون أي كولاج مزدحم أو صور مجمعة.</p>
+      <div class="promo-strip">
+        <article class="promo-shot">
+          <img src="../images/promo/hero_intro.jpg" alt="إيجاري بمنصة ذكية للإيجار">
+          <div class="meta">
+            <h3>بداية الهوية</h3>
+            <p>لقطة تعريفية هادئة تشرح ملامح التطبيق من أول نظرة.</p>
+          </div>
+        </article>
+        <article class="promo-shot">
+          <img src="../images/promo/hero_easy_booking.jpg" alt="حجز سهل وسريع في إيجاري">
+          <div class="meta">
+            <h3>حجز أبسط</h3>
+            <p>واجهة مريحة تقرب المستخدم من الفكرة بدون تعقيد أو زحمة عناصر.</p>
+          </div>
+        </article>
+        <article class="promo-shot">
+          <img src="../images/promo/hero_download.jpg" alt="تحميل تطبيق إيجاري الآن">
+          <div class="meta">
+            <h3>دعوة واضحة</h3>
+            <p>لقطة التحميل نفسها بشكل أنيق، لتوجيه المستخدم للخطوة التالية مباشرة.</p>
+          </div>
+        </article>
       </div>
     </section>
 
