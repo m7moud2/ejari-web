@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'sales_properties_screen.dart';
-import '../widgets/keyo_navigation_bar.dart';
+import '../widgets/ejari_navigation_bar.dart';
 import 'add_property_screen.dart';
 import 'property_reels_screen.dart';
 import 'properties_screen.dart';
@@ -61,7 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
         index: _currentIndex,
         children: _screens,
       ),
-      bottomNavigationBar: KeyoNavigationBar(
+      bottomNavigationBar: EjariNavigationBar(
         currentIndex: _currentIndex,
         role: _currentRole,
         onTap: (index) {
@@ -191,7 +191,7 @@ class _HomeContentState extends State<HomeContent> {
         'color': AppTheme.primaryColor
       },
       {
-        'label': 'شقق كيو',
+        'label': 'شقق إيجاري',
         'icon': Icons.apartment_rounded,
         'color': AppTheme.textPrimary
       },
@@ -263,7 +263,7 @@ class _HomeContentState extends State<HomeContent> {
               final color = cat['color'] as Color;
               return Padding(
                 padding: const EdgeInsets.only(left: 12),
-                child: _buildKeyoCategory(context, label, icon, color),
+                child: _buildEjariCategory(context, label, icon, color),
               );
             }).toList(),
           ),
@@ -278,7 +278,7 @@ class _HomeContentState extends State<HomeContent> {
     // Fetch and filter from provider
     final query = _searchController.text.toLowerCase();
     const Map<String, String> typeMap = {
-      'شقق كيو': 'شقق',
+      'شقق إيجاري': 'شقق',
       'منطقة الفلل': 'فلل',
       'إسكان طلاب': 'استوديو',
       'مكاتب ومحلات': 'مكاتب',
@@ -315,18 +315,18 @@ class _HomeContentState extends State<HomeContent> {
                     physics: const BouncingScrollPhysics(),
                     slivers: [
                       SliverAppBar(
-                        expandedHeight: 180,
+                        expandedHeight: 224,
                         floating: true,
                         pinned: true,
                         elevation: 0,
-                        backgroundColor: AppTheme.primaryColor,
+                        backgroundColor: AppTheme.backgroundColor,
                         flexibleSpace: FlexibleSpaceBar(
                           background: Stack(
                             fit: StackFit.expand,
                             children: [
-                              Image.asset('assets/images/home1.jpg',
+                              Image.asset('assets/images/promo/hero_building.jpg',
                                   fit: BoxFit.cover,
-                                  color: AppTheme.textPrimary.withOpacity(0.5),
+                                  color: AppTheme.textPrimary.withOpacity(0.18),
                                   colorBlendMode: BlendMode.darken),
                               Container(
                                 decoration: BoxDecoration(
@@ -335,8 +335,33 @@ class _HomeContentState extends State<HomeContent> {
                                     end: Alignment.bottomCenter,
                                     colors: [
                                       Colors.transparent,
-                                      AppTheme.primaryColor.withOpacity(0.9)
+                                      AppTheme.primaryColor.withOpacity(0.46),
                                     ],
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                left: 18,
+                                right: 18,
+                                bottom: 98,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 14, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.74),
+                                    borderRadius: BorderRadius.circular(18),
+                                    border: Border.all(
+                                      color: AppTheme.borderColor.withOpacity(0.28),
+                                    ),
+                                  ),
+                                  child: const Text(
+                                    'منصة إيجاري الذكية للإيجار • بأسلوب هادئ وراقي',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      color: AppTheme.textPrimary,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -344,9 +369,9 @@ class _HomeContentState extends State<HomeContent> {
                           ),
                         ),
                         bottom: PreferredSize(
-                          preferredSize: const Size.fromHeight(100),
+                          preferredSize: const Size.fromHeight(108),
                           child: Padding(
-                            padding: const EdgeInsets.all(16.0),
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                             child: _buildSearchBar(context),
                           ),
                         ),
@@ -362,10 +387,10 @@ class _HomeContentState extends State<HomeContent> {
                                       Expanded(
                                         child: Text(
                                           widget.role == 'owner'
-                                              ? 'مرحباً، مستثمر كيو'
-                                              : 'مرحباً بك في كيو',
+                                              ? 'مرحباً، مستثمر إيجاري'
+                                              : 'مرحباً بك في إيجاري',
                                           style: const TextStyle(
-                                              color: Colors.white,
+                                              color: AppTheme.textPrimary,
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold),
                                           maxLines: 1,
@@ -377,17 +402,16 @@ class _HomeContentState extends State<HomeContent> {
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: AppTheme.borderColor
-                                              .withOpacity(0.2),
+                                          color: Colors.white.withOpacity(0.76),
                                           borderRadius:
                                               BorderRadius.circular(4),
                                           border: Border.all(
-                                              color: AppTheme.borderColor,
+                                              color: AppTheme.borderColor.withOpacity(0.5),
                                               width: 0.5),
                                         ),
                                         child: const Text('عضو مؤسس',
                                             style: TextStyle(
-                                                color: AppTheme.borderColor,
+                                                color: AppTheme.primaryColor,
                                                 fontSize: 9,
                                                 fontWeight: FontWeight.bold)),
                                       ),
@@ -397,9 +421,9 @@ class _HomeContentState extends State<HomeContent> {
                                   Text(
                                       widget.role == 'owner'
                                           ? 'إدارة استثماراتك'
-                                          : 'استأجر أفضل الشقق في كيو والمنطقة',
+                                          : 'استأجر أفضل الشقق في إيجاري والمنطقة',
                                       style: const TextStyle(
-                                          color: Colors.white70, fontSize: 12),
+                                          color: AppTheme.textPrimary, fontSize: 12),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis),
                                 ],
@@ -410,7 +434,7 @@ class _HomeContentState extends State<HomeContent> {
                         actions: [
                           IconButton(
                             icon: const Icon(Icons.notifications_active_rounded,
-                                color: AppTheme.borderColor),
+                                color: AppTheme.textPrimary),
                             onPressed: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -425,6 +449,8 @@ class _HomeContentState extends State<HomeContent> {
                           children: [
                             const SizedBox(height: 20),
                             _buildTrustStrip(context),
+                            const SizedBox(height: 20),
+                            _buildHowItWorksSection(context),
                             const SizedBox(height: 20),
                             _buildTenantOverviewCard(context, propertyProvider),
                             const SizedBox(height: 20),
@@ -588,7 +614,7 @@ class _HomeContentState extends State<HomeContent> {
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.only(bottom: 120),
-                          child: _buildKeyoServicesSection(context),
+                          child: _buildEjariServicesSection(context),
                         ),
                       ),
                     ],
@@ -786,6 +812,186 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
+  Widget _buildHowItWorksSection(BuildContext context) {
+    final steps = [
+      (
+        title: 'ابحث',
+        subtitle: 'فلتر على السعر، الموقع، ونوع الوحدة بسرعة',
+        icon: Icons.search_rounded,
+      ),
+      (
+        title: 'عاين',
+        subtitle: 'افتح التفاصيل واحجز المعاينة لو مناسب',
+        icon: Icons.event_available_rounded,
+      ),
+      (
+        title: 'كمّل بثقة',
+        subtitle: 'استكمل بخطوات واضحة بدل اللفة الطويلة',
+        icon: Icons.verified_user_outlined,
+      ),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppTheme.primaryColor.withOpacity(0.08),
+              Colors.white,
+            ],
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppTheme.primaryColor.withOpacity(0.10)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(Icons.route_rounded,
+                      color: AppTheme.primaryColor),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'إزاي إيجاري بيمشي؟',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'رحلة مختصرة وواضحة من أول بحث لحد حجز المعاينة.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: steps.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 10,
+                crossAxisSpacing: 10,
+                childAspectRatio: 0.82,
+              ),
+              itemBuilder: (context, index) {
+                final step = steps[index];
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                      color: AppTheme.primaryColor.withOpacity(0.08),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withOpacity(0.10),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(step.icon,
+                            color: AppTheme.primaryColor, size: 22),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        step.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Expanded(
+                        child: Text(
+                          step.subtitle,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 10.5,
+                            height: 1.35,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AdvancedFiltersScreen(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.tune_rounded),
+                    label: const Text('ابدأ البحث'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PropertiesScreen(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.apartment_rounded),
+                    label: const Text('كل العقارات'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildTenantOverviewCard(
       BuildContext context, PropertyProvider propertyProvider) {
     final totalRent = propertyProvider.rentProperties.length;
@@ -885,7 +1091,7 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
-  Widget _buildKeyoCategory(
+  Widget _buildEjariCategory(
       BuildContext context, String title, IconData icon, Color color) {
     bool isSelected = _selectedCategory == title;
     return GestureDetector(
@@ -942,7 +1148,7 @@ class _HomeContentState extends State<HomeContent> {
     );
   }
 
-  Widget _buildKeyoServicesSection(BuildContext context) {
+  Widget _buildEjariServicesSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

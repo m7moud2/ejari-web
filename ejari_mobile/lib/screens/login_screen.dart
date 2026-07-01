@@ -14,7 +14,8 @@ import '../config/app_config.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? redirectToRole;
-  const LoginScreen({super.key, this.redirectToRole});
+  final bool returnResult;
+  const LoginScreen({super.key, this.redirectToRole, this.returnResult = false});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -29,6 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final LocalAuthentication _localAuth = LocalAuthentication();
 
   Future<void> _authenticate() async {
+    final navigator = Navigator.of(context);
     final prefs = await SharedPreferences.getInstance();
     final biometricEnabled = prefs.getBool('biometric_enabled') ?? false;
 
@@ -65,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } on PlatformException catch (e) {
       debugPrint("Biometric Error: $e");
-      _handleSocialSuccess('عضو كيو (بيومتري)');
+      _handleSocialSuccess('عضو إيجاري (بيومتري)');
       return;
     }
 
@@ -73,10 +75,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (authenticated) {
       final user = await AuthService.login(
-          'user@keyo.app', 'user123'); // Using demo user
+          'user@ejari.app', 'user123'); // Using demo user
       if (mounted && user != null) {
         String role = widget.redirectToRole ?? user['type'] ?? 'tenant';
         await AuthService.setUserRole(role);
+
+        if (widget.returnResult) {
+          navigator.pop(true);
+          return;
+        }
 
         Widget destination = const HomeScreen();
         if (role == 'provider') {
@@ -107,20 +114,26 @@ class _LoginScreenState extends State<LoginScreen> {
             const SnackBar(content: Text('تسجيل Google متاح في نسخة التجربة')));
       }
       await Future.delayed(const Duration(milliseconds: 800));
-      _handleSocialSuccess('مستخدم كيو (جوجل)');
+      _handleSocialSuccess('مستخدم إيجاري (جوجل)');
     } catch (e) {
       debugPrint('Google Sign-In Error: $e');
     }
   }
 
   void _handleSocialSuccess(String name) async {
+    final navigator = Navigator.of(context);
     final prefs = await SharedPreferences.getInstance();
     // Set a mock user for social login if not already set
-    await prefs.setString('current_user_email', 'social_user@keyo.app');
+    await prefs.setString('current_user_email', 'social_user@ejari.app');
 
     if (mounted) {
       String role = widget.redirectToRole ?? 'tenant';
       await AuthService.setUserRole(role);
+
+      if (widget.returnResult) {
+        navigator.pop(true);
+        return;
+      }
 
       Widget destination = const HomeScreen();
       if (role == 'provider') {
@@ -129,16 +142,20 @@ class _LoginScreenState extends State<LoginScreen> {
         destination = const EnhancedOwnerHomeScreen();
       }
       if (!mounted) return;
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => destination));
+      navigator.pushReplacement(
+          MaterialPageRoute(builder: (context) => destination));
     }
   }
 
   Future<void> _loginAsVisitor() async {
+    final navigator = Navigator.of(context);
     await AuthService.setGuestMode(true);
     if (!mounted) return;
-    Navigator.pushReplacement(
-      context,
+    if (widget.returnResult) {
+      navigator.pop(false);
+      return;
+    }
+    navigator.pushReplacement(
       MaterialPageRoute(builder: (context) => const HomeScreen()),
     );
   }
@@ -178,7 +195,80 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.86),
+                    borderRadius: BorderRadius.circular(28),
+                    border: Border.all(
+                      color: AppTheme.borderColor.withOpacity(0.32),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withOpacity(0.08),
+                        blurRadius: 26,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(22),
+                    child: Stack(
+                      children: [
+                        Image.asset(
+                          'assets/images/promo/hero_easy_booking.jpg',
+                          height: 150,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  Colors.transparent,
+                                  AppTheme.primaryColor.withOpacity(0.22),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 14,
+                          right: 14,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.88),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: const Text(
+                              'واجهة هادئة ومتناسقة',
+                              style: TextStyle(
+                                color: AppTheme.primaryColor,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const Positioned(
+                          left: 14,
+                          bottom: 14,
+                          child: _LoginHeroTag(
+                            text: 'تجربة أقرب للصور الجديدة',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 22),
                 const Text(
                   'تسجيل الدخول',
                   style: TextStyle(
@@ -190,7 +280,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'ابدأ رحلتك: بحث، حجز، عقد، وصيانة من مكان واحد',
+                  'ابدأ رحلتك: بحث، حجز، عقد، وصيانة من مكان واحد — بنفس روح التصميم الهادئ',
                   style: TextStyle(
                       fontSize: 15, color: AppTheme.textSecondary, height: 1.5),
                 ),
@@ -245,6 +335,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     onPressed: _isLoading
                         ? null
                         : () async {
+                            final navigator = Navigator.of(context);
+                            final messenger = ScaffoldMessenger.of(context);
                             if (_formKey.currentState!.validate()) {
                               setState(() => _isLoading = true);
 
@@ -261,33 +353,34 @@ class _LoginScreenState extends State<LoginScreen> {
                                         widget.redirectToRole!);
                                   }
 
-                                  if (!context.mounted) return;
+                                  if (widget.returnResult) {
+                                    if (!mounted) return;
+                                    navigator.pop(true);
+                                    return;
+                                  }
+
                                   if (widget.redirectToRole == 'provider' ||
                                       user['type'] == 'provider' ||
                                       user['role'] == 'provider') {
-                                    Navigator.pushReplacement(
-                                        context,
+                                    navigator.pushReplacement(
                                         MaterialPageRoute(
                                             builder: (context) =>
                                                 const ServiceProviderHomeScreen()));
                                   } else if (widget.redirectToRole == 'owner' ||
                                       user['type'] == 'owner' ||
                                       user['role'] == 'owner') {
-                                    Navigator.pushReplacement(
-                                        context,
+                                    navigator.pushReplacement(
                                         MaterialPageRoute(
                                             builder: (context) =>
                                                 const EnhancedOwnerHomeScreen()));
                                   } else if (user['type'] == 'admin' ||
                                       user['role'] == 'admin') {
-                                    Navigator.pushReplacement(
-                                        context,
+                                    navigator.pushReplacement(
                                         MaterialPageRoute(
                                             builder: (context) =>
                                                 const AdminHomeScreen()));
                                   } else {
-                                    Navigator.pushReplacement(
-                                        context,
+                                    navigator.pushReplacement(
                                         MaterialPageRoute(
                                             builder: (context) =>
                                                 const HomeScreen()));
@@ -295,8 +388,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                 }
                               } catch (e) {
                                 setState(() => _isLoading = false);
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
+                                if (!mounted) return;
+                                messenger.showSnackBar(
                                     SnackBar(
                                         content: Text(e.toString()),
                                         backgroundColor: AppTheme.errorColor));
@@ -488,6 +581,30 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Icon(icon,
             size: 28,
             color: isPrimary ? AppTheme.primaryColor : AppTheme.textPrimary),
+      ),
+    );
+  }
+}
+
+class _LoginHeroTag extends StatelessWidget {
+  final String text;
+  const _LoginHeroTag({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.textPrimary.withOpacity(0.62),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 10.5,
+          fontWeight: FontWeight.w800,
+        ),
       ),
     );
   }
