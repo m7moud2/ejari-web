@@ -30,6 +30,8 @@ import 'add_property_screen.dart';
 import 'provider_home_screen.dart';
 import 'home_screen.dart';
 import 'enhanced_owner_home_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../config/social_links.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -47,6 +49,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadUserData();
+  }
+
+  Future<void> _launchUrl(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not launch $url');
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -111,106 +120,128 @@ class _ProfileScreenState extends State<ProfileScreen> {
             expandedHeight: 280,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppTheme.primaryColor, AppTheme.borderColor],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(
+                    'assets/images/promo/hero_building.jpg',
+                    fit: BoxFit.cover,
                   ),
-                ),
-                child: Stack(
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 60),
-                        Stack(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                    color: Theme.of(context).cardTheme.color ??
-                                        Theme.of(context)
-                                            .cardColor
-                                            .withOpacity(0.3),
-                                    width: 2),
-                              ),
-                              child: const CircleAvatar(
-                                radius: 50,
-                                backgroundImage:
-                                    AssetImage('assets/images/app_icon.png'),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: const BoxDecoration(
-                                    color: AppTheme.primaryColor,
-                                    shape: BoxShape.circle),
-                                child: const Icon(Icons.verified_rounded,
-                                    color: Colors.white, size: 18),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _userData?['name'] ?? 'زائر كيو',
-                          style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
-                        ),
-                        Text(
-                          _userData?['email'] ?? 'Premium Member',
-                          style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.white.withOpacity(0.7)),
-                        ),
-                      ],
-                    ),
-                    // Role Switcher Toggle -> Replaced with Upgrade button
-                    Positioned(
-                      top: 50,
-                      right: 20,
-                      child: Row(
-                        children: [
-                          if (_currentRole == 'tenant')
-                            _buildUpgradeToOwnerBtn(),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(Icons.engineering_rounded,
-                                color: Colors.white),
-                            onPressed: () => _toggleRole('provider'),
-                            tooltip: 'تحويل لوضع الفني',
-                          ),
-                          if (_userData?['type'] == 'admin') ...[
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: const Icon(
-                                  Icons.admin_panel_settings_rounded,
-                                  color: AppTheme.primaryColor,
-                                  size: 28),
-                              onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const AdminDashboardScreen()));
-                              },
-                              tooltip: 'لوحة التحكم الإدارية',
-                            ),
-                          ],
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.white.withOpacity(0.10),
+                          AppTheme.primaryColor.withOpacity(0.72),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  Positioned(
+                    top: 42,
+                    left: 18,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.88),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: const Text(
+                        'إيجاري',
+                        style: TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: 50,
+                    right: 20,
+                    child: Row(
+                      children: [
+                        if (_currentRole == 'tenant') _buildUpgradeToOwnerBtn(),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.engineering_rounded,
+                              color: Colors.white),
+                          onPressed: () => _toggleRole('provider'),
+                          tooltip: 'تحويل لوضع الفني',
+                        ),
+                        if (_userData?['type'] == 'admin') ...[
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(Icons.admin_panel_settings_rounded,
+                                color: Colors.white, size: 28),
+                            onPressed: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const AdminDashboardScreen()));
+                            },
+                            tooltip: 'لوحة التحكم الإدارية',
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 54),
+                      Stack(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.78),
+                                width: 2,
+                              ),
+                            ),
+                            child: const CircleAvatar(
+                              radius: 50,
+                              backgroundImage:
+                                  AssetImage('assets/images/app_icon.png'),
+                            ),
+                          ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                  color: AppTheme.accentColor,
+                                  shape: BoxShape.circle),
+                              child: const Icon(Icons.verified_rounded,
+                                  color: AppTheme.textPrimary, size: 18),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        _userData?['name'] ?? 'زائر إيجاري',
+                        style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
+                      Text(
+                        _userData?['email'] ?? 'Premium Member',
+                        style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.white.withOpacity(0.88)),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
@@ -230,7 +261,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Sections
                   _buildSectionTitle(context.tr('account_and_privacy')),
                   _buildMenuCard([
-                    _buildKeyoMenuItem(
+                    _buildEjariMenuItem(
                         context.tr('loyalty_program'),
                         Icons.loyalty_rounded,
                         AppTheme.primaryColor,
@@ -238,7 +269,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => const LoyaltyScreen()))),
-                    _buildKeyoMenuItem(
+                    _buildEjariMenuItem(
                         context.tr('edit_profile'),
                         Icons.person_outline,
                         AppTheme.primaryColor,
@@ -247,7 +278,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             MaterialPageRoute(
                                 builder: (context) =>
                                     const EditProfileScreen()))),
-                    _buildKeyoMenuItem(
+                    _buildEjariMenuItem(
                         context.tr('digital_wallet'),
                         Icons.account_balance_wallet_outlined,
                         AppTheme.primaryColor,
@@ -256,7 +287,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             MaterialPageRoute(
                                 builder: (context) =>
                                     const TenantWalletScreen()))),
-                    _buildKeyoMenuItem(
+                    _buildEjariMenuItem(
                         context.tr('payment_methods'),
                         Icons.payment_rounded,
                         AppTheme.primaryColor,
@@ -271,7 +302,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildSectionTitle(context.tr('properties_and_services')),
                   _buildMenuCard([
                     if (_currentRole == 'tenant') ...[
-                      _buildKeyoMenuItem(
+                      _buildEjariMenuItem(
                           'حجوزاتي',
                           Icons.calendar_month_rounded,
                           AppTheme.borderColor,
@@ -280,7 +311,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               MaterialPageRoute(
                                   builder: (context) =>
                                       const MyBookingsScreen()))),
-                      _buildKeyoMenuItem(
+                      _buildEjariMenuItem(
                           'عقودي الإلكترونية',
                           Icons.description_outlined,
                           AppTheme.primaryColor,
@@ -289,7 +320,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               MaterialPageRoute(
                                   builder: (context) =>
                                       const MyContractsScreen()))),
-                      _buildKeyoMenuItem(
+                      _buildEjariMenuItem(
                           'طلبات الصيانة',
                           Icons.build_circle_outlined,
                           AppTheme.primaryColor,
@@ -298,7 +329,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               MaterialPageRoute(
                                   builder: (context) =>
                                       const MaintenanceRequestsScreen()))),
-                      _buildKeyoMenuItem(
+                      _buildEjariMenuItem(
                           'المفضلة',
                           Icons.favorite_border_rounded,
                           AppTheme.errorColor,
@@ -308,7 +339,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   builder: (context) =>
                                       const FavoritesScreen()))),
                     ] else ...[
-                      _buildKeyoMenuItem(
+                      _buildEjariMenuItem(
                           context.tr('investment_dashboard'),
                           Icons.pie_chart_rounded,
                           AppTheme.primaryColor,
@@ -317,7 +348,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               MaterialPageRoute(
                                   builder: (context) =>
                                       const WealthDashboardScreen()))),
-                      _buildKeyoMenuItem(
+                      _buildEjariMenuItem(
                           'عقاراتي المعروضة',
                           Icons.holiday_village_rounded,
                           AppTheme.borderColor,
@@ -326,7 +357,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               MaterialPageRoute(
                                   builder: (context) =>
                                       const PropertiesScreen()))),
-                      _buildKeyoMenuItem(
+                      _buildEjariMenuItem(
                           'نشر عقار جديد',
                           Icons.add_business_rounded,
                           AppTheme.primaryColor,
@@ -335,7 +366,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               MaterialPageRoute(
                                   builder: (context) =>
                                       const AddPropertyScreen()))),
-                      _buildKeyoMenuItem(
+                      _buildEjariMenuItem(
                           'إحصائيات الإعلانات',
                           Icons.insights_rounded,
                           AppTheme.primaryColor,
@@ -344,7 +375,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               MaterialPageRoute(
                                   builder: (context) =>
                                       const UserAnalyticsScreen()))),
-                      _buildKeyoMenuItem(
+                      _buildEjariMenuItem(
                           'إدارة العمولات',
                           Icons.account_balance_rounded,
                           AppTheme.primaryColor,
@@ -358,7 +389,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 24),
                   _buildSectionTitle(context.tr('settings')),
                   _buildMenuCard([
-                    _buildKeyoMenuItem(context.tr('language'),
+                    _buildEjariMenuItem(context.tr('language'),
                         Icons.language_rounded, AppTheme.borderColor, () {
                       if (localeNotifier.value.languageCode == 'ar') {
                         localeNotifier.value = const Locale('en', 'US');
@@ -366,7 +397,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         localeNotifier.value = const Locale('ar', 'SA');
                       }
                     }),
-                    _buildKeyoMenuItem(
+                    _buildEjariMenuItem(
                         'مركز المساعدة',
                         Icons.help_outline_rounded,
                         AppTheme.primaryColor,
@@ -375,15 +406,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             MaterialPageRoute(
                                 builder: (context) =>
                                     const HelpCenterScreen()))),
-                    _buildKeyoMenuItem(
+                    _buildEjariMenuItem(
                         'شات الدعم الفني',
                         Icons.support_agent_rounded,
                         AppTheme.primaryColor, () async {
                       if (_userData != null && _userData!['email'] != null) {
                         String chatId = await ChatService.startChat(
                             _userData!['email'],
-                            'admin@keyo.app',
-                            'دعم كيو',
+                            'admin@ejari.app',
+                            'دعم إيجاري',
                             'استفسار دعم فني');
                         if (!context.mounted) return;
                         Navigator.push(
@@ -391,11 +422,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             MaterialPageRoute(
                                 builder: (context) => ChatScreen(
                                     chatId: chatId,
-                                    otherUserName: 'دعم كيو',
+                                    otherUserName: 'دعم إيجاري',
                                     currentUserId: _userData!['email'])));
                       }
                     }),
-                    _buildKeyoMenuItem(
+                    _buildEjariMenuItem(
                         'الإعدادات',
                         Icons.settings_outlined,
                         AppTheme.primaryColor,
@@ -403,7 +434,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => const SettingsScreen()))),
-                    _buildKeyoMenuItem('تسجيل الخروج', Icons.logout_rounded,
+                    _buildEjariMenuItem('تسجيل الخروج', Icons.logout_rounded,
                         AppTheme.errorColor, () async {
                       await AuthService.logout();
                       if (!context.mounted) return;
@@ -415,11 +446,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     }, isLast: true),
                   ]),
 
+                  const SizedBox(height: 24),
+                  _buildSectionTitle('تابع إيجاري'),
+                  _buildMenuCard([
+                    _buildEjariMenuItem(
+                        'Facebook',
+                        Icons.facebook_rounded,
+                        AppTheme.primaryColor,
+                        () => _launchUrl(SocialLinks.facebook)),
+                    _buildEjariMenuItem(
+                        'LinkedIn',
+                        Icons.business_center_rounded,
+                        AppTheme.primaryColor,
+                        () => _launchUrl(SocialLinks.linkedin),
+                        isLast: true),
+                  ]),
+
                   if (_userData?['type'] == 'admin') ...[
                     const SizedBox(height: 24),
                     _buildSectionTitle('إدارة المنصة (Control Tower)'),
                     _buildMenuCard([
-                      _buildKeyoMenuItem(
+                      _buildEjariMenuItem(
                           'لوحة التحكم الشاملة',
                           Icons.dashboard_rounded,
                           AppTheme.primaryColor,
@@ -428,7 +475,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               MaterialPageRoute(
                                   builder: (context) =>
                                       const AdminDashboardScreen()))),
-                      _buildKeyoMenuItem(
+                      _buildEjariMenuItem(
                           'إدارة المستخدمين',
                           Icons.people_rounded,
                           AppTheme.primaryColor,
@@ -437,7 +484,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               MaterialPageRoute(
                                   builder: (context) =>
                                       const AdminUsersScreen()))),
-                      _buildKeyoMenuItem(
+                      _buildEjariMenuItem(
                           'مراجعة العقارات',
                           Icons.home_work_rounded,
                           AppTheme.primaryColor,
@@ -481,7 +528,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 : 'مستأجر';
 
     final hasSubscription = _subscription != null;
-    final userName = _userData?['name'] ?? 'زائر كيو';
+    final userName = _userData?['name'] ?? 'زائر إيجاري';
 
     return Container(
       width: double.infinity,
@@ -590,7 +637,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildKeyoMenuItem(
+  Widget _buildEjariMenuItem(
       String title, IconData icon, Color color, VoidCallback onTap,
       {bool isLast = false}) {
     return ListTile(
@@ -688,14 +735,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                    'كن شريكاً في كيو وابدأ في إدارة عقاراتك بلمسة واحدة.',
+                    'كن شريكاً في إيجاري وابدأ في إدارة عقاراتك بلمسة واحدة.',
                     style:
                         TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
                 const SizedBox(height: 16),
                 TextField(
                   decoration: InputDecoration(
                     labelText: 'اسم الشركة / المالك',
-                    hintText: 'مثال: شركة كيو للاستثمار',
+                    hintText: 'مثال: شركة إيجاري للاستثمار',
                     prefixIcon: const Icon(Icons.business_rounded),
                     filled: true,
                     fillColor: AppTheme.backgroundColor,
@@ -792,7 +839,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 12),
               const Text(
-                'ابدأ في استقبال طلبات الصيانة من ملاك العقارات في كيو. كن جزءاً من مجتمعنا الموثوق وابدأ عملك الآن.',
+                'ابدأ في استقبال طلبات الصيانة من ملاك العقارات في إيجاري. كن جزءاً من مجتمعنا الموثوق وابدأ عملك الآن.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: AppTheme.textSecondary, height: 1.6, fontSize: 13),

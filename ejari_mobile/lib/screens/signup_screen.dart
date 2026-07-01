@@ -8,7 +8,9 @@ import 'provider_home_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   final String? redirectToRole;
-  const SignupScreen({super.key, this.redirectToRole});
+  final bool returnResult;
+  const SignupScreen(
+      {super.key, this.redirectToRole, this.returnResult = false});
 
   @override
   State<SignupScreen> createState() => _SignupScreenState();
@@ -131,7 +133,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 textAlign: TextAlign.center),
             const SizedBox(height: 12),
             const Text(
-              'أهلاً بك في كيو. يتم الآن مراجعة بياناتك لضمان الأمان والموثوقية قبل تفعيل الحساب.',
+              'أهلاً بك في إيجاري. يتم الآن مراجعة بياناتك لضمان الأمان والموثوقية قبل تفعيل الحساب.',
               textAlign: TextAlign.center,
               style: TextStyle(
                   color: AppTheme.primaryColor, height: 1.5, fontSize: 13),
@@ -143,6 +145,11 @@ class _SignupScreenState extends State<SignupScreen> {
               child: ElevatedButton(
                 onPressed: () async {
                   Navigator.pop(context);
+                  if (widget.returnResult) {
+                    if (!mounted) return;
+                    Navigator.of(context).pop(true);
+                    return;
+                  }
                   String roleToApply = widget.redirectToRole ?? _userType;
                   await AuthService.setUserRole(roleToApply);
 
@@ -193,7 +200,7 @@ class _SignupScreenState extends State<SignupScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
@@ -210,28 +217,38 @@ class _SignupScreenState extends State<SignupScreen> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            return Column(
-              children: [
-                _buildLinearProgress(),
-                Expanded(
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 560),
-                      child: PageView(
-                        controller: _pageController,
-                        physics: const NeverScrollableScrollPhysics(),
-                        onPageChanged: (index) =>
-                            setState(() => _currentStep = index),
-                        children: [
-                          _buildStep1(),
-                          _buildStep2(),
-                          _buildStep3(),
-                        ],
-                      ),
+            return SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 620),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 6, 18, 18),
+                    child: Column(
+                      children: [
+                        _buildSignupHero(),
+                        const SizedBox(height: 16),
+                        _buildLinearProgress(),
+                        const SizedBox(height: 10),
+                        SizedBox(
+                          height: constraints.maxHeight * 0.74,
+                          child: PageView(
+                            controller: _pageController,
+                            physics: const NeverScrollableScrollPhysics(),
+                            onPageChanged: (index) =>
+                                setState(() => _currentStep = index),
+                            children: [
+                              _buildStep1(),
+                              _buildStep2(),
+                              _buildStep3(),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-              ],
+              ),
             );
           },
         ),
@@ -240,9 +257,152 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
+  Widget _buildSignupHero() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.92),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.42)),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Stack(
+              children: [
+                SizedBox(
+                  height: 150,
+                  width: double.infinity,
+                  child: Image.asset(
+                    'assets/images/promo/hero_building.jpg',
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          AppTheme.primaryColor.withOpacity(0.18),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 14,
+                  left: 14,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.90),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: const Text(
+                      'إيجاري',
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: 14,
+                  bottom: 14,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.textPrimary.withOpacity(0.60),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: const Text(
+                      'سجّل حسابك وابدأ',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Container(
+                width: 62,
+                height: 62,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceColor,
+                  borderRadius: BorderRadius.circular(20),
+                  border:
+                      Border.all(color: AppTheme.borderColor.withOpacity(0.45)),
+                ),
+                child: Image.asset(
+                  'assets/images/app_icon.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'إنشاء حساب جديد',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'بنفس الهدوء والوضوح اللي في الواجهة الرئيسية.',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLinearProgress() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(30, 10, 30, 20),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.80),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.32)),
+      ),
       child: Row(
         children: List.generate(_totalSteps, (index) {
           final isActive = index <= _currentStep;
@@ -250,11 +410,11 @@ class _SignupScreenState extends State<SignupScreen> {
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               margin: EdgeInsets.only(right: index < _totalSteps - 1 ? 8 : 0),
-              height: 4,
+              height: 6,
               decoration: BoxDecoration(
                 color:
                     isActive ? AppTheme.primaryColor : AppTheme.backgroundColor,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(999),
               ),
             ),
           );
@@ -269,15 +429,22 @@ class _SignupScreenState extends State<SignupScreen> {
       required Widget child}) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
+      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 10.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  color: AppTheme.primaryColor)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(title,
+                style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.primaryColor)),
+          ),
           const SizedBox(height: 8),
           Text(subtitle,
               style: const TextStyle(
@@ -328,7 +495,7 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget _buildStep2() {
     return _buildStepContainer(
       title: 'تحديد الهوية',
-      subtitle: 'كيف تنوي استخدام كيو؟',
+      subtitle: 'كيف تنوي استخدام إيجاري؟',
       child: Column(
         children: [
           _buildTypeCard('tenant', 'عميل (مستأجر)',
@@ -402,16 +569,26 @@ class _SignupScreenState extends State<SignupScreen> {
         duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryColor : AppTheme.backgroundColor,
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? AppTheme.primaryColor : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isSelected
+                ? AppTheme.primaryColor
+                : AppTheme.borderColor.withOpacity(0.44),
+          ),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                      color: AppTheme.primaryColor.withOpacity(0.3),
-                      blurRadius: 15,
-                      offset: const Offset(0, 8))
+                      color: AppTheme.primaryColor.withOpacity(0.22),
+                      blurRadius: 18,
+                      offset: const Offset(0, 10))
                 ]
-              : [],
+              : [
+                  BoxShadow(
+                      color: AppTheme.primaryColor.withOpacity(0.04),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6))
+                ],
         ),
         child: Row(
           children: [
@@ -488,12 +665,13 @@ class _SignupScreenState extends State<SignupScreen> {
               )
             : null,
         filled: true,
-        fillColor: AppTheme.backgroundColor,
+        fillColor: Colors.white,
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none),
+            borderRadius: BorderRadius.circular(18),
+            borderSide:
+                BorderSide(color: AppTheme.borderColor.withOpacity(0.42))),
         focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
             borderSide:
                 const BorderSide(color: AppTheme.primaryColor, width: 1.5)),
         contentPadding: const EdgeInsets.symmetric(vertical: 20),
@@ -504,38 +682,50 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Widget _buildBottomAction() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(30, 20, 30, 40),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
-        border: Border(top: BorderSide(color: AppTheme.backgroundColor)),
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        height: 56,
-        child: ElevatedButton(
-          onPressed: _isLoading ? null : _nextStep,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.primaryColor,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            elevation: 0,
+    return SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(18, 12, 18, 18),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.94),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppTheme.borderColor.withOpacity(0.38)),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryColor.withOpacity(0.08),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: _isLoading ? null : _nextStep,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18)),
+              elevation: 0,
+            ),
+            child: _isLoading
+                ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2))
+                : Text(
+                    _currentStep == _totalSteps - 1
+                        ? 'إتمام التسجيل وإرسال للمراجعة'
+                        : 'المتابعة',
+                    style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
+                  ),
           ),
-          child: _isLoading
-              ? const SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(
-                      color: Colors.white, strokeWidth: 2))
-              : Text(
-                  _currentStep == _totalSteps - 1
-                      ? 'إتمام التسجيل وإرسال للمراجعة'
-                      : 'المتابعة',
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
-                ),
         ),
       ),
     );
