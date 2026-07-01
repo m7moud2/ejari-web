@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>إيجاري — الرابط الرسمي السريع</title>
+  <meta name="description" content="الرابط الرسمي السريع لتطبيق إيجاري: تحميل التطبيق، قراءة قصة المشروع، ومتابعة صفحات التعريف والرؤية بشكل مرتب وسهل للمشاركة." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="إيجاري — الرابط الرسمي السريع" />
+  <meta property="og:description" content="رابط واحد يوصل الناس لتحميل التطبيق، قصة المشروع، وصفحات التعريف بشكل مرتب وآمن." />
+  <meta property="og:url" content="https://m7moud2.github.io/ejari-web/go.html" />
+  <meta property="og:image" content="https://m7moud2.github.io/ejari-web/images/promo/hero_building.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="إيجاري — الرابط الرسمي السريع" />
+  <meta name="twitter:description" content="رابط واحد يوصل الناس لتحميل التطبيق، قصة المشروع، وصفحات التعريف بشكل مرتب وآمن." />
+  <meta name="twitter:image" content="https://m7moud2.github.io/ejari-web/images/promo/hero_building.jpg" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root{
+      --bg:#f6f1e8; --bg2:#fbf8f1; --card:rgba(255,255,255,.95);
+      --text:#32433d; --muted:#5d746c; --primary:#4f7d70; --secondary:#88a996;
+      --accent:#d8c3a5; --border:rgba(79,125,112,.12); --shadow:0 20px 55px rgba(76,92,84,.10);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;font-family:'Cairo',sans-serif;color:var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(79,125,112,.14), transparent 28%),
+        radial-gradient(circle at left top, rgba(216,195,165,.14), transparent 22%),
+        linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);
+      min-height:100vh;
+    }
+    a{text-decoration:none;color:inherit}
+    .wrap{
+      width:min(980px,calc(100% - 32px));
+      margin:0 auto;
+      padding:24px 0 42px;
+    }
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      margin-bottom:16px;
+    }
+    .brand{
+      display:flex;align-items:center;gap:10px;font-weight:900;font-size:1.15rem;
+    }
+    .brand .icon{
+      width:42px;height:42px;border-radius:15px;display:grid;place-items:center;
+      background:linear-gradient(135deg,rgba(79,125,112,.18),rgba(216,195,165,.18));
+      color:var(--primary);
+    }
+    .hero{
+      overflow:hidden;
+      border-radius:30px;
+      border:1px solid var(--border);
+      background:var(--card);
+      box-shadow:var(--shadow);
+    }
+    .hero-media{
+      position:relative;
+      height:280px;
+      background:url('images/promo/hero_building.jpg') center/cover no-repeat;
+    }
+    .hero-media::after{
+      content:'';
+      position:absolute;inset:0;
+      background:linear-gradient(180deg, rgba(246,241,232,.18), rgba(246,241,232,.82));
+    }
+    .hero-copy{
+      position:relative;
+      margin-top:-72px;
+      padding:0 22px 22px;
+    }
+    .panel{
+      background:rgba(255,255,255,.96);
+      border:1px solid var(--border);
+      border-radius:28px;
+      box-shadow:var(--shadow);
+      padding:22px;
+    }
+    .eyebrow{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 14px;border-radius:999px;
+      background:rgba(79,125,112,.08);
+      color:var(--primary);font-weight:800;font-size:.9rem;
+      margin-bottom:14px;
+    }
+    h1{
+      margin:0;
+      font-size:clamp(2rem,4vw,3.4rem);
+      line-height:1.1;
+    }
+    p.lead{
+      margin:14px 0 0;
+      color:var(--muted);
+      font-size:1.03rem;
+      line-height:1.85;
+      max-width:68ch;
+    }
+    .actions{
+      display:flex;flex-wrap:wrap;gap:12px;margin-top:20px;
+    }
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:10px;
+      padding:14px 18px;border-radius:16px;font-weight:800;border:1px solid transparent;
+    }
+    .btn-primary{
+      background:linear-gradient(135deg,var(--primary),var(--secondary));
+      color:#fff;
+    }
+    .btn-secondary{
+      background:rgba(255,255,255,.82);
+      color:var(--text);
+      border-color:var(--border);
+    }
+    .btn-copy{
+      background:rgba(79,125,112,.08);
+      color:var(--primary);
+      border-color:rgba(79,125,112,.16);
+    }
+    .link-hint{
+      margin-top:14px;
+      padding:14px 16px;
+      border-radius:18px;
+      background:rgba(216,194,160,.14);
+      border:1px solid rgba(216,194,160,.28);
+      color:var(--text);
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      gap:10px;
+      justify-content:space-between;
+    }
+    .link-hint code{
+      direction:ltr;
+      background:rgba(255,255,255,.7);
+      padding:6px 10px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      color:var(--primary);
+      font-family:inherit;
+      font-weight:800;
+      word-break:break-all;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:14px;
+      margin-top:16px;
+    }
+    .card{
+      background:rgba(255,255,255,.92);
+      border:1px solid var(--border);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
+    .card h3{margin:0 0 8px;color:var(--primary)}
+    .card p{margin:0;color:var(--muted);line-height:1.7}
+    .icon-box{
+      width:48px;height:48px;border-radius:16px;display:grid;place-items:center;
+      margin-bottom:12px;color:var(--primary);
+      background:linear-gradient(135deg,rgba(79,125,112,.12),rgba(216,195,165,.12));
+    }
+    .social{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+      margin-top:16px;
+    }
+    .social a{
+      display:flex;align-items:center;justify-content:space-between;gap:14px;
+      padding:18px;border-radius:24px;border:1px solid var(--border);
+      background:rgba(255,255,255,.92);box-shadow:var(--shadow);
+    }
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 12px;border-radius:999px;
+      background:rgba(79,125,112,.08);color:var(--primary);font-weight:800;font-size:.85rem;
+    }
+    .footer{
+      text-align:center;
+      color:var(--muted);
+      padding:26px 0 0;
+      font-size:.95rem;
+    }
+    @media (max-width: 860px){
+      .grid,.social{grid-template-columns:1fr}
+      .hero-media{height:200px}
+      .hero-copy{margin-top:-44px;padding:0 14px 14px}
+      .panel{padding:18px}
+      .actions .btn{width:100%}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="topbar">
+      <a class="brand" href="index.html">
+        <span class="icon"><i class="fa-solid fa-key"></i></span>
+        <span>إيجاري Ejari</span>
+      </a>
+      <span class="pill"><i class="fa-solid fa-link"></i> الرابط الرسمي السريع</span>
+    </div>
+
+    <section class="hero">
+      <div class="hero-media"></div>
+      <div class="hero-copy">
+        <div class="panel">
+          <div class="eyebrow"><i class="fa-solid fa-star"></i> أفضل لينك لمشاركة التطبيق</div>
+          <h1>لينك واحد يودّي الناس لكل حاجة مهمة في إيجاري.</h1>
+          <p class="lead">
+            لو هتبعت لينك واحد بس في البايو أو على السوشيال، ده هو الأنسب:
+            يفتح القصة، صفحة التحميل، ويعرّف الناس على إيجاري بشكل محترم ومرتب.
+          </p>
+
+          <div class="actions">
+            <a class="btn btn-primary" href="promo/download.html">
+              <i class="fa-solid fa-download"></i> تحميل التطبيق
+            </a>
+            <a class="btn btn-secondary" href="promo/story.html">
+              <i class="fa-regular fa-file-lines"></i> قصة المشروع
+            </a>
+            <a class="btn btn-secondary" href="promo/index.html">
+              <i class="fa-solid fa-house"></i> صفحة التعريف
+            </a>
+            <button class="btn btn-copy" type="button" id="copyLinkBtn">
+              <i class="fa-regular fa-copy"></i> نسخ الرابط
+            </button>
+          </div>
+          <div class="link-hint">
+            <span>الرابط الأفضل للمشاركة:</span>
+            <code id="shareLinkText">https://m7moud2.github.io/ejari-web/go.html</code>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <div class="icon-box"><i class="fa-solid fa-shield-heart"></i></div>
+        <h3>لماذا هذا الرابط؟</h3>
+        <p>لأنه يجمع أهم المسارات في مكان واحد بدل ما تبعت أكثر من رابط للناس.</p>
+      </article>
+      <article class="card">
+        <div class="icon-box"><i class="fa-solid fa-mobile-screen-button"></i></div>
+        <h3>مناسب للموبايل</h3>
+        <p>الناس هتفتحه من الهاتف غالبًا، فصفحة واحدة خفيفة أسرع وأسهل في المشاركة.</p>
+      </article>
+      <article class="card">
+        <div class="icon-box"><i class="fa-solid fa-arrow-up-right-from-square"></i></div>
+        <h3>جاهز للنشر</h3>
+        <p>ينفع تحطه في البايو، الستوري، البوستات، أو ترسله مباشرة للمهتمين.</p>
+      </article>
+    </section>
+
+    <section class="social">
+      <a href="https://www.facebook.com/people/%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-EjariApp/61591649755623/" target="_blank" rel="noopener">
+        <div>
+          <div class="pill"><i class="fa-brands fa-facebook-f"></i> فيسبوك</div>
+          <p style="margin:10px 0 0;color:var(--muted)">تابع آخر التحديثات والبدايات الرسمية.</p>
+        </div>
+        <i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--primary)"></i>
+      </a>
+      <a href="https://www.linkedin.com/company/%E2%80%8E%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-ejariapp/?viewAsMember=true" target="_blank" rel="noopener">
+        <div>
+          <div class="pill"><i class="fa-brands fa-linkedin-in"></i> لينكدإن</div>
+          <p style="margin:10px 0 0;color:var(--muted)">واجهة مهنية للتعريف بالشركة والفكرة.</p>
+        </div>
+        <i class="fa-solid fa-arrow-up-right-from-square" style="color:var(--primary)"></i>
+      </a>
+    </section>
+
+    <p class="footer">استخدم هذا الرابط كخيارك الرئيسي للمشاركة: https://m7moud2.github.io/ejari-web/go.html</p>
+  </main>
+  <script>
+    const shareLink = 'https://m7moud2.github.io/ejari-web/go.html';
+    const copyBtn = document.getElementById('copyLinkBtn');
+    const shareText = document.getElementById('shareLinkText');
+
+    shareText.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(shareLink);
+        copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> تم النسخ';
+        setTimeout(() => {
+          copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> نسخ الرابط';
+        }, 1800);
+      } catch (error) {
+        window.prompt('انسخ الرابط:', shareLink);
+      }
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(shareLink);
+        copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> تم النسخ';
+        setTimeout(() => {
+          copyBtn.innerHTML = '<i class="fa-regular fa-copy"></i> نسخ الرابط';
+        }, 1800);
+      } catch (error) {
+        window.prompt('انسخ الرابط:', shareLink);
+      }
+    });
+  </script>
+</body>
+</html>
