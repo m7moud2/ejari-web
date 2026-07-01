@@ -1,3 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -5,9 +8,14 @@ import 'dart:convert';
 import 'dart:async';
 import '../config/app_config.dart';
 
-/// AuthService — يتصل مباشرة بالباكند (Express + MongoDB)
-/// لا يحتاج Firebase على الإطلاق
+/// AuthService — يدعم 3 أوضاع:
+/// 1) Firebase Auth + Firestore إذا ما فيش API محلي
+/// 2) Express + MongoDB إذا الـ API متاح
+/// 3) Local demo fallback لنسخة التجربة
 class AuthService {
+  static final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
   static String? get _baseUrl {
     final configured = AppConfig.apiBaseUrl.trim().replaceAll(RegExp(r'/$'), '');
     return configured.isNotEmpty ? configured : null;
@@ -47,7 +55,11 @@ class AuthService {
     },
   ];
 
-  static bool get _useLocalAuth => AppConfig.demoMode || _baseUrl == null;
+  static bool get _useLocalAuth => AppConfig.demoMode;
+  static bool get _useFirebaseAuth =>
+      !AppConfig.demoMode &&
+      _baseUrl == null &&
+      (Firebase.apps.isNotEmpty || _firebaseAuth.currentUser != null);
 
   static Map<String, dynamic> _buildLocalUser({
     required String name,
@@ -90,6 +102,62 @@ class AuthService {
     await prefs.setString(_userDataKey, jsonEncode(userData));
     await prefs.setString(_userTokenKey, token);
     await prefs.setBool(_guestModeKey, false);
+  }
+
+  static Future<void> _storeFirebaseSession({
+    required User firebaseUser,
+    required Map<String, dynamic> profile,
+    String? token,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = (firebaseUser.email ?? profile['email'] ?? '').toString().trim().toLowerCase();
+    final role = (profile['role'] ?? profile['type'] ?? 'tenant').toString();
+    final rawUserData = <String, dynamic>{
+      'id': firebaseUser.uid,
+      '_id': firebaseUser.uid,
+      'name': profile['name'] ?? firebaseUser.displayName ?? '',
+      'email': email,
+      'role': role,
+      'type': role,
+      ...profile,
+    };
+    final userData = <String, dynamic>{};
+    rawUserData.forEach((key, value) {
+      if (value == null) return;
+      if (value is FieldValue) return;
+      if (value is Timestamp) {
+        userData[key] = value.toDate().toIso8601String();
+        return;
+      }
+      if (value is DateTime) {
+        userData[key] = value.toIso8601String();
+        return;
+      }
+      if (value is Map || value is List || value is String || value is num || value is bool) {
+        userData[key] = value;
+      } else {
+        userData[key] = value.toString();
+      }
+    });
+
+    await prefs.setString(_userRoleKey, role);
+    await prefs.setString(_userIdKey, firebaseUser.uid);
+    await prefs.setString(_currentUserEmailKey, email);
+    await prefs.setString(_userDataKey, jsonEncode(userData));
+    await prefs.setString(_userTokenKey, token ?? await firebaseUser.getIdToken() ?? '');
+    await prefs.setBool(_guestModeKey, false);
+  }
+
+  static Future<Map<String, dynamic>?> _getFirebaseProfile(String uid) async {
+    final snap = await _firestore.collection('users').doc(uid).get();
+    if (!snap.exists) return null;
+    final data = snap.data();
+    if (data == null) return null;
+    return {
+      ...data,
+      'id': uid,
+      '_id': uid,
+    };
   }
 
   static Future<Map<String, dynamic>?> _findLocalAccount(
@@ -148,6 +216,41 @@ class AuthService {
         token: 'local-demo-token',
       );
       return true;
+    }
+
+    if (_useFirebaseAuth) {
+      try {
+        final email = (userData['email'] ?? '').toString().trim();
+        final password = (userData['password'] ?? '').toString();
+        final credential = await _firebaseAuth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+        final role = (userData['type'] ?? 'tenant').toString();
+        final profile = <String, dynamic>{
+          'name': userData['name'] ?? '',
+          'email': email.toLowerCase(),
+          'phone': userData['phone'] ?? '',
+          'address': userData['address'] ?? 'العنوان غير محدد',
+          'role': role,
+          'type': role,
+          'createdAt': FieldValue.serverTimestamp(),
+          'status': 'active',
+        };
+
+        await _firestore.collection('users').doc(credential.user!.uid).set(
+              profile,
+              SetOptions(merge: true),
+            );
+        await _storeFirebaseSession(
+          firebaseUser: credential.user!,
+          profile: profile,
+        );
+        return true;
+      } catch (e) {
+        debugPrint('Firebase SignUp Error: $e');
+        rethrow;
+      }
     }
 
     try {
@@ -240,6 +343,38 @@ class AuthService {
       return user;
     }
 
+    if (_useFirebaseAuth) {
+      final credential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email.trim(),
+        password: password,
+      );
+      final firebaseUser = credential.user;
+      if (firebaseUser == null) {
+        throw 'تعذر تسجيل الدخول';
+      }
+
+      final profile = await _getFirebaseProfile(firebaseUser.uid) ?? <String, dynamic>{
+        'name': firebaseUser.displayName ?? 'مستخدم إيجاري',
+        'email': firebaseUser.email ?? email,
+        'role': 'tenant',
+        'type': 'tenant',
+      };
+
+      final role = (profile['role'] ?? profile['type'] ?? 'tenant').toString();
+      final user = <String, dynamic>{
+        ...profile,
+        'id': firebaseUser.uid,
+        '_id': firebaseUser.uid,
+        'role': role,
+        'type': role,
+      };
+      await _storeFirebaseSession(
+        firebaseUser: firebaseUser,
+        profile: user,
+      );
+      return user;
+    }
+
     if (AppConfig.demoMode) {
       await initDemoAccounts();
       final normalizedEmail = email.trim().toLowerCase();
@@ -323,6 +458,9 @@ class AuthService {
   // LOGOUT
   // ─────────────────────────────────────────────
   static Future<void> logout() async {
+    if (_firebaseAuth.currentUser != null) {
+      await _firebaseAuth.signOut();
+    }
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_userRoleKey);
     await prefs.remove(_userTokenKey);
@@ -335,6 +473,7 @@ class AuthService {
   // IS LOGGED IN
   // ─────────────────────────────────────────────
   static Future<bool> isLoggedIn() async {
+    if (_firebaseAuth.currentUser != null) return true;
     final prefs = await SharedPreferences.getInstance();
     final isGuest = prefs.getBool(_guestModeKey) ?? false;
     if (isGuest) return false;
@@ -362,6 +501,28 @@ class AuthService {
   // GET CURRENT USER
   // ─────────────────────────────────────────────
   static Future<Map<String, dynamic>?> getCurrentUser() async {
+    final current = _firebaseAuth.currentUser;
+    if (current != null) {
+      final profile = await _getFirebaseProfile(current.uid);
+      if (profile != null) {
+        final role = (profile['role'] ?? profile['type'] ?? 'tenant').toString();
+        return {
+          ...profile,
+          'id': current.uid,
+          '_id': current.uid,
+          'role': role,
+          'type': role,
+        };
+      }
+      return {
+        'id': current.uid,
+        '_id': current.uid,
+        'name': current.displayName ?? 'مستخدم إيجاري',
+        'email': current.email ?? '',
+        'role': 'tenant',
+        'type': 'tenant',
+      };
+    }
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_userDataKey);
     if (raw != null && raw.isNotEmpty) {
@@ -403,6 +564,25 @@ class AuthService {
       final merged = <String, dynamic>{...current, ...updatedData};
       await _storeLocalAccount(merged, token: 'local-demo-token');
       return true;
+    }
+    if (_useFirebaseAuth) {
+      final current = _firebaseAuth.currentUser;
+      if (current == null) return false;
+      try {
+        await _firestore.collection('users').doc(current.uid).set(
+              updatedData,
+              SetOptions(merge: true),
+            );
+        if (updatedData['name'] != null) {
+          await current.updateDisplayName(updatedData['name'].toString());
+        }
+        final profile = await _getFirebaseProfile(current.uid) ?? updatedData;
+        await _storeFirebaseSession(firebaseUser: current, profile: profile);
+        return true;
+      } catch (e) {
+        debugPrint('Firebase Update Profile Error: $e');
+        return false;
+      }
     }
     try {
       final token = await getToken();
