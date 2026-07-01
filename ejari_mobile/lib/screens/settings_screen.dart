@@ -4,6 +4,8 @@ import 'help_center_screen.dart';
 import '../main.dart';
 import 'about_app_screen.dart';
 import 'feedback_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../config/social_links.dart';
 import 'package:local_auth/local_auth.dart'; // Add import
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -35,13 +37,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  Future<void> _launchUrl(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not launch $url');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('الإعدادات')),
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        title: const Text('الإعدادات'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _buildHeroCard(),
+          const SizedBox(height: 18),
           _buildSummaryCard(),
           const SizedBox(height: 20),
           _buildSectionHeader('الحسابات والتحويلات'),
@@ -91,7 +107,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildListTile(
             title: 'المظهر',
-            subtitle: 'ألوان كيو الهادئة مفعّلة على التطبيق كله',
+            subtitle: 'ألوان إيجاري الهادئة مفعّلة على التطبيق كله',
             icon: Icons.palette_outlined,
           ),
           const Divider(height: 32),
@@ -170,7 +186,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 builder: (context) => AlertDialog(
                   title: const Text('سياسة الخصوصية'),
                   content: const Text(
-                      'نحن نلتزم بحفظ بياناتك وخصوصيتك بأعلى معايير الأمان العالمية في كيو.'),
+                      'نحن نلتزم بحفظ بياناتك وخصوصيتك بأعلى معايير الأمان العالمية في إيجاري.'),
                   actions: [
                     TextButton(
                         onPressed: () => Navigator.pop(context),
@@ -202,6 +218,132 @@ class _SettingsScreenState extends State<SettingsScreen> {
               );
             },
           ),
+          const Divider(height: 32),
+          _buildSectionHeader('تابعنا'),
+          _buildListTile(
+            title: 'Facebook',
+            subtitle: 'صفحة إيجاري الرسمية',
+            icon: Icons.facebook_rounded,
+            onTap: () => _launchUrl(SocialLinks.facebook),
+          ),
+          _buildListTile(
+            title: 'LinkedIn',
+            subtitle: 'ملف الشركة والفرص',
+            icon: Icons.business_center_rounded,
+            onTap: () => _launchUrl(SocialLinks.linkedin),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeroCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.92),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.38)),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Stack(
+              children: [
+                Image.asset(
+                  'assets/images/promo/hero_reviews.jpg',
+                  height: 150,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          AppTheme.primaryColor.withOpacity(0.22),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 14,
+                  left: 14,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.90),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: const Text(
+                      'إعدادات إيجاري',
+                      style: TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: const Icon(Icons.tune_rounded,
+                    color: AppTheme.primaryColor),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'اضبط التجربة على ذوقك',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'اللغة، الأمان، والإشعارات كلها تحت تحكمك من هنا.',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -213,9 +355,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.08)),
+        color: Colors.white.withOpacity(0.94),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.34)),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -273,8 +422,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppTheme.backgroundColor.withOpacity(0.45),
-        borderRadius: BorderRadius.circular(16),
+        color: AppTheme.backgroundColor.withOpacity(0.42),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.24)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -297,7 +447,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 14, top: 4),
       child: Text(
         title,
         style: const TextStyle(
@@ -316,24 +466,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Widget? trailing,
     VoidCallback? onTap,
   }) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: const BoxDecoration(
-          color: AppTheme.backgroundColor,
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, color: AppTheme.textPrimary),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.94),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.28)),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: subtitle != null ? Text(subtitle) : null,
-      trailing: trailing ??
-          (onTap != null
-              ? const Icon(Icons.arrow_forward_ios,
-                  size: 16, color: AppTheme.primaryColor)
-              : null),
-      onTap: onTap,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withOpacity(0.08),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: AppTheme.primaryColor),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: subtitle != null ? Text(subtitle) : null,
+        trailing: trailing ??
+            (onTap != null
+                ? const Icon(Icons.arrow_forward_ios,
+                    size: 16, color: AppTheme.primaryColor)
+                : null),
+        onTap: onTap,
+      ),
     );
   }
 
@@ -344,25 +502,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
     required bool value,
     required ValueChanged<bool> onChanged,
   }) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: value
-              ? AppTheme.primaryColor.withOpacity(0.1)
-              : AppTheme.backgroundColor,
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon,
-            color: value ? AppTheme.primaryColor : AppTheme.textPrimary),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.94),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.28)),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: subtitle != null ? Text(subtitle) : null,
-      trailing: Switch(
-        value: value,
-        onChanged: onChanged,
-        activeColor: AppTheme.primaryColor,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: value
+                ? AppTheme.primaryColor.withOpacity(0.1)
+                : AppTheme.backgroundColor,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon,
+              color: value ? AppTheme.primaryColor : AppTheme.textPrimary),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: subtitle != null ? Text(subtitle) : null,
+        trailing: Switch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: AppTheme.primaryColor,
+        ),
       ),
     );
   }
