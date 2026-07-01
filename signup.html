@@ -17,7 +17,10 @@
 
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background:
+                radial-gradient(circle at top right, rgba(79,125,112,.14), transparent 30%),
+                radial-gradient(circle at left top, rgba(216,195,165,.14), transparent 24%),
+                linear-gradient(180deg, #f6f1e8 0%, #fbf8f1 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -26,23 +29,27 @@
         }
 
         .signup-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            background: rgba(255,255,255,.94);
+            border-radius: 26px;
+            box-shadow: 0 18px 55px rgba(76,92,84,.10);
             overflow: hidden;
             max-width: 1100px;
             width: 100%;
             display: grid;
             grid-template-columns: 1fr 1.2fr;
+            border: 1px solid rgba(79,125,112,.12);
         }
 
         .signup-left {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background:
+                linear-gradient(180deg, rgba(246,241,232,.30), rgba(79,125,112,.74)),
+                url('images/promo/hero_building.jpg') center/cover no-repeat;
             padding: 3rem;
             color: white;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            position: relative;
         }
 
         .signup-left h1 {
@@ -74,7 +81,7 @@
 
         .benefit-item i {
             font-size: 1.5rem;
-            color: #ffd700;
+            color: #d8c3a5;
             margin-top: 0.25rem;
         }
 
@@ -100,13 +107,13 @@
         }
 
         .signup-header h2 {
-            color: #2c3e50;
+            color: #32433d;
             font-size: 2rem;
             margin-bottom: 0.5rem;
         }
 
         .signup-header p {
-            color: #6b7280;
+            color: #5d746c;
         }
 
         .account-type {
@@ -118,7 +125,7 @@
 
         .type-option {
             padding: 1.5rem;
-            border: 2px solid #e5e7eb;
+            border: 2px solid rgba(79,125,112,.14);
             border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s;
@@ -126,28 +133,28 @@
         }
 
         .type-option:hover {
-            border-color: #667eea;
-            background: #f9fafb;
+            border-color: #4f7d70;
+            background: rgba(79,125,112,.05);
         }
 
         .type-option.active {
-            border-color: #667eea;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-color: #4f7d70;
+            background: linear-gradient(135deg, rgba(79,125,112,0.08) 0%, rgba(216,195,165,0.08) 100%);
         }
 
         .type-option i {
             font-size: 2rem;
-            color: #667eea;
+            color: #4f7d70;
             margin-bottom: 0.5rem;
         }
 
         .type-option h3 {
-            color: #2c3e50;
+            color: #32433d;
             margin-bottom: 0.25rem;
         }
 
         .type-option p {
-            color: #6b7280;
+            color: #5d746c;
             font-size: 0.875rem;
         }
 
@@ -164,7 +171,7 @@
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
-            color: #2c3e50;
+            color: #32433d;
             font-weight: 500;
         }
 
@@ -177,13 +184,13 @@
             right: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: #9ca3af;
+            color: #5d746c;
         }
 
         .form-control {
             width: 100%;
             padding: 0.875rem 1rem 0.875rem 3rem;
-            border: 2px solid #e5e7eb;
+            border: 2px solid rgba(79,125,112,.14);
             border-radius: 10px;
             font-size: 1rem;
             transition: all 0.3s;
@@ -192,8 +199,15 @@
 
         .form-control:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #4f7d70;
+            box-shadow: 0 0 0 3px rgba(79,125,112,0.1);
+        }
+
+        .form-control:focus-visible {
+            outline: 3px solid #4f7d70;
+            outline-offset: 2px;
+            border-color: #4f7d70;
+            box-shadow: 0 0 0 3px rgba(79,125,112,0.1);
         }
 
         .password-toggle {
@@ -203,7 +217,7 @@
             transform: translateY(-50%);
             background: none;
             border: none;
-            color: #9ca3af;
+            color: #5d746c;
             cursor: pointer;
             padding: 0.5rem;
         }
@@ -211,7 +225,7 @@
         .password-strength {
             margin-top: 0.5rem;
             height: 4px;
-            background: #e5e7eb;
+            background: rgba(79,125,112,.12);
             border-radius: 2px;
             overflow: hidden;
         }
@@ -252,12 +266,12 @@
         }
 
         .terms-checkbox label {
-            color: #6b7280;
+            color: #5d746c;
             line-height: 1.6;
         }
 
         .terms-checkbox a {
-            color: #667eea;
+            color: #4f7d70;
             text-decoration: none;
         }
 
@@ -268,7 +282,7 @@
         .btn-signup {
             width: 100%;
             padding: 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4f7d70 0%, #88a996 100%);
             color: white;
             border: none;
             border-radius: 10px;
@@ -281,7 +295,7 @@
 
         .btn-signup:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 20px rgba(79,125,112,0.25);
         }
 
         .btn-signup:disabled {
@@ -302,7 +316,7 @@
             top: 50%;
             width: 45%;
             height: 1px;
-            background: #e5e7eb;
+            background: rgba(79,125,112,.12);
         }
 
         .divider::before {
@@ -316,7 +330,7 @@
         .divider span {
             background: white;
             padding: 0 1rem;
-            color: #6b7280;
+            color: #5d746c;
         }
 
         .social-signup {
@@ -328,7 +342,7 @@
 
         .btn-social {
             padding: 0.875rem;
-            border: 2px solid #e5e7eb;
+            border: 2px solid rgba(79,125,112,.14);
             border-radius: 10px;
             background: white;
             cursor: pointer;
@@ -341,8 +355,8 @@
         }
 
         .btn-social:hover {
-            border-color: #667eea;
-            background: #f9fafb;
+            border-color: #4f7d70;
+            background: rgba(79,125,112,.05);
         }
 
         .btn-google {
@@ -355,11 +369,11 @@
 
         .login-link {
             text-align: center;
-            color: #6b7280;
+            color: #5d746c;
         }
 
         .login-link a {
-            color: #667eea;
+            color: #4f7d70;
             text-decoration: none;
             font-weight: 600;
         }
@@ -481,7 +495,7 @@
                         <label for="firstName">الاسم الأول</label>
                         <div class="input-wrapper">
                             <i class="fas fa-user"></i>
-                            <input type="text" id="firstName" class="form-control" placeholder="أحمد" required>
+                            <input type="text" id="firstName" name="firstname" class="form-control" placeholder="أحمد" autocomplete="given-name" required>
                         </div>
                     </div>
 
@@ -489,7 +503,7 @@
                         <label for="lastName">الاسم الأخير</label>
                         <div class="input-wrapper">
                             <i class="fas fa-user"></i>
-                            <input type="text" id="lastName" class="form-control" placeholder="محمد" required>
+                            <input type="text" id="lastName" name="lastname" class="form-control" placeholder="محمد" autocomplete="family-name" required>
                         </div>
                     </div>
                 </div>
@@ -498,7 +512,7 @@
                     <label for="email">البريد الإلكتروني</label>
                     <div class="input-wrapper">
                         <i class="fas fa-envelope"></i>
-                        <input type="email" id="email" class="form-control" placeholder="example@email.com" required>
+                        <input type="email" id="email" name="email" class="form-control" placeholder="example@email.com" autocomplete="username" required>
                     </div>
                 </div>
 
@@ -506,7 +520,7 @@
                     <label for="phone">رقم الهاتف</label>
                     <div class="input-wrapper">
                         <i class="fas fa-phone"></i>
-                        <input type="tel" id="phone" class="form-control" placeholder="01xxxxxxxxx" required>
+                        <input type="tel" id="phone" name="phone" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                 </div>
 
@@ -514,7 +528,7 @@
                     <label for="password">كلمة المرور</label>
                     <div class="input-wrapper">
                         <i class="fas fa-lock"></i>
-                        <input type="password" id="password" class="form-control" placeholder="••••••••" required
+                        <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" autocomplete="new-password" required
                             oninput="checkPasswordStrength()">
                         <button type="button" class="password-toggle"
                             onclick="togglePassword('password', 'toggleIcon1')">
@@ -530,7 +544,7 @@
                     <label for="confirmPassword">تأكيد كلمة المرور</label>
                     <div class="input-wrapper">
                         <i class="fas fa-lock"></i>
-                        <input type="password" id="confirmPassword" class="form-control" placeholder="••••••••"
+                        <input type="password" id="confirmPassword" name="confirm-password" class="form-control" placeholder="••••••••" autocomplete="new-password"
                             required>
                         <button type="button" class="password-toggle"
                             onclick="togglePassword('confirmPassword', 'toggleIcon2')">
@@ -617,7 +631,7 @@
             }
         }
 
-        document.getElementById('signupForm').addEventListener('submit', function (e) {
+        document.getElementById('signupForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
             const firstName = document.getElementById('firstName').value;
@@ -639,49 +653,32 @@
                 return;
             }
 
-            if (password.length < 8) {
-                showAlert('كلمة المرور يجب أن تكون 8 أحرف على الأقل', 'error');
-                return;
-            }
-
-            // Check if email already exists
-            const users = JSON.parse(localStorage.getItem('ejari_users')) || [];
-            if (users.find(u => u.email === email)) {
-                showAlert('البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول.', 'error');
+            if (password.length < 6) {
+                showAlert('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'error');
                 return;
             }
 
             showAlert('جاري إنشاء الحساب...', 'success');
 
-            setTimeout(() => {
-                // Create new user
-                const newUser = {
-                    id: Date.now(),
-                    name: `${firstName} ${lastName}`,
-                    email: email,
-                    password: password,
-                    phone: phone,
-                    role: accountType,
-                    avatar: accountType === 'owner' ? 'images/owner-avatar.jpg' : 'images/tenant-2.jpg',
-                    status: 'active',
-                    verificationStatus: 'unverified',
-                    points: 0,
-                    pointsHistory: [],
-                    subscription: 'free',
-                    createdAt: new Date().toISOString()
-                };
+            const btn = e.target.querySelector('.btn-signup');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري إنشاء الحساب...';
+            btn.disabled = true;
 
-                // Add to users array
-                users.push(newUser);
-                localStorage.setItem('ejari_users', JSON.stringify(users));
+            const success = await AuthManager.signup({
+                name: `${firstName} ${lastName}`,
+                email,
+                password,
+                phone,
+                role: accountType
+            });
 
-                // Auto login - save session
-                localStorage.setItem('ejari_user', JSON.stringify(newUser));
-                localStorage.setItem('ejari_token', 'token_' + newUser.id + '_' + Date.now());
-
-                // Redirect to homepage
+            if (!success) {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            } else {
                 window.location.href = 'index.html';
-            }, 1500);
+            }
         });
 
         function showAlert(message, type) {
@@ -725,6 +722,7 @@
             dropdown.classList.toggle('active');
         }
     </script>
+    <script src="js/auth.js"></script>
     <script src="js/auto-translator.js"></script>
     <script src="js/localization.js"></script>
 </body>

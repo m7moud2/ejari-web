@@ -17,7 +17,10 @@
 
         body {
             font-family: 'Cairo', sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background:
+                radial-gradient(circle at top right, rgba(79,125,112,.14), transparent 30%),
+                radial-gradient(circle at left top, rgba(216,195,165,.14), transparent 24%),
+                linear-gradient(180deg, #f6f1e8 0%, #fbf8f1 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -26,19 +29,20 @@
         }
 
         .login-container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            background: rgba(255,255,255,.94);
+            border-radius: 26px;
+            box-shadow: 0 18px 55px rgba(76,92,84,.10);
             overflow: hidden;
             width: 100%;
             max-width: 1000px;
             display: flex;
             min-height: 600px;
+            border: 1px solid rgba(79,125,112,.12);
         }
 
         .login-image {
             flex: 1;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%), url('images/home1.jpg');
+            background: linear-gradient(180deg, rgba(246,241,232,.42), rgba(79,125,112,.70)), url('images/promo/hero_building.jpg');
             background-size: cover;
             background-position: center;
             padding: 3rem;
@@ -102,13 +106,13 @@
         }
 
         h2 {
-            color: #2c3e50;
+            color: #32433d;
             font-size: 2rem;
             margin-bottom: 0.5rem;
         }
 
         .subtitle {
-            color: #6b7280;
+            color: #5d746c;
             margin-bottom: 2rem;
         }
 
@@ -120,7 +124,7 @@
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
-            color: #374151;
+            color: #32433d;
             font-weight: 600;
         }
 
@@ -133,13 +137,13 @@
             right: 1rem;
             top: 50%;
             transform: translateY(-50%);
-            color: #9ca3af;
+            color: #5d746c;
         }
 
         .form-control {
             width: 100%;
             padding: 1rem 3rem 1rem 1rem;
-            border: 2px solid #e5e7eb;
+            border: 2px solid rgba(79,125,112,.14);
             border-radius: 12px;
             font-family: 'Cairo', sans-serif;
             font-size: 1rem;
@@ -147,9 +151,16 @@
         }
 
         .form-control:focus {
-            border-color: #667eea;
+            border-color: #4f7d70;
             outline: none;
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 4px rgba(79,125,112,0.1);
+        }
+
+        .form-control:focus-visible {
+            border-color: #4f7d70;
+            outline: 3px solid #4f7d70;
+            outline-offset: 2px;
+            box-shadow: 0 0 0 4px rgba(79,125,112,0.1);
         }
 
         .form-options {
@@ -163,25 +174,25 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            color: #6b7280;
+            color: #5d746c;
             cursor: pointer;
         }
 
         .forgot-password {
-            color: #667eea;
+            color: #4f7d70;
             text-decoration: none;
             font-weight: 600;
             transition: color 0.3s;
         }
 
         .forgot-password:hover {
-            color: #764ba2;
+            color: #3d6258;
         }
 
         .btn-login {
             width: 100%;
             padding: 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #4f7d70 0%, #88a996 100%);
             color: white;
             border: none;
             border-radius: 12px;
@@ -197,7 +208,7 @@
 
         .btn-login:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 10px 20px rgba(79,125,112,0.25);
         }
 
         .social-login {
@@ -268,11 +279,11 @@
         .signup-link {
             text-align: center;
             margin-top: 2rem;
-            color: #6b7280;
+            color: #5d746c;
         }
 
         .signup-link a {
-            color: #667eea;
+            color: #4f7d70;
             text-decoration: none;
             font-weight: 700;
         }
@@ -330,7 +341,7 @@
                     <label for="email">البريد الإلكتروني</label>
                     <div class="input-wrapper">
                         <i class="far fa-envelope"></i>
-                        <input type="email" id="email" class="form-control" placeholder="name@example.com" required>
+                        <input type="email" id="email" name="email" class="form-control" placeholder="name@example.com" autocomplete="username" required>
                     </div>
                 </div>
 
@@ -338,7 +349,7 @@
                     <label for="password">كلمة المرور</label>
                     <div class="input-wrapper">
                         <i class="fas fa-lock"></i>
-                        <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                        <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" autocomplete="current-password" required>
                         <button type="button" onclick="togglePassword()"
                             style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); border: none; background: none; cursor: pointer; color: #9ca3af;">
                             <i class="far fa-eye" id="toggleIcon"></i>
@@ -374,7 +385,7 @@
             </p>
 
             <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px dashed #e5e7eb;">
-                <p style="text-align: center; color: #6b7280; margin-bottom: 1rem; font-size: 0.9rem;">تجربة سريعة
+                <p style="text-align: center; color: #5d746c; margin-bottom: 1rem; font-size: 0.9rem;">تجربة سريعة
                     (للمطورين):</p>
                 <div style="display: flex; gap: 0.5rem; justify-content: center;">
                     <button onclick="quickLogin('tenant')"
@@ -412,7 +423,7 @@
             let user;
             if (role === 'tenant') user = { id: 1, name: 'أحمد محمد', role: 'tenant', email: 'ahmed@test.com', avatar: 'images/tenant-2.jpg' };
             if (role === 'owner') user = { id: 2, name: 'شركة العقارات الحديثة', role: 'owner', email: 'owner@test.com', avatar: 'images/owner-avatar.jpg' };
-            if (role === 'admin') user = { id: 99, name: 'Admin', role: 'admin', email: 'admin@ejari.com', avatar: 'images/logo.png' };
+            if (role === 'admin') user = { id: 99, name: 'Admin', role: 'admin', email: 'admin@ejari.app', avatar: 'images/logo.png' };
 
             localStorage.setItem('ejari_user', JSON.stringify(user));
 
