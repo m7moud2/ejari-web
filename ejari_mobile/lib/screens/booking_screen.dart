@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
@@ -70,28 +69,11 @@ class _BookingScreenState extends State<BookingScreen> {
   bool get _isCar => widget.itemType == 'car';
   double get _monthlyRent => _basePrice;
 
-  int get _leaseMonths {
-    if (isSale) return 0;
-    switch (_selectedDurationType) {
-      case 'يوم':
-        return math.max(1, (_duration / 30).ceil());
-      case 'أسبوع':
-        return math.max(1, ((_duration * 7) / 30).ceil());
-      case 'شهر':
-        return math.max(1, _duration);
-      case 'سنة':
-        return math.max(1, _duration * 12);
-      default:
-        return math.max(1, _duration);
-    }
-  }
-
   double get _leaseTotalAmount =>
-      isSale || _isCar ? _finalTotal : (_monthlyRent * _leaseMonths);
+      isSale || _isCar ? _finalTotal : _totalPrice;
 
-  double get _currentMonthTotal => isSale || _isCar
-      ? _finalTotal
-      : _monthlyRent + _adminFees + _profit + _insurancePrice;
+  double get _currentMonthTotal =>
+      isSale || _isCar ? _finalTotal : _totalPrice + _adminFees + _profit + _insurancePrice;
 
   double get _bookingDepositAmount {
     if (isSale || _isCar) {
@@ -185,8 +167,17 @@ class _BookingScreenState extends State<BookingScreen> {
       return;
     }
 
-    // الإيجار الشهري هو الأساس، والمدة فقط تحدد مدة التعاقد وليس دفعة واحدة.
-    _totalPrice = _monthlyRent;
+    if (_selectedDurationType == 'يوم') {
+      _totalPrice = (_monthlyRent / 30) * _duration;
+    } else if (_selectedDurationType == 'أسبوع') {
+      _totalPrice = (_monthlyRent / 4) * _duration;
+    } else if (_selectedDurationType == 'شهر') {
+      _totalPrice = _monthlyRent * _duration;
+    } else if (_selectedDurationType == 'سنة') {
+      _totalPrice = (_monthlyRent * 12) * _duration;
+    } else {
+      _totalPrice = _monthlyRent;
+    }
     _adminFees = _totalPrice * 0.05;
     _profit = _totalPrice * 0.10;
     _finalTotal = _currentMonthTotal;
@@ -325,10 +316,16 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Future<void> _finalizeBooking(String transactionId) async {
     setState(() => _isLoading = true);
+    final durationMeta = RentalScheduleUtils.describeDuration(
+      '$_duration $_selectedDurationType',
+    );
+    final durationLabel = durationMeta['label']?.toString() ??
+        '$_duration $_selectedDurationType';
+    final durationCycle = durationMeta['cycle']?.toString() ?? 'شهري';
     final leaseMonths = _isCar || isSale
         ? 0
         : RentalScheduleUtils.parseLeaseMonths(
-            '$_duration $_selectedDurationType',
+            durationLabel,
             fallback: 1,
           );
     final leaseStartDate = DateTime.now();
@@ -352,6 +349,8 @@ class _BookingScreenState extends State<BookingScreen> {
       'leaseMonths': leaseMonths,
       'leaseStartDate': leaseStartDate.toIso8601String(),
       'leaseEndDate': leaseEndDate.toIso8601String(),
+      'durationUnit': durationMeta['unit'],
+      'durationCount': durationMeta['count'],
       'leaseTotal': _leaseTotalAmount.toStringAsFixed(0),
       'totalAmount': _leaseTotalAmount.toStringAsFixed(0),
       'currentAmount': _currentMonthTotal.toStringAsFixed(0),
@@ -362,14 +361,13 @@ class _BookingScreenState extends State<BookingScreen> {
           .toIso8601String(),
       'paidMonths': 0,
       'remainingMonths': leaseMonths,
-      'paymentSchedule': _isCar || isSale
-          ? 'مرة واحدة'
-          : 'شهري بعد دفعة البداية',
+      'paymentSchedule': _isCar || isSale ? 'مرة واحدة' : durationCycle,
+      'durationLabel': durationLabel,
       'duration': isSale
           ? 'تملك نهائي'
           : _isCar
-              ? '$_duration $_selectedDurationType'
-              : '$_duration $_selectedDurationType (سداد شهري)',
+              ? durationLabel
+              : durationLabel,
       'startDate': DateTime.now().toIso8601String(),
       'ownerId': widget.itemData['ownerId'] ?? 'admin',
       'status': 'viewing_scheduled',
@@ -1744,7 +1742,10 @@ class _BookingScreenState extends State<BookingScreen> {
           propertyTitle: widget.itemData['title'],
           price: _monthlyRent.toStringAsFixed(0),
           startDate: DateTime.now().toString().split(' ')[0],
-          duration: '$_duration $_selectedDurationType',
+          duration: RentalScheduleUtils.describeDuration(
+                      '$_duration $_selectedDurationType')['label']
+                  ?.toString() ??
+              '$_duration $_selectedDurationType',
           deposit: _bookingDepositAmount.toStringAsFixed(0),
           itemLabel: widget.itemType == 'car' ? 'السيارة' : 'العقار',
         ),

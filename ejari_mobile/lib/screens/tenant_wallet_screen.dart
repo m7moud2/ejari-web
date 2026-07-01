@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../utils/date_utils.dart';
 import 'payment_methods_screen.dart';
 import 'rewards_screen.dart';
+import 'rental_statement_screen.dart';
 
 class TenantWalletScreen extends StatefulWidget {
   const TenantWalletScreen({super.key});
@@ -204,7 +205,7 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Keyo Keyo',
+                  const Text('Ejari Ejari',
                       style: TextStyle(
                           color: AppTheme.borderColor,
                           fontSize: 18,
@@ -235,7 +236,15 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
                   _buildBalanceAction(Icons.arrow_circle_up_rounded, 'تحويل',
                       _showQuickPayDialog),
                   _buildBalanceAction(
-                      Icons.receipt_long_rounded, 'الكشوفات', () {}),
+                      Icons.receipt_long_rounded,
+                      'الكشوفات',
+                      () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const RentalStatementScreen(),
+                            ),
+                          )),
                 ],
               ),
             ],

@@ -10,6 +10,10 @@ class ContractService {
     required double price,
     required DateTime startDate,
     required DateTime endDate,
+    String? durationLabel,
+    String? durationUnit,
+    int? durationCount,
+    String? paymentSchedule,
     double? monthlyRent,
     int? leaseMonths,
     double? currentDueAmount,
@@ -22,11 +26,38 @@ class ContractService {
     final today = dateFormat.format(DateTime.now());
     final monthlyValue = monthlyRent ?? price;
     final monthsValue = leaseMonths ?? 1;
-    final leaseTotal = monthlyValue * monthsValue;
-    final dueNow = currentDueAmount ?? monthlyValue;
-    final bookingDeposit = depositAmount ?? (price * 0.10);
+    final unit = durationUnit ?? 'شهر';
+    final countValue = durationCount ?? monthsValue;
+    double leaseTotal;
+    double dueNow;
+
+    if (unit.contains('يوم')) {
+      leaseTotal = (monthlyValue / 30) * countValue;
+      dueNow = currentDueAmount ?? leaseTotal;
+    } else if (unit.contains('أسبوع')) {
+      leaseTotal = (monthlyValue / 4) * countValue;
+      dueNow = currentDueAmount ?? leaseTotal;
+    } else if (unit.contains('سنة')) {
+      leaseTotal = monthlyValue * 12 * countValue;
+      dueNow = currentDueAmount ?? (monthlyValue * 12);
+    } else {
+      leaseTotal = monthlyValue * monthsValue;
+      dueNow = currentDueAmount ?? monthlyValue;
+    }
+
+    final bookingDeposit = depositAmount ?? (dueNow * 0.10);
     final bookingRemaining = remainingAmount ??
         (dueNow - bookingDeposit).clamp(0, dueNow).toDouble();
+    final chosenDuration = durationLabel ??
+        '$countValue $unit';
+    final cycleText = paymentSchedule ?? 'شهري';
+    final rentLabel = unit.contains('يوم') || unit.contains('أسبوع')
+        ? 'القيمة الإيجارية'
+        : 'القيمة الإيجارية الشهرية';
+
+    final continuationText = cycleText == 'شهري'
+        ? 'ثم تستمر الدفعات شهرياً وفق العقد.'
+        : 'ثم تستمر الدفعات وفق دورية السداد المختارة أعلاه.';
 
     return '''
 عقد إيجار إلكتروني موثق
@@ -45,12 +76,14 @@ class ContractService {
 ثالثاً: مدة الإيجار
 تبدأ من تاريخ: $startStr
 وتنتهي في تاريخ: $endStr
+المدة المختارة: $chosenDuration
+دورية السداد: $cycleText
 
 رابعاً: قيمة العربون والرصيد المتبقي
-اتفق الطرفان على أن تكون القيمة الإيجارية الشهرية مبلغ وقدره ${monthlyValue.toStringAsFixed(0)} ج.م.
+اتفق الطرفان على أن تكون $rentLabel مبلغ وقدره ${monthlyValue.toStringAsFixed(0)} ج.م.
 ويبلغ إجمالي مدة التعاقد التقديري ($monthsValue شهر/شهور) مبلغ ${leaseTotal.toStringAsFixed(0)} ج.م.
 تم سداد عربون المعاينة المبدئي بقيمة ${bookingDeposit.toStringAsFixed(0)} ج.م عبر منصة "إيجاري".
-ويتبقى مبلغ ${bookingRemaining.toStringAsFixed(0)} ج.م يتم سداده لاستكمال دفعة الشهر الأول فقط، ثم تستمر الدفعات شهرياً وفق العقد.
+ويتبقى مبلغ ${bookingRemaining.toStringAsFixed(0)} ج.م يتم سداده لاستكمال الدفعة التالية فقط، $continuationText
 
 خامساً: التزامات الأطراف
 1. يلتزم المستأجر بالمحافظة على العين المؤجرة واستخدامها في الغرض المخصص لها.

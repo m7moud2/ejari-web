@@ -178,9 +178,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   Widget _buildRentalTransparencyCard(Map<String, dynamic> booking) {
     final snapshot = RentalScheduleUtils.buildLeaseSnapshot(booking);
-    final totalMonths = snapshot['leaseMonths'] as int;
-    final remainingMonths = snapshot['remainingMonths'] as int;
-    final elapsedMonths = snapshot['elapsedMonths'] as int;
+    final totalUnits = (snapshot['totalUnits'] as num?)?.toInt() ??
+        (snapshot['leaseMonths'] as num?)?.toInt() ??
+        0;
+    final remainingUnits =
+        (snapshot['remainingUnits'] as num?)?.toInt() ?? 0;
+    final elapsedUnits = (snapshot['elapsedUnits'] as num?)?.toInt() ?? 0;
+    final unitLabel = snapshot['durationUnit']?.toString() ?? 'شهر';
     final progress =
         ((snapshot['progress'] as num?) ?? 0.0).toDouble().clamp(0.0, 1.0);
     final monthlyRent = (snapshot['monthlyRent'] as num).toDouble();
@@ -241,7 +245,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           ),
           const SizedBox(height: 10),
           Text(
-            'أنقضى $elapsedMonths من $totalMonths شهر • المتبقي $remainingMonths شهر',
+            'أنقضى $elapsedUnits من $totalUnits $unitLabel • المتبقي $remainingUnits $unitLabel',
             style: const TextStyle(
               fontSize: 12,
               color: AppTheme.textSecondary,

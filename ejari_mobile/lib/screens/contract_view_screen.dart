@@ -53,6 +53,16 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
         widget.bookingDetails['depositAmount']?.toString() ?? '');
     final remainingValue = double.tryParse(
         widget.bookingDetails['remainingAmount']?.toString() ?? '');
+    final durationLabel =
+        widget.bookingDetails['durationLabel']?.toString() ??
+            widget.bookingDetails['duration']?.toString() ??
+            '$leaseMonths شهر';
+    final paymentSchedule =
+        widget.bookingDetails['paymentSchedule']?.toString() ?? 'شهري';
+    final durationUnit = widget.bookingDetails['durationUnit']?.toString();
+    final durationCount = int.tryParse(
+            widget.bookingDetails['durationCount']?.toString() ?? '') ??
+        leaseMonths;
     _contractText = ContractService.generateContract(
       tenantName: widget.bookingDetails['tenantName'] ?? 'المستأجر',
       tenantId: '1234567890', // Should come from profile
@@ -66,6 +76,10 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
           DateTime.now().add(const Duration(days: 1)),
       monthlyRent: monthlyValue,
       leaseMonths: leaseMonths,
+      durationLabel: durationLabel,
+      durationUnit: durationUnit,
+      durationCount: durationCount,
+      paymentSchedule: paymentSchedule,
       currentDueAmount: double.tryParse(
               widget.bookingDetails['currentAmount']?.toString() ??
                   monthlyValue.toString()) ??
@@ -310,6 +324,12 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
       fallback: 'قريباً',
       pattern: 'dd/MM/yyyy',
     );
+    final durationLabel =
+        widget.bookingDetails['durationLabel']?.toString() ??
+            widget.bookingDetails['duration']?.toString() ??
+            'شهر';
+    final paymentSchedule =
+        widget.bookingDetails['paymentSchedule']?.toString() ?? 'شهري';
 
     return Container(
       width: double.infinity,
@@ -359,6 +379,15 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
           const SizedBox(height: 10),
           Text(
             'أنقضى $elapsedMonths من $totalMonths شهر • المتبقي $remainingMonths شهر',
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondary,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'المدة المختارة: $durationLabel • دورية السداد: $paymentSchedule',
             style: const TextStyle(
               fontSize: 12,
               color: AppTheme.textSecondary,

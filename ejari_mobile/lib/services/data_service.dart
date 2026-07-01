@@ -897,6 +897,10 @@ class DataService {
       'title': title,
       'price': price,
       'image': imageStr,
+      'duration': b['duration'] ?? b['leaseDuration'] ?? '',
+      'durationUnit': b['durationUnit'] ?? '',
+      'durationCount': b['durationCount'] ?? '',
+      'durationLabel': b['durationLabel'] ?? b['duration'] ?? '',
       'startDate': b['startDate'] ?? b['date'] ?? '',
       'endDate': b['endDate'] ?? '',
       'leaseStartDate': b['leaseStartDate'] ?? b['startDate'] ?? '',
@@ -906,6 +910,7 @@ class DataService {
       'paidMonths': b['paidMonths'] ?? '',
       'nextDueDate': b['nextDueDate'] ?? '',
       'nextDueAmount': b['nextDueAmount'] ?? '',
+      'paymentSchedule': b['paymentSchedule'] ?? '',
       'requestDate': b['createdAt'] ?? b['requestDate'] ?? '',
       'status': status,
       'tenantEmail': user['email'] ?? b['tenantEmail'] ?? '',
@@ -936,6 +941,10 @@ class DataService {
         'nextDueAmount': request['nextDueAmount'],
         'paidMonths': request['paidMonths'],
         'remainingMonths': request['remainingMonths'],
+        'durationUnit': request['durationUnit'],
+        'durationCount': request['durationCount'],
+        'durationLabel': request['durationLabel'],
+        'paymentSchedule': request['paymentSchedule'],
         'duration': request['duration'],
         'status': request['status'],
         'paymentStatus': request['paymentStatus'],
@@ -975,6 +984,7 @@ class DataService {
     request['leaseEndDate'] = request['leaseEndDate'] ?? request['endDate'];
     request['paidMonths'] = request['paidMonths'] ?? 0;
     request['remainingMonths'] = request['remainingMonths'];
+    request['durationLabel'] = request['durationLabel'] ?? request['duration'];
 
     List<String> bookings = prefs.getStringList(_bookingsKey) ?? [];
     bookings.add(jsonEncode(request));
