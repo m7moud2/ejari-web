@@ -15,7 +15,8 @@ import '../config/app_config.dart';
 class LoginScreen extends StatefulWidget {
   final String? redirectToRole;
   final bool returnResult;
-  const LoginScreen({super.key, this.redirectToRole, this.returnResult = false});
+  const LoginScreen(
+      {super.key, this.redirectToRole, this.returnResult = false});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -193,311 +194,322 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Form(
                     key: _formKey,
                     child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.86),
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(
-                      color: AppTheme.borderColor.withOpacity(0.32),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.primaryColor.withOpacity(0.08),
-                        blurRadius: 26,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(22),
-                    child: Stack(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Image.asset(
-                          'assets/images/promo/hero_easy_booking.jpg',
-                          height: 150,
+                        const SizedBox(height: 10),
+                        Container(
                           width: double.infinity,
-                          fit: BoxFit.cover,
-                        ),
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  AppTheme.primaryColor.withOpacity(0.22),
-                                ],
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.86),
+                            borderRadius: BorderRadius.circular(28),
+                            border: Border.all(
+                              color: AppTheme.borderColor.withOpacity(0.32),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primaryColor.withOpacity(0.08),
+                                blurRadius: 26,
+                                offset: const Offset(0, 10),
                               ),
+                            ],
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(22),
+                            child: Stack(
+                              children: [
+                                Image.asset(
+                                  'assets/images/promo/hero_building.jpg',
+                                  height: 150,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                                Positioned.fill(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.transparent,
+                                          AppTheme.primaryColor
+                                              .withOpacity(0.22),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 14,
+                                  right: 14,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.88),
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: const Text(
+                                      'واجهة هادئة ومتناسقة',
+                                      style: TextStyle(
+                                        color: AppTheme.primaryColor,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const Positioned(
+                                  left: 14,
+                                  bottom: 14,
+                                  child: _LoginHeroTag(
+                                    text: 'تجربة أقرب للصور الجديدة',
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                        Positioned(
-                          top: 14,
-                          right: 14,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.88),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: const Text(
-                              'واجهة هادئة ومتناسقة',
-                              style: TextStyle(
-                                color: AppTheme.primaryColor,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const Positioned(
-                          left: 14,
-                          bottom: 14,
-                          child: _LoginHeroTag(
-                            text: 'تجربة أقرب للصور الجديدة',
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 22),
-                const Text(
-                  'تسجيل الدخول',
-                  style: TextStyle(
-                    fontSize: 34,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.primaryColor,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'ابدأ رحلتك: بحث، حجز، عقد، وصيانة من مكان واحد — بنفس روح التصميم الهادئ',
-                  style: TextStyle(
-                      fontSize: 15, color: AppTheme.textSecondary, height: 1.5),
-                ),
-                const SizedBox(height: 50),
-
-                // Minimalist Email Field
-                _buildMinimalTextField(
-                  controller: _emailController,
-                  label: 'البريد الإلكتروني',
-                  icon: Icons.email_outlined,
-                  isEmail: true,
-                ),
-                const SizedBox(height: 24),
-
-                // Minimalist Password Field
-                _buildMinimalTextField(
-                  controller: _passwordController,
-                  label: 'كلمة المرور',
-                  icon: Icons.lock_outline,
-                  isPassword: true,
-                ),
-
-                // Forgot Password
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const ForgotPasswordScreen()),
-                      );
-                    },
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 0, vertical: 10),
-                      minimumSize: Size.zero,
-                    ),
-                    child: const Text('نسيت كلمة المرور؟',
-                        style: TextStyle(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.w600)),
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // Login Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isLoading
-                        ? null
-                        : () async {
-                            final navigator = Navigator.of(context);
-                            final messenger = ScaffoldMessenger.of(context);
-                            if (_formKey.currentState!.validate()) {
-                              setState(() => _isLoading = true);
-
-                              try {
-                                final user = await AuthService.login(
-                                    _emailController.text,
-                                    _passwordController.text);
-                                if (!mounted) return;
-                                setState(() => _isLoading = false);
-
-                                if (user != null) {
-                                  if (widget.redirectToRole != null) {
-                                    await AuthService.setUserRole(
-                                        widget.redirectToRole!);
-                                  }
-
-                                  if (widget.returnResult) {
-                                    if (!mounted) return;
-                                    navigator.pop(true);
-                                    return;
-                                  }
-
-                                  if (widget.redirectToRole == 'provider' ||
-                                      user['type'] == 'provider' ||
-                                      user['role'] == 'provider') {
-                                    navigator.pushReplacement(
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                const ServiceProviderHomeScreen()));
-                                  } else if (widget.redirectToRole == 'owner' ||
-                                      user['type'] == 'owner' ||
-                                      user['role'] == 'owner') {
-                                    navigator.pushReplacement(
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                const EnhancedOwnerHomeScreen()));
-                                  } else if (user['type'] == 'admin' ||
-                                      user['role'] == 'admin') {
-                                    navigator.pushReplacement(
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                const AdminHomeScreen()));
-                                  } else {
-                                    navigator.pushReplacement(
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                const HomeScreen()));
-                                  }
-                                }
-                              } catch (e) {
-                                setState(() => _isLoading = false);
-                                if (!mounted) return;
-                                messenger.showSnackBar(
-                                    SnackBar(
-                                        content: Text(e.toString()),
-                                        backgroundColor: AppTheme.errorColor));
-                              }
-                            }
-                          },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                      elevation: 0,
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2))
-                        : const Text('دخول',
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white)),
-                  ),
-                ),
-                const SizedBox(height: 48),
-
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: OutlinedButton(
-                    onPressed: _isLoading ? null : _loginAsVisitor,
-                    child: const Text(
-                      'الدخول كزائر',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 18),
-
-                // Minimalist Social Login
-                const Center(
-                  child: Text('أو المتابعة باستخدام',
-                      style: TextStyle(
-                          color: AppTheme.textSecondary, fontSize: 13)),
-                ),
-                const SizedBox(height: 24),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    _buildSocialCircularButton(Icons.g_mobiledata_rounded,
-                        onTap: _signInWithGoogle),
-                    const SizedBox(width: 24),
-                    _buildSocialCircularButton(Icons.apple),
-                    const SizedBox(width: 24),
-                    _buildSocialCircularButton(Icons.fingerprint_rounded,
-                        onTap: _authenticate, isPrimary: true),
-                  ],
-                ),
-                const SizedBox(height: 60),
-
-                // Sign Up Link
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    const Text('مستخدم جديد؟',
-                        style: TextStyle(color: AppTheme.primaryColor)),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const SignupScreen()));
-                      },
-                      child: const Text('أنشئ حسابك',
+                        const SizedBox(height: 22),
+                        const Text(
+                          'تسجيل الدخول',
                           style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryColor)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 30),
-
-                if (AppConfig.demoMode)
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.surfaceColor,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppTheme.accentColor.withOpacity(0.55),
+                            fontSize: 34,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.primaryColor,
+                            letterSpacing: -0.5,
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        'للتجربة فقط: الحسابات الجاهزة تساعدك على استكشاف التطبيق بسرعة.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                            fontSize: 10,
-                            color: AppTheme.textSecondary,
-                            height: 1.5),
-                      ),
-                    ),
-                ),
-                const SizedBox(height: 20),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'ابدأ رحلتك: بحث، حجز، عقد، وصيانة من مكان واحد — بنفس روح التصميم الهادئ والهوية الموحدة',
+                          style: TextStyle(
+                              fontSize: 15,
+                              color: AppTheme.textSecondary,
+                              height: 1.5),
+                        ),
+                        const SizedBox(height: 50),
+
+                        // Minimalist Email Field
+                        _buildMinimalTextField(
+                          controller: _emailController,
+                          label: 'البريد الإلكتروني',
+                          icon: Icons.email_outlined,
+                          isEmail: true,
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Minimalist Password Field
+                        _buildMinimalTextField(
+                          controller: _passwordController,
+                          label: 'كلمة المرور',
+                          icon: Icons.lock_outline,
+                          isPassword: true,
+                        ),
+
+                        // Forgot Password
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const ForgotPasswordScreen()),
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 0, vertical: 10),
+                              minimumSize: Size.zero,
+                            ),
+                            child: const Text('نسيت كلمة المرور؟',
+                                style: TextStyle(
+                                    color: AppTheme.primaryColor,
+                                    fontWeight: FontWeight.w600)),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // Login Button
+                        SizedBox(
+                          width: double.infinity,
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: _isLoading
+                                ? null
+                                : () async {
+                                    final navigator = Navigator.of(context);
+                                    final messenger =
+                                        ScaffoldMessenger.of(context);
+                                    if (_formKey.currentState!.validate()) {
+                                      setState(() => _isLoading = true);
+
+                                      try {
+                                        final user = await AuthService.login(
+                                            _emailController.text,
+                                            _passwordController.text);
+                                        if (!mounted) return;
+                                        setState(() => _isLoading = false);
+
+                                        if (user != null) {
+                                          if (widget.redirectToRole != null) {
+                                            await AuthService.setUserRole(
+                                                widget.redirectToRole!);
+                                          }
+
+                                          if (widget.returnResult) {
+                                            if (!mounted) return;
+                                            navigator.pop(true);
+                                            return;
+                                          }
+
+                                          if (widget.redirectToRole ==
+                                                  'provider' ||
+                                              user['type'] == 'provider' ||
+                                              user['role'] == 'provider') {
+                                            navigator.pushReplacement(
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const ServiceProviderHomeScreen()));
+                                          } else if (widget.redirectToRole ==
+                                                  'owner' ||
+                                              user['type'] == 'owner' ||
+                                              user['role'] == 'owner') {
+                                            navigator.pushReplacement(
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const EnhancedOwnerHomeScreen()));
+                                          } else if (user['type'] == 'admin' ||
+                                              user['role'] == 'admin') {
+                                            navigator.pushReplacement(
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const AdminHomeScreen()));
+                                          } else {
+                                            navigator.pushReplacement(
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const HomeScreen()));
+                                          }
+                                        }
+                                      } catch (e) {
+                                        setState(() => _isLoading = false);
+                                        if (!mounted) return;
+                                        messenger.showSnackBar(SnackBar(
+                                            content: Text(e.toString()),
+                                            backgroundColor:
+                                                AppTheme.errorColor));
+                                      }
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
+                              elevation: 0,
+                            ),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    height: 24,
+                                    width: 24,
+                                    child: CircularProgressIndicator(
+                                        color: Colors.white, strokeWidth: 2))
+                                : const Text('دخول',
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white)),
+                          ),
+                        ),
+                        const SizedBox(height: 48),
+
+                        SizedBox(
+                          width: double.infinity,
+                          height: 52,
+                          child: OutlinedButton(
+                            onPressed: _isLoading ? null : _loginAsVisitor,
+                            child: const Text(
+                              'الدخول كزائر',
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+
+                        // Minimalist Social Login
+                        const Center(
+                          child: Text('أو المتابعة باستخدام',
+                              style: TextStyle(
+                                  color: AppTheme.textSecondary, fontSize: 13)),
+                        ),
+                        const SizedBox(height: 24),
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            _buildSocialCircularButton(
+                                Icons.g_mobiledata_rounded,
+                                onTap: _signInWithGoogle),
+                            const SizedBox(width: 24),
+                            _buildSocialCircularButton(Icons.apple),
+                            const SizedBox(width: 24),
+                            _buildSocialCircularButton(
+                                Icons.fingerprint_rounded,
+                                onTap: _authenticate,
+                                isPrimary: true),
+                          ],
+                        ),
+                        const SizedBox(height: 60),
+
+                        // Sign Up Link
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            const Text('مستخدم جديد؟',
+                                style: TextStyle(color: AppTheme.primaryColor)),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const SignupScreen()));
+                              },
+                              child: const Text('أنشئ حسابك',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.primaryColor)),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 30),
+
+                        if (AppConfig.demoMode)
+                          Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppTheme.surfaceColor,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppTheme.accentColor.withOpacity(0.55),
+                                ),
+                              ),
+                              child: const Text(
+                                'للتجربة فقط: الحسابات الجاهزة تساعدك على استكشاف التطبيق بسرعة.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    color: AppTheme.textSecondary,
+                                    height: 1.5),
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),

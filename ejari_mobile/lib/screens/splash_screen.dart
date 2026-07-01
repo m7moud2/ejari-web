@@ -161,7 +161,7 @@ class _SplashScreenState extends State<SplashScreen>
                                       height: 132,
                                       width: double.infinity,
                                       child: Image.asset(
-                                        'assets/images/promo/hero_intro.jpg',
+                                        'assets/images/promo/hero_building.jpg',
                                         fit: BoxFit.cover,
                                       ),
                                     ),
@@ -173,7 +173,8 @@ class _SplashScreenState extends State<SplashScreen>
                                             end: Alignment.bottomCenter,
                                             colors: [
                                               Colors.transparent,
-                                              AppTheme.primaryColor.withOpacity(0.22),
+                                              AppTheme.primaryColor
+                                                  .withOpacity(0.22),
                                             ],
                                           ),
                                         ),
@@ -187,7 +188,8 @@ class _SplashScreenState extends State<SplashScreen>
                                             horizontal: 10, vertical: 6),
                                         decoration: BoxDecoration(
                                           color: Colors.white.withOpacity(0.88),
-                                          borderRadius: BorderRadius.circular(999),
+                                          borderRadius:
+                                              BorderRadius.circular(999),
                                         ),
                                         child: const Text(
                                           'إيجاري',
@@ -206,11 +208,13 @@ class _SplashScreenState extends State<SplashScreen>
                                         padding: const EdgeInsets.symmetric(
                                             horizontal: 10, vertical: 6),
                                         decoration: BoxDecoration(
-                                          color: AppTheme.textPrimary.withOpacity(0.54),
-                                          borderRadius: BorderRadius.circular(999),
+                                          color: AppTheme.textPrimary
+                                              .withOpacity(0.54),
+                                          borderRadius:
+                                              BorderRadius.circular(999),
                                         ),
                                         child: const Text(
-                                          'بداية هادئة • تجربة أوضح',
+                                          'قريباً • إطلاق رسمي',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.w700,
@@ -230,11 +234,13 @@ class _SplashScreenState extends State<SplashScreen>
                                   color: Colors.white,
                                   borderRadius: BorderRadius.circular(30),
                                   border: Border.all(
-                                    color: AppTheme.borderColor.withOpacity(0.38),
+                                    color:
+                                        AppTheme.borderColor.withOpacity(0.38),
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppTheme.primaryColor.withOpacity(0.10),
+                                      color: AppTheme.primaryColor
+                                          .withOpacity(0.10),
                                       blurRadius: 24,
                                       offset: const Offset(0, 10),
                                     ),
@@ -264,7 +270,7 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          'إيجار أوضح • عقود أسهل • صيانة أسرع',
+                          'إيجار أوضح • عقود أسهل • صيانة أسرع • هوية موحدة',
                           style: TextStyle(
                             fontSize: 13,
                             color: AppTheme.textPrimary.withOpacity(0.72),
@@ -287,11 +293,13 @@ class _SplashScreenState extends State<SplashScreen>
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             _SplashMiniShot(
-                              imagePath: 'assets/images/promo/hero_easy_booking.jpg',
+                              imagePath:
+                                  'assets/images/promo/hero_easy_booking.jpg',
                             ),
                             SizedBox(width: 10),
                             _SplashMiniShot(
-                              imagePath: 'assets/images/promo/hero_download.jpg',
+                              imagePath:
+                                  'assets/images/promo/hero_download.jpg',
                             ),
                             SizedBox(width: 10),
                             _SplashMiniShot(
