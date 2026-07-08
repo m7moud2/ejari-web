@@ -334,6 +334,22 @@ service cloud.firestore {
               resource.data.ownerId == request.auth.uid);
     }
 
+    function isNotificationRecipient() {
+      return signedIn() && resource.data.recipientId == request.auth.uid;
+    }
+
+    function validNotificationRecipientUpdate() {
+      return isNotificationRecipient() &&
+             changedOnly(['read', 'hidden', 'updatedAt']) &&
+             unchanged('recipientId') &&
+             unchanged('title') &&
+             unchanged('body') &&
+             unchanged('type') &&
+             unchanged('data') &&
+             unchanged('createdAt') &&
+             (unchanged('updatedAt') || isServerTimestamp('updatedAt'));
+    }
+
     // Public guests and tenants read approved listings only.
     // Owners can read their own listings regardless of review status.
     match /properties/{propertyId} {
@@ -392,6 +408,14 @@ service cloud.firestore {
     match /contracts/{contractId} {
       allow read: if isContractParty();
       allow create, update, delete: if false;
+    }
+
+    // Notifications are created by server/admin. Recipients may read and mark as read/hidden.
+    match /notifications/{notificationId} {
+      allow read: if isNotificationRecipient();
+      allow create: if false;
+      allow update: if validNotificationRecipientUpdate();
+      allow delete: if false;
     }
 
   }
