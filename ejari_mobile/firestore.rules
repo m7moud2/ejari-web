@@ -123,13 +123,54 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Properties
-    // Anyone authenticated can read approved properties
-    // Owners can create properties, and edit/delete their own
+    function isPropertyOwner() {
+      return signedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    function canReadProperty() {
+      return resource.data.status == 'approved' ||
+             (signedIn() && resource.data.ownerId == request.auth.uid);
+    }
+
+    function propertyCreateLockedFieldsAbsent() {
+      return !('isApproved' in request.resource.data) &&
+             !('isVerified' in request.resource.data) &&
+             !('isFeatured' in request.resource.data) &&
+             !('featuredUntil' in request.resource.data) &&
+             !('rejectionReason' in request.resource.data) &&
+             !('adminNotes' in request.resource.data);
+    }
+
+    function validPropertyCreate() {
+      return signedIn() &&
+             request.resource.data.ownerId == request.auth.uid &&
+             request.resource.data.status == 'pending' &&
+             propertyCreateLockedFieldsAbsent() &&
+             (!('createdAt' in request.resource.data) ||
+              isServerTimestamp('createdAt'));
+    }
+
+    function validPropertyOwnerUpdate() {
+      return isPropertyOwner() &&
+             unchanged('ownerId') &&
+             unchanged('status') &&
+             unchanged('isApproved') &&
+             unchanged('isVerified') &&
+             unchanged('isFeatured') &&
+             unchanged('featuredUntil') &&
+             unchanged('rejectionReason') &&
+             unchanged('adminNotes') &&
+             unchanged('createdAt') &&
+             (unchanged('updatedAt') || isServerTimestamp('updatedAt'));
+    }
+
+    // Public guests and tenants read approved listings only.
+    // Owners can read their own listings regardless of review status.
     match /properties/{propertyId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null && request.resource.data.ownerId == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.ownerId == request.auth.uid;
+      allow read: if canReadProperty();
+      allow create: if validPropertyCreate();
+      allow update: if validPropertyOwnerUpdate();
+      allow delete: if isPropertyOwner();
     }
 
     // Chats
