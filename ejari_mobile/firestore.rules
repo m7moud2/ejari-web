@@ -35,10 +35,92 @@ service cloud.firestore {
       return request.resource.data[field] == request.time;
     }
 
-    // Allow users to read all users (for chat names) but only write their own profile
+    function validUserCreateKeys() {
+      return hasOnly([
+        'name',
+        'email',
+        'phone',
+        'address',
+        'role',
+        'type',
+        'requestedRole',
+        'verificationStatus',
+        'createdAt',
+        'status'
+      ]);
+    }
+
+    function validUserCreateRoleFields() {
+      return (!('role' in request.resource.data) ||
+              request.resource.data.role == 'tenant') &&
+             (!('type' in request.resource.data) ||
+              request.resource.data.type == 'tenant') &&
+             (!('requestedRole' in request.resource.data) ||
+              request.resource.data.requestedRole in [
+                'tenant',
+                'owner',
+                'technician',
+                'company'
+              ]);
+    }
+
+    function requestedRoleNeedsApproval() {
+      return request.resource.data.requestedRole in [
+        'owner',
+        'technician',
+        'company'
+      ];
+    }
+
+    function validUserCreateVerificationStatus() {
+      return !('verificationStatus' in request.resource.data) ||
+             (requestedRoleNeedsApproval() &&
+              request.resource.data.verificationStatus == 'pending') ||
+             (!requestedRoleNeedsApproval() &&
+              request.resource.data.verificationStatus in ['verified', 'approved']);
+    }
+
+    function validUserCreateTimestamps() {
+      return !('createdAt' in request.resource.data) ||
+             isServerTimestamp('createdAt');
+    }
+
+    function validUserCreateStatus() {
+      return !('status' in request.resource.data) ||
+             request.resource.data.status == 'active';
+    }
+
+    function validUserCreate(userId) {
+      return isSelf(userId) &&
+             validUserCreateKeys() &&
+             validUserCreateRoleFields() &&
+             validUserCreateVerificationStatus() &&
+             validUserCreateTimestamps() &&
+             validUserCreateStatus();
+    }
+
+    function validUserUpdate(userId) {
+      return isSelf(userId) &&
+             changedOnly([
+               'name',
+               'phone',
+               'address',
+               'avatar',
+               'photoUrl',
+               'displayName',
+               'language',
+               'notificationPreferences',
+               'updatedAt'
+             ]) &&
+             (unchanged('updatedAt') || isServerTimestamp('updatedAt'));
+    }
+
+    // Users can only access their own private profile in this phase.
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isSelf(userId);
+      allow create: if validUserCreate(userId);
+      allow update: if validUserUpdate(userId);
+      allow delete: if false;
     }
 
     // Properties
