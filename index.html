@@ -409,13 +409,13 @@
             --landing-bg: #f6f1e8;
             --landing-bg-2: #fbf8f1;
             --landing-card: rgba(255, 255, 255, 0.94);
-            --landing-text: #32433d;
+            --landing-text: #1a2e28;
             --landing-muted: #5d746c;
-            --landing-primary: #4f7d70;
-            --landing-secondary: #88a996;
-            --landing-accent: #d8c3a5;
-            --landing-border: rgba(79, 125, 112, 0.12);
-            --landing-shadow: 0 20px 55px rgba(76, 92, 84, 0.10);
+            --landing-primary: #0F3A30;
+            --landing-secondary: #1a5244;
+            --landing-accent: #B58D3D;
+            --landing-border: rgba(15, 58, 48, 0.12);
+            --landing-shadow: 0 20px 55px rgba(15, 58, 48, 0.10);
         }
 
         body {
@@ -429,8 +429,9 @@
         .hero-enhanced {
             position: relative;
             overflow: hidden;
+            padding: 6rem 0 4rem;
             background:
-                linear-gradient(180deg, rgba(246, 241, 232, 0.76), rgba(251, 248, 241, 0.84)),
+                linear-gradient(180deg, rgba(246, 241, 232, 0.92), rgba(251, 248, 241, 0.96)),
                 url('images/promo/hero_building.jpg') center/cover no-repeat;
             color: var(--landing-text);
         }
@@ -604,34 +605,26 @@
     </script>
     <!-- Enhanced Hero Section for Business Pitch -->
     <section class="hero-enhanced">
-        <div class="container hero-content">
-            <h1>🔑 منصة إيجاري (Ejari) الفاخرة</h1>
-            <p class="subtitle">الحل العالمي المتكامل لحجز وإدارة العقارات والسيارات والخدمات</p>
-            <p class="tagline">
-                حول مكتبك العقاري إلى مؤسسة رقمية مع نظام أتمتة شامل:
-                <br>
-                تحصيل إيجارات إلكتروني • فواتير ضريبية آلية • إشعارات واتساب • عقود موحدة
+        <div class="container hero-content" style="text-align: center; max-width: 760px;">
+            <p style="color: var(--landing-accent); font-weight: 800; margin-bottom: 0.75rem; letter-spacing: 0.02em;">إيجاري Ejari</p>
+            <h1 style="font-size: clamp(2rem, 5vw, 2.75rem); line-height: 1.25; margin-bottom: 1rem;">سكن أوضح. دفع أأمن. عقد أصدق.</h1>
+            <p class="subtitle" style="font-size: 1.1rem; color: var(--landing-muted); margin-bottom: 0.75rem;">
+                منصة إيجار تساعد المستأجر والمالك على التعامل بثقة — من البحث والمعاينة إلى العقد والدفع.
             </p>
 
-            <!-- Search Box -->
             <div class="search-box"
-                style="background: rgba(255, 255, 255, 0.03); padding: 1.25rem; border-radius: 8px; max-width: 700px; margin: 2.5rem auto; display: flex; gap: 1rem; border: 1px solid rgba(255, 255, 255, 0.06); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); animation: fadeInUp 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) 0.8s backwards;">
-                <input type="text" placeholder="ابحث عن منطقة، عنوان، أو نوع عقار..."
-                    style="flex: 1; padding: 0.75rem 1.25rem; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 6px; font-size: 0.95rem; color: white; background: rgba(0, 0, 0, 0.2); outline: none; transition: border-color 0.3s;"
-                    onfocus="this.style.borderColor='var(--elite-gold)'" onblur="this.style.borderColor='rgba(255, 255, 255, 0.1)'">
-                <button class="btn"
-                    style="padding: 0.75rem 1.5rem; border: 1px solid rgba(255, 255, 255, 0.1); background: transparent; color: #e5e7eb; border-radius: 6px; cursor: pointer; font-weight: 500; transition: all 0.3s; white-space: nowrap;">
-                    <i class="fas fa-filter" style="color: var(--elite-gold);"></i> فلترة
-                </button>
+                style="background: #fff; padding: 0.5rem; border-radius: 16px; max-width: 640px; margin: 2rem auto; display: flex; gap: 0.5rem; border: 1px solid var(--landing-border); box-shadow: var(--landing-shadow);">
+                <input type="text" placeholder="ابحث عن منطقة أو نوع عقار..."
+                    style="flex: 1; padding: 0.85rem 1rem; border: none; border-radius: 12px; font-size: 0.95rem; color: var(--landing-text); background: transparent; outline: none;">
                 <button class="btn btn-primary"
-                    style="padding: 0.75rem 2.25rem; background: var(--elite-gold); color: var(--elite-navy); border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s; white-space: nowrap;">
+                    style="padding: 0.85rem 1.75rem; background: var(--landing-primary); color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; white-space: nowrap;">
                     <i class="fas fa-search"></i> بحث
                 </button>
             </div>
 
             <div class="cta-buttons">
-                <a href="#features" class="btn-hero btn-hero-primary">اكتشف المزايا</a>
-                <a href="#stats" class="btn-hero btn-hero-secondary">شاهد الإحصائيات</a>
+                <a href="signup.html" class="btn-hero btn-hero-primary">ابدأ الآن</a>
+                <a href="properties.html" class="btn-hero btn-hero-secondary">تصفح العقارات</a>
             </div>
         </div>
     </section>
@@ -1225,6 +1218,7 @@
     <script src="js/auto-translator.js"></script>
     <script src="js/localization.js"></script>
     <script src="js/session.js"></script>
+    <script src="js/api-integrations.js"></script>
     <script src="js/main.js"></script>
     <script src="js/bookingModal.js"></script>
     <script src="js/search.js"></script>
