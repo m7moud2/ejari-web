@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import '../services/auth_service.dart';
+import '../widgets/ejari_auth_header.dart';
 import '../widgets/image_upload_widget.dart';
-import 'enhanced_owner_home_screen.dart';
-import 'provider_home_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   final String? redirectToRole;
@@ -19,7 +18,7 @@ class SignupScreen extends StatefulWidget {
 class _SignupScreenState extends State<SignupScreen> {
   final PageController _pageController = PageController();
   int _currentStep = 0;
-  final int _totalSteps = 3;
+  final int _totalSteps = 2;
   final _formKey = GlobalKey<FormState>();
 
   // Controllers
@@ -70,11 +69,12 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  Future<void> _submit() async {
-    if (_nationalIdImage == null || _selfieImage == null) {
+  Future<void> _submit({bool skipVerification = false}) async {
+    if (!skipVerification &&
+        (_nationalIdImage == null || _selfieImage == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('يرجى رفع صور الهوية لإتمام توثيق العضوية')),
+            content: Text('يرجى رفع صور الهوية أو اضغط تخطي الآن')),
       );
       return;
     }
@@ -82,19 +82,22 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await AuthService.signUp({
+      final payload = <String, dynamic>{
         'name': _nameController.text,
         'email': _emailController.text,
         'phone': _phoneController.text,
         'password': _passwordController.text,
         'type': _userType,
         'isVerified': false,
-        'documents': {
+      };
+      if (!skipVerification) {
+        payload['documents'] = {
           'nationalId': _nationalIdImage,
           'selfie': _selfieImage,
           'proof': _proofImage,
-        }
-      });
+        };
+      }
+      await AuthService.signUp(payload);
 
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -158,16 +161,14 @@ class _SignupScreenState extends State<SignupScreen> {
                     Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                const EnhancedOwnerHomeScreen()),
+                            builder: (context) => const HomeScreen()),
                         (route) => false);
                   } else if (roleToApply == 'provider') {
                     if (!mounted) return;
                     Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>
-                                const ServiceProviderHomeScreen()),
+                            builder: (context) => const HomeScreen()),
                         (route) => false);
                   } else {
                     if (!mounted) return;
@@ -225,13 +226,21 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(18, 6, 18, 18),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _buildSignupHero(),
-                        const SizedBox(height: 16),
+                        EjariAuthHeader(
+                          title: _currentStep == 0
+                              ? 'إنشاء حساب'
+                              : 'توثيق الهوية',
+                          subtitle: _currentStep == 0
+                              ? 'أدخل بياناتك واختر نوع الحساب'
+                              : 'ارفع المستندات الآن أو أكملها لاحقاً',
+                        ),
+                        const SizedBox(height: 20),
                         _buildLinearProgress(),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 16),
                         SizedBox(
-                          height: constraints.maxHeight * 0.74,
+                          height: constraints.maxHeight * 0.62,
                           child: PageView(
                             controller: _pageController,
                             physics: const NeverScrollableScrollPhysics(),
@@ -240,7 +249,6 @@ class _SignupScreenState extends State<SignupScreen> {
                             children: [
                               _buildStep1(),
                               _buildStep2(),
-                              _buildStep3(),
                             ],
                           ),
                         ),
@@ -257,169 +265,22 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Widget _buildSignupHero() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.92),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: AppTheme.borderColor.withOpacity(0.42)),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryColor.withOpacity(0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: Stack(
-              children: [
-                SizedBox(
-                  height: 150,
-                  width: double.infinity,
-                  child: Image.asset(
-                    'assets/images/promo/hero_building.jpg',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          AppTheme.primaryColor.withOpacity(0.18),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 14,
-                  left: 14,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.90),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: const Text(
-                      'إيجاري',
-                      style: TextStyle(
-                        color: AppTheme.primaryColor,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: 14,
-                  bottom: 14,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.textPrimary.withOpacity(0.60),
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: const Text(
-                      'سجّل حسابك وابدأ',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Container(
-                width: 62,
-                height: 62,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppTheme.surfaceColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border:
-                      Border.all(color: AppTheme.borderColor.withOpacity(0.45)),
-                ),
-                child: Image.asset(
-                  'assets/images/app_icon.png',
-                  fit: BoxFit.contain,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'إنشاء حساب جديد',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        color: AppTheme.textPrimary,
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'بنفس الهدوء والوضوح اللي في الواجهة الرئيسية.',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        color: AppTheme.textSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildLinearProgress() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.80),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppTheme.borderColor.withOpacity(0.32)),
-      ),
-      child: Row(
-        children: List.generate(_totalSteps, (index) {
-          final isActive = index <= _currentStep;
-          return Expanded(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: EdgeInsets.only(right: index < _totalSteps - 1 ? 8 : 0),
-              height: 6,
-              decoration: BoxDecoration(
-                color:
-                    isActive ? AppTheme.primaryColor : AppTheme.backgroundColor,
-                borderRadius: BorderRadius.circular(999),
-              ),
+    return Row(
+      children: List.generate(_totalSteps, (index) {
+        final isActive = index <= _currentStep;
+        return Expanded(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            margin: EdgeInsets.only(right: index < _totalSteps - 1 ? 8 : 0),
+            height: 4,
+            decoration: BoxDecoration(
+              color: isActive ? AppTheme.primaryColor : AppTheme.borderColor,
+              borderRadius: BorderRadius.circular(999),
             ),
-          );
-        }),
-      ),
+          ),
+        );
+      }),
     );
   }
 
@@ -429,27 +290,13 @@ class _SignupScreenState extends State<SignupScreen> {
       required Widget child}) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 10.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(title,
-                style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    color: AppTheme.primaryColor)),
-          ),
-          const SizedBox(height: 8),
           Text(subtitle,
               style: const TextStyle(
-                  fontSize: 14, color: AppTheme.primaryColor, height: 1.5)),
-          const SizedBox(height: 40),
+                  fontSize: 13, color: AppTheme.textSecondary, height: 1.4)),
+          const SizedBox(height: 20),
           child,
         ],
       ),
@@ -458,8 +305,8 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Widget _buildStep1() {
     return _buildStepContainer(
-      title: 'بيانات حسابك',
-      subtitle: 'أدخل معلوماتك الشخصية للبدء في تجهيز ملفك',
+      title: 'بيانات الحساب',
+      subtitle: 'معلوماتك الأساسية ونوع الاستخدام',
       child: Form(
         key: _formKey,
         child: Column(
@@ -468,24 +315,30 @@ class _SignupScreenState extends State<SignupScreen> {
                 controller: _nameController,
                 label: 'الاسم الكامل',
                 icon: Icons.person_outline),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             _buildMinimalTextField(
                 controller: _emailController,
                 label: 'البريد الإلكتروني',
                 icon: Icons.email_outlined,
                 isEmail: true),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             _buildMinimalTextField(
                 controller: _phoneController,
                 label: 'رقم الهاتف',
                 icon: Icons.phone_outlined,
                 isPhone: true),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             _buildMinimalTextField(
                 controller: _passwordController,
-                label: 'كلمة المرور الآمنة',
+                label: 'كلمة المرور',
                 icon: Icons.lock_outline,
                 isPassword: true),
+            const SizedBox(height: 24),
+            _buildTypeCard('tenant', 'مستأجر',
+                'ابحث واحجز وادفع بأمان', Icons.key_rounded),
+            const SizedBox(height: 12),
+            _buildTypeCard('owner', 'مالك عقار',
+                'انشر وتابع حجوزاتك', Icons.domain_rounded),
           ],
         ),
       ),
@@ -494,67 +347,45 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Widget _buildStep2() {
     return _buildStepContainer(
-      title: 'تحديد الهوية',
-      subtitle: 'كيف تنوي استخدام إيجاري؟',
-      child: Column(
-        children: [
-          _buildTypeCard('tenant', 'عميل (مستأجر)',
-              'استأجر واستكشف أرقى العقارات', Icons.key_rounded),
-          const SizedBox(height: 16),
-          _buildTypeCard('owner', 'مستثمر (مالك)', 'أدر محفظتك العقارية بذكاء',
-              Icons.domain_rounded),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStep3() {
-    return _buildStepContainer(
-      title: 'التوثيق القانوني',
-      subtitle: 'حماية هويتك والحفاظ على مجتمع آمن وموثوق',
+      title: 'التوثيق',
+      subtitle: 'اختياري — يمكنك إكماله من الملف الشخصي',
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(16)),
+              color: AppTheme.primaryColor.withOpacity(0.06),
+              borderRadius: BorderRadius.circular(14),
+            ),
             child: const Row(
               children: [
-                Icon(Icons.shield_rounded,
-                    color: AppTheme.primaryColor, size: 28),
-                SizedBox(width: 16),
+                Icon(Icons.shield_outlined,
+                    color: AppTheme.primaryColor, size: 22),
+                SizedBox(width: 12),
                 Expanded(
-                    child: Text(
-                        'جميع البيانات والمستندات مشفرة بالكامل ولا يتم مشاركتها بموجب قانون السرية.',
-                        style: TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.textPrimary,
-                            height: 1.5))),
+                  child: Text(
+                    'المستندات مشفرة ولا تُشارك إلا للتحقق من الهوية.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppTheme.textSecondary,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
           ImageUploadWidget(
               label: 'بطاقة الهوية (الوجه الأمامي)',
               icon: Icons.badge_outlined,
               onImageSelected: (path) =>
                   setState(() => _nationalIdImage = path)),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           ImageUploadWidget(
-              label: 'توثيق الحضور (سيلفي حي)',
+              label: 'صورة سيلفي',
               icon: Icons.face_rounded,
               onImageSelected: (path) => setState(() => _selfieImage = path)),
-          const SizedBox(height: 20),
-          ImageUploadWidget(
-            label: _userType == 'owner'
-                ? 'صك ملكية (اختياري لتوثيق الثقة)'
-                : 'إثبات دخل (اختياري للإسراع)',
-            icon: _userType == 'owner'
-                ? Icons.description_outlined
-                : Icons.account_balance_wallet_outlined,
-            onImageSelected: (path) => setState(() => _proofImage = path),
-          ),
         ],
       ),
     );
@@ -569,34 +400,27 @@ class _SignupScreenState extends State<SignupScreen> {
         duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryColor : Colors.white,
+          color: isSelected ? AppTheme.primaryColor : AppTheme.surfaceColor,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
-            color: isSelected
-                ? AppTheme.primaryColor
-                : AppTheme.borderColor.withOpacity(0.44),
+            color: isSelected ? AppTheme.primaryColor : Colors.transparent,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                      color: AppTheme.primaryColor.withOpacity(0.22),
-                      blurRadius: 18,
-                      offset: const Offset(0, 10))
-                ]
-              : [
-                  BoxShadow(
-                      color: AppTheme.primaryColor.withOpacity(0.04),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6))
-                ],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color:
-                    isSelected ? Colors.white.withOpacity(0.2) : Colors.white,
+                color: isSelected
+                    ? Colors.white.withOpacity(0.2)
+                    : AppTheme.primaryColor.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon,
@@ -621,7 +445,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           fontSize: 12,
                           color: isSelected
                               ? Colors.white70
-                              : AppTheme.primaryColor)),
+                              : AppTheme.textSecondary)),
                 ],
               ),
             ),
@@ -650,31 +474,18 @@ class _SignupScreenState extends State<SignupScreen> {
           : (isPhone ? TextInputType.phone : TextInputType.text),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: AppTheme.primaryColor),
-        prefixIcon: Icon(icon, color: AppTheme.primaryColor, size: 22),
+        prefixIcon: Icon(icon, size: 22),
         suffixIcon: isPassword
             ? IconButton(
                 icon: Icon(
                     _isPasswordVisible
                         ? Icons.visibility_off_rounded
                         : Icons.visibility_rounded,
-                    color: AppTheme.primaryColor,
                     size: 20),
                 onPressed: () =>
                     setState(() => _isPasswordVisible = !_isPasswordVisible),
               )
             : null,
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(18),
-            borderSide:
-                BorderSide(color: AppTheme.borderColor.withOpacity(0.42))),
-        focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(18),
-            borderSide:
-                const BorderSide(color: AppTheme.primaryColor, width: 1.5)),
-        contentPadding: const EdgeInsets.symmetric(vertical: 20),
       ),
       validator: (value) =>
           (value == null || value.isEmpty) ? 'مطلوب إكمال هذا الحقل' : null,
@@ -682,50 +493,54 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Widget _buildBottomAction() {
+    final isLastStep = _currentStep == _totalSteps - 1;
     return SafeArea(
       top: false,
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(18, 12, 18, 18),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.94),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppTheme.borderColor.withOpacity(0.38)),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.primaryColor.withOpacity(0.08),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isLastStep)
+              TextButton(
+                onPressed: _isLoading ? null : () => _submit(skipVerification: true),
+                child: const Text('تخطي الآن — أكمل التوثيق لاحقاً'),
+              ),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _isLoading
+                    ? null
+                    : () {
+                        if (isLastStep) {
+                          _submit();
+                        } else {
+                          _nextStep();
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14)),
+                  elevation: 0,
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2))
+                    : Text(
+                        isLastStep ? 'إنشاء الحساب' : 'متابعة',
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
+              ),
             ),
           ],
-        ),
-        child: SizedBox(
-          width: double.infinity,
-          height: 56,
-          child: ElevatedButton(
-            onPressed: _isLoading ? null : _nextStep,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18)),
-              elevation: 0,
-            ),
-            child: _isLoading
-                ? const SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: CircularProgressIndicator(
-                        color: Colors.white, strokeWidth: 2))
-                : Text(
-                    _currentStep == _totalSteps - 1
-                        ? 'إتمام التسجيل وإرسال للمراجعة'
-                        : 'المتابعة',
-                    style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
-                  ),
-          ),
         ),
       ),
     );

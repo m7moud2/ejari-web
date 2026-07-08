@@ -21,19 +21,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     {
       'title': 'اختار مكانك بثقة',
       'body':
-          'شوف التفاصيل المهمة، الصور، السعر، والموقع، وحالة التوفر قبل ما تضيع وقتك في زيارات غير مناسبة.',
+          'تفاصيل واضحة عن السعر والموقع والتوفر قبل ما تزور أي وحدة.',
       'icon': Icons.home_work_outlined,
     },
     {
-      'title': 'اعرف العربون قبل ما تدفع',
+      'title': 'عربون واضح قبل الدفع',
       'body':
-          'المعاينة أو الحجز يتم بعربون واضح، واستكمال المبلغ أو استرداده يكون مفهومًا ومعلنًا من البداية.',
+          'تعرف المبلغ المطلوب الآن والمتبقي قبل أي التزام.',
       'icon': Icons.event_available_outlined,
     },
     {
       'title': 'عقد وصيانة في مكان واحد',
       'body':
-          'بعد السكن، تقدر تتابع العقود والمدفوعات وطلبات الصيانة من نفس التطبيق من غير لف ودوران.',
+          'تابع العقود والمدفوعات وطلبات الصيانة من نفس التطبيق.',
       'icon': Icons.verified_user_outlined,
     },
   ];
@@ -44,9 +44,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _goTo(Widget screen, {bool markSeen = true}) async {
-    if (markSeen) {
-      await _setOnboardingSeen();
-    }
+    if (markSeen) await _setOnboardingSeen();
     if (!mounted) return;
     Navigator.pushReplacement(
       context,
@@ -63,10 +61,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await _goTo(const HomeScreen());
   }
 
-  Future<void> _goToLogin() async => _goTo(const LoginScreen());
-
-  Future<void> _goToSignup() async => _goTo(const SignupScreen());
-
   @override
   void dispose() {
     _pageController.dispose();
@@ -82,12 +76,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         elevation: 0,
         actions: [
           TextButton(
-            onPressed: _goToLogin,
+            onPressed: () => _goTo(const LoginScreen()),
             child: const Text('تخطي',
                 style: TextStyle(
                     color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
         ],
       ),
       body: Column(
@@ -96,288 +90,113 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: PageView.builder(
               controller: _pageController,
               onPageChanged: (index) => setState(() => _currentPage = index),
-              physics: const BouncingScrollPhysics(),
               itemCount: _pages.length,
               itemBuilder: (context, index) {
-                return SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 18),
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 520),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.92),
-                            borderRadius: BorderRadius.circular(32),
-                            border: Border.all(
-                              color: AppTheme.borderColor.withOpacity(0.38),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.primaryColor.withOpacity(0.08),
-                                blurRadius: 26,
-                                offset: const Offset(0, 12),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(26),
-                                child: Stack(
-                                  children: [
-                                    Image.asset(
-                                      index == 0
-                                          ? 'assets/images/promo/hero_intro.jpg'
-                                          : index == 1
-                                              ? 'assets/images/promo/hero_easy_booking.jpg'
-                                              : 'assets/images/promo/hero_reviews.jpg',
-                                      height: 180,
-                                      width: double.infinity,
-                                      fit: BoxFit.cover,
-                                    ),
-                                    Positioned.fill(
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: [
-                                              Colors.transparent,
-                                              AppTheme.primaryColor
-                                                  .withOpacity(0.20),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      top: 14,
-                                      left: 14,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.90),
-                                          borderRadius:
-                                              BorderRadius.circular(999),
-                                        ),
-                                        child: const Text(
-                                          'إيجاري',
-                                          style: TextStyle(
-                                            color: AppTheme.primaryColor,
-                                            fontWeight: FontWeight.w900,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      right: 14,
-                                      bottom: 14,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12, vertical: 8),
-                                        decoration: BoxDecoration(
-                                          color: AppTheme.textPrimary
-                                              .withOpacity(0.62),
-                                          borderRadius:
-                                              BorderRadius.circular(18),
-                                        ),
-                                        child: const Text(
-                                          'رحلة واضحة • تصميم هادئ',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 18),
-                              Container(
-                                padding: const EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.backgroundColor
-                                      .withOpacity(0.45),
-                                  borderRadius: BorderRadius.circular(22),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      width: 86,
-                                      height: 86,
-                                      padding: const EdgeInsets.all(14),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(26),
-                                        border: Border.all(
-                                          color: AppTheme.borderColor
-                                              .withOpacity(0.45),
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        _pages[index]['icon'] as IconData,
-                                        size: 38,
-                                        color: AppTheme.primaryColor,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 18),
-                                    Text(
-                                      _pages[index]['title'] as String,
-                                      style: const TextStyle(
-                                        fontSize: 26,
-                                        fontWeight: FontWeight.w900,
-                                        color: AppTheme.textPrimary,
-                                        height: 1.2,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      _pages[index]['body'] as String,
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        height: 1.9,
-                                        color: AppTheme.textSecondary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                final page = _pages[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 88,
+                        height: 88,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Icon(
+                          page['icon'] as IconData,
+                          size: 40,
+                          color: AppTheme.primaryColor,
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 32),
+                      Text(
+                        page['title'] as String,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.textPrimary,
+                          height: 1.25,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        page['body'] as String,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          height: 1.6,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.92),
-                borderRadius: BorderRadius.circular(26),
-                border:
-                    Border.all(color: AppTheme.borderColor.withOpacity(0.36)),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: List.generate(
-                      _pages.length,
-                      (index) => AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.only(left: 6),
-                        height: 6,
-                        width: _currentPage == index ? 26 : 6,
-                        decoration: BoxDecoration(
-                          color: _currentPage == index
-                              ? AppTheme.primaryColor
-                              : AppTheme.primaryColor.withOpacity(0.20),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    _pages.length,
+                    (index) => AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      height: 6,
+                      width: _currentPage == index ? 24 : 6,
+                      decoration: BoxDecoration(
+                        color: _currentPage == index
+                            ? AppTheme.primaryColor
+                            : AppTheme.borderColor,
+                        borderRadius: BorderRadius.circular(999),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 14),
-                  if (_currentPage != _pages.length - 1)
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          _pageController.nextPage(
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.easeInOutCubic,
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.primaryColor,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text('التالي',
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white)),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_forward_ios_rounded,
-                                color: Colors.white, size: 16)
-                          ],
-                        ),
+                ),
+                const SizedBox(height: 20),
+                if (_currentPage != _pages.length - 1)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: () => _pageController.nextPage(
+                        duration: const Duration(milliseconds: 350),
+                        curve: Curves.easeOut,
                       ),
-                    )
-                  else ...[
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: _continueAsGuest,
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              side: const BorderSide(
-                                  color: AppTheme.primaryColor),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18),
-                              ),
-                            ),
-                            child: const Text('تصفح كزائر',
-                                style: TextStyle(
-                                    color: AppTheme.primaryColor,
-                                    fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: _goToSignup,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primaryColor,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(18),
-                              ),
-                            ),
-                            child: const Text('إنشاء حساب',
-                                style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white)),
-                          ),
-                        ),
-                      ],
+                      child: const Text('التالي'),
                     ),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: _goToLogin,
-                      child: const Text('لدي حساب بالفعل',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.textSecondary)),
+                  )
+                else ...[
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: () => _goTo(const SignupScreen()),
+                      child: const Text('إنشاء حساب'),
                     ),
-                  ],
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: OutlinedButton(
+                      onPressed: _continueAsGuest,
+                      child: const Text('تصفح كزائر'),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => _goTo(const LoginScreen()),
+                    child: const Text('لدي حساب بالفعل'),
+                  ),
                 ],
-              ),
+              ],
             ),
           ),
         ],

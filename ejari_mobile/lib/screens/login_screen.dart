@@ -4,13 +4,11 @@ import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'signup_screen.dart';
-import 'admin_home_screen.dart';
 import 'forgot_password_screen.dart';
 import '../services/auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'enhanced_owner_home_screen.dart';
-import 'provider_home_screen.dart';
 import '../config/app_config.dart';
+import '../widgets/ejari_auth_header.dart';
 
 class LoginScreen extends StatefulWidget {
   final String? redirectToRole;
@@ -28,6 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
   bool _isLoading = false;
+  bool _showMoreOptions = false;
   final LocalAuthentication _localAuth = LocalAuthentication();
 
   Future<void> _authenticate() async {
@@ -86,15 +85,9 @@ class _LoginScreenState extends State<LoginScreen> {
           return;
         }
 
-        Widget destination = const HomeScreen();
-        if (role == 'provider') {
-          destination = const ServiceProviderHomeScreen();
-        } else if (role == 'owner') {
-          destination = const EnhancedOwnerHomeScreen();
-        }
         if (!mounted) return;
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => destination));
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()));
       }
     }
   }
@@ -136,15 +129,9 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      Widget destination = const HomeScreen();
-      if (role == 'provider') {
-        destination = const ServiceProviderHomeScreen();
-      } else if (role == 'owner') {
-        destination = const EnhancedOwnerHomeScreen();
-      }
       if (!mounted) return;
       navigator.pushReplacement(
-          MaterialPageRoute(builder: (context) => destination));
+          MaterialPageRoute(builder: (context) => const HomeScreen()));
     }
   }
 
@@ -196,101 +183,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 10),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.86),
-                            borderRadius: BorderRadius.circular(28),
-                            border: Border.all(
-                              color: AppTheme.borderColor.withOpacity(0.32),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.primaryColor.withOpacity(0.08),
-                                blurRadius: 26,
-                                offset: const Offset(0, 10),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(22),
-                            child: Stack(
-                              children: [
-                                Image.asset(
-                                  'assets/images/promo/hero_building.jpg',
-                                  height: 150,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                ),
-                                Positioned.fill(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Colors.transparent,
-                                          AppTheme.primaryColor
-                                              .withOpacity(0.22),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 14,
-                                  right: 14,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.88),
-                                      borderRadius: BorderRadius.circular(999),
-                                    ),
-                                    child: const Text(
-                                      'واجهة هادئة ومتناسقة',
-                                      style: TextStyle(
-                                        color: AppTheme.primaryColor,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const Positioned(
-                                  left: 14,
-                                  bottom: 14,
-                                  child: _LoginHeroTag(
-                                    text: 'تجربة أقرب للصور الجديدة',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                        const EjariAuthHeader(
+                          title: 'مرحباً بعودتك',
+                          subtitle: 'سجّل الدخول لمتابعة حجوزاتك وعقودك',
                         ),
-                        const SizedBox(height: 22),
-                        const Text(
-                          'تسجيل الدخول',
-                          style: TextStyle(
-                            fontSize: 34,
-                            fontWeight: FontWeight.w900,
-                            color: AppTheme.primaryColor,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'ابدأ رحلتك: بحث، حجز، عقد، وصيانة من مكان واحد — بنفس روح التصميم الهادئ والهوية الموحدة',
-                          style: TextStyle(
-                              fontSize: 15,
-                              color: AppTheme.textSecondary,
-                              height: 1.5),
-                        ),
-                        const SizedBox(height: 50),
-
-                        // Minimalist Email Field
+                        const SizedBox(height: 32),
                         _buildMinimalTextField(
                           controller: _emailController,
                           label: 'البريد الإلكتروني',
@@ -364,35 +261,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                             navigator.pop(true);
                                             return;
                                           }
-
-                                          if (widget.redirectToRole ==
-                                                  'provider' ||
-                                              user['type'] == 'provider' ||
-                                              user['role'] == 'provider') {
-                                            navigator.pushReplacement(
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const ServiceProviderHomeScreen()));
-                                          } else if (widget.redirectToRole ==
-                                                  'owner' ||
-                                              user['type'] == 'owner' ||
-                                              user['role'] == 'owner') {
-                                            navigator.pushReplacement(
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const EnhancedOwnerHomeScreen()));
-                                          } else if (user['type'] == 'admin' ||
-                                              user['role'] == 'admin') {
-                                            navigator.pushReplacement(
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const AdminHomeScreen()));
-                                          } else {
-                                            navigator.pushReplacement(
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const HomeScreen()));
-                                          }
+                                          navigator.pushReplacement(
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const HomeScreen()));
                                         }
                                       } catch (e) {
                                         setState(() => _isLoading = false);
@@ -423,54 +295,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                         color: Colors.white)),
                           ),
                         ),
-                        const SizedBox(height: 48),
-
-                        SizedBox(
-                          width: double.infinity,
-                          height: 52,
-                          child: OutlinedButton(
-                            onPressed: _isLoading ? null : _loginAsVisitor,
-                            child: const Text(
-                              'الدخول كزائر',
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 18),
-
-                        // Minimalist Social Login
-                        const Center(
-                          child: Text('أو المتابعة باستخدام',
-                              style: TextStyle(
-                                  color: AppTheme.textSecondary, fontSize: 13)),
-                        ),
                         const SizedBox(height: 24),
                         Wrap(
                           alignment: WrapAlignment.center,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            _buildSocialCircularButton(
-                                Icons.g_mobiledata_rounded,
-                                onTap: _signInWithGoogle),
-                            const SizedBox(width: 24),
-                            _buildSocialCircularButton(Icons.apple),
-                            const SizedBox(width: 24),
-                            _buildSocialCircularButton(
-                                Icons.fingerprint_rounded,
-                                onTap: _authenticate,
-                                isPrimary: true),
-                          ],
-                        ),
-                        const SizedBox(height: 60),
-
-                        // Sign Up Link
-                        Wrap(
-                          alignment: WrapAlignment.center,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
                             const Text('مستخدم جديد؟',
-                                style: TextStyle(color: AppTheme.primaryColor)),
+                                style: TextStyle(color: AppTheme.textSecondary)),
                             TextButton(
                               onPressed: () {
                                 Navigator.push(
@@ -486,29 +317,79 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 30),
-
-                        if (AppConfig.demoMode)
-                          Center(
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppTheme.surfaceColor,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: AppTheme.accentColor.withOpacity(0.55),
-                                ),
-                              ),
-                              child: const Text(
-                                'للتجربة فقط: الحسابات الجاهزة تساعدك على استكشاف التطبيق بسرعة.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                    fontSize: 10,
+                        const SizedBox(height: 8),
+                        InkWell(
+                          onTap: () => setState(
+                              () => _showMoreOptions = !_showMoreOptions),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                vertical: 10, horizontal: 4),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  _showMoreOptions
+                                      ? 'إخفاء الخيارات'
+                                      : 'خيارات إضافية',
+                                  style: const TextStyle(
                                     color: AppTheme.textSecondary,
-                                    height: 1.5),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Icon(
+                                  _showMoreOptions
+                                      ? Icons.expand_less_rounded
+                                      : Icons.expand_more_rounded,
+                                  color: AppTheme.textSecondary,
+                                  size: 20,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (_showMoreOptions) ...[
+                          const SizedBox(height: 8),
+                          OutlinedButton.icon(
+                            onPressed: _signInWithGoogle,
+                            icon: const Icon(Icons.g_mobiledata_rounded, size: 26),
+                            label: const Text('Google'),
+                          ),
+                          const SizedBox(height: 10),
+                          OutlinedButton.icon(
+                            onPressed: _authenticate,
+                            icon: const Icon(Icons.fingerprint_rounded, size: 22),
+                            label: const Text('البصمة / الوجه'),
+                          ),
+                          const SizedBox(height: 10),
+                          TextButton(
+                            onPressed: _isLoading ? null : _loginAsVisitor,
+                            child: const Text('الدخول كزائر'),
+                          ),
+                        ],
+                        if (AppConfig.demoMode) ...[
+                          const SizedBox(height: 16),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceColor,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: AppTheme.accentColor.withOpacity(0.4),
+                              ),
+                            ),
+                            child: const Text(
+                              'وضع التجربة: استخدم الحسابات الجاهزة للاستكشاف.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppTheme.textSecondary,
+                                height: 1.4,
                               ),
                             ),
                           ),
+                        ],
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -535,36 +416,18 @@ class _LoginScreenState extends State<LoginScreen> {
       keyboardType: isEmail ? TextInputType.emailAddress : TextInputType.text,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: AppTheme.primaryColor),
-        prefixIcon: Icon(icon, color: AppTheme.primaryColor, size: 22),
+        prefixIcon: Icon(icon, size: 22),
         suffixIcon: isPassword
             ? IconButton(
                 icon: Icon(
                     _isPasswordVisible
                         ? Icons.visibility_off
                         : Icons.visibility,
-                    color: AppTheme.primaryColor,
                     size: 20),
                 onPressed: () =>
                     setState(() => _isPasswordVisible = !_isPasswordVisible),
               )
             : null,
-        filled: true,
-        fillColor: AppTheme.backgroundColor,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide:
-              const BorderSide(color: AppTheme.primaryColor, width: 1.5),
-        ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 20),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) return 'هذا الحقل مطلوب';
@@ -573,6 +436,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // ignore: unused_element
   Widget _buildSocialCircularButton(IconData icon,
       {VoidCallback? onTap, bool isPrimary = false}) {
     return GestureDetector(
@@ -593,30 +457,6 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Icon(icon,
             size: 28,
             color: isPrimary ? AppTheme.primaryColor : AppTheme.textPrimary),
-      ),
-    );
-  }
-}
-
-class _LoginHeroTag extends StatelessWidget {
-  final String text;
-  const _LoginHeroTag({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppTheme.textPrimary.withOpacity(0.62),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 10.5,
-          fontWeight: FontWeight.w800,
-        ),
       ),
     );
   }
