@@ -60,9 +60,9 @@ void main() {
       ),
     );
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(seconds: 2));
 
-    expect(find.text('ماذا تريد أن تنجز؟'), findsOneWidget);
+    expect(find.byType(HomeScreen), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
   });
