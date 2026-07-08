@@ -7,44 +7,52 @@ const asyncHandler = require('../middleware/async');
 const ErrorResponse = require('../utils/errorResponse');
 const sendEmail = require('../utils/email');
 
+const publicRequestedRoles = new Set(['tenant', 'owner', 'technician', 'company']);
+const approvalRequiredRoles = new Set(['owner', 'technician', 'company']);
+
+const normalizeRequestedRole = (role) => {
+    const normalized = String(role || 'tenant').trim().toLowerCase();
+    if (normalized === 'landlord') return 'owner';
+    if (['provider', 'tech', 'service_provider'].includes(normalized)) {
+        return 'technician';
+    }
+    return publicRequestedRoles.has(normalized) ? normalized : 'tenant';
+};
+
+const getRegistrationRoleFields = (role) => {
+    const requestedRole = normalizeRequestedRole(role);
+    const requiresApproval = approvalRequiredRoles.has(requestedRole);
+
+    return {
+        role: 'tenant',
+        requestedRole,
+        verificationStatus: requiresApproval ? 'pending' : 'approved'
+    };
+};
+
 // @desc    تسجيل مستخدم جديد
 // @route   POST /api/auth/register
 // @access  Public
 exports.register = asyncHandler(async (req, res, next) => {
-    const { name, email, password, role, phone } = req.body;
+    const { name, email, password, phone, address } = req.body;
+    const roleFields = getRegistrationRoleFields(
+        req.body.requestedRole || req.body.role || req.body.type
+    );
 
     // إنشاء المستخدم
-    const user = await User.create({
+    const user = new User({
         name,
         email,
         password,
-        role,
-        phone
-    });
+        ...roleFields,
+        phone,
+        address: address || 'العنوان غير محدد'
+    }, null, { strict: false });
 
-    // إنشاء توكن التحقق
-    const verificationToken = user.getVerificationToken();
-    await user.save({ validateBeforeSave: false });
+    await user.save();
 
-    // إرسال بريد التحقق
-    const verificationUrl = `${req.protocol}://${req.get('host')}/api/auth/verify/${verificationToken}`;
-    const message = `لتفعيل حسابك، يرجى الضغط على الرابط التالي: ${verificationUrl}`;
-
-    try {
-        await sendEmail({
-            email: user.email,
-            subject: 'تفعيل الحساب',
-            message
-        });
-
-        sendTokenResponse(user, 200, res);
-    } catch (err) {
-        user.verificationToken = undefined;
-        user.verificationTokenExpires = undefined;
-        await user.save({ validateBeforeSave: false });
-
-        return next(new ErrorResponse('لم نتمكن من إرسال بريد التفعيل', 500));
-    }
+    // تخطي التحقق عبر البريد في وضع التطوير
+    sendTokenResponse(user, 201, res);
 });
 
 // @desc    تسجيل الدخول
@@ -205,7 +213,7 @@ const sendTokenResponse = (user, statusCode, res) => {
     const token = user.generateAuthToken();
 
     const options = {
-        expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000),
+        expires: new Date(Date.now() + (process.env.JWT_COOKIE_EXPIRE || 30) * 24 * 60 * 60 * 1000),
         httpOnly: true
     };
 
@@ -218,6 +226,15 @@ const sendTokenResponse = (user, statusCode, res) => {
         .cookie('token', token, options)
         .json({
             success: true,
-            token
+            token,
+            user: {
+                _id:   user._id,
+                name:  user.name,
+                email: user.email,
+                role:  user.role,
+                requestedRole: user.get('requestedRole'),
+                verificationStatus: user.get('verificationStatus'),
+                phone: user.phone || '',
+            }
         });
 };

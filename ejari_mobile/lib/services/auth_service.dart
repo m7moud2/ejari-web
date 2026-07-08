@@ -14,8 +14,8 @@ import '../utils/api_client.dart';
 /// 2) Express + MongoDB إذا الـ API متاح
 /// 3) Local demo fallback لنسخة التجربة
 class AuthService {
-  static final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static FirebaseAuth get _firebaseAuth => FirebaseAuth.instance;
+  static FirebaseFirestore get _firestore => FirebaseFirestore.instance;
 
   static String? get _baseUrl {
     final configured = AppConfig.apiBaseUrl.trim().replaceAll(RegExp(r'/$'), '');
@@ -56,7 +56,7 @@ class AuthService {
     },
   ];
 
-  static bool get _useLocalAuth => AppConfig.demoMode;
+  static bool get _useLocalAuth => kDebugMode && AppConfig.demoMode;
   static bool get _useFirebaseAuth =>
       !AppConfig.demoMode &&
       _baseUrl == null &&
@@ -109,6 +109,45 @@ class AuthService {
       default:
         return 'tenant';
     }
+  }
+
+  static const Set<String> _approvalRequiredRoles = {
+    'owner',
+    'technician',
+    'company',
+  };
+
+  static String _normalizeRequestedRole(Object? role) {
+    final normalized = role?.toString().trim().toLowerCase() ?? 'tenant';
+    switch (normalized) {
+      case 'owner':
+      case 'landlord':
+        return 'owner';
+      case 'technician':
+      case 'tech':
+      case 'provider':
+      case 'service_provider':
+        return 'technician';
+      case 'company':
+        return 'company';
+      case 'tenant':
+      default:
+        return 'tenant';
+    }
+  }
+
+  static Map<String, dynamic> _publicRegistrationRoleFields(
+    Object? selectedRole,
+  ) {
+    final requestedRole = _normalizeRequestedRole(selectedRole);
+    return {
+      'role': 'tenant',
+      'type': 'tenant',
+      'requestedRole': requestedRole,
+      'verificationStatus': _approvalRequiredRoles.contains(requestedRole)
+          ? 'pending'
+          : 'approved',
+    };
   }
 
   static Map<String, dynamic> _buildLocalUser({
@@ -268,15 +307,18 @@ class AuthService {
   // SIGN UP
   // ─────────────────────────────────────────────
   static Future<bool> signUp(Map<String, dynamic> userData) async {
+    final registrationRoleFields = _publicRegistrationRoleFields(
+      userData['requestedRole'] ?? userData['type'] ?? userData['role'],
+    );
+
     if (_useLocalAuth) {
-      final role = userData['type'] ?? 'tenant';
       final fallbackUser = _buildLocalUser(
         name: userData['name'] ?? '',
         email: userData['email'] ?? '',
-        role: role,
+        role: registrationRoleFields['role'] as String,
         password: userData['password'] ?? '',
         offlineSignup: true,
-      );
+      )..addAll(registrationRoleFields);
       await _storeLocalAccount(
         fallbackUser,
         token: 'local-demo-token',
@@ -292,14 +334,12 @@ class AuthService {
           email: email,
           password: password,
         );
-        final role = (userData['type'] ?? 'tenant').toString();
         final profile = <String, dynamic>{
           'name': userData['name'] ?? '',
           'email': email.toLowerCase(),
           'phone': userData['phone'] ?? '',
           'address': userData['address'] ?? 'العنوان غير محدد',
-          'role': role,
-          'type': role,
+          ...registrationRoleFields,
           'createdAt': FieldValue.serverTimestamp(),
           'status': 'active',
         };
@@ -329,7 +369,7 @@ class AuthService {
               'email': userData['email'] ?? '',
               'password': userData['password'] ?? '',
               'phone': userData['phone'] ?? '',
-              'role': userData['type'] ?? 'tenant',
+              'requestedRole': registrationRoleFields['requestedRole'],
               'address': userData['address'] ?? 'العنوان غير محدد',
             }),
           )
@@ -340,7 +380,7 @@ class AuthService {
         final user = _withCompatibleIdentity(
           (data['user'] as Map<String, dynamic>?) ?? {},
         );
-        final role = user['role'] ?? userData['type'] ?? 'tenant';
+        final role = user['role'] ?? 'tenant';
         final token = data['token'] ?? '';
         final uid = user['_id'] ?? user['id'] ?? user['uid'] ?? '';
 
@@ -363,14 +403,13 @@ class AuthService {
           e.toString().contains('HandshakeException');
 
       if (AppConfig.demoMode || isNetworkError || _baseUrl == null) {
-        final role = userData['type'] ?? 'tenant';
         final fallbackUser = _buildLocalUser(
           name: userData['name'] ?? '',
           email: userData['email'] ?? '',
-          role: role,
+          role: registrationRoleFields['role'] as String,
           password: userData['password'] ?? '',
           offlineSignup: true,
-        )..['status'] = 'pending_review';
+        )..addAll(registrationRoleFields);
 
         await _storeLocalAccount(
           fallbackUser,
@@ -446,7 +485,7 @@ class AuthService {
       return user;
     }
 
-    if (AppConfig.demoMode) {
+    if (_useLocalAuth) {
       await initDemoAccounts();
       final normalizedEmail = email.trim().toLowerCase();
       final account = _demoAccounts.cast<Map<String, String>?>().firstWhere(
@@ -477,8 +516,11 @@ class AuthService {
       return user;
     }
 
-    // Admin shortcut — يدخل بدون اتصال بالشبكة
-    if (email == 'admin@ejari.app' && password == 'admin123') {
+    // Debug/demo-only admin shortcut; never available in production builds.
+    if (kDebugMode &&
+        AppConfig.demoMode &&
+        email == 'admin@ejari.app' &&
+        password == 'admin123') {
       final user = _withCompatibleIdentity({
         'name': 'Admin',
         'email': email,
@@ -535,7 +577,9 @@ class AuthService {
   // LOGOUT
   // ─────────────────────────────────────────────
   static Future<void> logout() async {
-    if (_firebaseAuth.currentUser != null) {
+    if (!_useLocalAuth &&
+        Firebase.apps.isNotEmpty &&
+        _firebaseAuth.currentUser != null) {
       await _firebaseAuth.signOut();
     }
     final prefs = await SharedPreferences.getInstance();
@@ -550,6 +594,14 @@ class AuthService {
   // IS LOGGED IN
   // ─────────────────────────────────────────────
   static Future<bool> isLoggedIn() async {
+    if (_useLocalAuth) {
+      final prefs = await SharedPreferences.getInstance();
+      final isGuest = prefs.getBool(_guestModeKey) ?? false;
+      if (isGuest) return false;
+      final token = await ApiClient.getToken() ?? '';
+      final userData = prefs.getString(_userDataKey) ?? '';
+      return token.isNotEmpty || userData.isNotEmpty;
+    }
     if (_firebaseAuth.currentUser != null) return true;
     final prefs = await SharedPreferences.getInstance();
     final isGuest = prefs.getBool(_guestModeKey) ?? false;
@@ -578,6 +630,16 @@ class AuthService {
   // GET CURRENT USER
   // ─────────────────────────────────────────────
   static Future<Map<String, dynamic>?> getCurrentUser() async {
+    if (_useLocalAuth) {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_userDataKey);
+      if (raw != null && raw.isNotEmpty) {
+        try {
+          return _withCompatibleIdentity(jsonDecode(raw) as Map<String, dynamic>);
+        } catch (_) {}
+      }
+      return null;
+    }
     final current = _firebaseAuth.currentUser;
     if (current != null) {
       final profile = await _getFirebaseProfile(current.uid);
@@ -616,6 +678,10 @@ class AuthService {
   // GET USER ROLE
   // ─────────────────────────────────────────────
   static Future<String> getUserRole() async {
+    if (_useLocalAuth) {
+      final prefs = await SharedPreferences.getInstance();
+      return _normalizeRoleForAccess(prefs.getString(_userRoleKey));
+    }
     final prefs = await SharedPreferences.getInstance();
     return _normalizeRoleForAccess(prefs.getString(_userRoleKey));
   }
