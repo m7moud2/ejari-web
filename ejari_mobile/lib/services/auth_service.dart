@@ -71,6 +71,28 @@ class AuthService {
     await targetPrefs.setString(_userTokenKey, token);
   }
 
+  static String? _readIdentityValue(Map<String, dynamic> userData, String key) {
+    final value = userData[key]?.toString().trim();
+    return value == null || value.isEmpty ? null : value;
+  }
+
+  static Map<String, dynamic> _withCompatibleIdentity(
+    Map<String, dynamic> userData,
+  ) {
+    final canonicalId = _readIdentityValue(userData, 'uid') ??
+        _readIdentityValue(userData, 'id') ??
+        _readIdentityValue(userData, '_id') ??
+        _readIdentityValue(userData, 'email') ??
+        'generated-${DateTime.now().microsecondsSinceEpoch}';
+
+    return {
+      ...userData,
+      if (_readIdentityValue(userData, 'id') == null) 'id': canonicalId,
+      if (_readIdentityValue(userData, '_id') == null) '_id': canonicalId,
+      if (_readIdentityValue(userData, 'uid') == null) 'uid': canonicalId,
+    };
+  }
+
   static Map<String, dynamic> _buildLocalUser({
     required String name,
     required String email,
@@ -78,7 +100,7 @@ class AuthService {
     String? password,
     bool offlineSignup = false,
   }) {
-    return {
+    return _withCompatibleIdentity({
       'id': email,
       '_id': email,
       'name': name,
@@ -87,7 +109,7 @@ class AuthService {
       'type': role,
       if (password != null) 'password': password,
       if (offlineSignup) 'offlineSignup': true,
-    };
+    });
   }
 
   static Future<void> _storeLocalAccount(
@@ -95,10 +117,12 @@ class AuthService {
     String token = 'local-demo-token',
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final email = (userData['email'] ?? '').toString().trim().toLowerCase();
+    final compatibleUserData = _withCompatibleIdentity(userData);
+    final email =
+        (compatibleUserData['email'] ?? '').toString().trim().toLowerCase();
     if (email.isEmpty) return;
 
-    await prefs.setString('user_$email', jsonEncode(userData));
+    await prefs.setString('user_$email', jsonEncode(compatibleUserData));
 
     final users = prefs.getStringList(_usersListKey) ?? <String>[];
     if (!users.contains(email)) {
@@ -106,10 +130,16 @@ class AuthService {
       await prefs.setStringList(_usersListKey, users);
     }
 
-    await prefs.setString(_userRoleKey, userData['role'] ?? userData['type'] ?? 'tenant');
-    await prefs.setString(_userIdKey, userData['id']?.toString() ?? email);
+    await prefs.setString(
+      _userRoleKey,
+      compatibleUserData['role'] ?? compatibleUserData['type'] ?? 'tenant',
+    );
+    await prefs.setString(
+      _userIdKey,
+      compatibleUserData['id']?.toString() ?? email,
+    );
     await prefs.setString(_currentUserEmailKey, email);
-    await prefs.setString(_userDataKey, jsonEncode(userData));
+    await prefs.setString(_userDataKey, jsonEncode(compatibleUserData));
     await _saveAuthToken(token, prefs: prefs);
     await prefs.setBool(_guestModeKey, false);
   }
@@ -120,7 +150,8 @@ class AuthService {
     String? token,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final email = (firebaseUser.email ?? profile['email'] ?? '').toString().trim().toLowerCase();
+    final email =
+        (firebaseUser.email ?? profile['email'] ?? '').toString().trim().toLowerCase();
     final role = (profile['role'] ?? profile['type'] ?? 'tenant').toString();
     final rawUserData = <String, dynamic>{
       'id': firebaseUser.uid,
@@ -150,10 +181,16 @@ class AuthService {
       }
     });
 
+    final firebaseUserData = <String, dynamic>{...userData};
+    if (_readIdentityValue(firebaseUserData, 'uid') == null) {
+      firebaseUserData['uid'] = firebaseUser.uid;
+    }
+    final compatibleUserData = _withCompatibleIdentity(firebaseUserData);
+
     await prefs.setString(_userRoleKey, role);
     await prefs.setString(_userIdKey, firebaseUser.uid);
     await prefs.setString(_currentUserEmailKey, email);
-    await prefs.setString(_userDataKey, jsonEncode(userData));
+    await prefs.setString(_userDataKey, jsonEncode(compatibleUserData));
     final authToken = token ?? await firebaseUser.getIdToken() ?? '';
     await _saveAuthToken(authToken, prefs: prefs);
     await prefs.setBool(_guestModeKey, false);
@@ -164,11 +201,11 @@ class AuthService {
     if (!snap.exists) return null;
     final data = snap.data();
     if (data == null) return null;
-    return {
-      ...data,
-      'id': uid,
-      '_id': uid,
-    };
+    final profile = <String, dynamic>{...data};
+    if (_readIdentityValue(profile, 'uid') == null) {
+      profile['uid'] = uid;
+    }
+    return _withCompatibleIdentity(profile);
   }
 
   static Future<Map<String, dynamic>?> _findLocalAccount(
@@ -282,15 +319,18 @@ class AuthService {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final role = data['user']?['role'] ?? userData['type'] ?? 'tenant';
+        final user = _withCompatibleIdentity(
+          (data['user'] as Map<String, dynamic>?) ?? {},
+        );
+        final role = user['role'] ?? userData['type'] ?? 'tenant';
         final token = data['token'] ?? '';
-        final uid = data['user']?['_id'] ?? data['user']?['id'] ?? '';
+        final uid = user['_id'] ?? user['id'] ?? user['uid'] ?? '';
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_userRoleKey, role);
         await _saveAuthToken(token, prefs: prefs);
         await prefs.setString(_userIdKey, uid);
-        await prefs.setString(_userDataKey, jsonEncode(data['user'] ?? {}));
+        await prefs.setString(_userDataKey, jsonEncode(user));
         await prefs.setBool(_guestModeKey, false);
         return true;
       } else {
@@ -372,13 +412,15 @@ class AuthService {
       };
 
       final role = (profile['role'] ?? profile['type'] ?? 'tenant').toString();
-      final user = <String, dynamic>{
-        ...profile,
-        'id': firebaseUser.uid,
-        '_id': firebaseUser.uid,
+      final firebaseUserData = <String, dynamic>{...profile};
+      if (_readIdentityValue(firebaseUserData, 'uid') == null) {
+        firebaseUserData['uid'] = firebaseUser.uid;
+      }
+      final user = _withCompatibleIdentity({
+        ...firebaseUserData,
         'role': role,
         'type': role,
-      };
+      });
       await _storeFirebaseSession(
         firebaseUser: firebaseUser,
         profile: user,
@@ -400,14 +442,14 @@ class AuthService {
         throw 'بيانات الدخول غير صحيحة';
       }
 
-      final user = <String, dynamic>{
+      final user = _withCompatibleIdentity({
         'id': account['email'],
         '_id': account['email'],
         'name': account['name'],
         'email': account['email'],
         'role': account['role'],
         'type': account['role'],
-      };
+      });
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_userRoleKey, account['role']!);
       await prefs.setString(_userIdKey, account['email']!);
@@ -419,12 +461,16 @@ class AuthService {
 
     // Admin shortcut — يدخل بدون اتصال بالشبكة
     if (email == 'admin@ejari.app' && password == 'admin123') {
+      final user = _withCompatibleIdentity({
+        'name': 'Admin',
+        'email': email,
+        'role': 'admin',
+      });
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_userRoleKey, 'admin');
-      await prefs.setString(_userDataKey,
-          jsonEncode({'name': 'Admin', 'email': email, 'role': 'admin'}));
+      await prefs.setString(_userDataKey, jsonEncode(user));
       await prefs.setBool(_guestModeKey, false);
-      return {'name': 'Admin', 'email': email, 'role': 'admin'};
+      return user;
     }
 
     try {
@@ -438,10 +484,12 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final user = data['user'] as Map<String, dynamic>? ?? {};
+        final user = _withCompatibleIdentity(
+          data['user'] as Map<String, dynamic>? ?? {},
+        );
         final role = user['role'] ?? 'tenant';
         final token = data['token'] ?? '';
-        final uid = user['_id'] ?? user['id'] ?? '';
+        final uid = user['_id'] ?? user['id'] ?? user['uid'] ?? '';
 
         if (user['isBlocked'] == true) {
           throw 'تم حظر هذا الحساب من قبل الإدارة';
@@ -517,28 +565,30 @@ class AuthService {
       final profile = await _getFirebaseProfile(current.uid);
       if (profile != null) {
         final role = (profile['role'] ?? profile['type'] ?? 'tenant').toString();
-        return {
-          ...profile,
-          'id': current.uid,
-          '_id': current.uid,
+        final firebaseUserData = <String, dynamic>{...profile};
+        if (_readIdentityValue(firebaseUserData, 'uid') == null) {
+          firebaseUserData['uid'] = current.uid;
+        }
+        return _withCompatibleIdentity({
+          ...firebaseUserData,
           'role': role,
           'type': role,
-        };
+        });
       }
-      return {
+      return _withCompatibleIdentity({
         'id': current.uid,
         '_id': current.uid,
         'name': current.displayName ?? 'مستخدم إيجاري',
         'email': current.email ?? '',
         'role': 'tenant',
         'type': 'tenant',
-      };
+      });
     }
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_userDataKey);
     if (raw != null && raw.isNotEmpty) {
       try {
-        return jsonDecode(raw) as Map<String, dynamic>;
+        return _withCompatibleIdentity(jsonDecode(raw) as Map<String, dynamic>);
       } catch (_) {}
     }
     return null;
