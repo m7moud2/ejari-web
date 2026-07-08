@@ -4,6 +4,7 @@ import '../services/data_service.dart';
 import '../services/wallet_service.dart';
 import '../utils/image_utils.dart';
 import '../widgets/ejari_image.dart';
+import 'rental_statement_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'success_screen.dart';
 
@@ -155,49 +156,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return 'دفع آمن وموثق';
   }
 
-  String get _purposeDescription {
-    if (widget.paymentStage == 'remaining') {
-      return 'هذا الجزء يُسدَّد لاستكمال الشهر الأول فقط، ثم تُستكمل الدفعات شهرياً وفق العقد.';
-    }
-    if (widget.paymentStage == 'deposit') {
-      return 'هذا المبلغ يُستخدم لحجز المعاينة وتثبيت الجدية، ويظهر لك بوضوح قبل التأكيد.';
-    }
-    return 'مبلغ العملية يظهر لك قبل الدفع مع سجل واضح وإيصال رقمي.';
-  }
-
-  String get _flowTitle {
-    if (widget.paymentStage == 'remaining') return 'استكمال دفعة الشهر الأول';
-    if (widget.paymentStage == 'deposit') return 'عربون حجز واضح وقابل للتتبع';
-    return 'دفع كامل موضح قبل التأكيد';
-  }
-
-  String get _flowSubtitle {
-    if (widget.paymentStage == 'remaining') {
-      return 'أنت هنا في مرحلة استكمال المتبقي من الشهر الأول فقط بعد الموافقة.';
-    }
-    if (widget.paymentStage == 'deposit') {
-      return 'أنت تدفع عربونًا أوليًا لحجز المعاينة وتثبيت الجدية.';
-    }
-    return 'أنت تدفع المبلغ كاملًا مع ملخص واضح قبل التنفيذ.';
-  }
-
-  List<String> get _legalNotes {
-    if (widget.paymentStage == 'remaining') {
-      return [
-        'لن يتم احتساب سوى المتبقي من الشهر الأول هنا، ثم تُفعل المتابعة الشهرية.',
-        'ستصل لك فاتورة/إيصال رقمي ورقم مرجعي للعملية.',
-        'العقد النهائي يوضح قيمة الإيجار الشهري والعربون والالتزامات.',
-      ];
-    }
-
-    return [
-      'العربون يثبت جدية الحجز والمعاينة وليس دفعة نهائية.',
-      'يظهر لك المبلغ المتبقي قبل استكمال أي خطوة لاحقة.',
-      'يمكن معالجة الاسترداد حسب حالة الصفقة والشروط المتفق عليها.',
-      'هذه الشاشة لا تغني عن مراجعة العقد النهائي قبل التوقيع.',
-    ];
-  }
-
   Future<void> _processPayment() async {
     if (!_validateFields()) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -250,11 +208,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ? 'تم استلام المتبقي من الشهر الأول (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح عبر ${_getFriendlyMethodName()}.'
             : 'تم استلام عربون المعاينة (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح عبر ${_getFriendlyMethodName()}.';
 
-    _showSuccessVibe(successMessage);
+    await _showSuccessVibe(successMessage);
   }
 
-  void _showSuccessVibe(String message) {
-    Navigator.push(
+  Future<void> _showSuccessVibe(String message) async {
+    final shouldOpenStatement = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
         builder: (context) => SuccessScreen(
@@ -263,12 +221,22 @@ class _PaymentScreenState extends State<PaymentScreen> {
               : 'تم حفظ العربون بنجاح! 🎉',
           message: message,
           onContinue: () {
-            Navigator.pop(context); // Pop Success
-            Navigator.pop(context, true); // Pop Payment
+            Navigator.pop(context, true); // Close success and signal continue
           },
+          buttonText: 'عرض كشف الحساب',
         ),
       ),
     );
+
+    if (!mounted) return;
+    if (shouldOpenStatement == true) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const RentalStatementScreen(),
+        ),
+      );
+    }
   }
 
   String _getFriendlyMethodName() {
@@ -283,7 +251,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('الدفع الآمن والموضح',
+        title: const Text('الدفع',
             style: TextStyle(
                 fontWeight: FontWeight.w900,
                 fontSize: 18,
@@ -302,25 +270,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                  child: _buildHeroSummary(),
+                  child: _buildCheckoutSteps(),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
-                  child: _buildStageBanner(),
+                  child: _buildHeroSummary(),
                 ),
                 if (widget.paymentStage != 'full')
                   Padding(
                     padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
                     child: _buildPaymentPlanCard(),
                   ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                  child: _buildLegalClarityCard(),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                  child: _buildFlowCard(),
-                ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
                   child: _buildMethodSectionHeader(),
@@ -345,228 +305,184 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
+  Widget _buildCheckoutSteps() {
+    const steps = ['الملخص', 'طريقة الدفع', 'التأكيد'];
+    return Row(
+      children: List.generate(steps.length, (index) {
+        final isActive = index <= 1;
+        return Expanded(
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? AppTheme.primaryColor
+                            : AppTheme.borderColor.withOpacity(0.4),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${index + 1}',
+                          style: TextStyle(
+                            color:
+                                isActive ? Colors.white : AppTheme.textSecondary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      steps[index],
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: isActive
+                            ? AppTheme.primaryColor
+                            : AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (index < steps.length - 1)
+                Expanded(
+                  child: Container(
+                    height: 2,
+                    margin: const EdgeInsets.only(bottom: 18),
+                    color: index == 0
+                        ? AppTheme.primaryColor.withOpacity(0.3)
+                        : AppTheme.borderColor.withOpacity(0.3),
+                  ),
+                ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
   Widget _buildHeroSummary() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color ?? Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.backgroundColor),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(_purposeTitle,
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.primaryColor)),
+          const SizedBox(height: 4),
+          Text(_getItemTitle(),
+              style: const TextStyle(
+                  fontSize: 14, fontWeight: FontWeight.w600)),
+          const SizedBox(height: 16),
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16)),
-                child: const Icon(Icons.payments_rounded,
-                    color: AppTheme.primaryColor),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.paymentStage == 'remaining'
+                        ? 'المتبقي'
+                        : widget.paymentStage == 'deposit'
+                            ? 'العربون'
+                            : 'المبلغ',
+                    style: const TextStyle(
+                        color: AppTheme.textSecondary, fontSize: 12),
+                  ),
+                  Text('${_displayAmount.toStringAsFixed(0)} ج.م',
+                      style: const TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900)),
+                ],
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(_purposeTitle,
-                        style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: AppTheme.primaryColor)),
-                    const SizedBox(height: 4),
-                    Text(_getItemTitle(),
-                        style: const TextStyle(
-                            fontSize: 14, fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 4),
-                    Text('معرف العملية: #EJ-${widget.itemData['id'] ?? '882'}',
-                        style: const TextStyle(
-                            color: AppTheme.textSecondary, fontSize: 12)),
-                  ],
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  widget.paymentStage == 'remaining'
+                      ? 'استكمال'
+                      : widget.paymentStage == 'deposit'
+                          ? 'عربون'
+                          : 'كامل',
+                  style: const TextStyle(
+                      color: AppTheme.primaryColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                          widget.paymentStage == 'remaining'
-                              ? 'المتبقي من الشهر الأول'
-                              : widget.paymentStage == 'deposit'
-                                  ? 'العربون الآن'
-                                  : 'المبلغ الحالي',
-                          style: const TextStyle(
-                              color: AppTheme.textSecondary, fontSize: 12)),
-                      const SizedBox(height: 4),
-                      Text('${_displayAmount.toStringAsFixed(0)} ج.م',
-                          style: const TextStyle(
-                              color: AppTheme.primaryColor,
-                              fontSize: 28,
-                              fontWeight: FontWeight.w900)),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    widget.paymentStage == 'remaining'
-                        ? 'استكمال شهري'
-                        : widget.paymentStage == 'deposit'
-                            ? 'عربون'
-                            : 'دفع كامل',
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          _buildMiniRow(
-              widget.paymentStage == 'remaining'
-                  ? 'قيمة الشهر الحالي'
-                  : 'إجمالي العملية',
-              widget.totalAmount ?? widget.amount),
-          _buildMiniRow(
-              widget.paymentStage == 'remaining'
-                  ? 'العربون المحجوز'
-                  : 'العربون',
-              widget.paymentStage == 'remaining'
-                  ? _displayAmount
-                  : (widget.depositAmount ??
-                      ((widget.totalAmount ?? widget.amount) * 0.10))),
-          _buildMiniRow(
-              widget.paymentStage == 'remaining'
-                  ? 'المتبقي بعد العربون'
-                  : 'المبلغ المتبقي',
-              widget.paymentStage == 'remaining'
-                  ? 0
-                  : (widget.remainingAmount ??
-                      ((widget.totalAmount ?? widget.amount) -
-                          (widget.depositAmount ??
-                              ((widget.totalAmount ?? widget.amount) *
-                                  0.10))))),
-          const SizedBox(height: 10),
-          Text(_purposeDescription,
-              style: const TextStyle(
-                  color: AppTheme.textSecondary, height: 1.5, fontSize: 12)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStageBanner() {
-    final isDeposit = widget.paymentStage == 'deposit';
-    final isRemaining = widget.paymentStage == 'remaining';
-    final accent = isRemaining ? AppTheme.borderColor : AppTheme.primaryColor;
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: accent.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: accent.withOpacity(0.14)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: accent.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(
-              isRemaining
-                  ? Icons.check_circle_outline_rounded
-                  : isDeposit
-                      ? Icons.how_to_reg_rounded
-                      : Icons.verified_outlined,
-              color: accent,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  isRemaining
-                      ? 'أنت في مرحلة الاستكمال النهائية'
-                      : isDeposit
-                          ? 'أنت في مرحلة العربون المبدئي'
-                          : 'أنت في مرحلة الدفع الكامل',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  isRemaining
-                      ? 'ادفع الجزء المتبقي فقط بعد موافقتك النهائية على الإتمام.'
-                      : isDeposit
-                          ? 'العربون يثبت الجدية ويُوضح لك المتبقي قبل أي خطوة لاحقة.'
-                          : 'راجع المبلغ، اختر وسيلة الدفع، وأكد العملية بوضوح.',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    height: 1.5,
-                    color: AppTheme.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          if (widget.paymentStage != 'full') ...[
+            const SizedBox(height: 12),
+            const Divider(height: 1),
+            const SizedBox(height: 8),
+            _buildMiniRow(
+                'إجمالي العملية', widget.totalAmount ?? widget.amount),
+            _buildMiniRow(
+                'المتبقي بعد الدفع',
+                widget.paymentStage == 'remaining'
+                    ? 0
+                    : (widget.remainingAmount ??
+                        ((widget.totalAmount ?? widget.amount) -
+                            (widget.depositAmount ??
+                                ((widget.totalAmount ?? widget.amount) *
+                                    0.10))))),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildMiniRow(String label, double value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label,
-            style:
-                const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-        Text('${value.toStringAsFixed(0)} ج.م',
-            style: const TextStyle(
-                color: AppTheme.textPrimary,
-                fontSize: 12,
-                fontWeight: FontWeight.bold)),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    color: AppTheme.textSecondary, fontSize: 12)),
+          ),
+          const SizedBox(width: 12),
+          Text('${value.toStringAsFixed(0)} ج.م',
+              style: const TextStyle(
+                  color: AppTheme.textPrimary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold)),
+        ],
+      ),
     );
   }
 
   Widget _buildMethodSectionHeader() {
-    return Row(
+    return Wrap(
+      spacing: 10,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         Container(
           width: 24,
@@ -576,94 +492,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
             shape: BoxShape.circle,
           ),
           child: const Center(
-            child: Text('1',
+            child: Text('2',
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.bold)),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 0),
         const Text('اختر وسيلة الدفع',
             style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: AppTheme.primaryColor)),
       ],
-    );
-  }
-
-  Widget _buildLegalClarityCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.backgroundColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.verified_user_rounded,
-                    size: 18, color: AppTheme.primaryColor),
-              ),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: Text('ملخص قانوني وشفاف',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor)),
-              ),
-              TextButton(
-                onPressed: _showLegalDetailsSheet,
-                child: const Text('التفاصيل'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ..._legalNotes.map(
-            (note) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.check_circle_outline,
-                      size: 16, color: AppTheme.primaryColor),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      note,
-                      style: const TextStyle(
-                          fontSize: 12,
-                          height: 1.5,
-                          color: AppTheme.textSecondary),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'هذه الشاشة تعرض طريقة الدفع، لكن العقد النهائي هو المرجع الأساسي لأي التزام مالي أو قانوني.',
-            style: TextStyle(
-              fontSize: 11,
-              color: AppTheme.textSecondary.withOpacity(0.9),
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -801,160 +643,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _buildFlowCard() {
-    final steps = widget.paymentStage == 'remaining'
-        ? const [
-            ('راجع ملخص الشهر', 'تأكد أن استكمال الشهر الأول مناسب لك.'),
-            (
-              'ادفع الباقي فقط',
-              'لا توجد أي دفعة إضافية غير المتبقي من الشهر الأول.'
-            ),
-            ('أكمل التوثيق', 'سيتم تسجيل العملية وإصدار الإشعار.'),
-          ]
-        : widget.paymentStage == 'deposit'
-            ? const [
-                ('ادفع العربون', 'المبلغ يثبت الجدية ويحجز المعاينة.'),
-                ('عاين على الواقع', 'راجع الوحدة قبل القرار النهائي.'),
-                ('استكمل أو أوقف', 'بعد المعاينة، قرر الخطوة التالية.'),
-              ]
-            : const [
-                ('راجع الإجمالي', 'شاهد كل الأرقام قبل التأكيد.'),
-                ('اختر وسيلة الدفع', 'حدد الوسيلة الأنسب لك.'),
-                ('أصدر الإيصال', 'يتم إنشاء سجل واضح فورًا.'),
-              ];
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.backgroundColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.route_rounded,
-                    size: 18, color: AppTheme.primaryColor),
-              ),
-              const SizedBox(width: 10),
-              const Expanded(
-                child: Text('كيف تمشي العملية؟',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            _flowTitle,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            _flowSubtitle,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AppTheme.textSecondary,
-              height: 1.5,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ...List.generate(steps.length, (index) {
-            final step = steps[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 26,
-                    height: 26,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withOpacity(0.08),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${index + 1}',
-                        style: const TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          step.$1,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          step.$2,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppTheme.textSecondary,
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-          if (widget.paymentStage == 'deposit') ...[
-            const SizedBox(height: 6),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppTheme.borderColor.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: AppTheme.borderColor.withOpacity(0.18),
-                ),
-              ),
-              child: const Text(
-                'مهم: العربون هنا ليس دفعة نهائية. المتبقي يظهر لك بوضوح بعد المعاينة، وتكمل فقط إذا قررت إتمام الصفقة.',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: AppTheme.textSecondary,
-                  height: 1.5,
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   Widget _buildConsentCard() {
     return Container(
       width: double.infinity,
@@ -989,7 +677,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
           const SizedBox(height: 4),
           const Text(
-            'لو عندك أي جزء غير واضح، افتح "التفاصيل" قبل الضغط على زر الدفع.',
+            'العقد النهائي هو المرجع الأساسي لأي التزام مالي.',
             style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
           ),
         ],
@@ -997,67 +685,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Future<void> _showLegalDetailsSheet() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('التوضيح القانوني المختصر',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor)),
-                const SizedBox(height: 12),
-                const Text(
-                  '• العربون هنا مخصص لحجز المعاينة أو تثبيت الجدية.\n'
-                  '• المبلغ المتبقي هنا هو فقط المتبقي من دفعة الشهر الأول.\n'
-                  '• أي استرداد أو ترحيل مالي يجب أن يتبع حالة الصفقة الموثقة في العقد.\n'
-                  '• يفضّل مراجعة النسخة النهائية من العقد أو المستشار القانوني قبل التوقيع.',
-                  style: TextStyle(height: 1.7, fontSize: 13),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    child: const Text('فهمت',
-                        style: TextStyle(
-                            color: Colors.white, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildCategoryGrid() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: GridView.count(
-        crossAxisCount: 2,
+      child: GridView(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        childAspectRatio: 2.2,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisExtent: 75,
+        ),
         children: [
           _buildCatCard('cards', 'بطاقة بنكية', Icons.credit_card_rounded),
           _buildCatCard('bnpl', 'تقسيط مباشر', Icons.timer_outlined),
@@ -1170,17 +807,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Widget _buildSubMethodsGrid(List<Map<String, dynamic>> methods) {
-    return Column(
-      children: [
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: methods.map((m) => _buildSubMethodItem(m)).toList(),
-        ),
-        const SizedBox(height: 20),
-        _buildInputField(_phoneController, 'رقم الموبايل المسجل',
-            Icons.phone_android, '01x xxxx xxxx'),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final itemWidth = constraints.maxWidth >= 360
+            ? (constraints.maxWidth - 10) / 2
+            : constraints.maxWidth;
+
+        return Column(
+          children: [
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: methods
+                  .map((m) => SizedBox(
+                        width: itemWidth,
+                        child: _buildSubMethodItem(m),
+                      ))
+                  .toList(),
+            ),
+            const SizedBox(height: 20),
+            _buildInputField(_phoneController, 'رقم الموبايل المسجل',
+                Icons.phone_android, '01x xxxx xxxx'),
+          ],
+        );
+      },
     );
   }
 
@@ -1248,20 +898,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
                       fontWeight: FontWeight.bold,
                       color: Theme.of(context).textTheme.bodyLarge?.color)),
               const SizedBox(height: 8),
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text('فودافون كاش:',
-                    style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color)),
-                const Text('01069813210',
-                    style: TextStyle(fontWeight: FontWeight.bold))
-              ]),
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Text('InstaPay IPA:',
-                    style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color)),
-                const Text('ejari@instapay',
-                    style: TextStyle(fontWeight: FontWeight.bold))
-              ]),
+              _buildAccountLine('فودافون كاش:', '01069813210'),
+              const SizedBox(height: 8),
+              _buildAccountLine('InstaPay IPA:', 'ejari@instapay'),
             ],
           ),
         ),
@@ -1294,6 +933,32 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     child: Text('اضغط لرفع صورة الإيصال 📸',
                         style: TextStyle(color: AppTheme.primaryColor)))
                 : null,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAccountLine(String label, String value) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyMedium?.color,
+              fontSize: 12,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -1371,12 +1036,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16)),
                 ),
-                child: Text(buttonText,
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Text(
+                    buttonText,
                     textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: Colors.white)),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
               ),
               if (widget.paymentStage == 'deposit') ...[
                 const SizedBox(height: 8),
