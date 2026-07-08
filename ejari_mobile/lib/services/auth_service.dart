@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import '../config/app_config.dart';
+import '../utils/api_client.dart';
 
 /// AuthService — يدعم 3 أوضاع:
 /// 1) Firebase Auth + Firestore إذا ما فيش API محلي
@@ -61,6 +62,15 @@ class AuthService {
       _baseUrl == null &&
       Firebase.apps.isNotEmpty;
 
+  static Future<void> _saveAuthToken(
+    String token, {
+    SharedPreferences? prefs,
+  }) async {
+    await ApiClient.saveToken(token);
+    final targetPrefs = prefs ?? await SharedPreferences.getInstance();
+    await targetPrefs.setString(_userTokenKey, token);
+  }
+
   static Map<String, dynamic> _buildLocalUser({
     required String name,
     required String email,
@@ -100,7 +110,7 @@ class AuthService {
     await prefs.setString(_userIdKey, userData['id']?.toString() ?? email);
     await prefs.setString(_currentUserEmailKey, email);
     await prefs.setString(_userDataKey, jsonEncode(userData));
-    await prefs.setString(_userTokenKey, token);
+    await _saveAuthToken(token, prefs: prefs);
     await prefs.setBool(_guestModeKey, false);
   }
 
@@ -144,7 +154,8 @@ class AuthService {
     await prefs.setString(_userIdKey, firebaseUser.uid);
     await prefs.setString(_currentUserEmailKey, email);
     await prefs.setString(_userDataKey, jsonEncode(userData));
-    await prefs.setString(_userTokenKey, token ?? await firebaseUser.getIdToken() ?? '');
+    final authToken = token ?? await firebaseUser.getIdToken() ?? '';
+    await _saveAuthToken(authToken, prefs: prefs);
     await prefs.setBool(_guestModeKey, false);
   }
 
@@ -277,7 +288,7 @@ class AuthService {
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_userRoleKey, role);
-        await prefs.setString(_userTokenKey, token);
+        await _saveAuthToken(token, prefs: prefs);
         await prefs.setString(_userIdKey, uid);
         await prefs.setString(_userDataKey, jsonEncode(data['user'] ?? {}));
         await prefs.setBool(_guestModeKey, false);
@@ -438,7 +449,7 @@ class AuthService {
 
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_userRoleKey, role);
-        await prefs.setString(_userTokenKey, token);
+        await _saveAuthToken(token, prefs: prefs);
         await prefs.setString(_userIdKey, uid);
         await prefs.setString(_userDataKey, jsonEncode(user));
         await prefs.setBool(_guestModeKey, false);
@@ -463,7 +474,7 @@ class AuthService {
     }
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_userRoleKey);
-    await prefs.remove(_userTokenKey);
+    await ApiClient.clearToken();
     await prefs.remove(_userIdKey);
     await prefs.remove(_userDataKey);
     await prefs.remove(_guestModeKey);
@@ -477,7 +488,7 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     final isGuest = prefs.getBool(_guestModeKey) ?? false;
     if (isGuest) return false;
-    final token = prefs.getString(_userTokenKey) ?? '';
+    final token = await ApiClient.getToken() ?? '';
     final userData = prefs.getString(_userDataKey) ?? '';
     return token.isNotEmpty || userData.isNotEmpty;
   }
@@ -491,7 +502,7 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_guestModeKey, enabled);
     if (enabled) {
-      await prefs.remove(_userTokenKey);
+      await ApiClient.clearToken();
       await prefs.remove(_userIdKey);
       await prefs.remove(_userDataKey);
     }
@@ -550,8 +561,7 @@ class AuthService {
   // GET TOKEN (for API calls)
   // ─────────────────────────────────────────────
   static Future<String> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_userTokenKey) ?? '';
+    return await ApiClient.getToken() ?? '';
   }
 
   // ─────────────────────────────────────────────
