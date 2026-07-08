@@ -1,0 +1,156 @@
+/* Ejari Elite - Branding & Presentation Styles */
+
+:root {
+    --elite-navy: #0F3A30;
+    --elite-gold: #B58D3D;
+    --elite-gold-light: #d4b06a;
+    --elite-silver: #f3f4f6;
+    --elite-accent: #bca374;
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.05);
+}
+
+/* Premium SVG Logo Styling */
+.logo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    animation: fadeInDown 1.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.ejari-logo-svg {
+    width: 100px;
+    height: 100px;
+    filter: drop-shadow(0 4px 10px rgba(188, 163, 116, 0.15));
+}
+
+/* App Mockup Component (CSS Phone) */
+.phone-mockup {
+    width: 280px;
+    height: 560px;
+    background: #05070a;
+    border-radius: 36px;
+    border: 6px solid #1c2230;
+    position: relative;
+    box-shadow: 0 30px 60px -15px rgba(0,0,0,0.4);
+    overflow: hidden;
+    margin: 0 auto;
+}
+
+.phone-screen {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #0a0e17, #161c2a);
+    position: relative;
+    padding: 20px;
+}
+
+.phone-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 20px;
+    background: #1c2230;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    z-index: 10;
+}
+
+/* Glassmorphism Card */
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 2rem;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.glass-card:hover {
+    border-color: rgba(188, 163, 116, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Slide Animations */
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide.active h1 { animation: fadeInDown 0.8s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+.slide.active .grid-2, .slide.active .grid-3 { animation: fadeInUp 1s cubic-bezier(0.25, 0.8, 0.25, 1) forwards; }
+
+/* Infographic Styles */
+.infographic-icon {
+    font-size: 2.5rem;
+    color: var(--elite-gold);
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.stat-value {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: var(--elite-gold);
+    letter-spacing: -0.02em;
+}
+
+/* Map Interactive Pins */
+.map-pin {
+    cursor: pointer;
+    z-index: 100;
+    transition: all 0.3s ease;
+}
+
+.map-pin:hover {
+    transform: translateY(-2px);
+}
+
+.pin-price {
+    background: var(--elite-navy);
+    color: var(--elite-gold);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    border: 1px solid rgba(188, 163, 116, 0.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.pin-drop {
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 12px solid var(--elite-navy);
+    margin: 0 auto;
+    position: relative;
+}
+
+.pin-drop::after {
+    content: '';
+    position: absolute;
+    top: -22px;
+    left: -4px;
+    width: 8px;
+    height: 8px;
+    background: var(--elite-gold);
+    border-radius: 50%;
+    animation: pinPulse 2s infinite;
+}
+
+@keyframes pinPulse {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(2.5); opacity: 0; }
+}

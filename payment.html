@@ -7,12 +7,15 @@
     <title>الدفع الآمن - إيجاري</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/ejari-brand.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/localization.css">
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background: #f8fafc;
+            background:
+                radial-gradient(circle at top right, rgba(15, 58, 48, 0.08), transparent 30%),
+                linear-gradient(180deg, var(--ejari-bg) 0%, var(--ejari-bg-2) 100%);
             margin: 0;
             padding-top: 80px;
             display: flex;
@@ -79,14 +82,14 @@
         }
 
         .payment-method-card:hover {
-            border-color: #3b82f6;
-            background: #eff6ff;
+            border-color: var(--ejari-primary);
+            background: rgba(15, 58, 48, 0.04);
         }
 
         .payment-method-card.active {
-            border-color: #3b82f6;
-            background: #eff6ff;
-            color: #3b82f6;
+            border-color: var(--ejari-primary);
+            background: rgba(15, 58, 48, 0.06);
+            color: var(--ejari-primary);
             font-weight: bold;
         }
 
@@ -98,7 +101,7 @@
             top: 5px;
             right: 5px;
             font-size: 0.8rem;
-            background: #3b82f6;
+            background: var(--ejari-primary);
             color: white;
             width: 20px;
             height: 20px;
@@ -139,8 +142,8 @@
 
         .form-control:focus {
             outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            border-color: var(--ejari-primary);
+            box-shadow: 0 0 0 3px rgba(15, 58, 48, 0.08);
         }
 
         .row {
@@ -154,7 +157,7 @@
 
         .btn-pay {
             width: 100%;
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            background: var(--ejari-primary);
             color: white;
             border: none;
             padding: 1.2rem;
@@ -164,12 +167,69 @@
             cursor: pointer;
             transition: all 0.3s;
             margin-top: 1rem;
-            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(15, 58, 48, 0.18);
         }
 
         .btn-pay:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 10px 15px -3px rgba(15, 58, 48, 0.22);
+        }
+
+        .checkout-steps {
+            display: flex;
+            gap: 0;
+            margin-bottom: 1.5rem;
+            padding: 0.5rem 0;
+        }
+
+        .checkout-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+        }
+
+        .checkout-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: -50%;
+            width: 100%;
+            height: 2px;
+            background: rgba(15, 58, 48, 0.15);
+            z-index: 0;
+        }
+
+        .checkout-step-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(15, 58, 48, 0.12);
+            color: var(--ejari-muted);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 800;
+            position: relative;
+            z-index: 1;
+        }
+
+        .checkout-step.active .checkout-step-circle,
+        .checkout-step.done .checkout-step-circle {
+            background: var(--ejari-primary);
+            color: white;
+        }
+
+        .checkout-step-label {
+            display: block;
+            margin-top: 0.4rem;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--ejari-muted);
+        }
+
+        .checkout-step.active .checkout-step-label {
+            color: var(--ejari-primary);
         }
 
         /* Summary Styles */
@@ -292,9 +352,24 @@
 
     <div class="checkout-container">
         <div class="payment-section">
+            <div class="checkout-steps">
+                <div class="checkout-step done">
+                    <span class="checkout-step-circle">1</span>
+                    <span class="checkout-step-label">الملخص</span>
+                </div>
+                <div class="checkout-step active">
+                    <span class="checkout-step-circle">2</span>
+                    <span class="checkout-step-label">طريقة الدفع</span>
+                </div>
+                <div class="checkout-step">
+                    <span class="checkout-step-circle">3</span>
+                    <span class="checkout-step-label">التأكيد</span>
+                </div>
+            </div>
+
             <div class="section-header">
-                <h2><i class="fas fa-lock" style="color: #10b981;"></i> الدفع الآمن</h2>
-                <p style="color: #64748b; margin: 0;">جميع المعاملات مشفرة ومحمية بتقنية SSL 256-bit</p>
+                <h2><i class="fas fa-lock" style="color: var(--ejari-accent);"></i> الدفع</h2>
+                <p style="color: var(--ejari-muted); margin: 0;">راجع المبلغ واختر وسيلة الدفع المناسبة</p>
             </div>
 
             <h3 style="margin-bottom: 1rem;">اختر طريقة الدفع</h3>
@@ -303,7 +378,7 @@
             <div
                 style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 2px solid #e2e8f0; overflow-x: auto;">
                 <button class="payment-tab active" onclick="switchPaymentCategory('instant')" id="tab-instant"
-                    style="padding: 0.75rem 1.5rem; border: none; background: none; cursor: pointer; border-bottom: 3px solid #3b82f6; color: #3b82f6; font-weight: bold; white-space: nowrap;">
+                    style="padding: 0.75rem 1.5rem; border: none; background: none; cursor: pointer; border-bottom: 3px solid var(--ejari-primary); color: var(--ejari-primary); font-weight: bold; white-space: nowrap;">
                     الدفع الفوري
                 </button>
                 <button class="payment-tab" onclick="switchPaymentCategory('wallets')" id="tab-wallets"
@@ -415,13 +490,12 @@
                 <div id="form-card" class="method-form active">
                     <div class="form-group">
                         <label>الاسم على البطاقة</label>
-                        <input type="text" class="form-control" placeholder="Ahmed Mohamed">
+                        <input type="text" name="cardname" class="form-control" placeholder="Ahmed Mohamed" autocomplete="cc-name" required>
                     </div>
                     <div class="form-group">
                         <label>رقم البطاقة</label>
                         <div style="position: relative;">
-                            <input type="text" class="form-control" placeholder="0000 0000 0000 0000"
-                                style="padding-left: 3rem;">
+                            <input type="text" name="cardnumber" class="form-control" placeholder="0000 0000 0000 0000" autocomplete="cc-number" inputmode="numeric" style="padding-left: 3rem;" required>
                             <i class="fab fa-cc-visa"
                                 style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #64748b; font-size: 1.5rem;"></i>
                         </div>
@@ -430,13 +504,13 @@
                         <div class="col">
                             <div class="form-group">
                                 <label>تاريخ الانتهاء</label>
-                                <input type="text" class="form-control" placeholder="MM/YY">
+                                <input type="text" name="cc-exp" class="form-control" placeholder="MM/YY" autocomplete="cc-exp" inputmode="numeric" required>
                             </div>
                         </div>
                         <div class="col">
                             <div class="form-group">
                                 <label>رمز الأمان (CVC)</label>
-                                <input type="text" class="form-control" placeholder="123">
+                                <input type="text" name="cvc" class="form-control" placeholder="123" autocomplete="cc-csc" inputmode="numeric" required>
                             </div>
                         </div>
                     </div>
@@ -446,7 +520,7 @@
                 <div id="form-vodafone" class="method-form">
                     <div class="form-group">
                         <label>رقم فودافون كاش</label>
-                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                        <input type="text" name="wallet-phone-vodafone" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                     <div class="alert"
                         style="background: #fee2e2; padding: 1rem; border-radius: 12px; color: #991b1b; margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
@@ -458,28 +532,28 @@
                 <div id="form-orange" class="method-form">
                     <div class="form-group">
                         <label>رقم أورنج كاش</label>
-                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                        <input type="text" name="wallet-phone-orange" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                 </div>
 
                 <div id="form-etisalat" class="method-form">
                     <div class="form-group">
                         <label>رقم اتصالات كاش</label>
-                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                        <input type="text" name="wallet-phone-etisalat" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                 </div>
 
                 <div id="form-we" class="method-form">
                     <div class="form-group">
                         <label>رقم WE Pay</label>
-                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                        <input type="text" name="wallet-phone-we" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                 </div>
 
                 <div id="form-fawry" class="method-form">
                     <div class="form-group">
                         <label>رقم الموبايل</label>
-                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                        <input type="text" name="fawry-phone" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                     <div class="alert"
                         style="background: #fef3c7; padding: 1rem; border-radius: 12px; color: #92400e; margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
@@ -492,11 +566,11 @@
                 <div id="form-valu" class="method-form">
                     <div class="form-group">
                         <label>رقم الموبايل المسجل في فاليو</label>
-                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                        <input type="text" name="valu-phone" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                     <div class="form-group">
                         <label>عدد الأقساط</label>
-                        <select class="form-control">
+                        <select name="valu-installments" class="form-control">
                             <option>3 أشهر</option>
                             <option>6 أشهر</option>
                             <option>9 أشهر</option>
@@ -512,11 +586,11 @@
                 <div id="form-halan" class="method-form">
                     <div class="form-group">
                         <label>رقم الموبايل</label>
-                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                        <input type="text" name="halan-phone" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                     <div class="form-group">
                         <label>مدة التقسيط</label>
-                        <select class="form-control">
+                        <select name="halan-installments" class="form-control">
                             <option>3 أشهر</option>
                             <option>6 أشهر</option>
                             <option>12 شهر</option>
@@ -527,56 +601,56 @@
                 <div id="form-contact" class="method-form">
                     <div class="form-group">
                         <label>رقم بطاقة كونتكت</label>
-                        <input type="text" class="form-control" placeholder="xxxx xxxx xxxx xxxx">
+                        <input type="text" name="contact-card" class="form-control" placeholder="xxxx xxxx xxxx xxxx" autocomplete="cc-number" inputmode="numeric" required>
                     </div>
                 </div>
 
                 <div id="form-aman" class="method-form">
                     <div class="form-group">
                         <label>رقم الموبايل</label>
-                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                        <input type="text" name="aman-phone" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                 </div>
 
                 <div id="form-forsa" class="method-form">
                     <div class="form-group">
                         <label>رقم الموبايل</label>
-                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                        <input type="text" name="forsa-phone" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                 </div>
 
                 <div id="form-souhoola" class="method-form">
                     <div class="form-group">
                         <label>رقم الموبايل</label>
-                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                        <input type="text" name="souhoola-phone" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                 </div>
 
                 <div id="form-true" class="method-form">
                     <div class="form-group">
                         <label>رقم الموبايل</label>
-                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                        <input type="text" name="true-phone" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                 </div>
 
                 <div id="form-clever" class="method-form">
                     <div class="form-group">
                         <label>رقم الموبايل</label>
-                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                        <input type="text" name="clever-phone" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                 </div>
 
                 <div id="form-sympl" class="method-form">
                     <div class="form-group">
                         <label>رقم الموبايل</label>
-                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                        <input type="text" name="sympl-phone" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                 </div>
 
                 <div id="form-tabby" class="method-form">
                     <div class="form-group">
                         <label>رقم الموبايل</label>
-                        <input type="text" class="form-control" placeholder="01xxxxxxxxx">
+                        <input type="text" name="tabby-phone" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                     <div class="alert"
                         style="background: #d1fae5; padding: 1rem; border-radius: 12px; color: #065f46; margin-bottom: 1rem;">
@@ -587,7 +661,7 @@
                 <div id="form-tamara" class="method-form">
                     <div class="form-group">
                         <label>رقم الموبايل</label>
-                        <input type="text" class="form-control" placeholder="05xxxxxxxxx">
+                        <input type="text" name="tamara-phone" class="form-control" placeholder="05xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
                     </div>
                     <div class="alert"
                         style="background: #f3f4f6; padding: 1rem; border-radius: 12px; color: #1f2937; margin-bottom: 1rem;">
@@ -609,7 +683,7 @@
                 <div id="form-instapay" class="method-form">
                     <div class="form-group">
                         <label>عنوان الدفع (IPA)</label>
-                        <input type="text" class="form-control" placeholder="username@instapay">
+                        <input type="text" name="instapay-ipa" class="form-control" placeholder="username@instapay" autocomplete="off" required>
                     </div>
                     <div class="alert"
                         style="background: #f0fdf4; padding: 1rem; border-radius: 12px; color: #166534; margin-bottom: 1rem; display: flex; gap: 0.5rem; align-items: center;">
@@ -635,6 +709,11 @@
                 </div>
             </div>
 
+            <div id="installment-banner" style="display:none; margin-bottom: 1rem; padding: 1rem 1.25rem; border-radius: 16px; background: linear-gradient(135deg, #ecfdf5, #f0fdfa); border: 1px solid #a7f3d0; color: #065f46; line-height: 1.8;">
+                <strong style="display:block; margin-bottom: .25rem;">نظام الدفع الشفاف</strong>
+                <span id="installment-banner-text"></span>
+            </div>
+
             <div class="summary-item">
                 <span>السعر الأساسي</span>
                 <span id="summary-price">0 ج.م</span>
@@ -650,12 +729,12 @@
 
             <div class="summary-total">
                 <span>الإجمالي</span>
-                <span id="summary-total" style="color: #3b82f6;">0 ج.م</span>
+                <span id="summary-total" style="color: var(--ejari-primary);">0 ج.م</span>
             </div>
 
             <div style="margin-top: 2rem; font-size: 0.85rem; color: #94a3b8; text-align: center; line-height: 1.6;">
                 <i class="fas fa-shield-alt"></i> بضغطك على "دفع آمن" أنت توافق على <a href="terms.html"
-                    style="color: #3b82f6;">شروط الاستخدام</a> و <a href="privacy.html" style="color: #3b82f6;">سياسة
+                    style="color: var(--ejari-primary);">شروط الاستخدام</a> و <a href="privacy.html" style="color: var(--ejari-primary);">سياسة
                     الخصوصية</a>.
             </div>
 
@@ -686,8 +765,8 @@
             });
             const activeTab = document.getElementById('tab-' + category);
             if (activeTab) {
-                activeTab.style.borderBottomColor = '#3b82f6';
-                activeTab.style.color = '#3b82f6';
+                activeTab.style.borderBottomColor = 'var(--ejari-primary)';
+                activeTab.style.color = 'var(--ejari-primary)';
                 activeTab.style.fontWeight = 'bold';
             }
 
@@ -776,18 +855,47 @@
 
             if (booking) {
                 document.getElementById('summary-title').textContent = booking.itemTitle || 'غير محدد';
-                document.getElementById('summary-price').textContent = (parseInt(booking.price) || 0).toLocaleString() + ' ' + currency;
+                
+                const basePrice = parseInt(booking.price) || 0;
+                const baseTotal = parseInt(booking.totalCost) || 0;
+                const baseFees = parseInt(booking.serviceFee) || Math.round((baseTotal - basePrice) || 0);
 
-                // Calculate fees if not present
-                const fees = booking.serviceFee || Math.round((booking.totalCost - booking.price) || 0);
-                document.getElementById('summary-fees').textContent = fees.toLocaleString() + ' ' + currency;
+                // Set data-price attributes for automatic LocalizationManager updates
+                const priceEl = document.getElementById('summary-price');
+                const feesEl = document.getElementById('summary-fees');
+                const totalEl = document.getElementById('summary-total');
+                const payAmountEl = document.getElementById('pay-amount');
 
-                document.getElementById('summary-total').textContent = (parseInt(booking.totalCost) || 0).toLocaleString() + ' ' + currency;
-                document.getElementById('pay-amount').textContent = '(' + (parseInt(booking.totalCost) || 0).toLocaleString() + ' ' + currency + ')';
+                priceEl.setAttribute('data-price', basePrice);
+                feesEl.setAttribute('data-price', baseFees);
+                totalEl.setAttribute('data-price', baseTotal);
+                payAmountEl.setAttribute('data-price', baseTotal);
+
+                // Initial format
+                if (typeof LocalizationManager !== 'undefined') {
+                    priceEl.textContent = LocalizationManager.formatPrice(basePrice);
+                    feesEl.textContent = LocalizationManager.formatPrice(baseFees);
+                    totalEl.textContent = LocalizationManager.formatPrice(baseTotal);
+                    payAmountEl.textContent = '(' + LocalizationManager.formatPrice(baseTotal) + ')';
+                } else {
+                    priceEl.textContent = basePrice.toLocaleString() + ' ' + currency;
+                    feesEl.textContent = baseFees.toLocaleString() + ' ' + currency;
+                    totalEl.textContent = baseTotal.toLocaleString() + ' ' + currency;
+                    payAmountEl.textContent = '(' + baseTotal.toLocaleString() + ' ' + currency + ')';
+                }
 
                 // Set image if available
-                if (booking.image) {
-                    document.getElementById('order-image').src = booking.image;
+                const imageUrl = booking.image || booking.itemImage;
+                if (imageUrl) {
+                    document.getElementById('order-image').src = imageUrl;
+                }
+
+                const installmentBanner = document.getElementById('installment-banner');
+                const installmentBannerText = document.getElementById('installment-banner-text');
+                if (booking.installmentPlan) {
+                    installmentBanner.style.display = 'block';
+                    installmentBannerText.textContent = `ادفع عربونًا أوليًا بقيمة ${booking.installmentPlan.depositAmount?.toLocaleString?.() || booking.deposit?.toLocaleString?.() || 0} ثم تابع سداد المتبقي شهريًا (${booking.installmentPlan.monthsCount} شهر، كل شهر ${booking.installmentPlan.rentPerMonth?.toLocaleString?.() || 0}).`;
+                    document.getElementById('summary-subtitle').textContent = `مدة الحجز: ${booking.duration || 1} ${booking.durationUnit || 'شهر'}`;
                 }
             }
         });
@@ -795,6 +903,26 @@
 
         function handlePayment(event) {
             event.preventDefault();
+
+            // Form validation
+            const activeForm = document.querySelector('.method-form.active');
+            if (activeForm) {
+                const inputs = activeForm.querySelectorAll('input:not([type="hidden"]), select');
+                let isValid = true;
+                inputs.forEach(input => {
+                    if (!input.value.trim()) {
+                        input.style.borderColor = '#ef4444'; // Red border for error
+                        isValid = false;
+                    } else {
+                        input.style.borderColor = '#cbd5e1'; // Reset
+                    }
+                });
+
+                if (!isValid) {
+                    alert('يرجى إكمال جميع البيانات المطلوبة لإتمام الدفع.');
+                    return;
+                }
+            }
 
             const btn = document.querySelector('.btn-pay');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري المعالجة...';
@@ -825,6 +953,15 @@
                 currentBooking.paymentMethod = currentMethod;
                 currentBooking.paymentDate = new Date().toISOString();
                 currentBooking.userId = currentUser.id;
+                currentBooking.installments = currentBooking.installmentPlan ? {
+                    nextDueDate: (() => {
+                        const d = new Date(currentBooking.paymentDate);
+                        d.setMonth(d.getMonth() + 1);
+                        return d.toISOString();
+                    })(),
+                    paidMonths: 0,
+                    remainingMonths: currentBooking.installmentPlan.monthsCount || 0,
+                } : null;
 
                 // 3. Save to Permanent Storage
                 const allBookings = JSON.parse(localStorage.getItem('ejari_bookings')) || [];

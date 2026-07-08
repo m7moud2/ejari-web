@@ -1,0 +1,12 @@
+:root {
+    --ejari-primary: #0F3A30;
+    --ejari-primary-light: #1a5244;
+    --ejari-accent: #B58D3D;
+    --ejari-bg: #f6f1e8;
+    --ejari-bg-2: #fbf8f1;
+    --ejari-text: #1a2e28;
+    --ejari-muted: #5d746c;
+    --ejari-border: rgba(15, 58, 48, 0.12);
+    --ejari-card: rgba(255, 255, 255, 0.94);
+    --ejari-shadow: 0 18px 55px rgba(15, 58, 48, 0.10);
+}

@@ -8,425 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/localization.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Cairo', sans-serif;
-            background:
-                radial-gradient(circle at top right, rgba(79,125,112,.14), transparent 30%),
-                radial-gradient(circle at left top, rgba(216,195,165,.14), transparent 24%),
-                linear-gradient(180deg, #f6f1e8 0%, #fbf8f1 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-
-        .signup-container {
-            background: rgba(255,255,255,.94);
-            border-radius: 26px;
-            box-shadow: 0 18px 55px rgba(76,92,84,.10);
-            overflow: hidden;
-            max-width: 1100px;
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            border: 1px solid rgba(79,125,112,.12);
-        }
-
-        .signup-left {
-            background:
-                linear-gradient(180deg, rgba(246,241,232,.30), rgba(79,125,112,.74)),
-                url('images/promo/hero_building.jpg') center/cover no-repeat;
-            padding: 3rem;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
-        }
-
-        .signup-left h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .signup-left p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-
-        .benefits-list {
-            margin-top: 2rem;
-        }
-
-        .benefit-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 1rem;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-        }
-
-        .benefit-item i {
-            font-size: 1.5rem;
-            color: #d8c3a5;
-            margin-top: 0.25rem;
-        }
-
-        .benefit-content h3 {
-            font-size: 1.1rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .benefit-content p {
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        .signup-right {
-            padding: 3rem;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .signup-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .signup-header h2 {
-            color: #32433d;
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .signup-header p {
-            color: #5d746c;
-        }
-
-        .account-type {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .type-option {
-            padding: 1.5rem;
-            border: 2px solid rgba(79,125,112,.14);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-        }
-
-        .type-option:hover {
-            border-color: #4f7d70;
-            background: rgba(79,125,112,.05);
-        }
-
-        .type-option.active {
-            border-color: #4f7d70;
-            background: linear-gradient(135deg, rgba(79,125,112,0.08) 0%, rgba(216,195,165,0.08) 100%);
-        }
-
-        .type-option i {
-            font-size: 2rem;
-            color: #4f7d70;
-            margin-bottom: 0.5rem;
-        }
-
-        .type-option h3 {
-            color: #32433d;
-            margin-bottom: 0.25rem;
-        }
-
-        .type-option p {
-            color: #5d746c;
-            font-size: 0.875rem;
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: #32433d;
-            font-weight: 500;
-        }
-
-        .input-wrapper {
-            position: relative;
-        }
-
-        .input-wrapper i {
-            position: absolute;
-            right: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #5d746c;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.875rem 1rem 0.875rem 3rem;
-            border: 2px solid rgba(79,125,112,.14);
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: all 0.3s;
-            font-family: 'Cairo', sans-serif;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #4f7d70;
-            box-shadow: 0 0 0 3px rgba(79,125,112,0.1);
-        }
-
-        .form-control:focus-visible {
-            outline: 3px solid #4f7d70;
-            outline-offset: 2px;
-            border-color: #4f7d70;
-            box-shadow: 0 0 0 3px rgba(79,125,112,0.1);
-        }
-
-        .password-toggle {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #5d746c;
-            cursor: pointer;
-            padding: 0.5rem;
-        }
-
-        .password-strength {
-            margin-top: 0.5rem;
-            height: 4px;
-            background: rgba(79,125,112,.12);
-            border-radius: 2px;
-            overflow: hidden;
-        }
-
-        .password-strength-bar {
-            height: 100%;
-            width: 0%;
-            transition: all 0.3s;
-        }
-
-        .strength-weak {
-            background: #ef4444;
-            width: 33%;
-        }
-
-        .strength-medium {
-            background: #f59e0b;
-            width: 66%;
-        }
-
-        .strength-strong {
-            background: #10b981;
-            width: 100%;
-        }
-
-        .terms-checkbox {
-            display: flex;
-            align-items: flex-start;
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .terms-checkbox input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            margin-top: 0.25rem;
-        }
-
-        .terms-checkbox label {
-            color: #5d746c;
-            line-height: 1.6;
-        }
-
-        .terms-checkbox a {
-            color: #4f7d70;
-            text-decoration: none;
-        }
-
-        .terms-checkbox a:hover {
-            text-decoration: underline;
-        }
-
-        .btn-signup {
-            width: 100%;
-            padding: 1rem;
-            background: linear-gradient(135deg, #4f7d70 0%, #88a996 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: 'Cairo', sans-serif;
-        }
-
-        .btn-signup:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(79,125,112,0.25);
-        }
-
-        .btn-signup:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .divider {
-            text-align: center;
-            margin: 1.5rem 0;
-            position: relative;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            width: 45%;
-            height: 1px;
-            background: rgba(79,125,112,.12);
-        }
-
-        .divider::before {
-            right: 0;
-        }
-
-        .divider::after {
-            left: 0;
-        }
-
-        .divider span {
-            background: white;
-            padding: 0 1rem;
-            color: #5d746c;
-        }
-
-        .social-signup {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .btn-social {
-            padding: 0.875rem;
-            border: 2px solid rgba(79,125,112,.14);
-            border-radius: 10px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            font-weight: 500;
-        }
-
-        .btn-social:hover {
-            border-color: #4f7d70;
-            background: rgba(79,125,112,.05);
-        }
-
-        .btn-google {
-            color: #ea4335;
-        }
-
-        .btn-facebook {
-            color: #1877f2;
-        }
-
-        .login-link {
-            text-align: center;
-            color: #5d746c;
-        }
-
-        .login-link a {
-            color: #4f7d70;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .login-link a:hover {
-            text-decoration: underline;
-        }
-
-        .alert {
-            padding: 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
-            display: none;
-        }
-
-        .alert-error {
-            background: #fee2e2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
-        }
-
-        .alert-success {
-            background: #d1fae5;
-            color: #065f46;
-            border: 1px solid #a7f3d0;
-        }
-
-        @media (max-width: 768px) {
-            .signup-container {
-                grid-template-columns: 1fr;
-            }
-
-            .signup-left {
-                display: none;
-            }
-
-            .signup-right {
-                padding: 2rem;
-            }
-
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-
-            .account-type {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="css/auth-pages.css">
 </head>
 
-<body>
-    <!-- Settings (Country & Language) -->
+<body class="auth-page">
     <div class="settings-container" style="position: absolute; top: 20px; left: 20px; z-index: 100;">
         <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn"
             style="background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
@@ -436,157 +21,136 @@
         <div id="settingsDropdownContainer"></div>
     </div>
 
-    <div class="signup-container">
-        <div class="signup-left">
-            <h1>🏠 انضم إلى إيجاري</h1>
-            <p>ابدأ رحلتك مع أفضل منصة للإيجارات في مصر</p>
+    <div class="auth-card wide">
+        <div class="auth-header">
+            <div class="auth-brand">
+                <i class="fas fa-key"></i>
+                <span>إيجاري</span>
+            </div>
+            <h2>إنشاء حساب</h2>
+            <p>اختر نوع الحساب وأكمل بياناتك</p>
+        </div>
 
-            <div class="benefits-list">
-                <div class="benefit-item">
-                    <i class="fas fa-rocket"></i>
-                    <div class="benefit-content">
-                        <h3>بداية سريعة</h3>
-                        <p>سجل وابدأ في دقائق معدودة</p>
-                    </div>
-                </div>
-                <div class="benefit-item">
-                    <i class="fas fa-shield-alt"></i>
-                    <div class="benefit-content">
-                        <h3>حماية كاملة</h3>
-                        <p>بياناتك محمية بأعلى معايير الأمان</p>
-                    </div>
-                </div>
-                <div class="benefit-item">
-                    <i class="fas fa-gift"></i>
-                    <div class="benefit-content">
-                        <h3>عروض حصرية</h3>
-                        <p>احصل على خصومات ومميزات خاصة</p>
-                    </div>
-                </div>
+        <div id="alert" class="alert"></div>
+
+        <div class="account-type">
+            <div class="type-option active" onclick="selectAccountType('tenant')">
+                <i class="fas fa-user"></i>
+                <h3>مستأجر</h3>
+                <p>أبحث عن عقار</p>
+            </div>
+            <div class="type-option" onclick="selectAccountType('owner')">
+                <i class="fas fa-building"></i>
+                <h3>مالك</h3>
+                <p>أؤجر عقاري</p>
             </div>
         </div>
 
-        <div class="signup-right">
-            <div class="signup-header">
-                <h2>إنشاء حساب جديد</h2>
-                <p>املأ البيانات التالية للبدء</p>
-            </div>
+        <form id="signupForm">
+            <input type="hidden" id="accountType" value="tenant">
 
-            <div id="alert" class="alert"></div>
-
-            <div class="account-type">
-                <div class="type-option active" onclick="selectAccountType('tenant')">
-                    <i class="fas fa-user"></i>
-                    <h3>مستأجر</h3>
-                    <p>أبحث عن عقار للإيجار</p>
-                </div>
-                <div class="type-option" onclick="selectAccountType('owner')">
-                    <i class="fas fa-building"></i>
-                    <h3>مالك</h3>
-                    <p>أريد تأجير عقاري</p>
-                </div>
-            </div>
-
-            <form id="signupForm">
-                <input type="hidden" id="accountType" value="tenant">
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="firstName">الاسم الأول</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-user"></i>
-                            <input type="text" id="firstName" name="firstname" class="form-control" placeholder="أحمد" autocomplete="given-name" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="lastName">الاسم الأخير</label>
-                        <div class="input-wrapper">
-                            <i class="fas fa-user"></i>
-                            <input type="text" id="lastName" name="lastname" class="form-control" placeholder="محمد" autocomplete="family-name" required>
-                        </div>
-                    </div>
-                </div>
-
+            <div class="form-row">
                 <div class="form-group">
-                    <label for="email">البريد الإلكتروني</label>
+                    <label for="firstName">الاسم الأول</label>
                     <div class="input-wrapper">
-                        <i class="fas fa-envelope"></i>
-                        <input type="email" id="email" name="email" class="form-control" placeholder="example@email.com" autocomplete="username" required>
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="firstName" name="firstname" class="form-control" placeholder="أحمد"
+                            autocomplete="given-name" required>
                     </div>
                 </div>
-
                 <div class="form-group">
-                    <label for="phone">رقم الهاتف</label>
+                    <label for="lastName">الاسم الأخير</label>
                     <div class="input-wrapper">
-                        <i class="fas fa-phone"></i>
-                        <input type="tel" id="phone" name="phone" class="form-control" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="tel" required>
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="lastName" name="lastname" class="form-control" placeholder="محمد"
+                            autocomplete="family-name" required>
                     </div>
                 </div>
-
-                <div class="form-group">
-                    <label for="password">كلمة المرور</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" autocomplete="new-password" required
-                            oninput="checkPasswordStrength()">
-                        <button type="button" class="password-toggle"
-                            onclick="togglePassword('password', 'toggleIcon1')">
-                            <i class="fas fa-eye" id="toggleIcon1"></i>
-                        </button>
-                    </div>
-                    <div class="password-strength">
-                        <div class="password-strength-bar" id="strengthBar"></div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="confirmPassword">تأكيد كلمة المرور</label>
-                    <div class="input-wrapper">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="confirmPassword" name="confirm-password" class="form-control" placeholder="••••••••" autocomplete="new-password"
-                            required>
-                        <button type="button" class="password-toggle"
-                            onclick="togglePassword('confirmPassword', 'toggleIcon2')">
-                            <i class="fas fa-eye" id="toggleIcon2"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="terms-checkbox">
-                    <input type="checkbox" id="terms" required>
-                    <label for="terms">
-                        أوافق على <a href="#">الشروط والأحكام</a> و <a href="#">سياسة الخصوصية</a>
-                    </label>
-                </div>
-
-                <button type="submit" class="btn-signup">
-                    <i class="fas fa-user-plus"></i>
-                    إنشاء الحساب
-                </button>
-            </form>
-
-            <div class="divider">
-                <span>أو</span>
             </div>
 
-            <div class="social-signup">
-                <button class="btn-social btn-google" onclick="signupWithGoogle()">
-                    <i class="fab fa-google"></i>
-                    Google
-                </button>
-                <button class="btn-social btn-facebook" onclick="signupWithFacebook()">
-                    <i class="fab fa-facebook"></i>
-                    Facebook
-                </button>
+            <div class="form-group">
+                <label for="email">البريد الإلكتروني</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="example@email.com"
+                        autocomplete="username" required>
+                </div>
             </div>
 
-            <div class="login-link">
-                لديك حساب بالفعل؟ <a href="login.html">تسجيل الدخول</a>
+            <div class="form-group">
+                <label for="phone">رقم الهاتف</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-phone"></i>
+                    <input type="tel" id="phone" name="phone" class="form-control" placeholder="01xxxxxxxxx"
+                        autocomplete="tel" inputmode="tel" required>
+                </div>
             </div>
-        </div>
+
+            <div class="form-group">
+                <label for="password">كلمة المرور</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="••••••••"
+                        autocomplete="new-password" required oninput="checkPasswordStrength()">
+                    <button type="button" class="password-toggle" onclick="togglePassword('password', 'toggleIcon1')">
+                        <i class="fas fa-eye" id="toggleIcon1"></i>
+                    </button>
+                </div>
+                <div class="password-strength">
+                    <div class="password-strength-bar" id="strengthBar"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">تأكيد كلمة المرور</label>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="confirmPassword" name="confirm-password" class="form-control"
+                        placeholder="••••••••" autocomplete="new-password" required>
+                    <button type="button" class="password-toggle"
+                        onclick="togglePassword('confirmPassword', 'toggleIcon2')">
+                        <i class="fas fa-eye" id="toggleIcon2"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="terms-checkbox">
+                <input type="checkbox" id="terms" required>
+                <label for="terms">
+                    أوافق على <a href="terms.html">الشروط والأحكام</a> و <a href="privacy.html">سياسة الخصوصية</a>
+                </label>
+            </div>
+
+            <button type="submit" class="btn-primary-auth" id="signupBtn">
+                <i class="fas fa-user-plus"></i>
+                إنشاء الحساب
+            </button>
+        </form>
+
+        <p class="auth-link">
+            لديك حساب بالفعل؟ <a href="login.html">تسجيل الدخول</a>
+        </p>
+
+        <details class="auth-more">
+            <summary>خيارات إضافية</summary>
+            <div class="auth-more-body">
+                <div class="demo-row">
+                    <button type="button" class="btn-social btn-google" onclick="signupWithGoogle()"
+                        style="width:auto;padding:0 1rem;height:44px;">
+                        <i class="fab fa-google"></i> Google
+                    </button>
+                    <button type="button" class="btn-social btn-facebook" onclick="signupWithFacebook()"
+                        style="width:auto;padding:0 1rem;height:44px;">
+                        <i class="fab fa-facebook"></i> Facebook
+                    </button>
+                </div>
+            </div>
+        </details>
     </div>
 
+    <script src="js/auth.js"></script>
+    <script src="js/auto-translator.js"></script>
+    <script src="js/localization.js"></script>
     <script>
         function selectAccountType(type) {
             document.querySelectorAll('.type-option').forEach(option => {
@@ -660,7 +224,7 @@
 
             showAlert('جاري إنشاء الحساب...', 'success');
 
-            const btn = e.target.querySelector('.btn-signup');
+            const btn = document.getElementById('signupBtn');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري إنشاء الحساب...';
             btn.disabled = true;
@@ -700,7 +264,6 @@
             showAlert('جاري التسجيل عبر Facebook...', 'success');
         }
 
-        // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             const settingsBtn = document.getElementById('settingsBtn');
             const settingsDropdown = document.querySelector('.settings-dropdown');
@@ -709,7 +272,6 @@
             }
         });
 
-        // Toggle settings dropdown
         function toggleSettings() {
             const container = document.getElementById('settingsDropdownContainer');
             let dropdown = container.querySelector('.settings-dropdown');
@@ -722,9 +284,6 @@
             dropdown.classList.toggle('active');
         }
     </script>
-    <script src="js/auth.js"></script>
-    <script src="js/auto-translator.js"></script>
-    <script src="js/localization.js"></script>
 </body>
 
 </html>
