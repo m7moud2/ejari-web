@@ -36,7 +36,11 @@ const userSchema = new mongoose.Schema({
     verificationStatus: {
         type: String,
         enum: ['pending', 'verified', 'rejected'],
-        default: 'verified',
+        default: function() {
+            return ['owner', 'technician', 'company'].includes(this.requestedRole)
+                ? 'pending'
+                : 'verified';
+        },
         set: value => value === 'approved' ? 'verified' : value
     },
     phone: {
