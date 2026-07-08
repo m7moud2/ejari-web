@@ -328,6 +328,12 @@ service cloud.firestore {
              (unchanged('updatedAt') || isServerTimestamp('updatedAt'));
     }
 
+    function isContractParty() {
+      return signedIn() &&
+             (resource.data.tenantId == request.auth.uid ||
+              resource.data.ownerId == request.auth.uid);
+    }
+
     // Public guests and tenants read approved listings only.
     // Owners can read their own listings regardless of review status.
     match /properties/{propertyId} {
@@ -380,6 +386,12 @@ service cloud.firestore {
       allow create: if validBookingCreate();
       allow update: if validTenantBookingUpdate() || validOwnerBookingUpdate();
       allow delete: if false;
+    }
+
+    // Contracts are server-owned after approved/paid bookings. Parties may read only.
+    match /contracts/{contractId} {
+      allow read: if isContractParty();
+      allow create, update, delete: if false;
     }
 
   }
