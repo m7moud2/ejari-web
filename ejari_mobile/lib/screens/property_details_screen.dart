@@ -100,6 +100,20 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       return;
     }
 
+    final currentUserId =
+        (currentUser['uid'] ?? currentUser['id'] ?? currentUser['_id'])
+            ?.toString()
+            .trim();
+    if (currentUserId == null || currentUserId.isEmpty) {
+      debugPrint('Cannot start chat: missing current user identifier');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تعذر بدء المحادثة، يرجى تسجيل الدخول مرة أخرى'),
+        ),
+      );
+      return;
+    }
+
     final ownerId = widget.property['ownerId']?.toString() ?? 'admin';
     const ownerName = 'مالك العقار'; // Or fetch actual owner name
 
@@ -113,7 +127,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
     if (!mounted) return;
     final chatId = await FirestoreChatService.startChat(
-      currentUser['uid'],
+      currentUserId,
       ownerId,
       ownerName,
       widget.property['title'] ?? '',
@@ -130,7 +144,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               builder: (context) => ChatScreen(
                   chatId: chatId,
                   otherUserName: ownerName,
-                  currentUserId: currentUser['uid'])));
+                  currentUserId: currentUserId)));
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
