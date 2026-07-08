@@ -93,6 +93,24 @@ class AuthService {
     };
   }
 
+  static String _normalizeRoleForAccess(String? role) {
+    switch (role?.trim().toLowerCase()) {
+      case 'owner':
+      case 'landlord':
+        return 'owner';
+      case 'technician':
+      case 'tech':
+      case 'provider':
+      case 'service_provider':
+        return 'technician';
+      case 'admin':
+        return 'admin';
+      case 'tenant':
+      default:
+        return 'tenant';
+    }
+  }
+
   static Map<String, dynamic> _buildLocalUser({
     required String name,
     required String email,
@@ -599,7 +617,7 @@ class AuthService {
   // ─────────────────────────────────────────────
   static Future<String> getUserRole() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_userRoleKey) ?? 'tenant';
+    return _normalizeRoleForAccess(prefs.getString(_userRoleKey));
   }
 
   static Future<void> setUserRole(String role) async {
