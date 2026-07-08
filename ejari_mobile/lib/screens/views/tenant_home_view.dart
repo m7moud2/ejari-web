@@ -180,10 +180,10 @@ class TenantHomeView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          Wrap(
+          const Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: const [
+            children: [
               _SearchHintChip(label: 'المدينة'),
               _SearchHintChip(label: 'المنطقة'),
               _SearchHintChip(label: 'السعر'),
@@ -235,7 +235,7 @@ class TenantHomeView extends StatelessWidget {
         onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (_) => SearchResultsScreen(query: 'شقة')),
+                  builder: (_) => const SearchResultsScreen(query: 'شقة')),
             ),
       ),
       (
@@ -245,7 +245,7 @@ class TenantHomeView extends StatelessWidget {
         onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (_) => SearchResultsScreen(query: 'حجز')),
+                  builder: (_) => const SearchResultsScreen(query: 'حجز')),
             ),
       ),
       (
@@ -464,7 +464,7 @@ class TenantHomeView extends StatelessWidget {
                   color: Colors.white),
             ),
             const SizedBox(width: 12),
-            Expanded(
+            const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -509,7 +509,7 @@ class TenantHomeView extends StatelessWidget {
           onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (_) => SearchResultsScreen(query: 'شقة'))),
+                  builder: (_) => const SearchResultsScreen(query: 'شقة'))),
         ),
       ];
     }
