@@ -223,6 +223,18 @@ service cloud.firestore {
              isServerTimestamp('timestamp');
     }
 
+    function isPaymentParty() {
+      return signedIn() &&
+             (resource.data.userId == request.auth.uid ||
+              resource.data.ownerId == request.auth.uid);
+    }
+
+    function isEscrowParty() {
+      return signedIn() &&
+             (resource.data.tenantId == request.auth.uid ||
+              resource.data.ownerId == request.auth.uid);
+    }
+
     // Public guests and tenants read approved listings only.
     // Owners can read their own listings regardless of review status.
     match /properties/{propertyId} {
@@ -245,6 +257,28 @@ service cloud.firestore {
         allow update: if false;
         allow delete: if false;
       }
+    }
+
+    // Financial collections are server-owned. Clients may read only their own records.
+    // Wallet docs are summary views; walletTransactions are the ledger source of truth.
+    match /wallets/{userId} {
+      allow read: if isSelf(userId);
+      allow create, update, delete: if false;
+    }
+
+    match /walletTransactions/{transactionId} {
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create, update, delete: if false;
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isPaymentParty();
+      allow create, update, delete: if false;
+    }
+
+    match /escrow/{escrowId} {
+      allow read: if isEscrowParty();
+      allow create, update, delete: if false;
     }
 
   }
