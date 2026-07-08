@@ -235,6 +235,99 @@ service cloud.firestore {
               resource.data.ownerId == request.auth.uid);
     }
 
+    function isBookingTenant() {
+      return signedIn() && resource.data.tenantId == request.auth.uid;
+    }
+
+    function isBookingOwner() {
+      return signedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    function canReadBooking() {
+      return isBookingTenant() || isBookingOwner();
+    }
+
+    function bookingPropertyOwnerMatches() {
+      let property = get(/databases/$(database)/documents/properties/$(request.resource.data.propertyId));
+      return property.data.ownerId == request.resource.data.ownerId &&
+             property.data.status == 'approved';
+    }
+
+    function bookingCreateFinancialFieldsSafe() {
+      return (!('paymentStatus' in request.resource.data) ||
+              request.resource.data.paymentStatus == 'pending') &&
+             (!('escrowStatus' in request.resource.data) ||
+              request.resource.data.escrowStatus == 'none') &&
+             (!('contractStatus' in request.resource.data) ||
+              request.resource.data.contractStatus == 'none') &&
+             (!('paidAmount' in request.resource.data) ||
+              request.resource.data.paidAmount == 0) &&
+             !('contractNumber' in request.resource.data) &&
+             !('transactionId' in request.resource.data) &&
+             !('paymentPhase' in request.resource.data);
+    }
+
+    function validBookingCreate() {
+      return signedIn() &&
+             request.resource.data.tenantId == request.auth.uid &&
+             request.resource.data.propertyId is string &&
+             request.resource.data.ownerId is string &&
+             request.resource.data.status == 'pending' &&
+             bookingPropertyOwnerMatches() &&
+             bookingCreateFinancialFieldsSafe() &&
+             (!('createdAt' in request.resource.data) ||
+              isServerTimestamp('createdAt'));
+    }
+
+    function bookingFinancialFieldsUnchanged() {
+      return unchanged('tenantId') &&
+             unchanged('ownerId') &&
+             unchanged('propertyId') &&
+             unchanged('paymentStatus') &&
+             unchanged('paidAmount') &&
+             unchanged('escrowStatus') &&
+             unchanged('contractStatus') &&
+             unchanged('contractNumber') &&
+             unchanged('transactionId') &&
+             unchanged('paymentPhase') &&
+             unchanged('createdAt');
+    }
+
+    function tenantCancelledBooking() {
+      return resource.data.status == 'pending' &&
+             request.resource.data.status == 'cancelled' &&
+             changedOnly(['status', 'updatedAt']);
+    }
+
+    function tenantUpdatedBookingDetails() {
+      return changedOnly(['specialRequests', 'verification', 'updatedAt']) &&
+             unchanged('status');
+    }
+
+    function validTenantBookingUpdate() {
+      return isBookingTenant() &&
+             bookingFinancialFieldsUnchanged() &&
+             (tenantCancelledBooking() || tenantUpdatedBookingDetails()) &&
+             (unchanged('updatedAt') || isServerTimestamp('updatedAt'));
+    }
+
+    function validOwnerBookingStatusTransition() {
+      let oldStatus = resource.data.status;
+      let newStatus = request.resource.data.status;
+      return (oldStatus == 'pending' || oldStatus == 'viewing_scheduled') &&
+             (newStatus == 'approved' ||
+              newStatus == 'accepted' ||
+              newStatus == 'rejected');
+    }
+
+    function validOwnerBookingUpdate() {
+      return isBookingOwner() &&
+             changedOnly(['status', 'ownerNotes', 'updatedAt']) &&
+             validOwnerBookingStatusTransition() &&
+             bookingFinancialFieldsUnchanged() &&
+             (unchanged('updatedAt') || isServerTimestamp('updatedAt'));
+    }
+
     // Public guests and tenants read approved listings only.
     // Owners can read their own listings regardless of review status.
     match /properties/{propertyId} {
@@ -279,6 +372,14 @@ service cloud.firestore {
     match /escrow/{escrowId} {
       allow read: if isEscrowParty();
       allow create, update, delete: if false;
+    }
+
+    // Tenants create requests; owners approve/reject; financial state is server-owned.
+    match /bookings/{bookingId} {
+      allow read: if canReadBooking();
+      allow create: if validBookingCreate();
+      allow update: if validTenantBookingUpdate() || validOwnerBookingUpdate();
+      allow delete: if false;
     }
 
   }
