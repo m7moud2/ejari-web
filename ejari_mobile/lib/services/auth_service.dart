@@ -59,7 +59,7 @@ class AuthService {
   static bool get _useFirebaseAuth =>
       !AppConfig.demoMode &&
       _baseUrl == null &&
-      (Firebase.apps.isNotEmpty || _firebaseAuth.currentUser != null);
+      Firebase.apps.isNotEmpty;
 
   static Map<String, dynamic> _buildLocalUser({
     required String name,
