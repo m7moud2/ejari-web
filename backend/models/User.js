@@ -28,6 +28,17 @@ const userSchema = new mongoose.Schema({
         enum: ['tenant', 'owner', 'admin'],
         default: 'tenant'
     },
+    requestedRole: {
+        type: String,
+        enum: ['tenant', 'owner', 'technician', 'company'],
+        default: 'tenant'
+    },
+    verificationStatus: {
+        type: String,
+        enum: ['pending', 'verified', 'rejected'],
+        default: 'verified',
+        set: value => value === 'approved' ? 'verified' : value
+    },
     phone: {
         type: String,
         required: [true, 'الرجاء إدخال رقم الهاتف']
