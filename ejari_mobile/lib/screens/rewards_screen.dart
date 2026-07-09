@@ -263,7 +263,7 @@ class RewardsScreen extends StatelessWidget {
                       const Icon(Icons.check_circle,
                           color: AppTheme.primaryColor, size: 60),
                       const SizedBox(height: 16),
-                      Text('كود الخصم: KEYO-${DateTime.now().millisecond}'),
+                      Text('كود الخصم: EJARI-${DateTime.now().millisecond}'),
                       const SizedBox(height: 8),
                       const Text('تمت إضافة القسيمة إلى محفظتك.',
                           style: TextStyle(

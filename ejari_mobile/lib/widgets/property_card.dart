@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../l10n/app_localizations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'ejari_image.dart';
 
 class PropertyCard extends StatefulWidget {
   final String id;
@@ -40,6 +41,13 @@ class PropertyCard extends StatefulWidget {
 
 class _PropertyCardState extends State<PropertyCard> {
   bool _isFavorite = false;
+
+  bool _isNetworkImage(String value) {
+    final uri = Uri.tryParse(value.trim());
+    return uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        uri.host.isNotEmpty;
+  }
 
   @override
   void initState() {
@@ -96,15 +104,15 @@ class _PropertyCardState extends State<PropertyCard> {
               children: [
                 Hero(
                   tag: widget.id,
-                  child: ClipRRect(
+                child: ClipRRect(
                     borderRadius:
                         const BorderRadius.vertical(top: Radius.circular(24)),
-                    child: widget.image.startsWith('http')
+                    child: _isNetworkImage(widget.image)
                         ? CachedNetworkImage(
-                            imageUrl: widget.image,
-                        height: 220,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
+                            imageUrl: widget.image.trim(),
+                            height: 220,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
                             placeholder: (context, url) => Container(
                               height: 220,
                               color: AppTheme.backgroundColor,
@@ -112,19 +120,29 @@ class _PropertyCardState extends State<PropertyCard> {
                                   child: CircularProgressIndicator(
                                       color: AppTheme.primaryColor)),
                             ),
-                            errorWidget: (context, url, error) => Image.asset(
-                              'assets/images/home1.jpg',
-                        height: 220,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
+                            errorWidget: (context, url, error) =>
+                                const EjariImage(
+                              path: 'assets/images/home1.jpg',
+                              fit: BoxFit.cover,
+                              height: 220,
+                              width: double.infinity,
                             ),
                           )
                         : Image.asset(
-                            widget.image,
-                        height: 220,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                  ),
+                            widget.image.startsWith('assets/')
+                                ? widget.image
+                                : 'assets/images/home1.jpg',
+                            height: 220,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const EjariImage(
+                              path: 'assets/images/home1.jpg',
+                              fit: BoxFit.cover,
+                              height: 220,
+                              width: double.infinity,
+                            ),
+                          ),
                   ),
                 ),
 

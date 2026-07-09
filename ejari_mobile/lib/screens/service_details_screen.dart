@@ -61,7 +61,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                       color: Theme.of(context).cardTheme.color ??
                           Theme.of(context).cardColor,
                       shape: BoxShape.circle,
-                      boxShadow: [],
+                      boxShadow: const [],
                     ),
                     child: Icon(icon, color: color, size: 50),
                   ),
@@ -99,7 +99,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 32),
 
-                  const Text('ضمان كيو للتميز',
+                  const Text('ضمان إيجاري للتميز',
                       style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w900,
@@ -186,7 +186,7 @@ class ServiceDetailsScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color:
               Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
-          boxShadow: [],
+          boxShadow: const [],
         ),
         child: SafeArea(
           child: ElevatedButton(
@@ -250,7 +250,7 @@ class ServiceDetailsScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color:
               Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         ),
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom + 24,
@@ -473,7 +473,7 @@ class ExtendedTextLegal extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold)),
             TextSpan(
                 text:
-                    ' قابلة للزيادة أو النقصان بناءً على المعاينة الفعلية للعقار، وتشمل الضريبة المضافة لرسوم المنصة. إتمام الطلب يعتبر إقراراً بالموافقة المبدئية على دخول ممثلي كيو للمعاينات الدورية.'),
+                    ' قابلة للزيادة أو النقصان بناءً على المعاينة الفعلية للعقار، وتشمل الضريبة المضافة لرسوم المنصة. إتمام الطلب يعتبر إقراراً بالموافقة المبدئية على دخول ممثلي إيجاري للمعاينات الدورية.'),
           ],
         ),
       ),

@@ -151,7 +151,7 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
                 left: 20,
                 right: 20,
                 top: 10,
-                bottom: 140), // Increased bottom padding
+                bottom: 168),
             physics: const BouncingScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -260,60 +260,68 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
             left: 0,
             right: 0,
             bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardTheme.color ?? Colors.white,
-                boxShadow: const [],
-              ),
+            child: SafeArea(
+              top: false,
               child: Container(
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 18),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppTheme.borderColor, AppTheme.borderColor],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
+                  color: Theme.of(context).cardTheme.color ?? Colors.white,
+                  boxShadow: const [],
                 ),
-                child: ElevatedButton(
-                  onPressed: _applyFilters,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    elevation: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [AppTheme.borderColor, AppTheme.borderColor],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _matchingCount > 0
-                            ? 'استعراض العقارات'
-                            : 'لا توجد نتائج مطابقة',
-                        style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      ),
-                      if (_matchingCount > 0) ...[
-                        const SizedBox(width: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppTheme.borderColor.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                  child: ElevatedButton(
+                    onPressed: _applyFilters,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      elevation: 0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Flexible(
                           child: Text(
-                            '$_matchingCount',
+                            _matchingCount > 0
+                                ? 'استعراض العقارات'
+                                : 'لا توجد نتائج مطابقة',
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                                fontWeight: FontWeight.w900,
-                                color: AppTheme.textPrimary,
-                                fontSize: 13),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
                           ),
                         ),
+                        if (_matchingCount > 0) ...[
+                          const SizedBox(width: 12),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppTheme.borderColor.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '$_matchingCount',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  color: AppTheme.textPrimary,
+                                  fontSize: 13),
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),

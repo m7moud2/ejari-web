@@ -77,6 +77,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
               ? chat['participants'].firstWhere((p) => p != _currentUserId,
                   orElse: () => chat['otherUserName'] ?? 'مستخدم')
               : (chat['otherUserName'] ?? 'مستخدم'),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
@@ -84,6 +86,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
           children: [
             if (chat['subtitle'] != null)
               Text(chat['subtitle'],
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                       fontSize: 12, color: AppTheme.primaryColor)),
             Text(

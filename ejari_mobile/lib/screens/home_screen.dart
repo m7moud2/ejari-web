@@ -13,6 +13,8 @@ import '../services/auth_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/property_provider.dart';
 import 'notifications_screen.dart';
+import 'tenant_installments_screen.dart';
+import 'rental_statement_screen.dart';
 import 'advanced_filters_screen.dart';
 import 'service_details_screen.dart';
 import '../l10n/app_localizations.dart';
@@ -20,7 +22,9 @@ import 'ai_concierge_screen.dart';
 import 'maintenance_requests_screen.dart';
 import 'my_bookings_screen.dart';
 import 'my_contracts_screen.dart';
-import 'tenant_wallet_screen.dart';
+import 'about_app_screen.dart';
+import 'request_verification_screen.dart';
+import 'unified_home_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,7 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<Widget> get _screens => [
-        HomeContent(role: _currentRole),
+        const UnifiedHomeScreen(),
         const PropertiesScreen(),
         const AddPropertyScreen(),
         const PropertyReelsScreen(),
@@ -55,7 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: false,
+      extendBody: true,
+      backgroundColor: AppTheme.backgroundColor,
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
@@ -645,7 +650,7 @@ class _HomeContentState extends State<HomeContent> {
           text: const TextSpan(
             children: [
               TextSpan(
-                text: 'قريباً.. ',
+                text: 'ابدأ الآن.. ',
                 style: TextStyle(
                   color: AppTheme.primaryColor,
                   fontSize: 18,
@@ -672,6 +677,34 @@ class _HomeContentState extends State<HomeContent> {
             height: 1.75,
             fontWeight: FontWeight.w600,
           ),
+        ),
+        const SizedBox(height: 14),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            FilledButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const RequestVerificationScreen(),
+                ),
+              ),
+              icon: const Icon(Icons.verified_user_rounded),
+              label: const Text('وثق حسابك'),
+            ),
+            if (widget.role == 'owner')
+              OutlinedButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AddPropertyScreen(),
+                  ),
+                ),
+                icon: const Icon(Icons.campaign_outlined),
+                label: const Text('ارفع إعلانك المميز'),
+              ),
+          ],
         ),
         const SizedBox(height: 16),
         Wrap(
@@ -818,22 +851,23 @@ class _HomeContentState extends State<HomeContent> {
                     color: AppTheme.primaryColor.withOpacity(0.10),
                     borderRadius: BorderRadius.circular(18),
                   ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.qr_code_2_rounded,
-                          color: AppTheme.primaryColor),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'امسح الكود للوصول للتجربة',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w800,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
+                  child: TextButton.icon(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AboutAppScreen(),
                       ),
-                    ],
+                    ),
+                    icon: const Icon(Icons.info_outline_rounded,
+                        color: AppTheme.primaryColor),
+                    label: const Text(
+                      'اعرف أكثر',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -1207,10 +1241,16 @@ class _HomeContentState extends State<HomeContent> {
         page: const MaintenanceRequestsScreen(),
       ),
       (
-        title: 'المحفظة',
-        subtitle: 'مدفوعاتك في مكان واحد',
-        icon: Icons.account_balance_wallet_outlined,
-        page: const TenantWalletScreen(),
+        title: 'أقساطي',
+        subtitle: 'متابعة ودفع الأقساط',
+        icon: Icons.calendar_month_rounded,
+        page: const TenantInstallmentsScreen(),
+      ),
+      (
+        title: 'كشف الحساب',
+        subtitle: 'الأقساط والإيصالات',
+        icon: Icons.receipt_long_rounded,
+        page: const RentalStatementScreen(),
       ),
     ];
 
@@ -1220,12 +1260,12 @@ class _HomeContentState extends State<HomeContent> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'ماذا تريد أن تنجز؟',
+            'اختصاراتك الأساسية',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 6),
           Text(
-            'اختصارات لأكثر المهام التي يحتاجها المستأجر يومياً',
+            'اختصارات لأهم المهام اليومية بدون زحمة',
             style: Theme.of(context).textTheme.bodySmall,
           ),
           const SizedBox(height: 16),
@@ -1237,7 +1277,7 @@ class _HomeContentState extends State<HomeContent> {
               crossAxisCount: 2,
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              childAspectRatio: 1.45,
+              mainAxisExtent: 98,
             ),
             itemBuilder: (context, index) {
               final action = actions[index];

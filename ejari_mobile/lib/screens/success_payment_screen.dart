@@ -17,7 +17,7 @@ class SuccessPaymentScreen extends StatefulWidget {
     required this.paymentMethod,
     this.successTitle = 'تم الدفع بنجاح!',
     this.successMessage =
-        'تم تأكيد عملية الدفع وحجز الوحدة بنجاح.\nشكراً لاستخدامك كيو.',
+        'تم تأكيد عملية الدفع وحجز الوحدة بنجاح.\nشكراً لاستخدامك إيجاري.',
   });
 
   @override
@@ -113,7 +113,7 @@ class _SuccessPaymentScreenState extends State<SuccessPaymentScreen>
                         SizedBox(width: 8),
                         Flexible(
                           child: Text(
-                            'إيصال ديجيتال موثق - كيو',
+                            'إيصال ديجيتال موثق - إيجاري',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 10,
@@ -162,7 +162,7 @@ class _SuccessPaymentScreenState extends State<SuccessPaymentScreen>
                         final mockBooking = {
                           'title': 'حجز عقار - معاملة ${widget.transactionId}',
                           'price': widget.amount,
-                          'tenantName': 'مستخدم كيو',
+                          'tenantName': 'مستخدم إيجاري',
                           'ownerName': 'المالك المعتمد',
                           'startDate': DateTime.now().toIso8601String(),
                           'endDate': DateTime.now()
@@ -247,7 +247,7 @@ class _SuccessPaymentScreenState extends State<SuccessPaymentScreen>
   String _getPaymentMethodName(String method) {
     switch (method) {
       case 'wallet':
-        return 'محفظة كيو';
+        return 'محفظة إيجاري';
       case 'card':
         return 'بطاقة ائتمان / خصم';
       case 'fawry':

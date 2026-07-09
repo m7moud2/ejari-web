@@ -105,9 +105,11 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         const SizedBox(height: 8),
-        Row(
+        Wrap(
           children: List.generate(5, (index) {
             return IconButton(
               onPressed: () => onRatingChanged(index + 1),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ejari_section.dart';
 import '../services/data_service.dart';
 import '../services/wallet_service.dart';
 import 'contract_view_screen.dart';
@@ -37,25 +38,43 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('حجوزاتي')),
+      backgroundColor: AppTheme.backgroundColor,
+      appBar: AppBar(
+        backgroundColor: AppTheme.backgroundColor,
+        surfaceTintColor: Colors.transparent,
+        title: const Text('حجوزاتي'),
+        titleTextStyle: const TextStyle(
+          color: AppTheme.textPrimary,
+          fontSize: 22,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                _buildOverviewCard(),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withOpacity(0.06),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppTheme.primaryColor.withOpacity(0.12),
-                      ),
-                    ),
-                    child: const Text(
+          ? const ColoredBox(
+              color: AppTheme.backgroundColor,
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _loadBookings,
+              color: AppTheme.primaryColor,
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(
+                  AppTheme.screenPadding,
+                  AppTheme.spaceMd,
+                  AppTheme.screenPadding,
+                  AppTheme.spaceXl,
+                ),
+                children: [
+                  _buildOverviewCard(),
+                  const SizedBox(height: AppTheme.spaceSm),
+                  const EjariSurfaceCard(
+                    elevated: false,
+                    padding: EdgeInsets.all(AppTheme.spaceMd),
+                    child: Text(
                       'هنا ستجد حالة كل عملية: عربون، استكمال، أو استرداد. كل خطوة مالية واضحة ومربوطة بصفقة محددة.',
                       style: TextStyle(
                         color: AppTheme.textSecondary,
@@ -64,20 +83,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                       ),
                     ),
                   ),
-                ),
-                Expanded(
-                  child: _bookings.isEmpty
-                      ? _buildEmptyState()
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _bookings.length,
-                          itemBuilder: (context, index) {
-                            final booking = _bookings[index];
-                            return _buildBookingCard(booking);
-                          },
-                        ),
-                ),
-              ],
+                  const SizedBox(height: AppTheme.spaceMd),
+                  if (_bookings.isEmpty)
+                    _buildEmptyState()
+                  else
+                    ..._bookings.map(_buildBookingCard),
+                ],
+              ),
             ),
     );
   }
@@ -90,51 +102,59 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     final refunded =
         _bookings.where((b) => b['status'] == 'deposit_refunded').length;
 
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.12)),
-      ),
-      child: Row(
+    return EjariSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(Icons.account_balance_wallet_outlined,
-                color: AppTheme.primaryColor, size: 24),
+          const EjariSectionHeader(
+            title: 'ملخص الحجوزات المالية',
+            subtitle: 'نظرة سريعة على حالات الدفع والموافقات',
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'ملخص الحجوزات المالية',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
+          const SizedBox(height: AppTheme.spaceMd),
+          Row(
+            children: [
+              Expanded(
+                child: EjariStatTile(
+                  icon: Icons.list_alt_rounded,
+                  label: 'الإجمالي',
+                  value: '$total',
+                  compact: true,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'إجمالي $total • عربون مدفوع $depositPaid • موافقات $approved • استرداد $refunded',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    height: 1.4,
-                    color: AppTheme.textSecondary,
-                  ),
+              ),
+              const SizedBox(width: AppTheme.spaceXs),
+              Expanded(
+                child: EjariStatTile(
+                  icon: Icons.payments_rounded,
+                  label: 'عربون مدفوع',
+                  value: '$depositPaid',
+                  accentColor: AppTheme.accentColor,
+                  compact: true,
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spaceXs),
+          Row(
+            children: [
+              Expanded(
+                child: EjariStatTile(
+                  icon: Icons.check_circle_outline_rounded,
+                  label: 'موافقات',
+                  value: '$approved',
+                  compact: true,
+                ),
+              ),
+              const SizedBox(width: AppTheme.spaceXs),
+              Expanded(
+                child: EjariStatTile(
+                  icon: Icons.replay_rounded,
+                  label: 'استرداد',
+                  value: '$refunded',
+                  accentColor: AppTheme.textSecondary,
+                  compact: true,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -142,36 +162,28 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.calendar_today_outlined,
-                size: 80, color: AppTheme.primaryColor),
-            const SizedBox(height: 16),
-            const Text(
-              'لا توجد حجوزات حالياً',
-              style: TextStyle(fontSize: 18, color: AppTheme.textSecondary),
-              textAlign: TextAlign.center,
+    return const EjariSurfaceCard(
+      child: Column(
+        children: [
+          Icon(Icons.calendar_today_outlined,
+              size: 80, color: AppTheme.primaryColor),
+          SizedBox(height: AppTheme.spaceMd),
+          Text(
+            'لا توجد حجوزات حالياً',
+            style: TextStyle(fontSize: 18, color: AppTheme.textSecondary),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: AppTheme.spaceXs),
+          Text(
+            'أول ما تعمل حجز أو تدفع عربون، هتظهر الحالة هنا بشكل واضح، ومعها المتبقي أو الاسترداد لو حصل تغيير.',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondary,
+              height: 1.5,
             ),
-            const SizedBox(height: 8),
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 320),
-              child: const Text(
-                'أول ما تعمل حجز أو تدفع عربون، هتظهر الحالة هنا بشكل واضح، ومعها المتبقي أو الاسترداد لو حصل تغيير.',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppTheme.textSecondary,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
-        ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
@@ -181,8 +193,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     final totalUnits = (snapshot['totalUnits'] as num?)?.toInt() ??
         (snapshot['leaseMonths'] as num?)?.toInt() ??
         0;
-    final remainingUnits =
-        (snapshot['remainingUnits'] as num?)?.toInt() ?? 0;
+    final remainingUnits = (snapshot['remainingUnits'] as num?)?.toInt() ?? 0;
     final elapsedUnits = (snapshot['elapsedUnits'] as num?)?.toInt() ?? 0;
     final unitLabel = snapshot['durationUnit']?.toString() ?? 'شهر';
     final progress =
@@ -257,9 +268,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildTinyStat('القسط الشهري',
-                  '${monthlyRent.toStringAsFixed(0)} ج.م'),
-              _buildTinyStat('أقرب قسط', '${nextDueAmount.toStringAsFixed(0)} ج.م'),
+              _buildTinyStat(
+                  'القسط الشهري', '${monthlyRent.toStringAsFixed(0)} ج.م'),
+              _buildTinyStat(
+                  'أقرب قسط', '${nextDueAmount.toStringAsFixed(0)} ج.م'),
               _buildTinyStat('موعد القسط', nextDueDate),
             ],
           ),
@@ -360,15 +372,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       dateStr = DateParsing.display(booking['requestDate'], fallback: 'اليوم');
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: statusColor.withOpacity(0.3)),
-        boxShadow: const [],
-      ),
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppTheme.spaceMd),
+      child: EjariSurfaceCard(
+        padding: EdgeInsets.zero,
+        child: Column(
         children: [
           // Header
           Container(
@@ -488,9 +496,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
                 // Action Buttons
                 if (status == 'approved') ...[
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppTheme.spaceMd),
                   SizedBox(
                     width: double.infinity,
+                    height: AppTheme.ctaHeight,
                     child: ElevatedButton.icon(
                       onPressed: () async {
                         final allowed = await AuthGate.requireLogin(
@@ -669,6 +678,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

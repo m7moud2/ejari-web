@@ -112,11 +112,19 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: Text('نتائج البحث: ${widget.query}'),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const ColoredBox(
+              color: AppTheme.backgroundColor,
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+            )
           : _results.isEmpty
               ? Center(
                   child: SingleChildScrollView(

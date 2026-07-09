@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/wallet_service.dart';
+import '../services/data_service.dart';
 import 'package:intl/intl.dart';
 import '../utils/date_utils.dart';
+import '../utils/rental_schedule_utils.dart';
 import 'payment_methods_screen.dart';
 import 'rewards_screen.dart';
 import 'rental_statement_screen.dart';
@@ -17,6 +19,8 @@ class TenantWalletScreen extends StatefulWidget {
 class _TenantWalletScreenState extends State<TenantWalletScreen> {
   double _balance = 0.0;
   List<Map<String, dynamic>> _transactions = [];
+  Map<String, dynamic>? _rentSummary;
+  List<Map<String, dynamic>> _relatedBookings = [];
   String _selectedFilter = 'الكل'; // 'الكل', 'إيداع', 'سحب'
   bool _isLoading = true;
 
@@ -30,11 +34,40 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
     await WalletService.init();
     final balance = await WalletService.getBalance();
     final transactions = await WalletService.getTransactions();
+    final bookings = await DataService.getBookings();
+
+    final activeBookings = bookings
+        .where((b) =>
+            (b['status'] ?? '').toString() != 'deposit_refunded' &&
+            (b['status'] ?? '').toString() != 'rejected')
+        .toList();
+
+    Map<String, dynamic>? rentSummary;
+    if (activeBookings.isNotEmpty) {
+      final booking = activeBookings.first;
+      final snapshot = RentalScheduleUtils.buildLeaseSnapshot(booking);
+      rentSummary = {
+        'title': booking['title']?.toString() ?? 'حجز إيجار',
+        'monthlyRent': (snapshot['monthlyRent'] as num?)?.toDouble() ?? 0.0,
+        'nextDueAmount': (snapshot['nextDueAmount'] as num?)?.toDouble() ?? 0.0,
+        'nextDueDate': snapshot['nextDueDate'] as DateTime?,
+        'remainingMonths': (snapshot['remainingMonths'] as num?)?.toInt() ?? 0,
+        'paidMonths': (booking['paidMonths'] is num)
+            ? (booking['paidMonths'] as num).toInt()
+            : int.tryParse((booking['paidMonths'] ?? '0').toString()) ?? 0,
+        'leaseMonths': (snapshot['leaseMonths'] as num?)?.toInt() ?? 0,
+        'depositAmount': (snapshot['depositAmount'] as num?)?.toDouble() ?? 0.0,
+        'remainingAmount':
+            (snapshot['remainingAmount'] as num?)?.toDouble() ?? 0.0,
+      };
+    }
 
     if (mounted) {
       setState(() {
         _balance = balance;
         _transactions = transactions;
+        _relatedBookings = activeBookings;
+        _rentSummary = rentSummary;
         _isLoading = false;
       });
     }
@@ -70,8 +103,12 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
                   children: [
                     _buildOverviewCard(),
                     _buildBalanceCard(),
+                    const SizedBox(height: 16),
+                    _buildRentSummaryCard(),
                     const SizedBox(height: 24),
                     _buildQuickActions(),
+                    const SizedBox(height: 16),
+                    _buildStatementsCard(),
                     const SizedBox(height: 32),
                     _buildTransactionHistory(),
                   ],
@@ -82,7 +119,8 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
   }
 
   Widget _buildOverviewCard() {
-    final creditCount = _transactions.where((t) => t['type'] == 'credit').length;
+    final creditCount =
+        _transactions.where((t) => t['type'] == 'credit').length;
     final expenseCount =
         _transactions.where((t) => t['type'] == 'expense').length;
 
@@ -228,8 +266,10 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
                     letterSpacing: -0.5),
               ),
               const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                alignment: WrapAlignment.spaceEvenly,
                 children: [
                   _buildBalanceAction(Icons.add_circle_outline_rounded,
                       'شحن الرصيد', _showTopUpDialog),
@@ -416,6 +456,171 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
     );
   }
 
+  Widget _buildStatementsCard() {
+    final activeCount = _relatedBookings.length;
+    final paidCount = _rentSummary?['paidMonths'] ?? 0;
+    final remainingMonths = _rentSummary?['remainingMonths'] ?? 0;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.18)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.10),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(Icons.receipt_long_rounded,
+                    color: AppTheme.primaryColor),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('الكشوفات والملخصات',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w900, fontSize: 15)),
+                    SizedBox(height: 4),
+                    Text('راجع كل التحركات المالية والرسوم والإيصالات من هنا.',
+                        style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 12,
+                            height: 1.4)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const RentalStatementScreen(),
+                  ),
+                ),
+                child: const Text('فتح'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _miniStat('عقود نشطة', '$activeCount'),
+              _miniStat('مدفوع', '$paidCount'),
+              _miniStat('متبقي', '$remainingMonths'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRentSummaryCard() {
+    if (_rentSummary == null) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color:
+              Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: AppTheme.borderColor.withOpacity(0.18)),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.info_outline, color: AppTheme.primaryColor),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'لن تظهر تفاصيل الأقساط إلا بعد وجود حجز/عقد فعّال.',
+                style: TextStyle(color: AppTheme.textSecondary, height: 1.4),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final nextDue = _rentSummary?['nextDueDate'] as DateTime?;
+    final nextDueText =
+        nextDue == null ? 'قريباً' : DateFormat('yyyy/MM/dd').format(nextDue);
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.16)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.calendar_month_rounded,
+                  color: AppTheme.primaryColor),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  _rentSummary?['title']?.toString() ?? 'ملخص الأقساط',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w900, fontSize: 15),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _miniStat('القسط القادم',
+                  '${(_rentSummary?['nextDueAmount'] ?? 0).toString()} ج.م'),
+              _miniStat('تاريخه', nextDueText),
+              _miniStat('المدفوع', '${_rentSummary?['paidMonths'] ?? 0} شهر'),
+              _miniStat(
+                  'المتبقي', '${_rentSummary?['remainingMonths'] ?? 0} شهر'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _miniStat(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label,
+              style:
+                  const TextStyle(color: AppTheme.textSecondary, fontSize: 11)),
+          const SizedBox(height: 4),
+          Text(value,
+              style:
+                  const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+
   Widget _buildActionCard(
       String title, String subtitle, IconData icon, Color color) {
     return Container(
@@ -535,8 +740,8 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
                           fontWeight: FontWeight.bold)),
                   SizedBox(height: 6),
                   Text('جرّب اختيار “الكل” أو راجع الفلاتر',
-                      style:
-                          TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                      style: TextStyle(
+                          color: AppTheme.textSecondary, fontSize: 12)),
                 ],
               ),
             )

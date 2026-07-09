@@ -148,7 +148,7 @@ class _ProviderTimelineScreenState extends State<ProviderTimelineScreen> {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              job['title'] ?? 'موقع العميل (كيو)',
+                              job['title'] ?? 'موقع العميل (إيجاري)',
                               style: const TextStyle(
                                   color: AppTheme.textSecondary, fontSize: 13),
                             ),
@@ -175,7 +175,7 @@ class _ProviderTimelineScreenState extends State<ProviderTimelineScreen> {
                           const Icon(Icons.person_outline,
                               size: 14, color: AppTheme.textSecondary),
                           const SizedBox(width: 4),
-                          Text(job['userName'] ?? 'عميل كيو',
+                          Text(job['userName'] ?? 'عميل إيجاري',
                               style: const TextStyle(fontSize: 12)),
                           const Spacer(),
                           Text(

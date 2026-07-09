@@ -6,6 +6,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'data_service.dart';
+import '../config/app_config.dart';
 
 // Background message handler
 @pragma('vm:entry-point')
@@ -23,6 +24,10 @@ class PushNotificationService {
 
   static Future<void> initialize() async {
     try {
+      if (AppConfig.demoMode) {
+        debugPrint('Push notifications skipped in demo mode.');
+        return;
+      }
       // 1. Request Permission
       final NotificationSettings settings = await _messaging.requestPermission(
         alert: true,

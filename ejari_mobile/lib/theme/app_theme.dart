@@ -1,18 +1,72 @@
 import 'package:flutter/material.dart';
 
-/// هوية إيجاري البصرية للنسخة الأولى.
-///
-/// القاعدة هنا مقصودة: ٥ ألوان فقط داخل التطبيق، بدون أسود، علشان التجربة
-/// تكون هادئة وموحدة وسهلة على العين.
+/// هوية إيجاري البصرية (التصميم الحديث).
 class AppTheme {
-  static const Color primaryColor = Color(0xFF4F7D70);
-  static const Color accentColor = Color(0xFFD8C3A5);
-  static const Color backgroundColor = Color(0xFFF6F1E8);
-  static const Color surfaceColor = Color(0xFFFFFCF7);
-  static const Color textPrimary = Color(0xFF32433D);
-  static const Color textSecondary = Color(0xFF5D746C);
-  static const Color errorColor = Color(0xFFA66A60);
-  static const Color borderColor = Color(0xFFD8C3A5);
+  // الألوان الأساسية الجديدة من التصميم المرفق
+  static const Color primaryColor =
+      Color(0xFF0F3A30); // الأخضر الداكن جداً (لون العلامة التجارية)
+  static const Color primaryLight =
+      Color(0xFF1B594B); // أخضر أفتح قليلاً للأزرار والحالات
+  static const Color accentColor =
+      Color(0xFFB58D3D); // الذهبي / الأصفر المائل للذهبي
+
+  // ألوان الخلفيات والأسطح
+  static const Color backgroundColor =
+      Color(0xFFF8F9FA); // رمادي فاتح جداً مريح للعين
+  static const Color surfaceColor = Color(0xFFFFFFFF); // أبيض ناصع للكروت
+
+  // ألوان النصوص
+  static const Color textPrimary =
+      Color(0xFF1E293B); // أسود مائل للرمادي الداكن للنصوص الأساسية
+  static const Color textSecondary = Color(0xFF64748B); // رمادي للنصوص الفرعية
+
+  // ألوان أخرى
+  static const Color errorColor = Color(0xFFDC2626); // أحمر للخطأ
+  static const Color successColor = Color(0xFF16A34A); // أخضر للنجاح
+  static const Color inputFillColor =
+      Color(0xFFF1F5F9); // لون خلفية حقول الإدخال
+  static const Color borderColor =
+      Color(0xFFE2E8F0); // لون خفيف جداً للحدود إن وجدت
+
+  // توكنات التخطيط (شبكة 8px)
+  static const double spaceXs = 8;
+  static const double spaceSm = 12;
+  static const double spaceMd = 16;
+  static const double spaceLg = 20;
+  static const double spaceXl = 24;
+  static const double screenPadding = 20;
+  static const double cardRadius = 20;
+  static const double cardRadiusLg = 24;
+  static const double ctaHeight = 52;
+
+  static BoxDecoration surfaceCardDecoration({
+    Color? color,
+    double radius = cardRadius,
+    bool elevated = true,
+    Color? borderColor,
+  }) {
+    return BoxDecoration(
+      color: color ?? surfaceColor,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(
+        color: borderColor ?? AppTheme.borderColor.withOpacity(0.7),
+      ),
+      boxShadow: elevated
+          ? [
+              BoxShadow(
+                color: primaryColor.withOpacity(0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ]
+          : null,
+    );
+  }
 
   static Color glassColor(BuildContext context) =>
       surfaceColor.withOpacity(0.92);
@@ -44,7 +98,7 @@ class AppTheme {
             height: 1.35,
             fontSize: 22,
             fontWeight: FontWeight.w800,
-            color: textPrimary,
+            color: primaryColor,
           ),
           titleMedium: const TextStyle(
             height: 1.4,
@@ -62,7 +116,7 @@ class AppTheme {
         .apply(
           fontFamily: 'Tajawal',
           bodyColor: textPrimary,
-          displayColor: textPrimary,
+          displayColor: primaryColor,
         );
   }
 
@@ -72,16 +126,16 @@ class AppTheme {
       primary: primaryColor,
       onPrimary: Colors.white,
       secondary: accentColor,
-      onSecondary: textPrimary,
+      onSecondary: Colors.white,
       error: errorColor,
       onError: Colors.white,
       surface: surfaceColor,
       onSurface: textPrimary,
     );
 
+    // شكل الكروت الحديث (بدون حدود قوية، مع ظل خفيف)
     final roundedCard = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(22),
-      side: BorderSide(color: borderColor.withOpacity(0.45), width: 1),
+      borderRadius: BorderRadius.circular(16),
     );
 
     return ThemeData(
@@ -92,33 +146,34 @@ class AppTheme {
       primaryColor: primaryColor,
       scaffoldBackgroundColor: backgroundColor,
       canvasColor: backgroundColor,
-      dividerColor: borderColor.withOpacity(0.5),
+      dividerColor: borderColor,
       textTheme: _textTheme(),
       appBarTheme: const AppBarTheme(
-        backgroundColor: backgroundColor,
-        foregroundColor: textPrimary,
+        backgroundColor: surfaceColor,
+        foregroundColor: primaryColor,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
         surfaceTintColor: Colors.transparent,
         titleTextStyle: TextStyle(
           fontFamily: 'Tajawal',
-          color: textPrimary,
+          color: primaryColor,
           fontSize: 20,
           fontWeight: FontWeight.w800,
         ),
-        iconTheme: IconThemeData(color: textPrimary),
+        iconTheme: IconThemeData(color: primaryColor),
       ),
       cardTheme: CardTheme(
         color: surfaceColor,
-        elevation: 0,
+        elevation: 2, // إضافة ظل خفيف للكروت
+        shadowColor: Colors.black.withOpacity(0.05),
         surfaceTintColor: Colors.transparent,
         shape: roundedCard,
         margin: const EdgeInsets.only(bottom: 16),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          minimumSize: const Size(48, 56),
+          minimumSize: const Size(0, 56), // تسمح بالاستخدام داخل Rows أيضًا
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
           disabledBackgroundColor: primaryColor.withOpacity(0.35),
@@ -136,9 +191,9 @@ class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(48, 56),
+          minimumSize: const Size(0, 56),
           foregroundColor: primaryColor,
-          side: const BorderSide(color: primaryColor, width: 1.4),
+          side: const BorderSide(color: primaryColor, width: 1.5),
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
           textStyle: const TextStyle(
             fontFamily: 'Tajawal',
@@ -160,38 +215,40 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: surfaceColor,
+        fillColor: inputFillColor, // خلفية رمادية فاتحة للحقول
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-        hintStyle: TextStyle(color: textPrimary.withOpacity(0.48)),
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        hintStyle: TextStyle(color: textSecondary.withOpacity(0.7)),
         labelStyle: const TextStyle(color: textSecondary),
         prefixIconColor: textSecondary,
         suffixIconColor: textSecondary,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: borderColor.withOpacity(0.65)),
+          borderSide: BorderSide.none, // بدون إطار في الوضع العادي
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: borderColor.withOpacity(0.65)),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: primaryColor, width: 1.8),
+          borderSide: const BorderSide(
+              color: primaryColor, width: 1.5), // إطار عند التركيز
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: errorColor),
+          borderSide: const BorderSide(color: errorColor, width: 1.0),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: errorColor, width: 1.8),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: errorColor, width: 1.5),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: surfaceColor,
-        indicatorColor: accentColor.withOpacity(0.45),
-        elevation: 0,
+        indicatorColor: primaryLight.withOpacity(0.15),
+        elevation: 10,
+        shadowColor: Colors.black.withOpacity(0.1),
         labelTextStyle: WidgetStateProperty.resolveWith((states) => TextStyle(
               fontFamily: 'Tajawal',
               fontWeight: states.contains(WidgetState.selected)
@@ -222,21 +279,21 @@ class AppTheme {
           fontWeight: FontWeight.w600,
           fontSize: 12,
         ),
-        elevation: 0,
+        elevation: 15,
         type: BottomNavigationBarType.fixed,
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
-        elevation: 0,
+        elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: surfaceColor,
-        selectedColor: accentColor.withOpacity(0.55),
+        backgroundColor: inputFillColor,
+        selectedColor: primaryColor.withOpacity(0.1),
         labelStyle:
             const TextStyle(color: textPrimary, fontWeight: FontWeight.w600),
-        side: BorderSide(color: borderColor.withOpacity(0.65)),
+        side: BorderSide.none,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       snackBarTheme: SnackBarThemeData(
@@ -246,24 +303,24 @@ class AppTheme {
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
-      dividerTheme: DividerThemeData(
-        color: borderColor.withOpacity(0.5),
+      dividerTheme: const DividerThemeData(
+        color: borderColor,
         thickness: 1,
-        space: 1,
+        space: 24,
       ),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) =>
-            states.contains(WidgetState.selected) ? primaryColor : accentColor),
+            states.contains(WidgetState.selected)
+                ? Colors.white
+                : Colors.white),
         trackColor: WidgetStateProperty.resolveWith((states) =>
             states.contains(WidgetState.selected)
-                ? primaryColor.withOpacity(0.28)
-                : accentColor.withOpacity(0.35)),
+                ? primaryColor
+                : textSecondary.withOpacity(0.4)),
       ),
     );
   }
 
   static ThemeData get lightTheme => _buildLightTheme();
-
-  /// لا نعرض مظهرًا داكنًا في النسخة الأولى حتى لا نكسر الهوية الهادئة.
   static ThemeData get darkTheme => lightTheme;
 }

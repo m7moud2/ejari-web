@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/home_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/ejari_section.dart';
 import '../my_contracts_screen.dart';
 import '../tenant_installments_screen.dart';
 import '../search_results_screen.dart';
@@ -21,103 +22,346 @@ class TenantHomeView extends StatelessWidget {
     );
 
     return RefreshIndicator(
-      color: AppTheme.primaryColor,
+      color: AppTheme.accentColor,
       onRefresh: () => context.read<HomeProvider>().loadHomeData('tenant'),
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        padding: EdgeInsets.zero,
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          _buildGreeting(context, stats),
-          const SizedBox(height: 16),
-          _buildSearchCard(context),
-          const SizedBox(height: 16),
-          _buildQuickActions(context, stats),
-          if (stats['activeBooking'] == true || (stats['nextInstallmentDays'] ?? 99) <= 7) ...[
-            const SizedBox(height: 14),
-            _buildBookingAlert(context, stats),
-          ],
-          const SizedBox(height: 18),
-          _buildSectionTitle('عقارات مقترحة لك'),
-          const SizedBox(height: 8),
-          _buildPropertyStrip(context, recommended),
-          const SizedBox(height: 16),
-          _buildSectionTitle('العقارات المميزة'),
-          const SizedBox(height: 8),
-          _buildPropertyStrip(context, featured),
+          _buildBrandedHeader(context, stats),
+          Transform.translate(
+            offset: const Offset(0, -32),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spaceMd),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSearchCard(context),
+                  const SizedBox(height: AppTheme.spaceMd),
+                  _buildOverviewSection(context, stats),
+                  const SizedBox(height: AppTheme.spaceLg),
+                  const EjariSectionHeader(
+                    title: 'إجراءات سريعة',
+                    subtitle: 'الوصول المباشر لأهم مهام الإيجار',
+                  ),
+                  const SizedBox(height: AppTheme.spaceSm),
+                  _buildQuickActions(context, stats),
+                ],
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppTheme.spaceMd,
+              0,
+              AppTheme.spaceMd,
+              AppTheme.spaceXl,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (stats['activeBooking'] == true ||
+                    (stats['nextInstallmentDays'] ?? 99) <= 7) ...[
+                  const EjariSectionHeader(
+                    title: 'تنبيهاتك',
+                    subtitle: 'متابعة الالتزامات القادمة',
+                  ),
+                  const SizedBox(height: AppTheme.spaceSm),
+                  _buildBookingAlert(context, stats),
+                  const SizedBox(height: AppTheme.spaceLg),
+                ],
+                EjariSectionHeader(
+                  title: 'عقارات مقترحة لك',
+                  subtitle: 'مختارة حسب تفضيلاتك وموقعك',
+                  actionLabel: 'عرض الكل',
+                  onAction: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SearchResultsScreen(query: ''),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spaceSm),
+                _buildPropertyStrip(context, recommended, showBadge: true),
+                const SizedBox(height: AppTheme.spaceLg),
+                EjariSectionHeader(
+                  title: 'العقارات المميزة',
+                  subtitle: 'وحدات مختارة بعناية من فريق إيجاري',
+                  actionLabel: 'استكشف',
+                  onAction: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const SearchResultsScreen(query: 'مميز'),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppTheme.spaceSm),
+                _buildPropertyStrip(context, featured, showBadge: false),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildGreeting(BuildContext context, Map<String, dynamic> stats) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildBrandedHeader(BuildContext context, Map<String, dynamic> stats) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(
+        AppTheme.screenPadding,
+        AppTheme.spaceMd,
+        AppTheme.screenPadding,
+        56,
+      ),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [
+            Color(0xFF0A2E26),
+            Color(0xFF0F3A30),
+            Color(0xFF1B594B),
+          ],
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Text(
-                'مرحباً ${stats['userName'] ?? 'بك'}',
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: AppTheme.textPrimary,
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentColor.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                    color: AppTheme.accentColor.withOpacity(0.45),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.verified_rounded,
+                        color: AppTheme.accentColor, size: 14),
+                    SizedBox(width: 4),
+                    Text(
+                      'إيجاري',
+                      style: TextStyle(
+                        color: AppTheme.accentColor,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                stats['verificationStatus'] ?? 'ابحث عن وحدتك القادمة',
-                style: const TextStyle(
-                  color: AppTheme.textSecondary,
-                  fontSize: 13,
+              const Spacer(),
+              if (stats['activeBooking'] == true)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.14),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: const Text(
+                    'حجز نشط',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppTheme.spaceLg),
+          Text(
+            'مرحباً ${stats['userName'] ?? 'بك'} 👋',
+            style: const TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              height: 1.2,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            stats['verificationStatus'] ?? 'ابحث عن وحدتك القادمة بثقة',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.75),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchCard(BuildContext context) {
+    return Material(
+      elevation: 0,
+      borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+      color: AppTheme.surfaceColor,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const SearchResultsScreen(query: ''),
+          ),
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          decoration: AppTheme.surfaceCardDecoration(elevated: true),
+          child: Row(
+            children: [
+              Container(
+                margin: const EdgeInsets.all(8),
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.primaryColor.withOpacity(0.12),
+                      AppTheme.accentColor.withOpacity(0.12),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.search_rounded,
+                  color: AppTheme.primaryColor,
+                  size: 24,
+                ),
+              ),
+              const Expanded(
+                child: Text(
+                  'ابحث عن شقة، فيلا، مكتب...',
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.all(8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'بحث',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ],
           ),
         ),
-        if (stats['activeBooking'] == true)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: const Text(
-              'حجز نشط',
-              style: TextStyle(
-                color: AppTheme.primaryColor,
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-      ],
+      ),
     );
   }
 
-  Widget _buildSearchCard(BuildContext context) {
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const SearchResultsScreen(query: ''),
-        ),
+  Widget _buildOverviewSection(BuildContext context, Map<String, dynamic> stats) {
+    final nextDays = stats['nextInstallmentDays'] ?? 0;
+    final nextAmount = stats['nextInstallmentAmount'] ?? 0;
+    final contracts = stats['tenantBookingsCount'] ?? 0;
+    final saved = stats['savedCount'] ?? 0;
+    final isVerified = (stats['verificationStatus'] ?? '')
+        .toString()
+        .contains('موثق');
+
+    final tiles = [
+      (
+        label: 'القسط القادم',
+        value: nextAmount > 0 ? '$nextAmount ج.م' : 'لا يوجد',
+        hint: nextDays > 0 ? 'بعد $nextDays يوم' : 'محدّث',
+        icon: Icons.payments_rounded,
+        color: AppTheme.accentColor,
       ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        decoration: BoxDecoration(
-          color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.borderColor.withOpacity(0.3)),
-        ),
-        child: const TextField(
-          enabled: false,
-          decoration: InputDecoration(
-            hintText: 'ابحث عن شقة، فيلا، مكتب...',
-            border: InputBorder.none,
-            prefixIcon: Icon(Icons.search_rounded, color: AppTheme.primaryColor),
-          ),
-        ),
+      (
+        label: 'العقود النشطة',
+        value: '$contracts',
+        hint: contracts > 0 ? 'قيد المتابعة' : 'ابدأ البحث',
+        icon: Icons.description_outlined,
+        color: AppTheme.primaryColor,
+      ),
+      (
+        label: 'المحفوظات',
+        value: '$saved',
+        hint: isVerified ? 'حساب موثق' : 'أكمل التوثيق',
+        icon: isVerified ? Icons.verified_rounded : Icons.bookmark_outline,
+        color: const Color(0xFF1B594B),
+      ),
+    ];
+
+    return EjariSurfaceCard(
+      padding: const EdgeInsets.all(AppTheme.spaceSm),
+      child: Row(
+        children: tiles.map((tile) {
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Column(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: tile.color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(tile.icon, color: tile.color, size: 20),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    tile.value,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    tile.label,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  Text(
+                    tile.hint,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 9,
+                      color: tile.color.withOpacity(0.85),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -126,30 +370,40 @@ class TenantHomeView extends StatelessWidget {
     final quickActions = [
       (
         title: 'ابحث',
+        subtitle: 'وحدات جديدة',
         icon: Icons.search_rounded,
+        color: const Color(0xFF0F3A30),
         onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (_) => const SearchResultsScreen(query: 'شقة')),
+                builder: (_) => const SearchResultsScreen(query: 'شقة'),
+              ),
             ),
       ),
       (
         title: 'احجز',
+        subtitle: 'معاينة سريعة',
         icon: Icons.event_available_rounded,
+        color: const Color(0xFF1B594B),
         onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (_) => const SearchResultsScreen(query: 'حجز')),
+                builder: (_) => const SearchResultsScreen(query: 'حجز'),
+              ),
             ),
       ),
       (
-        title: 'سدد القسط',
+        title: 'سدد',
+        subtitle: 'القسط القادم',
         icon: Icons.payments_rounded,
+        color: const Color(0xFFB58D3D),
         onTap: () => _openRentPayment(context, stats),
       ),
       (
         title: 'عقودي',
+        subtitle: 'متابعة العقود',
         icon: Icons.description_outlined,
+        color: const Color(0xFF2D6A5A),
         onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const MyContractsScreen()),
@@ -157,40 +411,62 @@ class TenantHomeView extends StatelessWidget {
       ),
     ];
 
-    return Row(
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: AppTheme.spaceSm,
+      crossAxisSpacing: AppTheme.spaceSm,
+      childAspectRatio: 1.35,
       children: quickActions.map((action) {
-        return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Material(
-              color: AppTheme.surfaceColor,
-              borderRadius: BorderRadius.circular(16),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: action.onTap,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                        color: AppTheme.borderColor.withOpacity(0.22)),
+        return Material(
+          color: AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+          elevation: 0,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+            onTap: action.onTap,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: AppTheme.surfaceCardDecoration(
+                elevated: true,
+                radius: AppTheme.cardRadius,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: action.color.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(action.icon, color: action.color, size: 22),
                   ),
-                  child: Column(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(action.icon,
-                          color: AppTheme.primaryColor, size: 26),
-                      const SizedBox(height: 8),
                       Text(
                         action.title,
                         style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
                           color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        action.subtitle,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppTheme.textSecondary,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
                   ),
-                ),
+                ],
               ),
             ),
           ),
@@ -203,49 +479,74 @@ class TenantHomeView extends StatelessWidget {
     final nextAmount = stats['nextInstallmentAmount'] ?? 0;
     final nextDays = stats['nextInstallmentDays'] ?? 0;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppTheme.spaceMd),
       decoration: BoxDecoration(
-        color: AppTheme.accentColor.withOpacity(0.18),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.accentColor.withOpacity(0.25)),
-      ),
-      child: Wrap(
-        spacing: 12,
-        runSpacing: 12,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          const CircleAvatar(
-            backgroundColor: AppTheme.primaryColor,
-            child: Icon(Icons.payments_rounded, color: Colors.white),
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.accentColor.withOpacity(0.22),
+            AppTheme.accentColor.withOpacity(0.08),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(AppTheme.cardRadiusLg),
+        border: Border.all(color: AppTheme.accentColor.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.accentColor.withOpacity(0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
-          SizedBox(
-            width: 180,
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryColor.withOpacity(0.3),
+                  blurRadius: 12,
+                ),
+              ],
+            ),
+            child: const Icon(Icons.payments_rounded, color: Colors.white),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('أقرب قسط مستحق',
-                    style:
-                        TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+                const Text(
+                  'أقرب قسط مستحق',
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+                ),
                 const SizedBox(height: 4),
                 Text(
-                  'متبقي $nextDays أيام على سداد $nextAmount ج.م',
+                  'متبقي $nextDays أيام • $nextAmount ج.م',
                   style: const TextStyle(
-                      color: AppTheme.textSecondary, height: 1.4, fontSize: 12),
+                    color: AppTheme.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
           ),
-          ElevatedButton(
-            onPressed: () => _openRentPayment(context, stats),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryColor,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              minimumSize: const Size(0, 42),
-              padding: const EdgeInsets.symmetric(horizontal: 14),
+          SizedBox(
+            height: AppTheme.ctaHeight - 10,
+            child: ElevatedButton(
+              onPressed: () => _openRentPayment(context, stats),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                minimumSize: const Size(0, 42),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                elevation: 3,
+              ),
+              child: const Text('ادفع'),
             ),
-            child: const Text('ادفع الآن'),
           ),
         ],
       ),
@@ -295,87 +596,149 @@ class TenantHomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Text(
-        title,
-        style: const TextStyle(
-          color: AppTheme.textPrimary,
-          fontSize: 18,
-          fontWeight: FontWeight.w900,
-        ),
-      ),
-    );
-  }
-
   Widget _buildPropertyStrip(
-      BuildContext context, List<Map<String, dynamic>> items) {
+    BuildContext context,
+    List<Map<String, dynamic>> items, {
+    required bool showBadge,
+  }) {
     return SizedBox(
-      height: 186,
+      height: 252,
       child: items.isEmpty
-          ? const Center(child: Text('لا توجد بيانات حالياً'))
+          ? const EjariSurfaceCard(
+              elevated: false,
+              child: Center(
+                child: Text(
+                  'لا توجد بيانات حالياً',
+                  style: TextStyle(color: AppTheme.textSecondary),
+                ),
+              ),
+            )
           : ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: items.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              separatorBuilder: (_, __) => const SizedBox(width: 14),
               itemBuilder: (context, index) {
                 final item = items[index];
-                return InkWell(
-                  borderRadius: BorderRadius.circular(24),
-                  onTap: () => Navigator.push(
+                return Material(
+                  elevation: 0,
+                  borderRadius: BorderRadius.circular(AppTheme.cardRadiusLg),
+                  color: AppTheme.surfaceColor,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(AppTheme.cardRadiusLg),
+                    onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (_) => SearchResultsScreen(
-                              query: item['title'] ?? 'عقار مميز'))),
-                  child: Container(
-                    width: 260,
-                    decoration: BoxDecoration(
-                      color: AppTheme.surfaceColor,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                          color: AppTheme.borderColor.withOpacity(0.18)),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(24)),
-                          child: _propertyImage(
-                            item['image'] ?? 'assets/images/home1.jpg',
-                            height: 84,
-                          ),
+                        builder: (_) => SearchResultsScreen(
+                          query: item['title'] ?? 'عقار مميز',
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(6),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      ),
+                    ),
+                    child: Container(
+                      width: 220,
+                      decoration: AppTheme.surfaceCardDecoration(
+                        radius: AppTheme.cardRadiusLg,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Stack(
                             children: [
-                              Text(item['title'] ?? '',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 15,
-                                      color: AppTheme.textPrimary)),
-                              const SizedBox(height: 3),
-                              Text(item['location'] ?? '',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                      color: AppTheme.textSecondary,
-                                      fontSize: 12)),
-                              const SizedBox(height: 4),
-                              Text('${item['price'] ?? ''} ج.م',
-                                  style: const TextStyle(
-                                      color: AppTheme.primaryColor,
-                                      fontWeight: FontWeight.w900)),
+                              ClipRRect(
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(AppTheme.cardRadiusLg),
+                                ),
+                                child: _propertyImage(
+                                  item['image'] ?? 'assets/images/home1.jpg',
+                                  height: 120,
+                                ),
+                              ),
+                              if (showBadge && index == 0)
+                                Positioned(
+                                  top: 10,
+                                  right: 10,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.accentColor,
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: const Text(
+                                      'مقترح',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
-                        ),
-                      ],
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item['title'] ?? '',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 15,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.location_on_outlined,
+                                      size: 14,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        item['location'] ?? '',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: AppTheme.textSecondary,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        AppTheme.primaryColor.withOpacity(0.08),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    '${item['price'] ?? ''} ج.م / شهر',
+                                    style: const TextStyle(
+                                      color: AppTheme.primaryColor,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );

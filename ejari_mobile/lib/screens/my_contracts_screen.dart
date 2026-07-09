@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ejari_section.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import 'contract_screen.dart';
+import 'rental_statement_screen.dart';
+import 'tenant_installments_screen.dart';
 
 class MyContractsScreen extends StatefulWidget {
   const MyContractsScreen({super.key});
@@ -53,7 +56,7 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
 
           return {
             'id': displayId,
-            'propertyTitle': b['title'] ?? 'شقة سكنية كيو',
+            'propertyTitle': b['title'] ?? 'شقة سكنية إيجاري',
             'ownerName': b['ownerName'] ?? 'أحمد محمد',
             'tenantName': b['tenantName'] ?? user?['name'] ?? 'محمود عبد القوي',
             'price': b['price']?.toString() ?? '0',
@@ -70,7 +73,7 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
             'createdAt': b['requestDate']?.toString().isNotEmpty == true
                 ? b['requestDate'].toString().substring(0, 10)
                 : '2026-06-06',
-            'address': b['location'] ?? 'كيو، مصر',
+            'address': b['location'] ?? 'إيجاري، مصر',
             'deposit': b['depositAmount']?.toString() ??
                 (numericPrice > 0
                     ? (numericPrice * 0.10).toStringAsFixed(0)
@@ -152,16 +155,23 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final activeCount =
-        _contracts.where((c) => c['status'] == 'active').length;
+    final activeCount = _contracts.where((c) => c['status'] == 'active').length;
     final pendingCount =
         _contracts.where((c) => c['status'] == 'pending').length;
     final expiredCount =
         _contracts.where((c) => c['status'] == 'expired').length;
 
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
+        backgroundColor: AppTheme.backgroundColor,
+        surfaceTintColor: Colors.transparent,
         title: const Text('عقودي الإلكترونية'),
+        titleTextStyle: const TextStyle(
+          color: AppTheme.textPrimary,
+          fontSize: 22,
+          fontWeight: FontWeight.w900,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
@@ -174,35 +184,14 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
           : RefreshIndicator(
               onRefresh: _loadContracts,
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(
+                  AppTheme.screenPadding,
+                  4,
+                  AppTheme.screenPadding,
+                  AppTheme.spaceXl,
+                ),
                 children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withOpacity(0.06),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppTheme.primaryColor.withOpacity(0.12),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _buildMiniStat(
-                              'سارية', '$activeCount', AppTheme.primaryColor),
-                        ),
-                        Expanded(
-                          child: _buildMiniStat('قيد التوقيع', '$pendingCount',
-                              AppTheme.borderColor),
-                        ),
-                        Expanded(
-                          child: _buildMiniStat(
-                              'منتهية', '$expiredCount', AppTheme.errorColor),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _buildHeaderCard(activeCount, pendingCount, expiredCount),
                   const SizedBox(height: 14),
                   if (_contracts.isEmpty)
                     _buildEmptyState()
@@ -243,39 +232,43 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
         statusIcon = Icons.help_outline;
     }
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: statusColor.withOpacity(0.3)),
-        boxShadow: const [],
-      ),
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppTheme.spaceMd),
+      child: EjariSurfaceCard(
+        padding: EdgeInsets.zero,
+        child: Column(
         children: [
           // Header
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
+              color: statusColor.withOpacity(0.08),
               borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
+                  const BorderRadius.vertical(top: Radius.circular(24)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(statusIcon, color: statusColor, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      statusText,
-                      style: TextStyle(
-                        color: statusColor,
-                        fontWeight: FontWeight.bold,
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.surfaceColor,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(statusIcon, color: statusColor, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        statusText,
+                        style: TextStyle(
+                          color: statusColor,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 Text(
                   contract['id'],
@@ -295,15 +288,44 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
                 Text(
                   contract['propertyTitle'],
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 19,
+                    fontWeight: FontWeight.w900,
                     color: Theme.of(context).textTheme.titleLarge?.color ??
                         AppTheme.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 12),
                 _buildInfoRow(Icons.location_on, contract['address']),
-                const Divider(height: 24),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.backgroundColor,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(
+                        color: AppTheme.borderColor.withOpacity(0.18)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _buildMetricTile(
+                          'القيمة الشهرية',
+                          '${contract['price']} ج.م',
+                          AppTheme.primaryColor,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildMetricTile(
+                          'المدة',
+                          contract['duration'],
+                          AppTheme.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
                 Row(
                   children: [
                     Expanded(
@@ -372,52 +394,6 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.light
-                        ? AppTheme.backgroundColor
-                        : AppTheme.textPrimary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('القيمة الشهرية',
-                              style: TextStyle(
-                                  color: AppTheme.textSecondary, fontSize: 12)),
-                          Text('${contract['price']} ج.م',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: AppTheme.primaryColor)),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('المدة',
-                              style: TextStyle(
-                                  color: AppTheme.textSecondary, fontSize: 12)),
-                          Text(
-                            contract['duration'],
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).brightness ==
-                                      Brightness.light
-                                  ? AppTheme.textPrimary
-                                  : Colors.white,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -431,9 +407,10 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppTheme.spaceMd),
                 SizedBox(
                   width: double.infinity,
+                  height: AppTheme.ctaHeight,
                   child: ElevatedButton.icon(
                     onPressed: () {
                       Navigator.push(
@@ -465,6 +442,7 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -486,43 +464,181 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 64),
+  Widget _buildMetricTile(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.12)),
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.description_outlined,
-              size: 80, color: AppTheme.primaryColor),
-          SizedBox(height: 16),
-          Text(
-            'لا توجد عقود',
-            style: TextStyle(fontSize: 18, color: AppTheme.textSecondary),
-            textAlign: TextAlign.center,
+          Text(label,
+              style: const TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700)),
+          const SizedBox(height: 6),
+          Text(value,
+              style: TextStyle(
+                  fontWeight: FontWeight.w900, fontSize: 15, color: color)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeaderCard(int activeCount, int pendingCount, int expiredCount) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppTheme.spaceLg),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0A2E26), AppTheme.primaryColor, Color(0xFF1B594B)],
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+        ),
+        borderRadius: BorderRadius.circular(AppTheme.cardRadiusLg),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.16),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
-          SizedBox(height: 8),
-          Text(
-            'ستظهر العقود بعد إتمام الدفع والتوقيع.',
-            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-            textAlign: TextAlign.center,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'كل عقودك في مكان واحد',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'تابع العقود السارية، قيد التوقيع، والمنتهية من شاشة واحدة بشكل هادئ وواضح.',
+            style: TextStyle(
+              color: Colors.white70,
+              height: 1.5,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(child: _buildHeaderMetric('سارية', '$activeCount')),
+              const SizedBox(width: 10),
+              Expanded(
+                  child: _buildHeaderMetric('قيد التوقيع', '$pendingCount')),
+              const SizedBox(width: 10),
+              Expanded(child: _buildHeaderMetric('منتهية', '$expiredCount')),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: BorderSide(color: Colors.white.withOpacity(0.25)),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const TenantInstallmentsScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.payments_outlined, size: 18),
+                  label: const Text('الأقساط'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: BorderSide(color: Colors.white.withOpacity(0.25)),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const RentalStatementScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.receipt_long_outlined, size: 18),
+                  label: const Text('كشف الحساب'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMiniStat(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(label,
-            style: const TextStyle(
+  Widget _buildHeaderMetric(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.white.withOpacity(0.18)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: const TextStyle(
+                color: Colors.white70,
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.textSecondary)),
-        const SizedBox(height: 4),
-        Text(value,
+              )),
+          const SizedBox(height: 4),
+          Text(value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return const EjariSurfaceCard(
+      child: Column(
+        children: [
+          Icon(Icons.description_outlined,
+              size: 72, color: AppTheme.primaryColor),
+          SizedBox(height: AppTheme.spaceMd),
+          Text(
+            'لا توجد عقود حتى الآن',
             style: TextStyle(
-                fontSize: 16, fontWeight: FontWeight.bold, color: color)),
-      ],
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: AppTheme.textPrimary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: AppTheme.spaceXs),
+          Text(
+            'ستظهر العقود بعد إتمام الدفع والمراجعة والتوقيع.',
+            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 

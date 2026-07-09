@@ -346,7 +346,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                                       const MerchantRequestsScreen()));
                         },
                         icon: const Icon(Icons.verified_user),
-                        label: const Text('مراجعة طلبات التجار'),
+                        label: const Text('طلبات الشراكة الجديدة'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryColor,
                           foregroundColor: Colors.white,

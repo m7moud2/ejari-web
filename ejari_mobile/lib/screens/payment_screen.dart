@@ -4,6 +4,7 @@ import '../services/data_service.dart';
 import '../services/wallet_service.dart';
 import '../utils/image_utils.dart';
 import '../widgets/ejari_image.dart';
+import '../widgets/ejari_section.dart';
 import 'rental_statement_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'success_screen.dart';
@@ -249,50 +250,93 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: AppTheme.backgroundColor,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('الدفع',
-            style: TextStyle(
-                fontWeight: FontWeight.w900,
-                fontSize: 18,
-                color: Colors.white)),
-        backgroundColor: AppTheme.primaryColor,
+        title: const Text(
+          'الدفع الآمن',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            fontSize: 18,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+              colors: [Color(0xFF0A2E26), Color(0xFF0F3A30), Color(0xFF1B594B)],
+            ),
+          ),
+        ),
       ),
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 120),
+            padding: const EdgeInsets.only(bottom: 140, top: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                  child: _buildCheckoutSteps(),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.screenPadding,
+                    72,
+                    AppTheme.screenPadding,
+                    0,
+                  ),
+                  child: const EjariStepIndicator(
+                    labels: ['الملخص', 'طريقة الدفع', 'التأكيد'],
+                    activeIndex: 1,
+                  ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.screenPadding,
+                    AppTheme.spaceMd,
+                    AppTheme.screenPadding,
+                    0,
+                  ),
                   child: _buildHeroSummary(),
                 ),
                 if (widget.paymentStage != 'full')
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 14, 20, 0),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppTheme.screenPadding,
+                      AppTheme.spaceSm,
+                      AppTheme.screenPadding,
+                      0,
+                    ),
                     child: _buildPaymentPlanCard(),
                   ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                  child: _buildMethodSectionHeader(),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.screenPadding,
+                    AppTheme.spaceLg,
+                    AppTheme.screenPadding,
+                    AppTheme.spaceSm,
+                  ),
+                  child: const EjariSectionHeader(
+                    title: 'اختر وسيلة الدفع',
+                    subtitle: 'بطاقة، محفظة، تقسيط، أو تحويل بنكي',
+                  ),
                 ),
                 _buildCategoryGrid(),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.screenPadding,
+                  ),
                   child: _buildMethodSpecificForm(),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppTheme.spaceMd),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.screenPadding,
+                  ),
                   child: _buildConsentCard(),
                 ),
               ],
@@ -305,207 +349,200 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _buildCheckoutSteps() {
-    const steps = ['الملخص', 'طريقة الدفع', 'التأكيد'];
-    return Row(
-      children: List.generate(steps.length, (index) {
-        final isActive = index <= 1;
-        return Expanded(
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  children: [
-                    Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: isActive
-                            ? AppTheme.primaryColor
-                            : AppTheme.borderColor.withOpacity(0.4),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          '${index + 1}',
-                          style: TextStyle(
-                            color:
-                                isActive ? Colors.white : AppTheme.textSecondary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      steps[index],
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: isActive
-                            ? AppTheme.primaryColor
-                            : AppTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (index < steps.length - 1)
-                Expanded(
-                  child: Container(
-                    height: 2,
-                    margin: const EdgeInsets.only(bottom: 18),
-                    color: index == 0
-                        ? AppTheme.primaryColor.withOpacity(0.3)
-                        : AppTheme.borderColor.withOpacity(0.3),
-                  ),
-                ),
-            ],
-          ),
-        );
-      }),
-    );
-  }
-
   Widget _buildHeroSummary() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppTheme.borderColor.withOpacity(0.25)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(_purposeTitle,
-              style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: AppTheme.primaryColor)),
-          const SizedBox(height: 4),
-          Text(_getItemTitle(),
-              style: const TextStyle(
-                  fontSize: 14, fontWeight: FontWeight.w600)),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.paymentStage == 'remaining'
-                        ? 'المتبقي'
-                        : widget.paymentStage == 'deposit'
-                            ? 'العربون'
-                            : 'المبلغ',
-                    style: const TextStyle(
-                        color: AppTheme.textSecondary, fontSize: 12),
-                  ),
-                  Text('${_displayAmount.toStringAsFixed(0)} ج.م',
-                      style: const TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontSize: 26,
-                          fontWeight: FontWeight.w900)),
-                ],
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  widget.paymentStage == 'remaining'
-                      ? 'استكمال'
-                      : widget.paymentStage == 'deposit'
-                          ? 'عربون'
-                          : 'كامل',
-                  style: const TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12),
-                ),
-              ),
-            ],
+        gradient: const LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [Color(0xFF0F3A30), Color(0xFF1B594B)],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.28),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
           ),
-          if (widget.paymentStage != 'full') ...[
-            const SizedBox(height: 12),
-            const Divider(height: 1),
-            const SizedBox(height: 8),
-            _buildMiniRow(
-                'إجمالي العملية', widget.totalAmount ?? widget.amount),
-            _buildMiniRow(
-                'المتبقي بعد الدفع',
-                widget.paymentStage == 'remaining'
-                    ? 0
-                    : (widget.remainingAmount ??
-                        ((widget.totalAmount ?? widget.amount) -
-                            (widget.depositAmount ??
-                                ((widget.totalAmount ?? widget.amount) *
-                                    0.10))))),
-          ],
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: -20,
+            left: -20,
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppTheme.accentColor.withOpacity(0.12),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentColor.withOpacity(0.22),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        widget.paymentStage == 'remaining'
+                            ? 'استكمال'
+                            : widget.paymentStage == 'deposit'
+                                ? 'عربون'
+                                : 'دفع كامل',
+                        style: const TextStyle(
+                          color: AppTheme.accentColor,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    const Icon(Icons.shield_rounded,
+                        color: AppTheme.accentColor, size: 22),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Text(
+                  _purposeTitle,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _getItemTitle(),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withOpacity(0.75),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.paymentStage == 'remaining'
+                                ? 'المتبقي'
+                                : widget.paymentStage == 'deposit'
+                                    ? 'العربون'
+                                    : 'المبلغ',
+                            style: const TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${_displayAmount.toStringAsFixed(0)} ج.م',
+                            style: const TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: const Icon(
+                          Icons.account_balance_wallet_rounded,
+                          color: AppTheme.primaryColor,
+                          size: 28,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (widget.paymentStage != 'full') ...[
+                  const SizedBox(height: 14),
+                  _buildMiniRow(
+                    'إجمالي العملية',
+                    widget.totalAmount ?? widget.amount,
+                    light: true,
+                  ),
+                  _buildMiniRow(
+                    'المتبقي بعد الدفع',
+                    widget.paymentStage == 'remaining'
+                        ? 0
+                        : (widget.remainingAmount ??
+                            ((widget.totalAmount ?? widget.amount) -
+                                (widget.depositAmount ??
+                                    ((widget.totalAmount ?? widget.amount) *
+                                        0.10)))),
+                    light: true,
+                  ),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildMiniRow(String label, double value) {
+  Widget _buildMiniRow(String label, double value, {bool light = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Expanded(
-            child: Text(label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    color: AppTheme.textSecondary, fontSize: 12)),
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: light
+                    ? Colors.white.withOpacity(0.7)
+                    : AppTheme.textSecondary,
+                fontSize: 12,
+              ),
+            ),
           ),
           const SizedBox(width: 12),
-          Text('${value.toStringAsFixed(0)} ج.م',
-              style: const TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold)),
+          Text(
+            '${value.toStringAsFixed(0)} ج.م',
+            style: TextStyle(
+              color: light ? Colors.white : AppTheme.textPrimary,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildMethodSectionHeader() {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 8,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        Container(
-          width: 24,
-          height: 24,
-          decoration: const BoxDecoration(
-            color: AppTheme.primaryColor,
-            shape: BoxShape.circle,
-          ),
-          child: const Center(
-            child: Text('2',
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold)),
-          ),
-        ),
-        const SizedBox(width: 0),
-        const Text('اختر وسيلة الدفع',
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.primaryColor)),
-      ],
     );
   }
 
@@ -644,23 +681,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Widget _buildConsentCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.backgroundColor),
-      ),
+    return EjariSurfaceCard(
+      padding: const EdgeInsets.all(AppTheme.spaceMd),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('تأكيد نهائي قبل الدفع',
-              style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor)),
-          const SizedBox(height: 10),
+          const EjariSectionHeader(
+            title: 'تأكيد نهائي قبل الدفع',
+            subtitle: 'راجع الملخص ووافق للمتابعة بأمان',
+          ),
+          const SizedBox(height: AppTheme.spaceSm),
           CheckboxListTile(
             contentPadding: EdgeInsets.zero,
             dense: true,
@@ -693,7 +723,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          mainAxisExtent: 75,
+          mainAxisExtent: 82,
         ),
         children: [
           _buildCatCard('cards', 'بطاقة بنكية', Icons.credit_card_rounded),
@@ -716,41 +746,62 @@ class _PaymentScreenState extends State<PaymentScreen> {
       }),
       child: Container(
         margin: const EdgeInsets.all(8),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppTheme.primaryColor
-              : (Theme.of(context).cardTheme.color ?? Colors.white),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                      color: AppTheme.primaryColor.withOpacity(0.3),
-                      blurRadius: 10)
-                ]
-              : [],
-          border: Border.all(
+          gradient: isSelected
+              ? const LinearGradient(
+                  colors: [Color(0xFF0F3A30), Color(0xFF1B594B)],
+                )
+              : null,
+          color: isSelected ? null : AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
               color: isSelected
-                  ? AppTheme.primaryColor
-                  : (Theme.of(context).brightness == Brightness.light
-                      ? AppTheme.backgroundColor
-                      : AppTheme.textPrimary)),
+                  ? AppTheme.primaryColor.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.04),
+              blurRadius: isSelected ? 14 : 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          border: Border.all(
+            color: isSelected
+                ? AppTheme.accentColor.withOpacity(0.4)
+                : AppTheme.borderColor.withOpacity(0.5),
+            width: isSelected ? 1.5 : 1,
+          ),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon,
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? Colors.white.withOpacity(0.15)
+                    : AppTheme.primaryColor.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
                 color: isSelected ? Colors.white : AppTheme.primaryColor,
-                size: 20),
-            const SizedBox(width: 8),
-            Text(label,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
                 style: TextStyle(
-                    color: isSelected
-                        ? Colors.white
-                        : (Theme.of(context).brightness == Brightness.light
-                            ? AppTheme.textPrimary
-                            : AppTheme.primaryColor),
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal)),
+                  color: isSelected ? Colors.white : AppTheme.textPrimary,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+            if (isSelected)
+              const Icon(Icons.check_circle_rounded,
+                  color: AppTheme.accentColor, size: 18),
           ],
         ),
       ),
@@ -1009,42 +1060,88 @@ class _PaymentScreenState extends State<PaymentScreen> {
       left: 0,
       right: 0,
       child: Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(
+          AppTheme.screenPadding,
+          AppTheme.spaceMd,
+          AppTheme.screenPadding,
+          AppTheme.spaceLg,
+        ),
         decoration: BoxDecoration(
-            color: Theme.of(context).cardTheme.color ?? Colors.white,
-            boxShadow: const []),
+          color: AppTheme.surfaceColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primaryColor.withOpacity(0.12),
+              blurRadius: 24,
+              offset: const Offset(0, -8),
+            ),
+          ],
+        ),
         child: SafeArea(
+          top: false,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                _acceptedPaymentSummary
-                    ? 'بمجرد الضغط سيتم إنشاء سجل دفع واضح وإشعار للحالة.'
-                    : 'فعّل الموافقة أولاً لتأكيد الفهم والشفافية.',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                    fontSize: 11, color: AppTheme.textSecondary, height: 1.4),
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: _acceptedPaymentSummary
+                          ? AppTheme.successColor.withOpacity(0.12)
+                          : AppTheme.borderColor.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      _acceptedPaymentSummary
+                          ? Icons.verified_rounded
+                          : Icons.info_outline_rounded,
+                      color: _acceptedPaymentSummary
+                          ? AppTheme.successColor
+                          : AppTheme.textSecondary,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _acceptedPaymentSummary
+                          ? 'جاهز للدفع — سيتم إنشاء سجل واضح.'
+                          : 'فعّل الموافقة أولاً لتأكيد الفهم والشفافية.',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.textSecondary,
+                        height: 1.4,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                onPressed: _isProcessing ? null : _processPayment,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  disabledBackgroundColor:
-                      AppTheme.primaryColor.withOpacity(0.45),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                ),
-                child: SizedBox(
-                  width: double.infinity,
+              const SizedBox(height: AppTheme.spaceSm),
+              SizedBox(
+                width: double.infinity,
+                height: AppTheme.ctaHeight,
+                child: ElevatedButton(
+                  onPressed: _isProcessing ? null : _processPayment,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    disabledBackgroundColor:
+                        AppTheme.primaryColor.withOpacity(0.45),
+                    elevation: 4,
+                    shadowColor: AppTheme.primaryColor.withOpacity(0.35),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                  ),
                   child: Text(
                     buttonText,
                     textAlign: TextAlign.center,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w900,
                       fontSize: 15,
                       color: Colors.white,
                     ),
@@ -1054,7 +1151,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               if (widget.paymentStage == 'deposit') ...[
                 const SizedBox(height: 8),
                 const Text(
-                  'العربون قابل للتتبع داخل العملية، والمتبقي يظهر لك لاحقًا قبل الإتمام النهائي.',
+                  'العربون قابل للتتبع داخل العملية، والمتبقي يظهر لك لاحقًا.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 10,

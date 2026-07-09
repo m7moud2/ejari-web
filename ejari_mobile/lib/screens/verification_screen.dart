@@ -113,7 +113,14 @@ class _VerificationScreenState extends State<VerificationScreen> {
         elevation: 0,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const ColoredBox(
+              color: AppTheme.backgroundColor,
+              child: Center(
+                child: CircularProgressIndicator(
+                  color: AppTheme.primaryColor,
+                ),
+              ),
+            )
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [

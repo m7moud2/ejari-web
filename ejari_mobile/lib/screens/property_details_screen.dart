@@ -11,6 +11,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/firestore_chat_service.dart';
 import '../services/auth_service.dart';
+import '../widgets/ejari_image.dart';
+import '../widgets/ejari_section.dart';
 import 'map_search_screen.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
@@ -27,6 +29,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   int _reviewsCount = 24;
   bool _isFavorite = false;
   List<Map<String, dynamic>> _marketTrends = [];
+
+  bool _isNetworkImage(String value) {
+    final uri = Uri.tryParse(value.trim());
+    return uri != null &&
+        (uri.scheme == 'http' || uri.scheme == 'https') &&
+        uri.host.isNotEmpty;
+  }
 
   @override
   void initState() {
@@ -56,9 +65,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final title = widget.property['title'];
     final price = widget.property['price'];
     final location = widget.property['location'];
-    final link = "https://keyo.app/property/${widget.property['id']}";
+    final link = "https://ejari.app/property/${widget.property['id']}";
 
-    final text = "🔥 فرصة عقارية فاخرة من كيو!\n\n"
+    final text = "🔥 فرصة عقارية فاخرة من إيجاري!\n\n"
         "🏠 $title\n"
         "💰 السعر: $price ج.م\n"
         "📍 الموقع: $location\n\n"
@@ -68,9 +77,10 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   }
 
   void _openWhatsApp() async {
+    final messenger = ScaffoldMessenger.of(context);
     final phone = widget.property['phone'] ?? '+201280083336';
     final message =
-        "مرحباً، أستفسر عن عقار: ${widget.property['title']} المعروض على تطبيق كيو.";
+        "مرحباً، أستفسر عن عقار: ${widget.property['title']} المعروض على تطبيق إيجاري.";
     final url =
         "https://wa.me/${phone.replaceAll(' ', '').replaceAll('+', '')}?text=${Uri.encodeComponent(message)}";
 
@@ -78,7 +88,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context)
+        messenger
             .showSnackBar(const SnackBar(content: Text('تعذر فتح واتساب ❌')));
       }
     }
@@ -91,22 +101,25 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   }
 
   Future<void> _startInternalChat() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     final currentUser = await AuthService.getCurrentUser();
     if (!mounted) return;
     if (currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(content: Text('يجب تسجيل الدخول أولاً للمراسلة')),
       );
       return;
     }
 
-    final currentUserId =
-        (currentUser['uid'] ?? currentUser['id'] ?? currentUser['_id'])
-            ?.toString()
-            .trim();
+    final currentUserId = (currentUser['uid'] ??
+            currentUser['id'] ??
+            currentUser['_id'])
+        ?.toString()
+        .trim();
     if (currentUserId == null || currentUserId.isEmpty) {
       debugPrint('Cannot start chat: missing current user identifier');
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(
           content: Text('تعذر بدء المحادثة، يرجى تسجيل الدخول مرة أخرى'),
         ),
@@ -135,19 +148,17 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
     // Hide loading
     if (!mounted) return;
-    Navigator.pop(context);
+    navigator.pop();
 
     if (chatId.isNotEmpty && mounted) {
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => ChatScreen(
-                  chatId: chatId,
-                  otherUserName: ownerName,
-                  currentUserId: currentUserId)));
+      navigator.push(MaterialPageRoute(
+          builder: (context) => ChatScreen(
+              chatId: chatId,
+              otherUserName: ownerName,
+              currentUserId: currentUserId)));
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(content: Text('حدث خطأ أثناء بدء المحادثة')),
         );
       }
@@ -156,6 +167,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
   void _showPhoneCallDialog() {
     const phone = '01280083336';
+    final navigator = Navigator.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -167,7 +179,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               child: const Text('إلغاء')),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context);
+              navigator.pop();
               final url = Uri.parse('tel:$phone');
               if (await canLaunchUrl(url)) {
                 await launchUrl(url);
@@ -183,241 +195,414 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final property = widget.property;
+    final navigator = Navigator.of(context);
+    final imageUrl = property['image']?.toString() ?? '';
+    final title = property['title']?.toString() ?? 'عقار مميز';
+    final location =
+        property['location']?.toString() ?? 'موقع مميز داخل إيجاري';
+    final price = property['price']?.toString() ?? '0';
+    final isDemo = property['isDemo'] == true;
+    final propertyStatus = (property['status']?.toString().trim().isNotEmpty ?? false)
+        ? property['status'].toString()
+        : (isDemo ? 'متاح الآن' : 'متاح الآن');
+    final ownerName = property['ownerName']?.toString().trim().isNotEmpty == true
+        ? property['ownerName'].toString()
+        : 'أحمد محمد';
 
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       body: Stack(
         children: [
           CustomScrollView(
             slivers: [
               SliverAppBar(
-                expandedHeight: 300,
+                expandedHeight: 360,
                 pinned: true,
-                backgroundColor: AppTheme.primaryColor,
+                backgroundColor: AppTheme.backgroundColor,
+                surfaceTintColor: Colors.transparent,
                 leading: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceColor.withOpacity(0.92),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.arrow_back,
+                        color: AppTheme.textPrimary, size: 18),
+                  ),
                   onPressed: () => Navigator.pop(context),
                 ),
                 actions: [
                   IconButton(
                     icon: Icon(
                         _isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: Colors.white),
+                        color: AppTheme.textPrimary),
                     onPressed: _toggleFavorite,
                   ),
                   IconButton(
-                    icon: const Icon(Icons.share, color: Colors.white),
+                    icon: const Icon(Icons.share, color: AppTheme.textPrimary),
                     onPressed: _shareProperty,
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
-                  background: property['image'].startsWith('http')
-                      ? CachedNetworkImage(
-                          imageUrl: property['image'],
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            color: AppTheme.backgroundColor,
-                            child: const Center(
-                                child: CircularProgressIndicator(
-                                    color: AppTheme.primaryColor)),
-                          ),
-                          errorWidget: (context, url, error) => Image.asset(
-                            'assets/images/home1.jpg',
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : Image.asset(property['image'], fit: BoxFit.cover),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  background: Stack(
+                    fit: StackFit.expand,
                     children: [
-                      Row(
-                        children: [
-                          Expanded(
-                              child: Text(property['title'],
-                                  style: const TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold))),
-                          const SizedBox(width: 8),
-                          if (property['isDemo'] == true)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                  color: AppTheme.borderColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border:
-                                      Border.all(color: AppTheme.borderColor)),
-                              child: const Text('متاح للتجربة والتقييم',
-                                  style: TextStyle(
-                                      color: AppTheme.borderColor,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold)),
-                            )
-                          else
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border:
-                                      Border.all(color: AppTheme.primaryColor)),
-                              child: const Text('متاح فعلياً',
-                                  style: TextStyle(
-                                      color: AppTheme.primaryColor,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold)),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(Icons.star_rounded,
-                              color: AppTheme.borderColor, size: 18),
-                          const SizedBox(width: 4),
-                          Text(
-                            '$_averageRating ($_reviewsCount تقييم)',
-                            style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: AppTheme.textSecondary),
+                      _buildHeroImage(imageUrl),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              AppTheme.textPrimary.withOpacity(0.08),
+                              AppTheme.textPrimary.withOpacity(0.55),
+                            ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(property['location'],
-                          style: const TextStyle(color: AppTheme.primaryColor)),
-                      const SizedBox(height: 12),
-                      InkWell(
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const MapSearchScreen())),
-                        child: const Row(
-                          children: [
-                            Icon(Icons.map_outlined,
-                                color: AppTheme.primaryColor, size: 16),
-                            SizedBox(width: 4),
-                            Text('عرض الموقع على الخريطة',
-                                style: TextStyle(
-                                    color: AppTheme.primaryColor,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                    decoration: TextDecoration.underline)),
-                          ],
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildSpecItem(Icons.bed, '${property['beds']} غرف'),
-                          _buildSpecItem(
-                              Icons.bathtub, '${property['baths']} حمام'),
-                          _buildSpecItem(
-                              Icons.square_foot, '${property['area']} م²'),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-                      const Text('الوصف',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      const Text(
-                          'شقة فاخرة بتشطيب رائع وموقع متميز في قلب كيو، قريبة من كافة الخدمات والجامعة.',
-                          style: TextStyle(
-                              color: AppTheme.primaryColor, height: 1.5)),
-                      const SizedBox(height: 32),
-                      const Text('الموقع السوقي',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        height: 200,
-                        child: LineChart(
-                          LineChartData(
-                            gridData: const FlGridData(show: false),
-                            titlesData: const FlTitlesData(show: false),
-                            borderData: FlBorderData(show: false),
-                            lineBarsData: [
-                              LineChartBarData(
-                                spots: _marketTrends.isEmpty
-                                    ? const [
-                                        FlSpot(0, 3),
-                                        FlSpot(1, 4),
-                                        FlSpot(2, 3.5),
-                                        FlSpot(3, 5)
-                                      ]
-                                    : List.generate(_marketTrends.length,
-                                        (index) {
-                                        final double val = double.tryParse(
-                                                _marketTrends[index]['value']
-                                                    .toString()) ??
-                                            0.0;
-                                        return FlSpot(
-                                            index.toDouble(), val / 5000.0);
-                                      }),
-                                isCurved: true,
-                                color: AppTheme.primaryColor,
-                                barWidth: 4,
-                                dotData: const FlDotData(show: false),
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                AppTheme.backgroundColor.withOpacity(0.95),
+                              ],
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  _buildHeroTag(
+                                    propertyStatus,
+                                    AppTheme.primaryColor,
+                                  ),
+                                  _buildHeroTag(
+                                    '${property['beds'] ?? 0} غرف',
+                                    AppTheme.primaryColor,
+                                  ),
+                                  _buildHeroTag(
+                                    '${property['area'] ?? 0} م²',
+                                    AppTheme.accentColor,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                title,
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  height: 1.2,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  const Icon(Icons.location_on_outlined,
+                                      size: 16, color: AppTheme.primaryColor),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      location,
+                                      style: const TextStyle(
+                                        color: AppTheme.textSecondary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ),
                       ),
-                      const SizedBox(height: 32),
-                      const Text('توفر الوحدة',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 12),
-                      _buildAvailabilityCalendar(),
-                      const SizedBox(height: 32),
-                      // Owner Section
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppTheme.backgroundColor,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
+                    ],
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.screenPadding,
+                    AppTheme.spaceSm,
+                    AppTheme.screenPadding,
+                    120,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      EjariSurfaceCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const CircleAvatar(child: Icon(Icons.person)),
-                            const SizedBox(width: 16),
-                            const Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('أحمد محمد',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold)),
-                                  Text('مالك معتمد في كيو',
-                                      style: TextStyle(
-                                          color: AppTheme.primaryColor,
-                                          fontSize: 12)),
-                                ],
-                              ),
+                            const EjariSectionHeader(
+                              title: 'نظرة سريعة',
+                              subtitle: 'أهم الأرقام والتقييمات',
                             ),
-                            IconButton(
-                                icon: const Icon(Icons.phone,
-                                    color: AppTheme.primaryColor),
-                                onPressed: _showPhoneCallDialog),
-                            IconButton(
-                                icon: const Icon(Icons.message,
-                                    color: AppTheme.primaryColor),
-                                onPressed: _openWhatsApp),
-                            IconButton(
-                                icon: const Icon(Icons.chat_bubble_outline),
-                                onPressed: _startInternalChat),
+                            const SizedBox(height: AppTheme.spaceMd),
+                            Wrap(
+                              spacing: AppTheme.spaceXs,
+                              runSpacing: AppTheme.spaceXs,
+                              children: [
+                                SizedBox(
+                                  width: 152,
+                                  child: EjariStatTile(
+                                    icon: Icons.star_rounded,
+                                    label: 'التقييم',
+                                    value: '$_averageRating ($_reviewsCount)',
+                                    accentColor: AppTheme.accentColor,
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 152,
+                                  child: EjariStatTile(
+                                    icon: Icons.bed_outlined,
+                                    label: 'الغرف',
+                                    value: '${property['beds'] ?? 0}',
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 152,
+                                  child: EjariStatTile(
+                                    icon: Icons.bathtub_outlined,
+                                    label: 'الحمامات',
+                                    value: '${property['baths'] ?? 0}',
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 152,
+                                  child: EjariStatTile(
+                                    icon: Icons.square_foot,
+                                    label: 'المساحة',
+                                    value: '${property['area'] ?? 0} م²',
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 100),
+                      const SizedBox(height: AppTheme.spaceMd),
+                      EjariSurfaceCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const EjariSectionHeader(
+                              title: 'التفاصيل والسعر',
+                              subtitle: 'الوصف والموقع على الخريطة',
+                            ),
+                            const SizedBox(height: AppTheme.spaceMd),
+                            Text(
+                              '$price ج.م',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
+                            const SizedBox(height: AppTheme.spaceXs),
+                            const Text(
+                              'شقة فاخرة بتشطيب رائع وموقع متميز في قلب إيجاري، قريبة من الخدمات والمدارس ومحاور الحركة الرئيسية.',
+                              style: TextStyle(
+                                height: 1.7,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(height: AppTheme.spaceMd),
+                            InkWell(
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const MapSearchScreen(),
+                                ),
+                              ),
+                              borderRadius:
+                                  BorderRadius.circular(AppTheme.cardRadius - 4),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppTheme.spaceMd,
+                                  vertical: AppTheme.spaceSm,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(
+                                      AppTheme.cardRadius - 4),
+                                  border: Border.all(
+                                    color:
+                                        AppTheme.primaryColor.withOpacity(0.15),
+                                  ),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.map_outlined,
+                                        color: AppTheme.primaryColor, size: 18),
+                                    SizedBox(width: AppTheme.spaceXs),
+                                    Text(
+                                      'عرض الموقع على الخريطة',
+                                      style: TextStyle(
+                                        color: AppTheme.primaryColor,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spaceMd),
+                      EjariSurfaceCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const EjariSectionHeader(
+                              title: 'الموقع السوقي',
+                              subtitle: 'مقارنة الأسعار في المنطقة',
+                            ),
+                            const SizedBox(height: AppTheme.spaceMd),
+                            SizedBox(
+                              height: 200,
+                              child: LineChart(
+                                LineChartData(
+                                  gridData: const FlGridData(show: false),
+                                  titlesData: const FlTitlesData(show: false),
+                                  borderData: FlBorderData(show: false),
+                                  lineBarsData: [
+                                    LineChartBarData(
+                                      spots: _marketTrends.isEmpty
+                                          ? const [
+                                              FlSpot(0, 3),
+                                              FlSpot(1, 4),
+                                              FlSpot(2, 3.5),
+                                              FlSpot(3, 5)
+                                            ]
+                                          : List.generate(_marketTrends.length,
+                                              (index) {
+                                              final double val =
+                                                  double.tryParse(
+                                                          _marketTrends[index]
+                                                                  ['value']
+                                                              .toString()) ??
+                                                      0.0;
+                                              return FlSpot(index.toDouble(),
+                                                  val / 5000.0);
+                                            }),
+                                      isCurved: true,
+                                      color: AppTheme.primaryColor,
+                                      barWidth: 4,
+                                      dotData: const FlDotData(show: false),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: AppTheme.spaceSm),
+                            Wrap(
+                              spacing: AppTheme.spaceXs,
+                              runSpacing: AppTheme.spaceXs,
+                              children: [
+                                _buildLegend(
+                                    AppTheme.primaryColor, 'متوسط السوق'),
+                                _buildLegend(AppTheme.borderColor, 'فرصة قوية'),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spaceMd),
+                      EjariSurfaceCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const EjariSectionHeader(
+                              title: 'توفر الوحدة',
+                              subtitle: 'جدول المواعيد خلال 14 يوماً',
+                            ),
+                            const SizedBox(height: AppTheme.spaceMd),
+                            _buildAvailabilityCalendar(),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.spaceMd),
+                      EjariSurfaceCard(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const EjariSectionHeader(
+                              title: 'المالك والتواصل',
+                              subtitle: 'تواصل مباشر مع مالك معتمد',
+                            ),
+                            const SizedBox(height: AppTheme.spaceMd),
+                            Wrap(
+                              spacing: AppTheme.spaceXs,
+                              runSpacing: AppTheme.spaceXs,
+                              children: [
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const CircleAvatar(
+                                      radius: 24,
+                                      backgroundColor: AppTheme.accentColor,
+                                      child: Icon(Icons.person,
+                                          color: AppTheme.textPrimary),
+                                    ),
+                                    const SizedBox(width: AppTheme.spaceSm),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          ownerName,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 15),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        const Text('مالك معتمد في إيجاري',
+                                            style: TextStyle(
+                                                color: AppTheme.textSecondary,
+                                                fontSize: 12)),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                        icon: const Icon(Icons.phone,
+                                            color: AppTheme.primaryColor),
+                                        onPressed: _showPhoneCallDialog),
+                                    IconButton(
+                                        icon: const Icon(Icons.message,
+                                            color: AppTheme.primaryColor),
+                                        onPressed: _openWhatsApp),
+                                    IconButton(
+                                        icon: const Icon(
+                                            Icons.chat_bubble_outline,
+                                            color: AppTheme.primaryColor),
+                                        onPressed: _startInternalChat),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -425,34 +610,91 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             ],
           ),
           Positioned(
-            bottom: 20,
-            left: 20,
-            right: 20,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+            bottom: AppTheme.screenPadding,
+            left: AppTheme.screenPadding,
+            right: AppTheme.screenPadding,
+            child: SizedBox(
+              height: AppTheme.ctaHeight,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.cardRadius - 2),
+                  ),
+                  elevation: 0,
+                ),
+                onPressed: () async {
+                  final allowed = await AuthGate.requireLogin(
+                    context,
+                    actionLabel: 'حجز الوحدة',
+                  );
+                  if (!allowed || !context.mounted) return;
+                  navigator.push(
+                    MaterialPageRoute(
+                        builder: (context) => BookingScreen(
+                            itemType: 'property', itemData: property)),
+                  );
+                },
+                child: const Text('احجز الآن',
+                    style: TextStyle(
+                        fontSize: 17,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800)),
               ),
-              onPressed: () async {
-                final allowed = await AuthGate.requireLogin(
-                  context,
-                  actionLabel: 'حجز الوحدة',
-                );
-                if (!allowed || !context.mounted) return;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => BookingScreen(
-                          itemType: 'property', itemData: property)),
-                );
-              },
-              child: const Text('احجز الآن',
-                  style: TextStyle(fontSize: 18, color: Colors.white)),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildHeroImage(String imageUrl) {
+    final path = imageUrl.trim();
+    if (path.isEmpty) {
+      return const EjariImage(
+        path: 'assets/images/home1.jpg',
+        fit: BoxFit.cover,
+      );
+    }
+
+    if (_isNetworkImage(path)) {
+      return CachedNetworkImage(
+        imageUrl: path,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => Container(
+          color: AppTheme.backgroundColor,
+          child: const Center(
+            child: CircularProgressIndicator(color: AppTheme.primaryColor),
+          ),
+        ),
+        errorWidget: (context, url, error) => const EjariImage(
+          path: 'assets/images/home1.jpg',
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+
+    return EjariImage(
+      path: path.startsWith('assets/') ? path : 'assets/images/home1.jpg',
+      fit: BoxFit.cover,
+    );
+  }
+
+  Widget _buildHeroTag(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor.withOpacity(0.86),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withOpacity(0.18)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w800,
+          fontSize: 11,
+        ),
       ),
     );
   }
@@ -471,7 +713,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             style: TextStyle(fontSize: 12, color: AppTheme.primaryColor)),
         const SizedBox(height: 12),
         SizedBox(
-          height: 80,
+          height: 92,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: 14,
@@ -487,13 +729,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 margin: const EdgeInsets.only(left: 10),
                 decoration: BoxDecoration(
                   color: isBooked
-                      ? AppTheme.errorColor.withOpacity(0.05)
-                      : AppTheme.primaryColor.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(12),
+                      ? AppTheme.errorColor.withOpacity(0.08)
+                      : AppTheme.primaryColor.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                       color: isBooked
-                          ? AppTheme.errorColor.withOpacity(0.3)
-                          : AppTheme.primaryColor.withOpacity(0.3)),
+                          ? AppTheme.errorColor.withOpacity(0.24)
+                          : AppTheme.primaryColor.withOpacity(0.24)),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -562,16 +804,6 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         const SizedBox(width: 4),
         Text(label,
             style: const TextStyle(fontSize: 10, color: AppTheme.primaryColor)),
-      ],
-    );
-  }
-
-  Widget _buildSpecItem(IconData icon, String label) {
-    return Column(
-      children: [
-        Icon(icon, color: AppTheme.primaryColor),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 12)),
       ],
     );
   }

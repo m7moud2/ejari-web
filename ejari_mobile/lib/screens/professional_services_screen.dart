@@ -63,7 +63,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
       ],
       'icon': Icons.flight_takeoff_rounded,
       'color': AppTheme.borderColor,
-      'tag': 'كيو',
+      'tag': 'إيجاري',
     },
   ];
 
@@ -932,7 +932,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
         decoration: BoxDecoration(
           color:
               Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -961,7 +961,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                 textAlign: TextAlign.center),
             const SizedBox(height: 8),
             const Text(
-                'سيتواصل معك فريق خبراء كيو خلال 24 ساعة لتأكيد التفاصيل وتحديد الموعد النهائي.',
+                'سيتواصل معك فريق خبراء إيجاري خلال 24 ساعة لتأكيد التفاصيل وتحديد الموعد النهائي.',
                 style: TextStyle(color: AppTheme.primaryColor, height: 1.5),
                 textAlign: TextAlign.center),
             const SizedBox(height: 24),
@@ -1007,7 +1007,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
           decoration: BoxDecoration(
               color: Theme.of(context).cardTheme.color ??
                   Theme.of(context).cardColor,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32))),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1135,7 +1135,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
           decoration: BoxDecoration(
             color: Theme.of(context).cardTheme.color ??
                 Theme.of(context).cardColor,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1165,7 +1165,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                     crossAxisCount: 2,
                     mainAxisSpacing: 12,
                     crossAxisSpacing: 12,
-                    childAspectRatio: 2.5),
+                    mainAxisExtent: 70,),
                 itemCount: styles.length,
                 itemBuilder: (_, i) {
                   final s = styles[i];
@@ -1247,7 +1247,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
           decoration: BoxDecoration(
               color: Theme.of(context).cardTheme.color ??
                   Theme.of(context).cardColor,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32))),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -1365,7 +1365,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
           decoration: BoxDecoration(
               color: Theme.of(context).cardTheme.color ??
                   Theme.of(context).cardColor,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32))),
           child: ListView(
             controller: sc,
             padding: const EdgeInsets.all(24),
@@ -1426,7 +1426,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                   SizedBox(width: 12),
                   Expanded(
                       child: Text(
-                          'تقييم كيو: حي ممتاز ويُنصح به للإيجار طويل الأمد',
+                          'تقييم إيجاري: حي ممتاز ويُنصح به للإيجار طويل الأمد',
                           style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: AppTheme.primaryColor)))

@@ -87,7 +87,7 @@ class _ContractScreenState extends State<ContractScreen> {
                     const SizedBox(height: 14),
                     _buildInfoBanner(
                       icon: Icons.shield_rounded,
-                      title: 'كيو كوسيط منظم',
+                      title: 'إيجاري كوسيط منظم',
                       message:
                           'نوضح المال، التوقيع، والمتابعة في مسار واحد حتى تكون الخطوة التالية مفهومة.',
                       filled: true,
@@ -166,7 +166,7 @@ class _ContractScreenState extends State<ContractScreen> {
                           _buildContractRow('مدة الإيجار:', widget.duration),
                           _buildContractRow('تاريخ البدء:', widget.startDate),
                           _buildContractRow(
-                              'القيمة الكيوة:', '${widget.price} ج.م'),
+                              'القيمة الإيجارية:', '${widget.price} ج.م'),
                           if (widget.deposit != null) ...[
                             _buildContractRow(
                                 'العربون:', '${widget.deposit} ج.م'),
@@ -180,8 +180,8 @@ class _ContractScreenState extends State<ContractScreen> {
                           const SizedBox(height: 12),
                           Text(
                             'المادة الأولى: يقر الطرف الثاني بمعاينة ${widget.itemLabel} المعاينة التامة النافية للجهالة وقبوله بالحالة التي عليها.\n'
-                            'المادة الثانية: يلتزم الطرف الثاني بسداد القيمة المتفق عليها عبر منصة كيو في المواعيد المحددة.\n'
-                            'المادة الثالثة: منصة كيو هي الوسيط التكنولوجي والضامن المالي، ويعد التوقيع الإلكتروني عبرها بمثابة توقيع رسمي موثق داخل المنصة.\n'
+                            'المادة الثانية: يلتزم الطرف الثاني بسداد القيمة المتفق عليها عبر منصة إيجاري في المواعيد المحددة.\n'
+                            'المادة الثالثة: منصة إيجاري هي الوسيط التكنولوجي والضامن المالي، ويعد التوقيع الإلكتروني عبرها بمثابة توقيع رسمي موثق داخل المنصة.\n'
                             'المادة الرابعة: يلتزم الطرف الأول بصيانة الأجزاء الهيكلية والمرافق الأساسية للوحدة لضمان انتفاع الطرف الثاني بها.\n'
                             'المادة الخامسة: في حالة الإخلال بأي بند، يحق للمنصة اتخاذ الإجراءات اللازمة لاسترداد الحقوق وفق السياسة المعتمدة.',
                             style: const TextStyle(
@@ -478,14 +478,23 @@ class _ContractScreenState extends State<ContractScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style:
-                  const TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
-          Text(value,
-              style:
-                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          Expanded(
+            child: Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                    color: AppTheme.textSecondary, fontSize: 13)),
+          ),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Text(value,
+                textAlign: TextAlign.end,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+          ),
         ],
       ),
     );

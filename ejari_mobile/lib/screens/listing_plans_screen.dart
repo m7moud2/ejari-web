@@ -20,7 +20,7 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('خطط النشر الكيو ✨'),
+        title: const Text('خطط النشر الإيجاري ✨'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -73,7 +73,7 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
             const SizedBox(height: 20),
             _buildPackageCard(
               id: 'gold',
-              title: 'الباقة الذهبية (Keyo)',
+              title: 'الباقة الذهبية (Ejari)',
               price: _isAnnual ? '12,990' : '1,299',
               features: [
                 'عقارات غير محدودة',

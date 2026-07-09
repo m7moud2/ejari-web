@@ -12,6 +12,7 @@ import '../utils/date_utils.dart';
 import '../utils/rental_schedule_utils.dart';
 import '../widgets/image_upload_widget.dart';
 import '../widgets/ejari_image.dart';
+import '../widgets/ejari_section.dart';
 import '../l10n/app_localizations.dart';
 
 class BookingScreen extends StatefulWidget {
@@ -69,11 +70,11 @@ class _BookingScreenState extends State<BookingScreen> {
   bool get _isCar => widget.itemType == 'car';
   double get _monthlyRent => _basePrice;
 
-  double get _leaseTotalAmount =>
-      isSale || _isCar ? _finalTotal : _totalPrice;
+  double get _leaseTotalAmount => isSale || _isCar ? _finalTotal : _totalPrice;
 
-  double get _currentMonthTotal =>
-      isSale || _isCar ? _finalTotal : _totalPrice + _adminFees + _profit + _insurancePrice;
+  double get _currentMonthTotal => isSale || _isCar
+      ? _finalTotal
+      : _totalPrice + _adminFees + _profit + _insurancePrice;
 
   double get _bookingDepositAmount {
     if (isSale || _isCar) {
@@ -357,8 +358,8 @@ class _BookingScreenState extends State<BookingScreen> {
       'depositAmount': _bookingDepositAmount.toStringAsFixed(0),
       'remainingAmount': _remainingAfterDepositAmount.toStringAsFixed(0),
       'nextDueAmount': nextDueAmount.toStringAsFixed(0),
-      'nextDueDate': RentalScheduleUtils.addMonths(leaseStartDate, 1)
-          .toIso8601String(),
+      'nextDueDate':
+          RentalScheduleUtils.addMonths(leaseStartDate, 1).toIso8601String(),
       'paidMonths': 0,
       'remainingMonths': leaseMonths,
       'paymentSchedule': _isCar || isSale ? 'مرة واحدة' : durationCycle,
@@ -410,849 +411,1054 @@ class _BookingScreenState extends State<BookingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
+        backgroundColor: AppTheme.backgroundColor,
+        surfaceTintColor: Colors.transparent,
         title: Text(widget.itemType == 'property' ? 'حجز عقار' : 'حجز سيارة'),
+        titleTextStyle: const TextStyle(
+          color: AppTheme.textPrimary,
+          fontSize: 22,
+          fontWeight: FontWeight.w900,
+        ),
       ),
-      body: Stepper(
-        type: StepperType.vertical,
-        currentStep: _currentStep,
-        onStepContinue: () async {
-          if (_currentStep == 1) {
-            if (_selfieImage == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('يرجى التقاط صورة سيلفي للتحقق من هويتك'),
-                    backgroundColor: AppTheme.errorColor),
-              );
-              return;
-            }
-            if (_idFrontImage == null || _idBackImage == null) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('يرجى إرفاق الوجهين لبطاقة الهوية/الرخصة'),
-                    backgroundColor: AppTheme.errorColor),
-              );
-              return;
-            }
-            // For Properties (Rent): Tenant Validation
-            if (widget.itemType == 'property' && !isSale) {
-              if (_hasFinancialDocs) {
-                if (_incomeLetterImage == null || _bankStatementImage == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text(
-                            'يرجى إرفاق مستندات الدخل وكشف الحساب، أو إيقاف الخيار لتوقيع الإقرار المالي'),
-                        backgroundColor: AppTheme.errorColor),
-                  );
-                  return;
-                }
-              } else if (!_isPromissorySigned) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('يجب توقيع الإقرار المالي أولاً'),
-                      backgroundColor: AppTheme.errorColor),
-                );
-                return;
-              }
-            }
-
-            // Simulate Admin Approval Delay
-            showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (ctx) => const AlertDialog(
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppTheme.screenPadding,
+                AppTheme.spaceSm,
+                AppTheme.screenPadding,
+                AppTheme.spaceSm,
+              ),
+              child: EjariSurfaceCard(
+                padding: const EdgeInsets.all(AppTheme.spaceLg),
+                radius: AppTheme.cardRadiusLg,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('جاري إرسال البيانات ومراجعتها من قبل الإدارة...'),
+                    Text(
+                      widget.itemType == 'property'
+                          ? 'رحلة حجز هادئة وواضحة'
+                          : 'رحلة حجز السيارة بخطوات بسيطة',
+                      style: const TextStyle(
+                        color: AppTheme.textPrimary,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      isSale
+                          ? 'نوضح التملك والرسوم والدفعة الأولى قبل أي التزام.'
+                          : 'نرتب العربون، المدة، والتحقق في نفس المسار بدون تشويش.',
+                      style: const TextStyle(
+                        color: AppTheme.textSecondary,
+                        height: 1.5,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(height: AppTheme.spaceMd),
+                    Wrap(
+                      spacing: AppTheme.spaceXs,
+                      runSpacing: AppTheme.spaceXs,
+                      children: [
+                        _buildHeaderChip(
+                            isSale ? 'تملك' : 'إيجار', AppTheme.primaryColor),
+                        _buildHeaderChip(
+                            '${_bookingDepositAmount.toStringAsFixed(0)} ج.م عربون',
+                            AppTheme.accentColor),
+                      ],
+                    ),
                   ],
                 ),
               ),
-            );
-
-            await Future.delayed(const Duration(seconds: 3));
-            if (!context.mounted) return;
-            Navigator.pop(context); // close dialog
-
-            if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text(
-                    'تمت الموافقة من قبل الإدارة! ✅ يمكنك الآن متابعة التعاقد.'),
-                backgroundColor: AppTheme.primaryColor));
-          }
-          if (!context.mounted) return;
-          if (_currentStep == 2 && !_isContractSigned) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('يرجى توقيع العقد للمتابعة'),
-                  backgroundColor: AppTheme.borderColor),
-            );
-            return;
-          }
-
-          if (_currentStep < 3) {
-            setState(() => _currentStep += 1);
-          } else {
-            _submitBooking();
-          }
-        },
-        onStepCancel: () {
-          if (_currentStep > 0) {
-            setState(() => _currentStep -= 1);
-          } else {
-            Navigator.pop(context);
-          }
-        },
-        controlsBuilder: (context, details) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 24),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : details.onStepContinue,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child:
-                                CircularProgressIndicator(color: Colors.white))
-                        : Text(_currentStep == 3 ? 'إرسال الطلب' : 'التالي'),
-                  ),
-                ),
-                if (_currentStep > 0) ...[
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: details.onStepCancel,
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: const Text('السابق'),
-                    ),
-                  ),
-                ],
-              ],
             ),
-          );
-        },
-        steps: [
-          // Step 1: Details / Purchase Options
-          Step(
-            title: Text(isSale ? 'التملك' : 'التفاصيل',
-                overflow: TextOverflow.ellipsis, maxLines: 1),
-            content: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildItemSummary(),
-                  const SizedBox(height: 16),
-                  _buildBookingTrustCard(),
-                  if (!isSale && !_isCar) ...[
-                    const SizedBox(height: 16),
-                    _buildMonthlyPlanCard(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppTheme.screenPadding,
+                0,
+                AppTheme.screenPadding,
+                AppTheme.spaceSm,
+              ),
+              child: EjariStepIndicator(
+                labels: const ['المدة', 'التحقق', 'العقد', 'الدفع'],
+                activeIndex: _currentStep,
+                light: false,
+              ),
+            ),
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                decoration: BoxDecoration(
+                  color: AppTheme.surfaceColor,
+                  borderRadius: BorderRadius.circular(28),
+                  border:
+                      Border.all(color: AppTheme.borderColor.withOpacity(0.22)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primaryColor.withOpacity(0.04),
+                      blurRadius: 18,
+                      offset: const Offset(0, 8),
+                    ),
                   ],
-                  const SizedBox(height: 16),
-                  if (widget.itemData['isDemo'] == true)
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppTheme.borderColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: AppTheme.borderColor.withOpacity(0.3)),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.info_outline, color: AppTheme.borderColor),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'معلومة توضيحية: هذه البيانات مخصصة للشرح داخل التطبيق ومراجعة الخطوات قبل الإرسال.',
-                              style: TextStyle(
-                                  color: AppTheme.borderColor,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  const SizedBox(height: 24),
-                  if (!isSale) ...[
-                    const Text('تحديد فترة الحجز',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 12),
-                    _buildCalendarTrigger(),
-                    const SizedBox(height: 24),
-                    const Text('مدة الإيجار',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 12),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _buildDurationTab('يوم'),
-                          _buildDurationTab('أسبوع'),
-                          _buildDurationTab('شهر'),
-                          _buildDurationTab('سنة'),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppTheme.backgroundColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('عدد ال$_selectedDurationType',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
-                          Row(
-                            children: [
-                              IconButton(
-                                onPressed: () {
-                                  if (_duration > 1) {
-                                    setState(() {
-                                      _duration--;
-                                      _calculatePrice();
-                                    });
-                                  }
-                                },
-                                icon: const Icon(Icons.remove_circle_outline),
-                              ),
-                              Text('$_duration',
-                                  style: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold)),
-                              IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _duration++;
-                                    _calculatePrice();
-                                  });
-                                },
-                                icon: const Icon(Icons.add_circle_outline),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.shield,
-                            color: AppTheme.primaryColor),
-                      ),
-                      title: const Text('إضافة تأمين',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text(_insurancePrice > 0
-                          ? 'تمت إضافة باقة $_selectedInsuranceType'
-                          : 'احمِ استثمارك أثناء الإيجار'),
-                      trailing: Switch(
-                        value: _insurancePrice > 0,
-                        onChanged: (val) {
-                          if (val) {
-                            _showInsuranceSelection();
-                          } else {
-                            setState(() {
-                              _insurancePrice = 0;
-                              _selectedInsuranceType = null;
-                              _calculatePrice();
-                            });
+                ),
+                child: Stepper(
+                  type: StepperType.vertical,
+                  currentStep: _currentStep,
+                  onStepContinue: () async {
+                    if (_currentStep == 1) {
+                      if (_selfieImage == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  'يرجى التقاط صورة سيلفي للتحقق من هويتك'),
+                              backgroundColor: AppTheme.errorColor),
+                        );
+                        return;
+                      }
+                      if (_idFrontImage == null || _idBackImage == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  'يرجى إرفاق الوجهين لبطاقة الهوية/الرخصة'),
+                              backgroundColor: AppTheme.errorColor),
+                        );
+                        return;
+                      }
+                      // For Properties (Rent): Tenant Validation
+                      if (widget.itemType == 'property' && !isSale) {
+                        if (_hasFinancialDocs) {
+                          if (_incomeLetterImage == null ||
+                              _bankStatementImage == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'يرجى إرفاق مستندات الدخل وكشف الحساب، أو إيقاف الخيار لتوقيع الإقرار المالي'),
+                                  backgroundColor: AppTheme.errorColor),
+                            );
+                            return;
                           }
-                        },
-                      ),
-                    ),
-                  ] else ...[
-                    const Text('خيارات التملك',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: AppTheme.primaryColor.withOpacity(0.3)),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.check_circle,
-                              color: AppTheme.primaryColor),
-                          SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'أنت الآن بصدد تقديم طلب شراء لهذا العقار بموجب عمولات إيجاري المخفضة (2%)',
-                              style: TextStyle(
-                                  fontSize: 12, fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    _buildPurchaseOption(
-                        'نقداً (Cash)', 'احصل على خصم إضافي 5% عند الدفع كاش'),
-                    const SizedBox(height: 12),
-                    _buildPurchaseOption(
-                        'تقسيط', 'خطط سداد تصل إلى 7 سنوات بأقل فائدة'),
-                    const SizedBox(height: 12),
-                    _buildPurchaseOption(
-                        'تمويل عقاري', 'متاح عبر مبادرات البنك المركزي المصري'),
-                  ],
-                  const SizedBox(height: 24),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppTheme.backgroundColor,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildPriceRow(
-                            isSale ? 'قيمة العقار' : 'الإيجار الشهري',
-                            _totalPrice),
-                        if (!isSale && !_isCar)
-                          _buildPriceRow(
-                              'إجمالي مدة التعاقد', _leaseTotalAmount),
-                        _buildPriceRow(isSale ? 'عمولة إيجاري (2%)' : 'الرسوم',
-                            isSale ? _profit : (_adminFees + _profit)),
-                        if (isSale)
-                          _buildPriceRow('مصاريف إدارية وقانونية', _adminFees),
-                        if (!isSale && _insurancePrice > 0)
-                          _buildPriceRow('التأمين', _insurancePrice),
-                        ...[
-                          _buildPriceRow(
-                              _paymentStageLabel, _bookingDepositAmount),
-                          _buildPriceRow(
-                              _isCar
-                                  ? 'المتبقي بعد العربون'
-                                  : 'المتبقي من دفعة الشهر الأول',
-                              _remainingAfterDepositAmount),
-                        ],
-                        const Divider(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                                isSale
-                                    ? 'إجمالي قيمة التعاقد'
-                                    : _isCar
-                                        ? 'المطلوب الآن'
-                                        : 'المطلوب الآن',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold)),
-                            Text(
-                                '${_finalTotal.toStringAsFixed(0)} ${context.tr('price_egp')}',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: AppTheme.primaryColor)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            isActive: _currentStep >= 0,
-          ),
+                        } else if (!_isPromissorySigned) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('يجب توقيع الإقرار المالي أولاً'),
+                                backgroundColor: AppTheme.errorColor),
+                          );
+                          return;
+                        }
+                      }
 
-          // Step 2: Security & Verification
-          Step(
-            title: Text(isSale ? 'الأمان' : 'الهوية',
-                overflow: TextOverflow.ellipsis, maxLines: 1),
-            content: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [AppTheme.primaryColor, AppTheme.primaryColor],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.fingerprint, color: Colors.white, size: 30),
-                        SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                      // Simulate Admin Approval Delay
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (ctx) => const AlertDialog(
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text('التحقق الرقمي الآمن',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16)),
+                              CircularProgressIndicator(),
+                              SizedBox(height: 16),
                               Text(
-                                  'نستخدم أحدث تقنيات الذكاء الاصطناعي لمطابقة الهوية.',
-                                  style: TextStyle(
-                                      color: Colors.white70, fontSize: 12)),
+                                  'جاري إرسال البيانات ومراجعتها من قبل الإدارة...'),
                             ],
                           ),
                         ),
-                        Icon(Icons.verified_user, color: AppTheme.primaryColor),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  _buildVerificationCard(
-                    title: 'صورة السيلفي (التحقق الفوري)',
-                    description: 'يرجى التقاط صورة واضحة لوجهك.',
-                    icon: Icons.face,
-                    isDone: _selfieImage != null,
-                    onTap: () {
-                      final imageWidget = ImageUploadWidget(
-                        label: 'صورة السيلفي',
-                        icon: Icons.camera_alt,
-                        onImageSelected: (path) =>
-                            setState(() => _selfieImage = path),
                       );
-                      showModalBottomSheet(
-                          context: context,
-                          builder: (_) => Container(
-                              padding: const EdgeInsets.all(20),
-                              child: imageWidget));
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _buildVerificationCard(
-                    title: isSale
-                        ? 'الهوية الوطنية (الوجه الأمامي)'
-                        : (widget.itemType == 'car'
-                            ? 'رخصة القيادة (أمامي)'
-                            : 'الهوية الوطنية (أمامي)'),
-                    description: 'يرجى تصوير الوجه الأمامي بوضوح.',
-                    icon: Icons.credit_card,
-                    isDone: _idFrontImage != null,
-                    onTap: () {
-                      final imageWidget = ImageUploadWidget(
-                        label: 'الوجه الأمامي',
-                        icon: Icons.document_scanner,
-                        onImageSelected: (path) =>
-                            setState(() => _idFrontImage = path),
+
+                      await Future.delayed(const Duration(seconds: 3));
+                      if (!context.mounted) return;
+                      Navigator.pop(context); // close dialog
+
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text(
+                              'تمت الموافقة من قبل الإدارة! ✅ يمكنك الآن متابعة التعاقد.'),
+                          backgroundColor: AppTheme.primaryColor));
+                    }
+                    if (!context.mounted) return;
+                    if (_currentStep == 2 && !_isContractSigned) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('يرجى توقيع العقد للمتابعة'),
+                            backgroundColor: AppTheme.borderColor),
                       );
-                      showModalBottomSheet(
-                          context: context,
-                          builder: (_) => Container(
-                              padding: const EdgeInsets.all(20),
-                              child: imageWidget));
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _buildVerificationCard(
-                    title: isSale
-                        ? 'الهوية الوطنية (الخلفي)'
-                        : (widget.itemType == 'car'
-                            ? 'رخصة القيادة (الخلفي)'
-                            : 'الهوية الوطنية (الخلفي)'),
-                    description: 'يرجى تصوير الوجه الخلفي بوضوح.',
-                    icon: Icons.credit_card,
-                    isDone: _idBackImage != null,
-                    onTap: () {
-                      final imageWidget = ImageUploadWidget(
-                        label: 'الوجه الخلفي',
-                        icon: Icons.document_scanner,
-                        onImageSelected: (path) =>
-                            setState(() => _idBackImage = path),
-                      );
-                      showModalBottomSheet(
-                          context: context,
-                          builder: (_) => Container(
-                              padding: const EdgeInsets.all(20),
-                              child: imageWidget));
-                    },
-                  ),
-                  if (widget.itemType == 'property' && !isSale) ...[
-                    const SizedBox(height: 24),
-                    const Divider(),
-                    const SizedBox(height: 16),
-                    const Align(
-                        alignment: Alignment.centerRight,
-                        child: Text('الملاءة المالية (إلزامي للإيجار)',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold))),
-                    const SizedBox(height: 12),
-                    SwitchListTile(
-                      title: const Text('أمتلك إثبات دخل وكشف حساب بنكي'),
-                      subtitle: const Text('لتسريع الموافقة على الحجز'),
-                      value: _hasFinancialDocs,
-                      activeColor: AppTheme.primaryColor,
-                      onChanged: (val) =>
-                          setState(() => _hasFinancialDocs = val),
-                    ),
-                    if (_hasFinancialDocs) ...[
-                      const SizedBox(height: 16),
-                      _buildVerificationCard(
-                        title: 'خطاب إثبات دخل أو جهة عمل',
-                        description: 'مستند حديث يثبت الراتب أو الدخل.',
-                        icon: Icons.work_outline,
-                        isDone: _incomeLetterImage != null,
-                        onTap: () {
-                          final imageWidget = ImageUploadWidget(
-                            label: 'خطاب الدخل',
-                            icon: Icons.document_scanner,
-                            onImageSelected: (path) =>
-                                setState(() => _incomeLetterImage = path),
-                          );
-                          showModalBottomSheet(
-                              context: context,
-                              builder: (_) => Container(
-                                  padding: const EdgeInsets.all(20),
-                                  child: imageWidget));
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                      _buildVerificationCard(
-                        title: 'كشف حساب بنكي (آخر 3 شهور)',
-                        description: 'للتأكد من القدرة على الالتزام بالإيجار.',
-                        icon: Icons.account_balance,
-                        isDone: _bankStatementImage != null,
-                        onTap: () {
-                          final imageWidget = ImageUploadWidget(
-                            label: 'كشف الحساب',
-                            icon: Icons.document_scanner,
-                            onImageSelected: (path) =>
-                                setState(() => _bankStatementImage = path),
-                          );
-                          showModalBottomSheet(
-                              context: context,
-                              builder: (_) => Container(
-                                  padding: const EdgeInsets.all(20),
-                                  child: imageWidget));
-                        },
-                      ),
-                    ] else ...[
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppTheme.borderColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppTheme.borderColor),
-                        ),
-                        child: Column(
-                          children: [
-                            const Row(
-                              children: [
-                                Icon(Icons.warning_amber_rounded,
-                                    color: AppTheme.borderColor),
-                                SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    'في حال عدم توفر مستندات الملاءة المالية، سيُطلب منك التوقيع الإلكتروني على "إقرار التزام مالي / سند لأمر" لضمان تسديد الإيجار شهرياً كشرط أساسي.',
-                                    style: TextStyle(
-                                        color: AppTheme.borderColor,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold),
+                      return;
+                    }
+
+                    if (_currentStep < 3) {
+                      setState(() => _currentStep += 1);
+                    } else {
+                      _submitBooking();
+                    }
+                  },
+                  onStepCancel: () {
+                    if (_currentStep > 0) {
+                      setState(() => _currentStep -= 1);
+                    } else {
+                      Navigator.pop(context);
+                    }
+                  },
+                  controlsBuilder: (context, details) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 24),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: AppTheme.ctaHeight,
+                              child: ElevatedButton(
+                                onPressed:
+                                    _isLoading ? null : details.onStepContinue,
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                        AppTheme.cardRadius - 4),
                                   ),
                                 ),
-                              ],
+                                child: _isLoading
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                            color: Colors.white))
+                                    : Text(_currentStep == 3
+                                        ? 'إرسال الطلب'
+                                        : 'التالي'),
+                              ),
                             ),
+                          ),
+                          if (_currentStep > 0) ...[
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: details.onStepCancel,
+                                style: OutlinedButton.styleFrom(
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12)),
+                                ),
+                                child: const Text('السابق'),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
+                  steps: [
+                    // Step 1: Details / Purchase Options
+                    Step(
+                      title: Text(isSale ? 'التملك' : 'التفاصيل',
+                          overflow: TextOverflow.ellipsis, maxLines: 1),
+                      content: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildItemSummary(),
                             const SizedBox(height: 16),
-                            if (_isPromissorySigned)
+                            _buildBookingTrustCard(),
+                            if (!isSale && !_isCar) ...[
+                              const SizedBox(height: 16),
+                              _buildMonthlyPlanCard(),
+                            ],
+                            const SizedBox(height: 16),
+                            if (widget.itemData['isDemo'] == true)
                               Container(
-                                padding: const EdgeInsets.all(12),
+                                padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
+                                  color: AppTheme.borderColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                      color: AppTheme.borderColor
+                                          .withOpacity(0.3)),
+                                ),
+                                child: const Row(
+                                  children: [
+                                    Icon(Icons.info_outline,
+                                        color: AppTheme.borderColor),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'معلومة توضيحية: هذه البيانات مخصصة للشرح داخل التطبيق ومراجعة الخطوات قبل الإرسال.',
+                                        style: TextStyle(
+                                            color: AppTheme.borderColor,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            const SizedBox(height: 24),
+                            if (!isSale) ...[
+                              const Text('تحديد فترة الحجز',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 12),
+                              _buildCalendarTrigger(),
+                              const SizedBox(height: 24),
+                              const Text('مدة الإيجار',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 12),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    _buildDurationTab('يوم'),
+                                    _buildDurationTab('أسبوع'),
+                                    _buildDurationTab('شهر'),
+                                    _buildDurationTab('سنة'),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.backgroundColor,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('عدد ال$_selectedDurationType',
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold)),
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                          onPressed: () {
+                                            if (_duration > 1) {
+                                              setState(() {
+                                                _duration--;
+                                                _calculatePrice();
+                                              });
+                                            }
+                                          },
+                                          icon: const Icon(
+                                              Icons.remove_circle_outline),
+                                        ),
+                                        Text('$_duration',
+                                            style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold)),
+                                        IconButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              _duration++;
+                                              _calculatePrice();
+                                            });
+                                          },
+                                          icon: const Icon(
+                                              Icons.add_circle_outline),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              ListTile(
+                                contentPadding: EdgeInsets.zero,
+                                leading: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
                                     color:
                                         AppTheme.primaryColor.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(8)),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.shield,
+                                      color: AppTheme.primaryColor),
+                                ),
+                                title: const Text('إضافة تأمين',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold)),
+                                subtitle: Text(_insurancePrice > 0
+                                    ? 'تمت إضافة باقة $_selectedInsuranceType'
+                                    : 'احمِ استثمارك أثناء الإيجار'),
+                                trailing: Switch(
+                                  value: _insurancePrice > 0,
+                                  onChanged: (val) {
+                                    if (val) {
+                                      _showInsuranceSelection();
+                                    } else {
+                                      setState(() {
+                                        _insurancePrice = 0;
+                                        _selectedInsuranceType = null;
+                                        _calculatePrice();
+                                      });
+                                    }
+                                  },
+                                ),
+                              ),
+                            ] else ...[
+                              const Text('خيارات التملك',
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 12),
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                      color: AppTheme.primaryColor
+                                          .withOpacity(0.3)),
+                                ),
                                 child: const Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Icon(Icons.check_circle,
                                         color: AppTheme.primaryColor),
-                                    SizedBox(width: 8),
-                                    Text('تم توقيع الإقرار المالي بنجاح ✅',
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'أنت الآن بصدد تقديم طلب شراء لهذا العقار بموجب عمولات إيجاري المخفضة (2%)',
                                         style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              _buildPurchaseOption('نقداً (Cash)',
+                                  'احصل على خصم إضافي 5% عند الدفع كاش'),
+                              const SizedBox(height: 12),
+                              _buildPurchaseOption('تقسيط',
+                                  'خطط سداد تصل إلى 7 سنوات بأقل فائدة'),
+                              const SizedBox(height: 12),
+                              _buildPurchaseOption('تمويل عقاري',
+                                  'متاح عبر مبادرات البنك المركزي المصري'),
+                            ],
+                            const SizedBox(height: 24),
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppTheme.backgroundColor,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                children: [
+                                  _buildPriceRow(
+                                      isSale ? 'قيمة العقار' : 'الإيجار الشهري',
+                                      _totalPrice),
+                                  if (!isSale && !_isCar)
+                                    _buildPriceRow('إجمالي مدة التعاقد',
+                                        _leaseTotalAmount),
+                                  _buildPriceRow(
+                                      isSale ? 'عمولة إيجاري (2%)' : 'الرسوم',
+                                      isSale
+                                          ? _profit
+                                          : (_adminFees + _profit)),
+                                  if (isSale)
+                                    _buildPriceRow(
+                                        'مصاريف إدارية وقانونية', _adminFees),
+                                  if (!isSale && _insurancePrice > 0)
+                                    _buildPriceRow('التأمين', _insurancePrice),
+                                  ...[
+                                    _buildPriceRow(_paymentStageLabel,
+                                        _bookingDepositAmount),
+                                    _buildPriceRow(
+                                        _isCar
+                                            ? 'المتبقي بعد العربون'
+                                            : 'المتبقي من دفعة الشهر الأول',
+                                        _remainingAfterDepositAmount),
+                                  ],
+                                  const Divider(),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                            isSale
+                                                ? 'إجمالي قيمة التعاقد'
+                                                : _isCar
+                                                    ? 'المطلوب الآن'
+                                                    : 'المطلوب الآن',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                          '${_finalTotal.toStringAsFixed(0)} ${context.tr('price_egp')}',
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: AppTheme.primaryColor)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      isActive: _currentStep >= 0,
+                    ),
+
+                    // Step 2: Security & Verification
+                    Step(
+                      title: Text(isSale ? 'الأمان' : 'الهوية',
+                          overflow: TextOverflow.ellipsis, maxLines: 1),
+                      content: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    AppTheme.primaryColor,
+                                    AppTheme.primaryColor
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.fingerprint,
+                                      color: Colors.white, size: 30),
+                                  SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text('التحقق الرقمي الآمن',
+                                            style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16)),
+                                        Text(
+                                            'نستخدم أحدث تقنيات الذكاء الاصطناعي لمطابقة الهوية.',
+                                            style: TextStyle(
+                                                color: Colors.white70,
+                                                fontSize: 12)),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(Icons.verified_user,
+                                      color: AppTheme.primaryColor),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            _buildVerificationCard(
+                              title: 'صورة السيلفي (التحقق الفوري)',
+                              description: 'يرجى التقاط صورة واضحة لوجهك.',
+                              icon: Icons.face,
+                              isDone: _selfieImage != null,
+                              onTap: () {
+                                final imageWidget = ImageUploadWidget(
+                                  label: 'صورة السيلفي',
+                                  icon: Icons.camera_alt,
+                                  onImageSelected: (path) =>
+                                      setState(() => _selfieImage = path),
+                                );
+                                showModalBottomSheet(
+                                    context: context,
+                                    builder: (_) => Container(
+                                        padding: const EdgeInsets.all(20),
+                                        child: imageWidget));
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            _buildVerificationCard(
+                              title: isSale
+                                  ? 'الهوية الوطنية (الوجه الأمامي)'
+                                  : (widget.itemType == 'car'
+                                      ? 'رخصة القيادة (أمامي)'
+                                      : 'الهوية الوطنية (أمامي)'),
+                              description: 'يرجى تصوير الوجه الأمامي بوضوح.',
+                              icon: Icons.credit_card,
+                              isDone: _idFrontImage != null,
+                              onTap: () {
+                                final imageWidget = ImageUploadWidget(
+                                  label: 'الوجه الأمامي',
+                                  icon: Icons.document_scanner,
+                                  onImageSelected: (path) =>
+                                      setState(() => _idFrontImage = path),
+                                );
+                                showModalBottomSheet(
+                                    context: context,
+                                    builder: (_) => Container(
+                                        padding: const EdgeInsets.all(20),
+                                        child: imageWidget));
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            _buildVerificationCard(
+                              title: isSale
+                                  ? 'الهوية الوطنية (الخلفي)'
+                                  : (widget.itemType == 'car'
+                                      ? 'رخصة القيادة (الخلفي)'
+                                      : 'الهوية الوطنية (الخلفي)'),
+                              description: 'يرجى تصوير الوجه الخلفي بوضوح.',
+                              icon: Icons.credit_card,
+                              isDone: _idBackImage != null,
+                              onTap: () {
+                                final imageWidget = ImageUploadWidget(
+                                  label: 'الوجه الخلفي',
+                                  icon: Icons.document_scanner,
+                                  onImageSelected: (path) =>
+                                      setState(() => _idBackImage = path),
+                                );
+                                showModalBottomSheet(
+                                    context: context,
+                                    builder: (_) => Container(
+                                        padding: const EdgeInsets.all(20),
+                                        child: imageWidget));
+                              },
+                            ),
+                            if (widget.itemType == 'property' && !isSale) ...[
+                              const SizedBox(height: 24),
+                              const Divider(),
+                              const SizedBox(height: 16),
+                              const Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Text(
+                                      'الملاءة المالية (إلزامي للإيجار)',
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold))),
+                              const SizedBox(height: 12),
+                              SwitchListTile(
+                                title: const Text(
+                                    'أمتلك إثبات دخل وكشف حساب بنكي'),
+                                subtitle:
+                                    const Text('لتسريع الموافقة على الحجز'),
+                                value: _hasFinancialDocs,
+                                activeColor: AppTheme.primaryColor,
+                                onChanged: (val) =>
+                                    setState(() => _hasFinancialDocs = val),
+                              ),
+                              if (_hasFinancialDocs) ...[
+                                const SizedBox(height: 16),
+                                _buildVerificationCard(
+                                  title: 'خطاب إثبات دخل أو جهة عمل',
+                                  description:
+                                      'مستند حديث يثبت الراتب أو الدخل.',
+                                  icon: Icons.work_outline,
+                                  isDone: _incomeLetterImage != null,
+                                  onTap: () {
+                                    final imageWidget = ImageUploadWidget(
+                                      label: 'خطاب الدخل',
+                                      icon: Icons.document_scanner,
+                                      onImageSelected: (path) => setState(
+                                          () => _incomeLetterImage = path),
+                                    );
+                                    showModalBottomSheet(
+                                        context: context,
+                                        builder: (_) => Container(
+                                            padding: const EdgeInsets.all(20),
+                                            child: imageWidget));
+                                  },
+                                ),
+                                const SizedBox(height: 16),
+                                _buildVerificationCard(
+                                  title: 'كشف حساب بنكي (آخر 3 شهور)',
+                                  description:
+                                      'للتأكد من القدرة على الالتزام بالإيجار.',
+                                  icon: Icons.account_balance,
+                                  isDone: _bankStatementImage != null,
+                                  onTap: () {
+                                    final imageWidget = ImageUploadWidget(
+                                      label: 'كشف الحساب',
+                                      icon: Icons.document_scanner,
+                                      onImageSelected: (path) => setState(
+                                          () => _bankStatementImage = path),
+                                    );
+                                    showModalBottomSheet(
+                                        context: context,
+                                        builder: (_) => Container(
+                                            padding: const EdgeInsets.all(20),
+                                            child: imageWidget));
+                                  },
+                                ),
+                              ] else ...[
+                                const SizedBox(height: 12),
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        AppTheme.borderColor.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border:
+                                        Border.all(color: AppTheme.borderColor),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      const Row(
+                                        children: [
+                                          Icon(Icons.warning_amber_rounded,
+                                              color: AppTheme.borderColor),
+                                          SizedBox(width: 12),
+                                          Expanded(
+                                            child: Text(
+                                              'في حال عدم توفر مستندات الملاءة المالية، سيُطلب منك التوقيع الإلكتروني على "إقرار التزام مالي / سند لأمر" لضمان تسديد الإيجار شهرياً كشرط أساسي.',
+                                              style: TextStyle(
+                                                  color: AppTheme.borderColor,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 16),
+                                      if (_isPromissorySigned)
+                                        Container(
+                                          padding: const EdgeInsets.all(12),
+                                          decoration: BoxDecoration(
+                                              color: AppTheme.primaryColor
+                                                  .withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(8)),
+                                          child: const Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.check_circle,
+                                                  color: AppTheme.primaryColor),
+                                              SizedBox(width: 8),
+                                              Text(
+                                                  'تم توقيع الإقرار المالي بنجاح ✅',
+                                                  style: TextStyle(
+                                                      color:
+                                                          AppTheme.primaryColor,
+                                                      fontWeight:
+                                                          FontWeight.bold)),
+                                            ],
+                                          ),
+                                        )
+                                      else
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: ElevatedButton.icon(
+                                            onPressed: () async {
+                                              final result =
+                                                  await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ContractScreen(
+                                                    itemLabel: 'سند لأمر',
+                                                    ownerName:
+                                                        'إدارة إيجاري (الضامن)',
+                                                    tenantName:
+                                                        _currentUser?['name'] ??
+                                                            'المستأجر',
+                                                    propertyTitle:
+                                                        'إقرار بالالتزام الشهري في موعده',
+                                                    price: _totalPrice
+                                                        .toStringAsFixed(0),
+                                                    startDate: DateTime.now()
+                                                        .toIso8601String()
+                                                        .split('T')[0],
+                                                    duration:
+                                                        'حتى نهاية التعاقد',
+                                                  ),
+                                                ),
+                                              );
+                                              if (result == true) {
+                                                setState(() =>
+                                                    _isPromissorySigned = true);
+                                              }
+                                            },
+                                            icon:
+                                                const Icon(Icons.edit_document),
+                                            label: const Text(
+                                                'توقيع السند لأمر الآن'),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  AppTheme.borderColor,
+                                              foregroundColor: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ],
+                        ),
+                      ),
+                      isActive: _currentStep >= 1,
+                    ),
+
+                    // Step 3: Contract / Documentation
+                    Step(
+                      title: Text(isSale ? 'التوثيق' : 'العقد',
+                          overflow: TextOverflow.ellipsis, maxLines: 1),
+                      content: SingleChildScrollView(
+                        child: Column(
+                          children: [
+                            Icon(
+                                isSale
+                                    ? Icons.assignment_turned_in
+                                    : Icons.gavel,
+                                size: 50,
+                                color: AppTheme.primaryColor),
+                            const SizedBox(height: 16),
+                            Text(
+                                isSale ? 'مستند رغبة الشراء' : 'العقد القانوني',
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            Text(
+                              isSale
+                                  ? 'يرجى التوقيع على مستند إبداء الرغبة الجدية في الشراء لضمان أولوية الحجز.'
+                                  : 'يرجى مراجعة وتوقيع العقد الإلكتروني لضمان حقوق كافة الأطراف.',
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                  color: AppTheme.textSecondary, height: 1.5),
+                            ),
+                            const SizedBox(height: 24),
+                            if (_isContractSigned)
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border:
+                                      Border.all(color: AppTheme.primaryColor),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.check_circle,
+                                        color: AppTheme.primaryColor),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                        isSale
+                                            ? 'تم التوقيع بنجاح ✅'
+                                            : 'تم توقيع العقد بنجاح ✅',
+                                        style: const TextStyle(
                                             color: AppTheme.primaryColor,
                                             fontWeight: FontWeight.bold)),
                                   ],
                                 ),
                               )
                             else
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton.icon(
-                                  onPressed: () async {
-                                    final result = await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ContractScreen(
-                                          itemLabel: 'سند لأمر',
-                                          ownerName: 'إدارة إيجاري (الضامن)',
-                                          tenantName: _currentUser?['name'] ??
-                                              'المستأجر',
-                                          propertyTitle:
-                                              'إقرار بالالتزام الشهري في موعده',
-                                          price: _totalPrice.toStringAsFixed(0),
-                                          startDate: DateTime.now()
-                                              .toIso8601String()
-                                              .split('T')[0],
-                                          duration: 'حتى نهاية التعاقد',
-                                        ),
-                                      ),
-                                    );
-                                    if (result == true) {
-                                      setState(
-                                          () => _isPromissorySigned = true);
-                                    }
-                                  },
-                                  icon: const Icon(Icons.edit_document),
-                                  label: const Text('توقيع السند لأمر الآن'),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppTheme.borderColor,
-                                    foregroundColor: Colors.white,
-                                  ),
-                                ),
+                              ElevatedButton.icon(
+                                onPressed: _openContractScreen,
+                                icon: const Icon(Icons.edit_document),
+                                label: Text(isSale
+                                    ? 'توقيع طلب الشراء'
+                                    : 'عرض وتوقيع العقد'),
+                                style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 24, vertical: 12)),
                               ),
                           ],
                         ),
                       ),
-                    ],
-                  ],
-                ],
-              ),
-            ),
-            isActive: _currentStep >= 1,
-          ),
-
-          // Step 3: Contract / Documentation
-          Step(
-            title: Text(isSale ? 'التوثيق' : 'العقد',
-                overflow: TextOverflow.ellipsis, maxLines: 1),
-            content: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Icon(isSale ? Icons.assignment_turned_in : Icons.gavel,
-                      size: 50, color: AppTheme.primaryColor),
-                  const SizedBox(height: 16),
-                  Text(isSale ? 'مستند رغبة الشراء' : 'العقد القانوني',
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text(
-                    isSale
-                        ? 'يرجى التوقيع على مستند إبداء الرغبة الجدية في الشراء لضمان أولوية الحجز.'
-                        : 'يرجى مراجعة وتوقيع العقد الإلكتروني لضمان حقوق كافة الأطراف.',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                        color: AppTheme.textSecondary, height: 1.5),
-                  ),
-                  const SizedBox(height: 24),
-                  if (_isContractSigned)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppTheme.primaryColor),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.check_circle,
-                              color: AppTheme.primaryColor),
-                          const SizedBox(width: 8),
-                          Text(
-                              isSale
-                                  ? 'تم التوقيع بنجاح ✅'
-                                  : 'تم توقيع العقد بنجاح ✅',
-                              style: const TextStyle(
-                                  color: AppTheme.primaryColor,
-                                  fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    )
-                  else
-                    ElevatedButton.icon(
-                      onPressed: _openContractScreen,
-                      icon: const Icon(Icons.edit_document),
-                      label: Text(
-                          isSale ? 'توقيع طلب الشراء' : 'عرض وتوقيع العقد'),
-                      style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12)),
+                      isActive: _currentStep >= 2,
                     ),
-                ],
-              ),
-            ),
-            isActive: _currentStep >= 2,
-          ),
 
-          // Step 4: Final Review
-          Step(
-            title: Text(isSale ? 'التأكيد' : 'المراجعة',
-                overflow: TextOverflow.ellipsis, maxLines: 1),
-            content: SingleChildScrollView(
-              child: Column(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: AppTheme.borderColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Column(
-                      children: [
-                        const Icon(Icons.receipt_long_rounded,
-                            size: 40, color: Colors.white),
-                        const SizedBox(height: 12),
-                        Text(isSale ? 'ملخص رغبة التملك' : 'ملخص الطلب',
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18)),
-                        const SizedBox(height: 16),
-                        _buildWhiteSummaryRow(
-                            'العقار', widget.itemData['title']),
-                        if (!isSale)
-                          _buildWhiteSummaryRow(
-                              'المدة', '$_duration $_selectedDurationType'),
-                        _buildWhiteSummaryRow(
-                            'النوع', isSale ? 'شراء نهائي' : 'إيجار ذكي'),
-                        ...[
-                          const SizedBox(height: 8),
-                          _buildWhiteSummaryRow('العربون الآن',
-                              _bookingDepositAmount.toStringAsFixed(0)),
-                          _buildWhiteSummaryRow('المتبقي بعد المعاينة',
-                              _remainingAfterDepositAmount.toStringAsFixed(0)),
-                        ],
-                        const Divider(color: Colors.white24),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // Step 4: Final Review
+                    Step(
+                      title: Text(isSale ? 'التأكيد' : 'المراجعة',
+                          overflow: TextOverflow.ellipsis, maxLines: 1),
+                      content: SingleChildScrollView(
+                        child: Column(
                           children: [
-                            Text(isSale ? 'إجمالي الدفعة' : 'الإجمالي',
-                                style: const TextStyle(color: Colors.white70)),
-                            Text(
-                                '${_finalTotal.toStringAsFixed(0)} ${context.tr('price_egp')}',
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 22)),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(AppTheme.spaceLg),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFF0A2E26),
+                                    AppTheme.primaryColor,
+                                    Color(0xFF1B594B),
+                                  ],
+                                  begin: Alignment.topRight,
+                                  end: Alignment.bottomLeft,
+                                ),
+                                borderRadius:
+                                    BorderRadius.circular(AppTheme.cardRadiusLg),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppTheme.primaryColor.withOpacity(0.16),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  const Icon(Icons.receipt_long_rounded,
+                                      size: 40, color: Colors.white),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                      isSale
+                                          ? 'ملخص رغبة التملك'
+                                          : 'ملخص الطلب',
+                                      style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18)),
+                                  const SizedBox(height: 16),
+                                  _buildWhiteSummaryRow(
+                                      'العقار', widget.itemData['title']),
+                                  if (!isSale)
+                                    _buildWhiteSummaryRow('المدة',
+                                        '$_duration $_selectedDurationType'),
+                                  _buildWhiteSummaryRow('النوع',
+                                      isSale ? 'شراء نهائي' : 'إيجار ذكي'),
+                                  ...[
+                                    const SizedBox(height: 8),
+                                    _buildWhiteSummaryRow(
+                                        'العربون الآن',
+                                        _bookingDepositAmount
+                                            .toStringAsFixed(0)),
+                                    _buildWhiteSummaryRow(
+                                        'المتبقي بعد المعاينة',
+                                        _remainingAfterDepositAmount
+                                            .toStringAsFixed(0)),
+                                  ],
+                                  const Divider(color: Colors.white24),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                          isSale ? 'إجمالي الدفعة' : 'الإجمالي',
+                                          style: const TextStyle(
+                                              color: Colors.white70)),
+                                      Text(
+                                          '${_finalTotal.toStringAsFixed(0)} ${context.tr('price_egp')}',
+                                          style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w900,
+                                              fontSize: 22)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            if (!isSale) ...[
+                              const Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Text('اختر وسيلة الدفع',
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold))),
+                              const SizedBox(height: 16),
+                              GridView(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 3,
+                                  mainAxisSpacing: 10,
+                                  crossAxisSpacing: 10,
+                                  mainAxisExtent: 110,
+                                ),
+                                children: [
+                                  _buildPaymentOption(
+                                      'محفظة إيجاري',
+                                      Icons.account_balance_wallet_rounded,
+                                      'wallet',
+                                      AppTheme.primaryColor),
+                                  _buildPaymentOption(
+                                      'إنستاباي',
+                                      Icons.send_to_mobile_rounded,
+                                      'instapay',
+                                      AppTheme.primaryColor),
+                                  _buildPaymentOption(
+                                      'فودافون كاش',
+                                      Icons.phone_android_rounded,
+                                      'vodafone_cash',
+                                      AppTheme.errorColor),
+                                  _buildPaymentOption(
+                                      'بطاقة ائتمان',
+                                      Icons.credit_card_rounded,
+                                      'card',
+                                      AppTheme.borderColor),
+                                  _buildPaymentOption(
+                                      'أبل باي',
+                                      Icons.apple_rounded,
+                                      'apple_pay',
+                                      AppTheme.textPrimary),
+                                  _buildPaymentOption(
+                                      'فوري',
+                                      Icons.store_rounded,
+                                      'fawry',
+                                      AppTheme.borderColor),
+                                  _buildPaymentOption(
+                                      'تحويل بنكي',
+                                      Icons.account_balance_rounded,
+                                      'bank_transfer',
+                                      AppTheme.primaryColor),
+                                  _buildPaymentOption(
+                                      'دفع نقدي (كاش)',
+                                      Icons.payments_rounded,
+                                      'cash',
+                                      AppTheme.primaryColor),
+                                ],
+                              ),
+                              if (!isSale &&
+                                  _selectedPaymentMethod != 'cash') ...[
+                                const SizedBox(height: 24),
+                                _buildPaymentInput(),
+                              ],
+                            ] else ...[
+                              const Align(
+                                  alignment: Alignment.centerRight,
+                                  child: Text('خطة التواصل',
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold))),
+                              const SizedBox(height: 12),
+                              const Text(
+                                  'سيقوم مستشار إيجاري بالتواصل معك خلال 24 ساعة.',
+                                  style: TextStyle(
+                                      color: AppTheme.textSecondary,
+                                      height: 1.4)),
+                            ],
+                            const SizedBox(height: AppTheme.spaceXl),
+                            SizedBox(
+                              width: double.infinity,
+                              height: AppTheme.ctaHeight,
+                              child: ElevatedButton(
+                                onPressed: _isLoading ? null : _submitBooking,
+                                style: ElevatedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(16))),
+                                child: _isLoading
+                                    ? const CircularProgressIndicator(
+                                        color: Colors.white)
+                                    : Text(isSale
+                                        ? 'تقديم طلب الشراء'
+                                        : 'إتمام الحجز والدفع'),
+                              ),
+                            ),
                           ],
                         ),
-                      ],
+                      ),
+                      isActive: _currentStep >= 3,
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  if (!isSale) ...[
-                    const Align(
-                        alignment: Alignment.centerRight,
-                        child: Text('اختر وسيلة الدفع',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold))),
-                    const SizedBox(height: 16),
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 3,
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      childAspectRatio:
-                          1.0, // Changed from 0.85 to be more square/stable
-                      children: [
-                        _buildPaymentOption(
-                            'محفظة إيجاري',
-                            Icons.account_balance_wallet_rounded,
-                            'wallet',
-                            AppTheme.primaryColor),
-                        _buildPaymentOption(
-                            'إنستاباي',
-                            Icons.send_to_mobile_rounded,
-                            'instapay',
-                            AppTheme.primaryColor),
-                        _buildPaymentOption(
-                            'فودافون كاش',
-                            Icons.phone_android_rounded,
-                            'vodafone_cash',
-                            AppTheme.errorColor),
-                        _buildPaymentOption(
-                            'بطاقة ائتمان',
-                            Icons.credit_card_rounded,
-                            'card',
-                            AppTheme.borderColor),
-                        _buildPaymentOption('أبل باي', Icons.apple_rounded,
-                            'apple_pay', AppTheme.textPrimary),
-                        _buildPaymentOption('فوري', Icons.store_rounded,
-                            'fawry', AppTheme.borderColor),
-                        _buildPaymentOption(
-                            'تحويل بنكي',
-                            Icons.account_balance_rounded,
-                            'bank_transfer',
-                            AppTheme.primaryColor),
-                        _buildPaymentOption(
-                            'دفع نقدي (كاش)',
-                            Icons.payments_rounded,
-                            'cash',
-                            AppTheme.primaryColor),
-                      ],
-                    ),
-                    if (!isSale && _selectedPaymentMethod != 'cash') ...[
-                      const SizedBox(height: 24),
-                      _buildPaymentInput(),
-                    ],
-                  ] else ...[
-                    const Align(
-                        alignment: Alignment.centerRight,
-                        child: Text('خطة التواصل',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold))),
-                    const SizedBox(height: 12),
-                    const Text('سيقوم مستشار إيجاري بالتواصل معك خلال 24 ساعة.',
-                        style: TextStyle(
-                            color: AppTheme.textSecondary, height: 1.4)),
                   ],
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _submitBooking,
-                      style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16))),
-                      child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : Text(isSale
-                              ? 'تقديم طلب الشراء'
-                              : 'إتمام الحجز والدفع'),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-            isActive: _currentStep >= 3,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1302,14 +1508,8 @@ class _BookingScreenState extends State<BookingScreen> {
         ? 'سترى العمولة، الرسوم، والإجمالي النهائي بوضوح قبل توقيع الطلب.'
         : 'بعد المعاينة، لو قررت الاستكمال يظهر لك المتبقي فقط بدون أي التباس.';
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: accent.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: accent.withOpacity(0.14)),
-      ),
+    return EjariSurfaceCard(
+      elevated: false,
       child: Row(
         children: [
           Container(
@@ -1325,27 +1525,14 @@ class _BookingScreenState extends State<BookingScreen> {
               size: 24,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppTheme.spaceSm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  isSale ? 'ملخص التملك والرسوم' : 'ملخص الحجز والعربون',
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  firstLine,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    height: 1.45,
-                    color: AppTheme.textSecondary,
-                  ),
+                EjariSectionHeader(
+                  title: isSale ? 'ملخص التملك والرسوم' : 'ملخص الحجز والعربون',
+                  subtitle: firstLine,
                 ),
                 const SizedBox(height: 3),
                 Text(
@@ -1652,6 +1839,25 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildHeaderChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withOpacity(0.22)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color == AppTheme.surfaceColor ? AppTheme.textPrimary : color,
+          fontWeight: FontWeight.w800,
+          fontSize: 11,
+        ),
       ),
     );
   }

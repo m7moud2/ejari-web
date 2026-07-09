@@ -129,7 +129,7 @@ class SuccessScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             const Text(
-                              'رأيك يساعدنا في تحسين خدمات كيو لتناسبك بشكل أفضل.',
+                              'رأيك يساعدنا في تحسين خدمات إيجاري لتناسبك بشكل أفضل.',
                               style: TextStyle(
                                   fontSize: 12, color: AppTheme.primaryColor),
                               textAlign: TextAlign.center,

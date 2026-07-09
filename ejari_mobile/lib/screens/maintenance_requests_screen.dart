@@ -190,6 +190,7 @@ class _MaintenanceRequestsScreenState extends State<MaintenanceRequestsScreen>
               opacity: _fadeAnimation,
               child: Column(
                 children: [
+                  _buildOverviewBanner(),
                   _buildHeader(),
                   _buildFilterChips(),
                   Expanded(
@@ -234,67 +235,142 @@ class _MaintenanceRequestsScreenState extends State<MaintenanceRequestsScreen>
     final completedCount =
         _requests.where((r) => r['status'] == 'completed').length;
 
-    return Container(
+  return Container(
       color: AppTheme.borderColor,
-      padding: const EdgeInsets.fromLTRB(16, 4, 16, 20),
-      child: Row(
-        children: [
-          _buildStatChip(
-              'الكل', total, 'all', Colors.white, AppTheme.borderColor),
-          const SizedBox(width: 8),
-          _buildStatChip('عروض', quoteCount, 'quote_received',
-              AppTheme.backgroundColor, AppTheme.borderColor),
-          const SizedBox(width: 8),
-          _buildStatChip('جاري', inProgressCount, 'in_progress',
-              AppTheme.backgroundColor, AppTheme.primaryColor),
-          const SizedBox(width: 8),
-          _buildStatChip('مكتمل', completedCount, 'completed',
-              AppTheme.backgroundColor, AppTheme.primaryColor),
-        ],
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final narrow = constraints.maxWidth < 430;
+          final chips = [
+            _buildStatChip('الكل', total, 'all', isNarrow: narrow),
+            _buildStatChip(
+                'عروض', quoteCount, 'quote_received',
+                isNarrow: narrow),
+            _buildStatChip('جاري', inProgressCount, 'in_progress',
+                isNarrow: narrow),
+            _buildStatChip('مكتمل', completedCount, 'completed',
+                isNarrow: narrow),
+          ];
+
+          if (narrow) {
+            final chipWidth = (constraints.maxWidth - 8) / 2;
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: chips
+                  .map((chip) => SizedBox(width: chipWidth, child: chip))
+                  .toList(),
+            );
+          }
+
+          return Row(
+            children: [
+              for (var i = 0; i < chips.length; i++) ...[
+                Expanded(child: chips[i]),
+                if (i != chips.length - 1) const SizedBox(width: 8),
+              ],
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildStatChip(
-      String label, int count, String filter, Color bgColor, Color textColor) {
+  Widget _buildStatChip(String label, int count, String filter,
+      {bool isNarrow = false}) {
     final isSelected = _filter == filter;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _filter = filter),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.white.withOpacity(0.15),
-            borderRadius: BorderRadius.circular(14),
-            border:
-                isSelected ? Border.all(color: Colors.white, width: 2) : null,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '$count',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: isSelected ? AppTheme.borderColor : Colors.white,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: isSelected ? AppTheme.borderColor : Colors.white70,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
+    return GestureDetector(
+      onTap: () => setState(() => _filter = filter),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: EdgeInsets.symmetric(vertical: isNarrow ? 12 : 10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.white.withOpacity(0.15),
+          borderRadius: BorderRadius.circular(14),
+          border: isSelected ? Border.all(color: Colors.white, width: 2) : null,
         ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '$count',
+              style: TextStyle(
+                fontSize: isNarrow ? 18 : 20,
+                fontWeight: FontWeight.w900,
+                color: isSelected ? AppTheme.borderColor : Colors.white,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: isNarrow ? 11 : 10,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? AppTheme.borderColor : Colors.white70,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOverviewBanner() {
+    final waitingCount =
+        _requests.where((r) => r['status'] == 'pending').length;
+    final urgentCount = _requests
+        .where((r) => r['priority'] == 'urgent' && r['status'] != 'completed')
+        .length;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.primaryColor.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.12)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(Icons.handyman_rounded,
+                color: AppTheme.primaryColor, size: 26),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'خدمة صيانة أوضح وأسرع',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'كل طلب بيتراجع بعرض سعر واضح، ومعاينة، ثم موافقتك قبل أي دفع. عندك $waitingCount قيد المراجعة و$urgentCount حالات عاجلة.',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    height: 1.4,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -605,7 +681,7 @@ class _MaintenanceRequestsScreenState extends State<MaintenanceRequestsScreen>
         decoration: BoxDecoration(
           color:
               Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         padding: EdgeInsets.only(
           left: 24,
@@ -652,7 +728,7 @@ class _MaintenanceRequestsScreenState extends State<MaintenanceRequestsScreen>
             const SizedBox(height: 20),
             _buildPriceRow(
                 'تكلفة الخدمة', breakdown.totalAmount, AppTheme.textPrimary),
-            _buildPriceRow('ضمان الجودة كيو', 0.0, AppTheme.primaryColor),
+            _buildPriceRow('ضمان الجودة إيجاري', 0.0, AppTheme.primaryColor),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Divider(),
@@ -690,7 +766,7 @@ class _MaintenanceRequestsScreenState extends State<MaintenanceRequestsScreen>
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'المبلغ يظل محفوظاً لدى كيو ولا يُحوَّل للفني إلا بعد تأكيدك على جودة العمل.',
+                      'المبلغ يظل محفوظاً لدى إيجاري ولا يُحوَّل للفني إلا بعد تأكيدك على جودة العمل.',
                       style: TextStyle(
                           fontSize: 12,
                           color: AppTheme.primaryColor,
@@ -859,9 +935,10 @@ class _MaintenanceRequestsScreenState extends State<MaintenanceRequestsScreen>
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: const EdgeInsets.all(28),
@@ -881,13 +958,44 @@ class _MaintenanceRequestsScreenState extends State<MaintenanceRequestsScreen>
                   color: AppTheme.textPrimary),
             ),
             const SizedBox(height: 8),
-            Text(
-              _filter == 'all'
-                  ? 'اضغط على "طلب جديد" لإضافة طلب صيانة'
-                  : 'لا توجد طلبات بهذه الحالة حالياً',
-              style:
-                  const TextStyle(fontSize: 14, color: AppTheme.primaryColor),
-              textAlign: TextAlign.center,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 320),
+              child: Text(
+                _filter == 'all'
+                    ? 'ابدأ بطلب جديد، وحدد نوع المشكلة والأولوية، وسيتم توجيه الطلب للمتابعة فورًا.'
+                    : 'لا توجد طلبات بهذه الحالة حالياً. جرّب تغيير الفلتر أو إنشاء طلب جديد.',
+                style: const TextStyle(
+                    fontSize: 14,
+                    height: 1.5,
+                    color: AppTheme.primaryColor),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 18),
+            ElevatedButton.icon(
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const CreateMaintenanceRequestScreen()),
+                );
+                _loadRequests();
+              },
+              icon: const Icon(Icons.add_rounded, color: Colors.white),
+              label: const Text(
+                'طلب جديد',
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.borderColor,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+                elevation: 0,
+              ),
             ),
           ],
         ),

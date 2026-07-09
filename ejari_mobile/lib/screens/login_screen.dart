@@ -158,246 +158,354 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: AppTheme.primaryColor,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppTheme.textPrimary, size: 20),
+              color: Colors.white, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 560),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const EjariAuthHeader(
-                          title: 'مرحباً بعودتك',
-                          subtitle: 'سجّل الدخول لمتابعة حجوزاتك وعقودك',
-                        ),
-                        const SizedBox(height: 32),
-                        _buildMinimalTextField(
-                          controller: _emailController,
-                          label: 'البريد الإلكتروني',
-                          icon: Icons.email_outlined,
-                          isEmail: true,
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Minimalist Password Field
-                        _buildMinimalTextField(
-                          controller: _passwordController,
-                          label: 'كلمة المرور',
-                          icon: Icons.lock_outline,
-                          isPassword: true,
-                        ),
-
-                        // Forgot Password
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: TextButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        const ForgotPasswordScreen()),
-                              );
-                            },
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 0, vertical: 10),
-                              minimumSize: Size.zero,
-                            ),
-                            child: const Text('نسيت كلمة المرور؟',
-                                style: TextStyle(
-                                    color: AppTheme.primaryColor,
-                                    fontWeight: FontWeight.w600)),
+      body: EjariAuthShell(
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 560),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const EjariAuthHeader(
+                            title: 'مرحباً بعودتك',
+                            subtitle:
+                                'سجّل الدخول لمتابعة حجوزاتك وعقودك بأمان',
                           ),
-                        ),
-                        const SizedBox(height: 32),
-
-                        // Login Button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: _isLoading
-                                ? null
-                                : () async {
-                                    final navigator = Navigator.of(context);
-                                    final messenger =
-                                        ScaffoldMessenger.of(context);
-                                    if (_formKey.currentState!.validate()) {
-                                      setState(() => _isLoading = true);
-
-                                      try {
-                                        final user = await AuthService.login(
-                                            _emailController.text,
-                                            _passwordController.text);
-                                        if (!mounted) return;
-                                        setState(() => _isLoading = false);
-
-                                        if (user != null) {
-                                          if (widget.redirectToRole != null) {
-                                            await AuthService.setUserRole(
-                                                widget.redirectToRole!);
-                                          }
-
-                                          if (widget.returnResult) {
-                                            if (!mounted) return;
-                                            navigator.pop(true);
-                                            return;
-                                          }
-                                          navigator.pushReplacement(
-                                              MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      const HomeScreen()));
-                                        }
-                                      } catch (e) {
-                                        setState(() => _isLoading = false);
-                                        if (!mounted) return;
-                                        messenger.showSnackBar(SnackBar(
-                                            content: Text(e.toString()),
-                                            backgroundColor:
-                                                AppTheme.errorColor));
-                                      }
-                                    }
-                                  },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primaryColor,
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16)),
-                              elevation: 0,
-                            ),
-                            child: _isLoading
-                                ? const SizedBox(
-                                    height: 24,
-                                    width: 24,
-                                    child: CircularProgressIndicator(
-                                        color: Colors.white, strokeWidth: 2))
-                                : const Text('دخول',
-                                    style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white)),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Wrap(
-                          alignment: WrapAlignment.center,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            const Text('مستخدم جديد؟',
-                                style: TextStyle(color: AppTheme.textSecondary)),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const SignupScreen()));
-                              },
-                              child: const Text('أنشئ حسابك',
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: AppTheme.primaryColor)),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        InkWell(
-                          onTap: () => setState(
-                              () => _showMoreOptions = !_showMoreOptions),
-                          borderRadius: BorderRadius.circular(12),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                vertical: 10, horizontal: 4),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
+                          const SizedBox(height: 28),
+                          EjariAuthFormCard(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  _showMoreOptions
-                                      ? 'إخفاء الخيارات'
-                                      : 'خيارات إضافية',
-                                  style: const TextStyle(
-                                    color: AppTheme.textSecondary,
-                                    fontWeight: FontWeight.w600,
+                                _buildMinimalTextField(
+                                  controller: _emailController,
+                                  label: 'البريد الإلكتروني',
+                                  icon: Icons.email_outlined,
+                                  isEmail: true,
+                                ),
+                                const SizedBox(height: 20),
+                                _buildMinimalTextField(
+                                  controller: _passwordController,
+                                  label: 'كلمة المرور',
+                                  icon: Icons.lock_outline,
+                                  isPassword: true,
+                                ),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const ForgotPasswordScreen(),
+                                        ),
+                                      );
+                                    },
+                                    style: TextButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 0,
+                                        vertical: 8,
+                                      ),
+                                      minimumSize: Size.zero,
+                                    ),
+                                    child: const Text(
+                                      'نسيت كلمة المرور؟',
+                                      style: TextStyle(
+                                        color: AppTheme.primaryColor,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                Icon(
-                                  _showMoreOptions
-                                      ? Icons.expand_less_rounded
-                                      : Icons.expand_more_rounded,
-                                  color: AppTheme.textSecondary,
-                                  size: 20,
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 56,
+                                  child: ElevatedButton(
+                                    onPressed: _isLoading
+                                        ? null
+                                        : () async {
+                                            final navigator =
+                                                Navigator.of(context);
+                                            final messenger =
+                                                ScaffoldMessenger.of(context);
+                                            if (_formKey.currentState!
+                                                .validate()) {
+                                              setState(() => _isLoading = true);
+                                              try {
+                                                final user =
+                                                    await AuthService.login(
+                                                  _emailController.text,
+                                                  _passwordController.text,
+                                                );
+                                                if (!mounted) return;
+                                                setState(
+                                                    () => _isLoading = false);
+                                                if (user != null) {
+                                                  if (widget.redirectToRole !=
+                                                      null) {
+                                                    await AuthService.setUserRole(
+                                                        widget.redirectToRole!);
+                                                  }
+                                                  if (widget.returnResult) {
+                                                    if (!mounted) return;
+                                                    navigator.pop(true);
+                                                    return;
+                                                  }
+                                                  navigator.pushReplacement(
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          const HomeScreen(),
+                                                    ),
+                                                  );
+                                                }
+                                              } catch (e) {
+                                                setState(
+                                                    () => _isLoading = false);
+                                                if (!mounted) return;
+                                                messenger.showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(e.toString()),
+                                                    backgroundColor:
+                                                        AppTheme.errorColor,
+                                                  ),
+                                                );
+                                              }
+                                            }
+                                          },
+                                    style: ElevatedButton.styleFrom(
+                                      elevation: 3,
+                                      shadowColor: AppTheme.primaryColor
+                                          .withOpacity(0.35),
+                                    ),
+                                    child: _isLoading
+                                        ? const SizedBox(
+                                            height: 24,
+                                            width: 24,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : const Text('دخول'),
+                                  ),
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                        if (_showMoreOptions) ...[
+                          const SizedBox(height: 20),
+                          Center(
+                            child: Wrap(
+                              alignment: WrapAlignment.center,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                const Text(
+                                  'مستخدم جديد؟',
+                                  style:
+                                      TextStyle(color: AppTheme.textSecondary),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const SignupScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    'أنشئ حسابك',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      color: AppTheme.primaryColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                           const SizedBox(height: 8),
-                          OutlinedButton.icon(
-                            onPressed: _signInWithGoogle,
-                            icon: const Icon(Icons.g_mobiledata_rounded, size: 26),
-                            label: const Text('Google'),
+                          EjariAuthFormCard(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            child: Column(
+                              children: [
+                                InkWell(
+                                  onTap: () => setState(
+                                    () => _showMoreOptions = !_showMoreOptions,
+                                  ),
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 4,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.tune_rounded,
+                                          size: 18,
+                                          color: AppTheme.primaryColor
+                                              .withOpacity(0.8),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          _showMoreOptions
+                                              ? 'إخفاء الخيارات'
+                                              : 'خيارات إضافية',
+                                          style: const TextStyle(
+                                            color: AppTheme.textPrimary,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        Icon(
+                                          _showMoreOptions
+                                              ? Icons.expand_less_rounded
+                                              : Icons.expand_more_rounded,
+                                          color: AppTheme.textSecondary,
+                                          size: 20,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                if (_showMoreOptions) ...[
+                                  const SizedBox(height: 8),
+                                  _buildAltLoginTile(
+                                    icon: Icons.g_mobiledata_rounded,
+                                    label: 'تسجيل عبر Google',
+                                    color: const Color(0xFF4285F4),
+                                    onTap: _signInWithGoogle,
+                                  ),
+                                  const SizedBox(height: 10),
+                                  _buildAltLoginTile(
+                                    icon: Icons.fingerprint_rounded,
+                                    label: 'البصمة / الوجه',
+                                    color: AppTheme.primaryColor,
+                                    onTap: _authenticate,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  TextButton(
+                                    onPressed:
+                                        _isLoading ? null : _loginAsVisitor,
+                                    child: const Text('الدخول كزائر'),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 10),
-                          OutlinedButton.icon(
-                            onPressed: _authenticate,
-                            icon: const Icon(Icons.fingerprint_rounded, size: 22),
-                            label: const Text('البصمة / الوجه'),
-                          ),
-                          const SizedBox(height: 10),
-                          TextButton(
-                            onPressed: _isLoading ? null : _loginAsVisitor,
-                            child: const Text('الدخول كزائر'),
-                          ),
-                        ],
-                        if (AppConfig.demoMode) ...[
-                          const SizedBox(height: 16),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppTheme.surfaceColor,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: AppTheme.accentColor.withOpacity(0.4),
+                          if (AppConfig.demoMode) ...[
+                            const SizedBox(height: 16),
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accentColor.withOpacity(0.12),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: AppTheme.accentColor.withOpacity(0.35),
+                                ),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.info_outline_rounded,
+                                      color: AppTheme.accentColor, size: 20),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      'وضع التجربة: استخدم الحسابات الجاهزة للاستكشاف.',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: AppTheme.textPrimary,
+                                        height: 1.4,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            child: const Text(
-                              'وضع التجربة: استخدم الحسابات الجاهزة للاستكشاف.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: AppTheme.textSecondary,
-                                height: 1.4,
-                              ),
-                            ),
-                          ),
+                          ],
                         ],
-                        const SizedBox(height: 20),
-                      ],
+                      ),
                     ),
                   ),
                 ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAltLoginTile({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: color.withOpacity(0.06),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: color.withOpacity(0.18)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 22),
               ),
-            );
-          },
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+              ),
+              Icon(Icons.arrow_back_ios_new_rounded,
+                  size: 14, color: color.withOpacity(0.6)),
+            ],
+          ),
         ),
       ),
     );

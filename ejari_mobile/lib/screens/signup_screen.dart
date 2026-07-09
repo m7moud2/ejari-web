@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import '../services/auth_service.dart';
 import '../widgets/ejari_auth_header.dart';
+import '../widgets/ejari_section.dart';
 import '../widgets/image_upload_widget.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -199,88 +200,72 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: AppTheme.primaryColor,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: AppTheme.textPrimary, size: 20),
+              color: Colors.white, size: 20),
           onPressed: _previousStep,
         ),
-        title: const Text('إنشاء حساب',
-            style: TextStyle(
-                color: AppTheme.textPrimary,
-                fontWeight: FontWeight.bold,
-                fontSize: 16)),
-        centerTitle: true,
       ),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 620),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(18, 6, 18, 18),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        EjariAuthHeader(
-                          title: _currentStep == 0
-                              ? 'إنشاء حساب'
-                              : 'توثيق الهوية',
-                          subtitle: _currentStep == 0
-                              ? 'أدخل بياناتك واختر نوع الحساب'
-                              : 'ارفع المستندات الآن أو أكملها لاحقاً',
-                        ),
-                        const SizedBox(height: 20),
-                        _buildLinearProgress(),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          height: constraints.maxHeight * 0.62,
-                          child: PageView(
-                            controller: _pageController,
-                            physics: const NeverScrollableScrollPhysics(),
-                            onPageChanged: (index) =>
-                                setState(() => _currentStep = index),
-                            children: [
-                              _buildStep1(),
-                              _buildStep2(),
-                            ],
+      body: EjariAuthShell(
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 620),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 100),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          EjariAuthHeader(
+                            title: _currentStep == 0
+                                ? 'إنشاء حساب'
+                                : 'توثيق الهوية',
+                            subtitle: _currentStep == 0
+                                ? 'أدخل بياناتك واختر نوع الحساب المناسب'
+                                : 'ارفع المستندات الآن أو أكملها لاحقاً',
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 22),
+                          EjariStepIndicator(
+                            labels: const ['البيانات', 'التوثيق'],
+                            activeIndex: _currentStep,
+                            light: true,
+                          ),
+                          const SizedBox(height: 20),
+                          EjariAuthFormCard(
+                            child: SizedBox(
+                              height: constraints.maxHeight * 0.58,
+                              child: PageView(
+                                controller: _pageController,
+                                physics: const NeverScrollableScrollPhysics(),
+                                onPageChanged: (index) =>
+                                    setState(() => _currentStep = index),
+                                children: [
+                                  _buildStep1(),
+                                  _buildStep2(),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
       bottomNavigationBar: _buildBottomAction(),
-    );
-  }
-
-  Widget _buildLinearProgress() {
-    return Row(
-      children: List.generate(_totalSteps, (index) {
-        final isActive = index <= _currentStep;
-        return Expanded(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            margin: EdgeInsets.only(right: index < _totalSteps - 1 ? 8 : 0),
-            height: 4,
-            decoration: BoxDecoration(
-              color: isActive ? AppTheme.primaryColor : AppTheme.borderColor,
-              borderRadius: BorderRadius.circular(999),
-            ),
-          ),
-        );
-      }),
     );
   }
 
@@ -494,53 +479,61 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Widget _buildBottomAction() {
     final isLastStep = _currentStep == _totalSteps - 1;
-    return SafeArea(
-      top: false,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isLastStep)
-              TextButton(
-                onPressed: _isLoading ? null : () => _submit(skipVerification: true),
-                child: const Text('تخطي الآن — أكمل التوثيق لاحقاً'),
-              ),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: _isLoading
-                    ? null
-                    : () {
-                        if (isLastStep) {
-                          _submit();
-                        } else {
-                          _nextStep();
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14)),
-                  elevation: 0,
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryColor.withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, -6),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isLastStep)
+                TextButton(
+                  onPressed:
+                      _isLoading ? null : () => _submit(skipVerification: true),
+                  child: const Text('تخطي الآن — أكمل التوثيق لاحقاً'),
                 ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 22,
-                        width: 22,
-                        child: CircularProgressIndicator(
-                            color: Colors.white, strokeWidth: 2))
-                    : Text(
-                        isLastStep ? 'إنشاء الحساب' : 'متابعة',
-                        style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      ),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _isLoading
+                      ? null
+                      : () {
+                          if (isLastStep) {
+                            _submit();
+                          } else {
+                            _nextStep();
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    elevation: 4,
+                    shadowColor: AppTheme.primaryColor.withOpacity(0.3),
+                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(isLastStep ? 'إنشاء الحساب' : 'متابعة'),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

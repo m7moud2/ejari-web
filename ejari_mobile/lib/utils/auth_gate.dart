@@ -62,11 +62,15 @@ class AuthGate {
 
     if (!context.mounted) return false;
 
-    final route = MaterialPageRoute(
-      builder: (context) =>
-          (goToLogin ?? true) ? const LoginScreen() : const SignupScreen(),
+    final shouldLogin = goToLogin ?? true;
+    final success = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => shouldLogin
+            ? const LoginScreen(returnResult: true)
+            : const SignupScreen(returnResult: true),
+      ),
     );
-    await Navigator.push(context, route);
-    return false;
+    return success ?? false;
   }
 }
