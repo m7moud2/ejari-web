@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../services/auth_service.dart';
+import '../services/subscription_service.dart';
 import '../utils/auth_gate.dart';
 import '../utils/safe_parse.dart';
 import '../widgets/ejari_section.dart';
@@ -21,6 +22,7 @@ class _ManagePropertiesScreenState extends State<ManagePropertiesScreen> {
   List<Map<String, dynamic>> _performance = [];
   bool _isLoading = true;
   String _filter = 'all';
+  Map<String, dynamic>? _subscriptionSummary;
 
   @override
   void initState() {
@@ -42,9 +44,11 @@ class _ManagePropertiesScreenState extends State<ManagePropertiesScreen> {
         'owner@ejari.app';
     final properties = await DataService.getOwnerProperties(ownerId);
     final performance = await DataService.getOwnerPropertyPerformance(ownerId);
+    final summary = await SubscriptionService.getSubscriptionSummary();
     setState(() {
       _properties = properties;
       _performance = performance;
+      _subscriptionSummary = summary;
       _isLoading = false;
     });
   }
@@ -139,7 +143,23 @@ class _ManagePropertiesScreenState extends State<ManagePropertiesScreen> {
       appBar: AppBar(
         backgroundColor: AppTheme.backgroundColor,
         surfaceTintColor: Colors.transparent,
-        title: const Text('عقاراتي'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('عقاراتي'),
+            if (_subscriptionSummary != null)
+              Text(
+                'باقة ${_subscriptionSummary!['plan_name']} — '
+                '${_subscriptionSummary!['properties_used']}/'
+                '${_subscriptionSummary!['properties_limit'] == -1 ? '∞' : _subscriptionSummary!['properties_limit']}',
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textSecondary,
+                ),
+              ),
+          ],
+        ),
         titleTextStyle: const TextStyle(
           color: AppTheme.textPrimary,
           fontSize: 20,

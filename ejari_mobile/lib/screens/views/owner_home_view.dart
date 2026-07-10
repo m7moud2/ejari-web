@@ -224,12 +224,18 @@ class OwnerHomeView extends StatelessWidget {
               _heroMetric('حجوزات جديدة', '${stats['pendingBookings'] ?? 0}'),
               if ((stats['pendingCollection'] ?? 0) > 0)
                 _heroMetric('تحصيل معلّق', '${stats['pendingCollection']}'),
-              _heroMetric('الباقة', stats['subscriptionPlan']?.toString() ?? 'مجاني'),
+              _heroMetric('الباقة', _planBadgeLabel(stats)),
             ],
           ),
         ],
       ),
     );
+  }
+
+  String _planBadgeLabel(Map<String, dynamic> stats) {
+    final name = stats['subscriptionPlan']?.toString() ?? 'مجاني';
+    final id = stats['subscriptionPlanId']?.toString() ?? 'free';
+    return id == 'gold' ? '$name ⭐' : name;
   }
 
   Widget _heroMetric(String label, String value) {
@@ -559,33 +565,59 @@ class OwnerHomeView extends StatelessWidget {
   }
 
   Widget _buildBanner(Map<String, dynamic> stats) {
+    final features = List<String>.from(stats['subscriptionFeatures'] as List? ?? []);
     return EjariSurfaceCard(
       padding: const EdgeInsets.all(AppTheme.spaceMd),
       radius: AppTheme.cardRadiusLg,
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppTheme.accentColor.withOpacity(0.18),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(Icons.campaign_rounded,
-                color: AppTheme.primaryColor, size: 26),
-          ),
-          const SizedBox(width: AppTheme.spaceSm),
-          Expanded(
-            child: Text(
-              stats['banner'] ??
-                  'وثّق حسابك أو ارفع إعلانًا مميزًا لتصل لعملاء أكثر.',
-              style: const TextStyle(
-                color: AppTheme.textPrimary,
-                fontWeight: FontWeight.w800,
-                height: 1.45,
-                fontSize: 13,
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentColor.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.campaign_rounded,
+                    color: AppTheme.primaryColor, size: 26),
               ),
-            ),
+              const SizedBox(width: AppTheme.spaceSm),
+              Expanded(
+                child: Text(
+                  stats['banner'] ??
+                      'وثّق حسابك أو ارفع إعلانًا مميزًا لتصل لعملاء أكثر.',
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontWeight: FontWeight.w800,
+                    height: 1.45,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
           ),
+          if (features.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: features.take(3).map((f) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    f,
+                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
         ],
       ),
     );
@@ -655,10 +687,15 @@ class OwnerHomeView extends StatelessWidget {
         return Material(
           color: Colors.transparent,
           child: InkWell(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => action.$3),
-            ),
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => action.$3),
+              );
+              if (context.mounted) {
+                context.read<HomeProvider>().loadHomeData('owner');
+              }
+            },
             borderRadius: BorderRadius.circular(AppTheme.cardRadius - 4),
             child: Ink(
               decoration: AppTheme.surfaceCardDecoration(

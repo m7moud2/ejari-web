@@ -42,6 +42,9 @@ import 'add_property_screen.dart';
 import 'owner_collection_screen.dart';
 import 'owner_booking_requests_screen.dart';
 import 'corporate_command_center_screen.dart';
+import 'listing_plans_screen.dart';
+import 'subscriptions_screen.dart';
+import '../services/subscription_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -54,6 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? _userData;
   String _currentRole = 'tenant';
   Map<String, String> _verificationStatus = {'status': 'none', 'label': 'غير موثق'};
+  Map<String, dynamic>? _subscriptionSummary;
 
   @override
   void initState() {
@@ -69,10 +73,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (email.isNotEmpty) {
       verification = await DataService.getIdentityVerificationStatus(email);
     }
+    Map<String, dynamic>? subSummary;
+    if (role == 'owner') {
+      subSummary = await SubscriptionService.getSubscriptionSummary();
+    }
     setState(() {
       _userData = data;
       _currentRole = role;
       _verificationStatus = verification;
+      _subscriptionSummary = subSummary;
     });
   }
 
@@ -151,6 +160,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildAccountIdCard(),
                   const SizedBox(height: AppTheme.spaceMd),
                   _buildAccountSnapshot(),
+                  if (_isOwner && _subscriptionSummary != null) ...[
+                    const SizedBox(height: AppTheme.spaceMd),
+                    _buildSubscriptionCard(),
+                  ],
                   const SizedBox(height: AppTheme.spaceXl),
 
                   // الحساب
@@ -423,6 +436,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
     if (_isOwner) {
       return [
+        _buildEjariMenuItem('خطط النشر', Icons.workspace_premium_rounded,
+            AppTheme.accentColor, () async {
+          await Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const ListingPlansScreen()));
+          _loadUserData();
+        }),
         _buildEjariMenuItem('عقاراتي', Icons.holiday_village_rounded,
             AppTheme.borderColor, () {
           Navigator.push(context,
@@ -495,6 +514,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             AppTheme.primaryColor, () {
           Navigator.push(
               context, MaterialPageRoute(builder: (_) => const WalletScreen()));
+        }),
+        _buildEjariMenuItem('باقتي', Icons.card_membership_rounded,
+            AppTheme.accentColor, () async {
+          await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SubscriptionsScreen()));
+          _loadUserData();
         }),
         _buildEjariMenuItem('تحصيل الإيجارات', Icons.payments_outlined,
             AppTheme.primaryColor, () {
@@ -575,6 +601,82 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   },
             icon: const Icon(Icons.copy_rounded, color: AppTheme.primaryColor),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubscriptionCard() {
+    final summary = _subscriptionSummary!;
+    final planName = summary['plan_name']?.toString() ?? 'مجاني';
+    final used = summary['properties_used'] ?? 0;
+    final limit = summary['properties_limit'] ?? 2;
+    final endDate = summary['end_date']?.toString();
+    final features = List<String>.from(summary['features'] as List? ?? []);
+
+    return EjariSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.workspace_premium_rounded,
+                  color: AppTheme.primaryColor, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('باقة النشر',
+                        style: TextStyle(
+                            fontSize: 11, color: AppTheme.textSecondary)),
+                    Text(
+                      planName,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.w900),
+                    ),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const ListingPlansScreen()),
+                  );
+                  _loadUserData();
+                },
+                child: const Text('ترقية'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'الإعلانات: $used / ${limit == -1 ? '∞' : limit}',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+          ),
+          if (endDate != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              'تنتهي: ${endDate.split('T').first}',
+              style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+            ),
+          ],
+          if (features.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            ...features.take(4).map((f) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check, size: 14, color: AppTheme.primaryColor),
+                      const SizedBox(width: 6),
+                      Expanded(
+                          child: Text(f, style: const TextStyle(fontSize: 11))),
+                    ],
+                  ),
+                )),
+          ],
         ],
       ),
     );

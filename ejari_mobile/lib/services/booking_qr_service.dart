@@ -8,14 +8,16 @@ class BookingQrService {
 
   static const String _qrKey = 'booking_qr_codes_v1';
 
-  /// توليد payload QR للحجز.
   static Future<Map<String, dynamic>> generateForBooking(
     Map<String, dynamic> booking,
   ) async {
     final id = booking['id']?.toString() ?? '';
     final tenant = booking['tenantEmail']?.toString() ?? '';
     final property = booking['propertyId']?.toString() ?? '';
-    final checkIn = booking['checkInDate']?.toString() ?? '';
+    final checkIn = booking['checkInDate']?.toString() ??
+        booking['leaseStartDate']?.toString() ??
+        booking['startDate']?.toString() ??
+        '';
 
     final payload = 'EJARI|$id|$tenant|$property|$checkIn';
     final hash = _demoHash(payload);
@@ -45,11 +47,11 @@ class BookingQrService {
     };
   }
 
-  /// التحقق من QR من قبل المالك.
   static Future<Map<String, dynamic>> verifyQrCode(String scannedData) async {
-    final parts = scannedData.split('|');
+    final trimmed = scannedData.trim();
+    final parts = trimmed.split('|');
     if (parts.length < 6 || parts[0] != 'EJARI') {
-      return {'valid': false, 'message': 'رمز QR غير صالح'};
+      return _invalid('رمز QR غير صالح — تأكد من لصق الرمز كاملاً');
     }
 
     final bookingId = parts[1];
@@ -58,43 +60,122 @@ class BookingQrService {
     final expectedHash = _demoHash(payload);
 
     if (providedHash != expectedHash) {
-      return {'valid': false, 'message': 'رمز التحقق غير مطابق'};
+      return _invalid('رمز التحقق غير مطابق — قد يكون الرمز مزوراً');
     }
 
     final booking = await DataService.findBookingById(bookingId);
     if (booking == null) {
-      return {'valid': false, 'message': 'الحجز غير موجود'};
+      return _invalid('الحجز غير موجود في النظام');
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_qrKey);
-    if (raw != null) {
-      final map = Map<String, dynamic>.from(jsonDecode(raw) as Map);
-      if (map.containsKey(bookingId)) {
-        map[bookingId]['verified'] = true;
-        map[bookingId]['verifiedAt'] = DateTime.now().toIso8601String();
-        await prefs.setString(_qrKey, jsonEncode(map));
+    return _buildValidationResult(booking, bookingId, markVerified: true);
+  }
+
+  static Future<Map<String, dynamic>> verifyByBookingId(String bookingId) async {
+    final id = bookingId.trim();
+    if (id.isEmpty) {
+      return _invalid('أدخل معرّف الحجز');
+    }
+
+    final booking = await DataService.findBookingById(id);
+    if (booking == null) {
+      return _invalid('الحجز غير موجود — جرّب demo_req_1 أو demo_bed_booking');
+    }
+
+    final qr = await generateForBooking(booking);
+    final verify = await verifyQrCode(qr['qrData'] as String);
+    return verify;
+  }
+
+  static Future<Map<String, dynamic>> _buildValidationResult(
+    Map<String, dynamic> booking,
+    String bookingId, {
+    bool markVerified = false,
+  }) async {
+    final checkInRaw = booking['checkInDate']?.toString() ??
+        booking['leaseStartDate']?.toString() ??
+        booking['startDate']?.toString() ??
+        '';
+    final checkIn = DateTime.tryParse(checkInRaw);
+    final now = DateTime.now();
+    final isExpired = checkIn != null && checkIn.isBefore(now.subtract(const Duration(days: 1)));
+    final status = booking['status']?.toString() ?? 'unknown';
+    final paymentStatus = _paymentStatusLabel(booking);
+    final bedLabel = booking['bedLabel']?.toString();
+    final propertyTitle = booking['title']?.toString() ?? '—';
+    final tenantName = booking['tenantName']?.toString() ?? '—';
+    final duration = booking['durationLabel']?.toString() ??
+        booking['duration']?.toString() ??
+        '—';
+
+    if (isExpired) {
+      return {
+        'valid': false,
+        'expired': true,
+        'status': 'expired',
+        'message': 'انتهت صلاحية الحجز ✗',
+        'booking': booking,
+        'bookingId': bookingId,
+        'tenantName': tenantName,
+        'propertyTitle': propertyTitle,
+        'bedLabel': bedLabel,
+        'checkInDate': checkInRaw,
+        'duration': duration,
+        'paymentStatus': paymentStatus,
+        'bookingStatus': status,
+      };
+    }
+
+    if (markVerified) {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_qrKey);
+      if (raw != null) {
+        final map = Map<String, dynamic>.from(jsonDecode(raw) as Map);
+        if (map.containsKey(bookingId)) {
+          map[bookingId]['verified'] = true;
+          map[bookingId]['verifiedAt'] = DateTime.now().toIso8601String();
+          await prefs.setString(_qrKey, jsonEncode(map));
+        }
       }
     }
 
     return {
       'valid': true,
+      'expired': false,
+      'status': 'valid',
       'message': 'تم التحقق بنجاح ✓',
       'booking': booking,
       'bookingId': bookingId,
-      'tenantName': booking['tenantName'] ?? parts[2],
-      'propertyTitle': booking['title'],
+      'tenantName': tenantName,
+      'propertyTitle': propertyTitle,
+      'bedLabel': bedLabel,
+      'checkInDate': checkInRaw,
+      'duration': duration,
+      'paymentStatus': paymentStatus,
+      'bookingStatus': status,
     };
   }
 
-  /// التحقق بالمعرّف يدوياً (بديل للمسح).
-  static Future<Map<String, dynamic>> verifyByBookingId(String bookingId) async {
-    final booking = await DataService.findBookingById(bookingId);
-    if (booking == null) {
-      return {'valid': false, 'message': 'الحجز غير موجود'};
+  static Map<String, dynamic> _invalid(String message) => {
+        'valid': false,
+        'expired': false,
+        'status': 'invalid',
+        'message': message,
+      };
+
+  static String _paymentStatusLabel(Map<String, dynamic> booking) {
+    final raw = booking['paymentStatus']?.toString() ?? '';
+    final status = booking['status']?.toString() ?? '';
+    if (raw == 'deposit_paid' || status == 'deposit_paid') {
+      return 'تم دفع العربون';
     }
-    final qr = await generateForBooking(booking);
-    return verifyQrCode(qr['qrData'] as String);
+    if (status == 'approved' || status == 'active') {
+      return 'مدفوع بالكامل';
+    }
+    if (status == 'submitted' || status == 'pending') {
+      return 'بانتظار الدفع';
+    }
+    return raw.isNotEmpty ? raw : 'غير محدد';
   }
 
   static String _demoHash(String input) {

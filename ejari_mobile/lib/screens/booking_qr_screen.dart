@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import '../theme/app_theme.dart';
 import '../services/booking_qr_service.dart';
 import '../widgets/ejari_section.dart';
 
-/// عرض QR للحجز — demo visual code.
+/// عرض QR للحجز — payload حقيقي يمكن للمالك مسحه/التحقق منه.
 class BookingQrScreen extends StatefulWidget {
   final Map<String, dynamic> booking;
 
@@ -50,7 +51,29 @@ class _BookingQrScreenState extends State<BookingQrScreen> {
                           subtitle: 'اعرض هذا الرمز للمالك عند الدخول',
                         ),
                         const SizedBox(height: 20),
-                        _QrVisual(data: _qr!['qrData']?.toString() ?? ''),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppTheme.primaryColor.withOpacity(0.3),
+                            ),
+                          ),
+                          child: QrImageView(
+                            data: _qr!['qrData']?.toString() ?? '',
+                            version: QrVersions.auto,
+                            size: 180,
+                            eyeStyle: const QrEyeStyle(
+                              eyeShape: QrEyeShape.square,
+                              color: AppTheme.primaryColor,
+                            ),
+                            dataModuleStyle: const QrDataModuleStyle(
+                              dataModuleShape: QrDataModuleShape.square,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           _qr!['displayCode']?.toString() ?? '',
@@ -69,6 +92,15 @@ class _BookingQrScreenState extends State<BookingQrScreen> {
                             color: AppTheme.textSecondary,
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        SelectableText(
+                          _qr!['qrData']?.toString() ?? '',
+                          style: const TextStyle(
+                            fontSize: 9,
+                            color: AppTheme.textSecondary,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ],
                     ),
                   ),
@@ -84,43 +116,6 @@ class _BookingQrScreenState extends State<BookingQrScreen> {
                 ],
               ),
             ),
-    );
-  }
-}
-
-class _QrVisual extends StatelessWidget {
-  final String data;
-
-  const _QrVisual({required this.data});
-
-  @override
-  Widget build(BuildContext context) {
-    const size = 180.0;
-    const cells = 12;
-    final hash = data.hashCode.abs();
-
-    return Container(
-      width: size,
-      height: size,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
-      ),
-      child: GridView.builder(
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: cells,
-          crossAxisSpacing: 1,
-          mainAxisSpacing: 1,
-        ),
-        itemCount: cells * cells,
-        itemBuilder: (_, i) {
-          final filled = ((hash >> (i % 30)) & 1) == 1 || i % 7 == 0;
-          return Container(color: filled ? AppTheme.primaryColor : Colors.white);
-        },
-      ),
     );
   }
 }

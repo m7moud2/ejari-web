@@ -300,13 +300,16 @@ class HomeRepository {
           (properties.isNotEmpty ? properties.first['title'] : 'لا توجد عقارات بعد'),
       'topPropertyViews': topPerf?['views'] ?? (properties.length * 12),
       'subscriptionPlan': sub['plan_name'],
+      'subscriptionPlanId': sub['plan_id'],
       'subscriptionLimit': sub['properties_limit'],
       'subscriptionUsed': sub['properties_used'],
+      'subscriptionFeatures': sub['features'],
       'canFeature': sub['can_feature'],
       'contextualAction': _ownerContextualAction(pending, nearSubLimit),
       'banner': nearSubLimit
           ? 'تنبيه: اقتربت من حد الباقة — ${sub['properties_used']}/${sub['properties_limit'] == -1 ? '∞' : sub['properties_limit']} عقار'
-          : 'باقتك: ${sub['plan_name']} — ${sub['properties_used']}/${sub['properties_limit'] == -1 ? '∞' : sub['properties_limit']} عقار',
+          : 'باقتك: ${sub['plan_name']}${sub['plan_id'] == 'gold' ? ' ⭐' : ''} — '
+              '${sub['properties_used']}/${sub['properties_limit'] == -1 ? '∞' : sub['properties_limit']} إعلان',
     };
   }
 

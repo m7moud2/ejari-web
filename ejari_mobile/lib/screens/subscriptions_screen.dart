@@ -27,12 +27,12 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   }
 
   Future<void> _loadUserData() async {
-    final user = await AuthService.getCurrentUser();
+    final role = await AuthService.getUserRole();
     final subscription = await SubscriptionService.getCurrentSubscription();
     final summary = await SubscriptionService.getSubscriptionSummary();
 
     setState(() {
-      _userType = user?['type'] ?? 'tenant';
+      _userType = role == 'tenant' ? 'tenant' : 'owner';
       _currentPlan = subscription['plan'] ?? 'free';
       _summary = summary;
       _isLoading = false;
@@ -74,7 +74,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         ),
       );
       if (!mounted) return;
-      _loadUserData();
+      await _loadUserData();
     } else {
       await SubscriptionService.subscribe(normalized, _userType);
       if (mounted) {
@@ -216,7 +216,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
   Widget _buildComparisonTable() {
     const rows = [
-      ('مجاني', '1', '—', '—'),
+      ('مجاني', '2', '—', '—'),
       ('برونزي', '5', '—', '—'),
       ('فضي', '15', '✓', '—'),
       ('ذهبي', '∞', '✓', '✓'),
@@ -257,24 +257,24 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   List<Widget> _buildOwnerPlans() {
     return [
       _buildPlanCard('free', 'مجاني', '0', [
-        'عقار واحد',
+        'حتى 2 عقارات',
         '5 طلبات شهرياً',
         'عمولة على الإيجار',
       ], AppTheme.borderColor),
-      _buildPlanCard('bronze', 'برونزي', '299', [
+      _buildPlanCard('bronze', 'برونزي', '99', [
         'حتى 5 عقارات',
+        'تحليلات أساسية',
         'بدون عمولة',
-        'دعم فني',
       ], AppTheme.primaryColor),
-      _buildPlanCard('silver', 'فضي', '599', [
+      _buildPlanCard('silver', 'فضي', '249', [
         'حتى 15 عقار',
-        'أولوية في الظهور',
-        'Reels تسويقية',
-      ], AppTheme.primaryColor, isPopular: true),
-      _buildPlanCard('gold', 'ذهبي (Ejari)', '1299', [
-        'عقارات غير محدودة',
         'تمييز الإعلانات',
         'تحليلات متقدمة',
+      ], AppTheme.primaryColor, isPopular: true),
+      _buildPlanCard('gold', 'ذهبي', '499', [
+        'عقارات غير محدودة',
+        'تمييز أولوية',
+        'تحليلات كاملة',
       ], AppTheme.accentColor),
     ];
   }

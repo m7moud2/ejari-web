@@ -280,8 +280,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
       final planId =
           widget.itemData['id'] ?? widget.itemData['planId'] ?? 'bronze';
       final userType = widget.itemData['userType'] ?? 'owner';
-      await SubscriptionService.subscribe(planId.toString(), userType.toString());
       final user = await AuthService.getCurrentUser();
+      final email = user?['email']?.toString() ?? '';
+      await SubscriptionService.activatePlan(
+        email,
+        planId.toString(),
+        userType: userType.toString(),
+      );
       await WalletService.recordExternalPayment(
         title: 'اشتراك ${widget.itemData['name'] ?? planId}',
         amount: _displayAmount,

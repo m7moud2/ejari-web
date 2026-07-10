@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/booking_qr_service.dart';
@@ -21,6 +22,10 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
   bool _loading = false;
   bool _scanning = false;
   List<Map<String, dynamic>> _ownerBookings = [];
+
+  static String get _scanTabHint => kIsWeb
+      ? 'على الويب: الصق رمز الحجز في تبويب «يدوي» أو اختر حجزاً أدناه لمحاكاة المسح'
+      : 'في النسخة التجريبية: اختر حجزاً أدناه لمحاكاة المسح';
 
   @override
   void initState() {
@@ -57,11 +62,13 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
     } else {
       result = await BookingQrService.verifyByBookingId(input.trim());
     }
-    setState(() {
-      _result = result;
-      _loading = false;
-      _scanning = false;
-    });
+    if (mounted) {
+      setState(() {
+        _result = result;
+        _loading = false;
+        _scanning = false;
+      });
+    }
   }
 
   Future<void> _simulateCameraScan(Map<String, dynamic> booking) async {
@@ -84,16 +91,16 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
           unselectedLabelColor: AppTheme.textSecondary,
           indicatorColor: AppTheme.primaryColor,
           tabs: const [
-            Tab(icon: Icon(Icons.qr_code_scanner_rounded), text: 'مسح'),
             Tab(icon: Icon(Icons.edit_rounded), text: 'يدوي'),
+            Tab(icon: Icon(Icons.qr_code_scanner_rounded), text: 'مسح'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabs,
         children: [
-          _buildCameraTab(),
           _buildManualTab(),
+          _buildCameraTab(),
         ],
       ),
     );
@@ -134,11 +141,14 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
                                 size: 56),
                             const SizedBox(height: 8),
                             Text(
-                              'وجّه الكاميرا نحو رمز QR',
+                              kIsWeb
+                                  ? 'الكاميرا غير متاحة على الويب'
+                                  : 'وجّه الكاميرا نحو رمز QR',
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.8),
                                 fontSize: 12,
                               ),
+                              textAlign: TextAlign.center,
                             ),
                           ],
                         ),
@@ -161,11 +171,22 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'في النسخة التجريبية: اختر حجزاً أدناه لمحاكاة المسح',
-                  style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                Text(
+                  _scanTabHint,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.textSecondary,
+                  ),
                   textAlign: TextAlign.center,
                 ),
+                if (kIsWeb) ...[
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    onPressed: () => _tabs.animateTo(0),
+                    icon: const Icon(Icons.content_paste_rounded, size: 16),
+                    label: const Text('الصق رمز الحجز'),
+                  ),
+                ],
               ],
             ),
           ),
@@ -240,7 +261,7 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
   }
 
   Widget _buildManualTab() {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.screenPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -248,7 +269,7 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
           const EjariSurfaceCard(
             elevated: false,
             child: Text(
-              'أدخل معرّف الحجز أو الصق رمز QR كاملاً للتحقق.',
+              'أدخل معرّف الحجز (مثل demo_req_1) أو الصق رمز QR كاملاً للتحقق.',
               style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
             ),
           ),
@@ -265,9 +286,34 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
               prefixIcon: const Icon(Icons.confirmation_number_rounded),
             ),
           ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              ActionChip(
+                label: const Text('demo_req_1'),
+                onPressed: _loading
+                    ? null
+                    : () {
+                        _controller.text = 'demo_req_1';
+                        _verifyFromInput('demo_req_1');
+                      },
+              ),
+              ActionChip(
+                label: const Text('demo_bed_booking'),
+                onPressed: _loading
+                    ? null
+                    : () {
+                        _controller.text = 'demo_bed_booking';
+                        _verifyFromInput('demo_bed_booking');
+                      },
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
           ElevatedButton(
-            onPressed: _loading ? null : () => _verifyFromInput(_controller.text),
+            onPressed:
+                _loading ? null : () => _verifyFromInput(_controller.text),
             child: _loading
                 ? const SizedBox(
                     height: 20,
@@ -286,37 +332,108 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
   }
 
   Widget _resultCard() {
+    final valid = _result!['valid'] == true;
+    final expired = _result!['expired'] == true;
+    final color = valid
+        ? const Color(0xFF2D6A5A)
+        : expired
+            ? Colors.orange.shade800
+            : AppTheme.errorColor;
+
     return EjariSurfaceCard(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(
-            _result!['valid'] == true
-                ? Icons.check_circle_rounded
-                : Icons.cancel_rounded,
-            color: _result!['valid'] == true
-                ? const Color(0xFF2D6A5A)
-                : AppTheme.errorColor,
-            size: 48,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _result!['message']?.toString() ?? '',
-            style: const TextStyle(fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-          if (_result!['valid'] == true) ...[
-            const SizedBox(height: 8),
-            Text(
-              '${_result!['tenantName']} — ${_result!['propertyTitle']}',
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppTheme.textSecondary,
+          Row(
+            children: [
+              Icon(
+                valid
+                    ? Icons.check_circle_rounded
+                    : expired
+                        ? Icons.schedule_rounded
+                        : Icons.cancel_rounded,
+                color: color,
+                size: 40,
               ),
-              textAlign: TextAlign.center,
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      valid
+                          ? 'صالح ✓'
+                          : expired
+                              ? 'منتهي ✗'
+                              : 'غير صالح ✗',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 18,
+                        color: color,
+                      ),
+                    ),
+                    Text(
+                      _result!['message']?.toString() ?? '',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (_result!['bookingId'] != null) ...[
+            const Divider(height: 24),
+            _detailRow('معرّف الحجز', _result!['bookingId']?.toString()),
+            _detailRow('المستأجر', _result!['tenantName']?.toString()),
+            _detailRow('العقار', _result!['propertyTitle']?.toString()),
+            if (_result!['bedLabel'] != null)
+              _detailRow('السرير', _result!['bedLabel']?.toString()),
+            _detailRow('تاريخ الدخول', _formatDate(_result!['checkInDate'])),
+            _detailRow('المدة', _result!['duration']?.toString()),
+            _detailRow('حالة الدفع', _result!['paymentStatus']?.toString()),
+            _detailRow('حالة الحجز', _result!['bookingStatus']?.toString()),
           ],
         ],
       ),
     );
+  }
+
+  Widget _detailRow(String label, String? value) {
+    if (value == null || value.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 90,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 11,
+                color: AppTheme.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(String? raw) {
+    if (raw == null || raw.isEmpty) return '—';
+    final dt = DateTime.tryParse(raw);
+    if (dt == null) return raw;
+    return '${dt.year}/${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')}';
   }
 }

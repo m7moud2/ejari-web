@@ -317,11 +317,38 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                       decoration: BoxDecoration(
                         color: AppTheme.primaryColor.withOpacity(0.06),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _subscriptionInfo!['can_list_via_package'] == true
+                              ? AppTheme.primaryColor.withOpacity(0.2)
+                              : AppTheme.errorColor.withOpacity(0.3),
+                        ),
                       ),
-                      child: Text(
-                        'باقتك: ${_subscriptionInfo!['current_plan']} — '
-                        '${_subscriptionInfo!['current_count']}/${_subscriptionInfo!['limit'] == -1 ? '∞' : _subscriptionInfo!['limit']} عقار',
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'باقتك: ${_subscriptionInfo!['current_plan']} — '
+                              '${_subscriptionInfo!['current_count']}/${_subscriptionInfo!['limit'] == -1 ? '∞' : _subscriptionInfo!['limit']} عقار',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          if (_subscriptionInfo!['can_list_via_package'] != true)
+                            TextButton(
+                              onPressed: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const ListingPlansScreen(),
+                                  ),
+                                );
+                                await _loadSubscription();
+                              },
+                              child: const Text('ترقية', style: TextStyle(fontSize: 11)),
+                            ),
+                        ],
                       ),
                     ),
                   _buildSectionTitle('نوع الإعلان'),

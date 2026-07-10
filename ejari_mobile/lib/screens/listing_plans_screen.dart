@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../services/subscription_service.dart';
+import '../services/auth_service.dart';
+import '../providers/home_provider.dart';
 import '../utils/auth_gate.dart';
-import 'payment_screen.dart';
+import '../widgets/ejari_section.dart';
+import 'subscription_payment_screen.dart';
 
 class ListingPlansScreen extends StatefulWidget {
   final bool isFromWizard;
@@ -13,8 +17,16 @@ class ListingPlansScreen extends StatefulWidget {
 }
 
 class _ListingPlansScreenState extends State<ListingPlansScreen> {
-  bool _isAnnual = true;
   String _currentPlan = 'free';
+  Map<String, dynamic>? _summary;
+  bool _loading = true;
+
+  static const _comparisonRows = [
+    ('مجاني', '2', '✗', '✗', '0'),
+    ('برونزي', '5', '✗', 'أساسية', '99'),
+    ('فضي', '15', '✓', '✓', '249'),
+    ('ذهبي', '∞', '✓ أولوية', '✓ كاملة', '499'),
+  ];
 
   @override
   void initState() {
@@ -24,8 +36,13 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
 
   Future<void> _loadCurrent() async {
     final sub = await SubscriptionService.getCurrentSubscription();
+    final summary = await SubscriptionService.getSubscriptionSummary();
     if (mounted) {
-      setState(() => _currentPlan = sub['plan']?.toString() ?? 'free');
+      setState(() {
+        _currentPlan = sub['plan']?.toString() ?? 'free';
+        _summary = summary;
+        _loading = false;
+      });
     }
   }
 
@@ -34,361 +51,96 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('خطط النشر الإيجاري ✨'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        title: const Text('خطط النشر'),
+        backgroundColor: AppTheme.backgroundColor,
+        surfaceTintColor: Colors.transparent,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            const Text(
-              'اختر الباقة التي تناسب استثماراتك',
-              style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'وفر أكثر مع الخطط السنوية واحصل على عمولة 0%',
-              style: TextStyle(color: AppTheme.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-
-            // Toggle Switch
-            _buildPeriodToggle(),
-            const SizedBox(height: 24),
-            _buildFreeTierCard(),
-            const SizedBox(height: 20),
-            _buildFeatureTable(),
-            const SizedBox(height: 32),
-
-            // Package Cards
-            _buildPackageCard(
-              id: 'bronze',
-              title: 'الباقة البرونزية',
-              price: _isAnnual ? '2,990' : '299',
-              features: ['حتى 5 عقارات', 'دعم فني أساسي', 'عمولة 0%'],
-              color: AppTheme.borderColor,
-            ),
-            const SizedBox(height: 20),
-            _buildPackageCard(
-              id: 'silver',
-              title: 'الباقة الفضية',
-              price: _isAnnual ? '5,990' : '599',
-              features: [
-                'حتى 15 عقار',
-                'ظهور في الـ Reels',
-                'الأولوية في البحث',
-                'عمولة 0%'
-              ],
-              color: AppTheme.borderColor,
-              isPopular: true,
-            ),
-            const SizedBox(height: 20),
-            _buildPackageCard(
-              id: 'gold',
-              title: 'الباقة الذهبية (Ejari)',
-              price: _isAnnual ? '12,990' : '1,299',
-              features: [
-                'عقارات غير محدودة',
-                'تمييز الإعلانات (Featured)',
-                'تصوير احترافي مجاني',
-                'عمولة 0%'
-              ],
-              color: AppTheme.primaryColor,
-            ),
-
-            const SizedBox(height: 40),
-            const Divider(),
-            const SizedBox(height: 20),
-
-            // Commission Option
-            _buildCommissionCard(),
-
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFreeTierCard() {
-    final isCurrent = _currentPlan == 'free';
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isCurrent ? AppTheme.primaryColor : AppTheme.borderColor.withOpacity(0.2),
-          width: isCurrent ? 2 : 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.home_outlined, color: AppTheme.primaryColor),
-              SizedBox(width: 8),
-              Text('الباقة المجانية',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          const Text('عقار واحد • عمولة 10% • بدون تمييز',
-              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: isCurrent ? null : () => _handleSelection('free'),
-              child: Text(isCurrent ? 'الباقة الحالية' : 'اختيار مجاني'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureTable() {
-    const rows = [
-      ('مجاني', '1', '—', '—'),
-      ('برونزي', '5', '—', '—'),
-      ('فضي', '15', '✓', '—'),
-      ('ذهبي', '∞', '✓', '✓'),
-    ];
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppTheme.borderColor.withOpacity(0.15)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('مقارنة خطط النشر',
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-          const SizedBox(height: 10),
-          const Row(
-            children: [
-              Expanded(child: Text('الخطة', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
-              Expanded(child: Text('إعلانات', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
-              Expanded(child: Text('تمييز', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
-              Expanded(child: Text('تحليلات', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
-            ],
-          ),
-          const Divider(height: 14),
-          ...rows.map((r) => Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Row(
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _loadCurrent,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(AppTheme.screenPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(child: Text(r.$1, style: const TextStyle(fontSize: 11))),
-                    Expanded(child: Text(r.$2, style: const TextStyle(fontSize: 11))),
-                    Expanded(child: Text(r.$3, style: const TextStyle(fontSize: 11))),
-                    Expanded(child: Text(r.$4, style: const TextStyle(fontSize: 11))),
+                    _buildCurrentPlanBanner(),
+                    const SizedBox(height: 20),
+                    const EjariSectionHeader(
+                      title: 'مقارنة الباقات',
+                      subtitle: 'اختر الخطة المناسبة لنشاطك العقاري',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildComparisonTable(),
+                    const SizedBox(height: 24),
+                    ..._buildPlanCards(),
+                    const SizedBox(height: 16),
+                    _buildCommissionCard(),
                   ],
                 ),
-              )),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPeriodToggle() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildToggleButton('شهري', !_isAnnual),
-          _buildToggleButton('سنوي (وفر 20%)', _isAnnual),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildToggleButton(String text, bool active) {
-    return GestureDetector(
-      onTap: () => setState(() => _isAnnual = text.contains('سنوي')),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        decoration: BoxDecoration(
-          color: active ? AppTheme.primaryColor : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          text,
-          style: TextStyle(
-              color: active ? Colors.white : AppTheme.textSecondary,
-              fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPackageCard({
-    required String id,
-    required String title,
-    required String price,
-    required List<String> features,
-    required Color color,
-    bool isPopular = false,
-  }) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(24),
-        border: isPopular ? Border.all(color: color, width: 2) : null,
-        boxShadow: const [],
-      ),
-      child: Stack(
-        children: [
-          if (isPopular)
-            Positioned(
-              top: 0,
-              right: 20,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(12))),
-                child: const Text('الأكثر طلباً',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold)),
               ),
             ),
-          Padding(
-            padding: const EdgeInsets.all(24),
+    );
+  }
+
+  Widget _buildCurrentPlanBanner() {
+    final planName = _summary?['plan_name']?.toString() ?? 'مجاني';
+    final used = _summary?['properties_used'] ?? 0;
+    final limit = _summary?['properties_limit'] ?? 2;
+    final isGold = _currentPlan == 'gold';
+
+    return EjariSurfaceCard(
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              isGold ? Icons.star_rounded : Icons.workspace_premium_rounded,
+              color: AppTheme.primaryColor,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(title,
-                        style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: color)),
-                    Icon(Icons.workspace_premium, color: color),
-                  ],
+                const Text(
+                  'باقتك الحالية',
+                  style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(price,
-                        style: const TextStyle(
-                            fontSize: 32, fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 4),
-                    const Text('ج.م',
-                        style: TextStyle(
-                            color: AppTheme.textSecondary, fontSize: 14)),
-                    Text(_isAnnual ? '/سنة' : '/شهر',
-                        style: const TextStyle(
-                            color: AppTheme.textSecondary, fontSize: 14)),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                ...features.map((f) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        children: [
-                          Icon(Icons.check_circle_rounded,
-                              color: color.withOpacity(0.5), size: 18),
-                          const SizedBox(width: 10),
-                          Text(f, style: const TextStyle(fontSize: 14)),
-                        ],
-                      ),
-                    )),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () => _handleSelection(id),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: color,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text('اشترك الآن',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  '$planName${isGold ? ' ⭐' : ''}',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
                   ),
+                ),
+                Text(
+                  'الإعلانات: $used / ${limit == -1 ? '∞' : limit}',
+                  style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
                 ),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCommissionCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
-      ),
-      child: Column(
-        children: [
-          const Text(
-            'لا ترغب في الاشتراك؟ انشر مجاناً!',
-            style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.primaryColor),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'ادفع فقط عند إتمام الصفقة (نظام العمولة)',
-            style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildCommissionBadge('بيع', '2.5%'),
-              _buildCommissionBadge('إيجار', '10%'),
-            ],
-          ),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () => _handleSelection('commission'),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-                side: const BorderSide(color: AppTheme.primaryColor),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppTheme.accentColor.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: const Text(
+              'نشط',
+              style: TextStyle(
+                color: AppTheme.primaryColor,
+                fontWeight: FontWeight.w800,
+                fontSize: 11,
               ),
-              child: const Text('اختيار نظام العمولة',
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryColor)),
             ),
           ),
         ],
@@ -396,24 +148,202 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
     );
   }
 
-  Widget _buildCommissionBadge(String title, String value) {
-    return Column(
-      children: [
-        Text(title,
-            style:
-                const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-        Text(value,
-            style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.primaryColor)),
-      ],
+  Widget _buildComparisonTable() {
+    return EjariSurfaceCard(
+      elevated: false,
+      child: Column(
+        children: [
+          const Row(
+            children: [
+              Expanded(flex: 2, child: Text('الخطة', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900))),
+              Expanded(child: Text('إعلانات', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900), textAlign: TextAlign.center)),
+              Expanded(child: Text('تمييز', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900), textAlign: TextAlign.center)),
+              Expanded(child: Text('تحليلات', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900), textAlign: TextAlign.center)),
+              Expanded(child: Text('السعر', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900), textAlign: TextAlign.center)),
+            ],
+          ),
+          const Divider(height: 16),
+          ..._comparisonRows.map((row) {
+            final planKey = switch (row.$1) {
+              'مجاني' => 'free',
+              'برونزي' => 'bronze',
+              'فضي' => 'silver',
+              _ => 'gold',
+            };
+            final isCurrent = _currentPlan == planKey;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 6),
+              padding: isCurrent
+                  ? const EdgeInsets.symmetric(vertical: 6, horizontal: 4)
+                  : EdgeInsets.zero,
+              decoration: isCurrent
+                  ? BoxDecoration(
+                      color: AppTheme.primaryColor.withOpacity(0.06),
+                      borderRadius: BorderRadius.circular(8),
+                    )
+                  : null,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Row(
+                      children: [
+                        Text(row.$1, style: TextStyle(fontSize: 11, fontWeight: isCurrent ? FontWeight.w900 : FontWeight.w600)),
+                        if (isCurrent) ...[
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primaryColor,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text('أنت هنا', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w800)),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  Expanded(child: Text(row.$2, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center)),
+                  Expanded(child: Text(row.$3, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center)),
+                  Expanded(child: Text(row.$4, style: const TextStyle(fontSize: 11), textAlign: TextAlign.center)),
+                  Expanded(child: Text('${row.$5}/ش', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800), textAlign: TextAlign.center)),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
     );
   }
 
-  void _handleSelection(String planId) async {
-    final navigator = Navigator.of(context);
-    if (planId != 'free') {
+  List<Widget> _buildPlanCards() {
+    const plans = [
+      ('free', 'مجاني', 0, AppTheme.borderColor),
+      ('bronze', 'برونزي', 99, Color(0xFF8B6914)),
+      ('silver', 'فضي', 249, AppTheme.primaryColor),
+      ('gold', 'ذهبي', 499, AppTheme.accentColor),
+    ];
+
+    return plans.map((p) {
+      final id = p.$1;
+      final name = p.$2;
+      final price = p.$3;
+      final color = p.$4;
+      final isCurrent = _currentPlan == id;
+      final features = SubscriptionService.planFeatureLabels(id);
+      final isPopular = id == 'silver';
+
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: EjariSurfaceCard(
+          padding: EdgeInsets.zero,
+          child: Column(
+            children: [
+              if (isPopular)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  decoration: BoxDecoration(
+                    color: color,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  child: const Text(
+                    '⭐ الأكثر طلباً',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 11),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(name, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: color)),
+                        const Spacer(),
+                        if (isCurrent)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: color.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text('الباقة الحالية', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: color)),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      price == 0 ? 'مجاناً' : '$price ج.م/شهر',
+                      style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 14),
+                    ...features.map((f) => Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Row(
+                            children: [
+                              Icon(Icons.check_circle_rounded, color: color, size: 16),
+                              const SizedBox(width: 8),
+                              Expanded(child: Text(f, style: const TextStyle(fontSize: 12))),
+                            ],
+                          ),
+                        )),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: isCurrent ? null : () => _handleSelection(id),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isCurrent ? AppTheme.borderColor : color,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: Text(
+                          isCurrent ? 'الباقة الحالية' : 'اشترك الآن',
+                          style: const TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }).toList();
+  }
+
+  Widget _buildCommissionCard() {
+    return EjariSurfaceCard(
+      elevated: false,
+      child: Column(
+        children: [
+          const Text(
+            'لا ترغب في الاشتراك؟',
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'انشر مجاناً بنظام العمولة — تدفع فقط عند إتمام الصفقة',
+            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton(
+            onPressed: _currentPlan == 'commission'
+                ? null
+                : () => _handleSelection('commission'),
+            child: const Text('اختيار نظام العمولة'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleSelection(String planId) async {
+    if (planId != 'free' && planId != 'commission') {
       final allowed = await AuthGate.requireLogin(
         context,
         actionLabel: 'الاشتراك في الباقات المدفوعة',
@@ -421,49 +351,44 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
       if (!allowed || !mounted) return;
     }
 
-    if (planId == 'free') {
-      await SubscriptionService.subscribe('free', 'owner');
-    } else if (planId != 'commission') {
-      double amount = 0;
-      if (planId == 'bronze') {
-        amount = _isAnnual ? 2990 : 299;
-      } else if (planId == 'silver') {
-        amount = _isAnnual ? 5990 : 599;
-      } else if (planId == 'gold') {
-        amount = _isAnnual ? 12990 : 1299;
-      }
+    if (planId == 'free' || planId == 'commission') {
+      final user = await AuthService.getCurrentUser();
+      final email = user?['email']?.toString() ?? '';
+      await SubscriptionService.activatePlan(email, planId, userType: 'owner');
+    } else {
+      final planDetails = SubscriptionService.getPlanDetails(planId, 'owner');
+      if (planDetails == null) return;
 
-      final result = await navigator.push(
+      final paid = await Navigator.push<bool>(
+        context,
         MaterialPageRoute(
-          builder: (context) => PaymentScreen(
-            itemType: 'subscription',
-            itemData: {
-              'id': planId,
-              'name': planId == 'bronze'
-                  ? 'الباقة البرونزية'
-                  : (planId == 'silver' ? 'الباقة الفضية' : 'الباقة الذهبية'),
-              'period': _isAnnual ? 'annual' : 'monthly',
-            },
-            amount: amount,
+          builder: (_) => SubscriptionPaymentScreen(
+            planId: planId,
+            userType: 'owner',
+            planDetails: planDetails,
           ),
         ),
       );
-
-      if (result != true) return;
-      await SubscriptionService.subscribe(planId, 'owner');
+      if (paid != true || !mounted) return;
     }
 
-    if (mounted) {
-      if (widget.isFromWizard) {
-        Navigator.pop(context, planId);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('تم تفعيل الخطة بنجاح! ✅'),
-              backgroundColor: AppTheme.primaryColor),
-        );
-        Navigator.pop(context);
-      }
+    await _loadCurrent();
+    if (!mounted) return;
+
+    try {
+      context.read<HomeProvider>().loadHomeData('owner');
+    } catch (_) {}
+
+    if (widget.isFromWizard) {
+      Navigator.pop(context, planId);
+      return;
     }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('تم تفعيل الخطة بنجاح! ✅'),
+        backgroundColor: AppTheme.primaryColor,
+      ),
+    );
   }
 }
