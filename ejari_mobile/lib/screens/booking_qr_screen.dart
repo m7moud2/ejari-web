@@ -63,7 +63,9 @@ class _BookingQrScreenState extends State<BookingQrScreen> {
                           child: QrImageView(
                             data: _qr!['qrData']?.toString() ?? '',
                             version: QrVersions.auto,
-                            size: 180,
+                            errorCorrectionLevel: QrErrorCorrectLevel.M,
+                            size: 200,
+                            gapless: true,
                             eyeStyle: const QrEyeStyle(
                               eyeShape: QrEyeShape.square,
                               color: AppTheme.primaryColor,

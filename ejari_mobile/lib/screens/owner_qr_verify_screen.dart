@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import '../theme/app_theme.dart';
 import '../services/booking_qr_service.dart';
 import '../services/auth_service.dart';
@@ -15,30 +16,60 @@ class OwnerQrVerifyScreen extends StatefulWidget {
 }
 
 class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final TabController _tabs;
   final _controller = TextEditingController();
   Map<String, dynamic>? _result;
   bool _loading = false;
-  bool _scanning = false;
+  bool _cameraActive = false;
+  bool _cameraInitializing = false;
+  String? _cameraError;
+  bool _scanLock = false;
+  MobileScannerController? _scannerController;
   List<Map<String, dynamic>> _ownerBookings = [];
 
-  static String get _scanTabHint => kIsWeb
-      ? 'على الويب: الصق رمز الحجز في تبويب «يدوي» أو اختر حجزاً أدناه لمحاكاة المسح'
-      : 'في النسخة التجريبية: اختر حجزاً أدناه لمحاكاة المسح';
+  static const double _previewHeight = 280;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _tabs = TabController(length: 2, vsync: this);
+    _tabs.addListener(_onTabChanged);
     _loadBookings();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _tabs.removeListener(_onTabChanged);
     _tabs.dispose();
     _controller.dispose();
+    _scannerController?.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final scanner = _scannerController;
+    if (scanner == null || !_cameraActive) return;
+    if (!scanner.value.hasCameraPermission) return;
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        scanner.start();
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        scanner.stop();
+    }
+  }
+
+  void _onTabChanged() {
+    if (_tabs.index != 1 && _cameraActive) {
+      _stopCameraScan();
+    }
   }
 
   Future<void> _loadBookings() async {
@@ -66,13 +97,83 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
       setState(() {
         _result = result;
         _loading = false;
-        _scanning = false;
+        _scanLock = false;
       });
     }
   }
 
+  Future<void> _startCameraScan() async {
+    setState(() {
+      _cameraActive = true;
+      _cameraInitializing = true;
+      _cameraError = null;
+      _scanLock = false;
+      _result = null;
+    });
+
+    _scannerController ??= MobileScannerController(
+      autoStart: false,
+      detectionSpeed: DetectionSpeed.noDuplicates,
+      facing: CameraFacing.back,
+      formats: const [BarcodeFormat.qrCode],
+    );
+
+    try {
+      await _scannerController!.start();
+      if (mounted) {
+        setState(() => _cameraInitializing = false);
+      }
+    } on MobileScannerException catch (e) {
+      _handleCameraFailure(_cameraErrorMessage(e));
+    } catch (_) {
+      _handleCameraFailure(
+        'تعذّر تشغيل الكاميرا. جرّب الإدخال اليدوي أو حدّث الصفحة.',
+      );
+    }
+  }
+
+  Future<void> _stopCameraScan() async {
+    await _scannerController?.stop();
+    if (mounted) {
+      setState(() {
+        _cameraActive = false;
+        _cameraInitializing = false;
+      });
+    }
+  }
+
+  void _handleCameraFailure(String message) {
+    if (!mounted) return;
+    setState(() {
+      _cameraActive = false;
+      _cameraInitializing = false;
+      _cameraError = message;
+    });
+  }
+
+  String _cameraErrorMessage(MobileScannerException error) {
+    switch (error.errorCode) {
+      case MobileScannerErrorCode.permissionDenied:
+        return 'تم رفض إذن الكاميرا. فعّل الكاميرا من إعدادات المتصفح/الجهاز ثم أعد المحاولة، أو استخدم الإدخال اليدوي.';
+      case MobileScannerErrorCode.unsupported:
+        return 'الكاميرا غير متاحة على هذا الجهاز. استخدم الإدخال اليدوي.';
+      default:
+        return error.errorDetails?.message ??
+            'تعذّر تشغيل الكاميرا. جرّب الإدخال اليدوي.';
+    }
+  }
+
+  void _handleBarcode(BarcodeCapture capture) {
+    if (_scanLock || _loading || !_cameraActive) return;
+    final raw = capture.barcodes.firstOrNull?.rawValue;
+    if (raw == null || raw.trim().isEmpty) return;
+
+    _scanLock = true;
+    _stopCameraScan();
+    _verifyFromInput(raw);
+  }
+
   Future<void> _simulateCameraScan(Map<String, dynamic> booking) async {
-    setState(() => _scanning = true);
     final qr = await BookingQrService.generateForBooking(booking);
     await _verifyFromInput(qr['qrData'] as String);
   }
@@ -115,85 +216,51 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
           EjariSurfaceCard(
             child: Column(
               children: [
-                Container(
-                  height: 180,
-                  decoration: BoxDecoration(
-                    color: Colors.black87,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppTheme.accentColor.withOpacity(0.6),
-                      width: 2,
-                    ),
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      if (_scanning)
-                        const CircularProgressIndicator(
-                          color: AppTheme.accentColor,
-                        )
-                      else
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.qr_code_scanner_rounded,
-                                color: AppTheme.accentColor.withOpacity(0.8),
-                                size: 56),
-                            const SizedBox(height: 8),
-                            Text(
-                              kIsWeb
-                                  ? 'الكاميرا غير متاحة على الويب'
-                                  : 'وجّه الكاميرا نحو رمز QR',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
-                                fontSize: 12,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
-                        ),
-                      Positioned(
-                        top: 24,
-                        left: 24,
-                        right: 24,
-                        bottom: 24,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: AppTheme.accentColor,
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ],
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: SizedBox(
+                    height: _previewHeight,
+                    width: double.infinity,
+                    child: _buildCameraPreview(),
                   ),
                 ),
                 const SizedBox(height: 12),
+                if (_cameraError != null) ...[
+                  _cameraErrorBanner(),
+                  const SizedBox(height: 10),
+                ],
+                if (_cameraActive)
+                  OutlinedButton.icon(
+                    onPressed: _cameraInitializing ? null : _stopCameraScan,
+                    icon: const Icon(Icons.stop_circle_outlined, size: 18),
+                    label: const Text('إيقاف المسح'),
+                  )
+                else
+                  ElevatedButton.icon(
+                    onPressed: _loading ? null : _startCameraScan,
+                    icon: const Icon(Icons.qr_code_scanner_rounded, size: 18),
+                    label: const Text('بدء المسح'),
+                  ),
+                const SizedBox(height: 8),
                 Text(
-                  _scanTabHint,
+                  _cameraActive
+                      ? 'وجّه الكاميرا نحو رمز QR — سيتم التحقق تلقائياً عند المسح'
+                      : kIsWeb
+                          ? 'اضغط «بدء المسح» للسماح بالكاميرا (localhost مدعوم)'
+                          : 'اضغط «بدء المسح» لفتح الكاميرا ومسح رمز الحجز',
                   style: const TextStyle(
                     fontSize: 11,
                     color: AppTheme.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                if (kIsWeb) ...[
-                  const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                    onPressed: () => _tabs.animateTo(0),
-                    icon: const Icon(Icons.content_paste_rounded, size: 16),
-                    label: const Text('الصق رمز الحجز'),
-                  ),
-                ],
               ],
             ),
           ),
           const SizedBox(height: 16),
           const EjariSectionHeader(
-            title: 'حجوزات للمسح',
-            subtitle: 'اضغط لمحاكاة مسح QR',
+            title: 'حجوزات للاختبار',
+            subtitle: 'محاكاة مسح QR بدون كاميرا',
           ),
           const SizedBox(height: 8),
           if (_ownerBookings.isEmpty)
@@ -245,7 +312,7 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
                         minimumSize: Size.zero,
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      child: const Text('مسح', style: TextStyle(fontSize: 11)),
+                      child: const Text('اختبار', style: TextStyle(fontSize: 11)),
                     ),
                   ),
                 ),
@@ -255,6 +322,178 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
             const SizedBox(height: 16),
             _resultCard(),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCameraPreview() {
+    if (!_cameraActive) {
+      return Container(
+        color: Colors.black87,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.qr_code_scanner_rounded,
+                    color: AppTheme.accentColor.withOpacity(0.8), size: 56),
+                const SizedBox(height: 8),
+                Text(
+                  'اضغط «بدء المسح» لفتح الكاميرا',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.85),
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+            Positioned(
+              top: 24,
+              left: 24,
+              right: 24,
+              bottom: 24,
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppTheme.accentColor, width: 2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_cameraInitializing || _scannerController == null) {
+      return Container(
+        color: Colors.black87,
+        child: const Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(color: AppTheme.accentColor),
+              SizedBox(height: 12),
+              Text(
+                'جاري تشغيل الكاميرا…',
+                style: TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        MobileScanner(
+          controller: _scannerController!,
+          onDetect: _handleBarcode,
+          errorBuilder: (context, error, child) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && _cameraActive) {
+                _handleCameraFailure(_cameraErrorMessage(error));
+              }
+            });
+            return Container(
+              color: Colors.black87,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    _cameraErrorMessage(error),
+                    style: const TextStyle(color: Colors.white70, fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            );
+          },
+          placeholderBuilder: (context, child) {
+            return Container(
+              color: Colors.black87,
+              child: const Center(
+                child: CircularProgressIndicator(color: AppTheme.accentColor),
+              ),
+            );
+          },
+          overlayBuilder: (context, constraints) {
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                Center(
+                  child: Container(
+                    width: constraints.maxWidth * 0.72,
+                    height: constraints.maxHeight * 0.55,
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppTheme.accentColor, width: 2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+                if (_loading)
+                  Container(
+                    color: Colors.black54,
+                    child: const Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CircularProgressIndicator(color: AppTheme.accentColor),
+                          SizedBox(height: 12),
+                          Text(
+                            'جاري التحقق…',
+                            style: TextStyle(color: Colors.white, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _cameraErrorBanner() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.errorColor.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.errorColor.withOpacity(0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.videocam_off_rounded,
+                  color: AppTheme.errorColor, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _cameraError!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.errorColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: () => _tabs.animateTo(0),
+            icon: const Icon(Icons.edit_rounded, size: 16),
+            label: const Text('الانتقال للإدخال اليدوي'),
+          ),
         ],
       ),
     );
