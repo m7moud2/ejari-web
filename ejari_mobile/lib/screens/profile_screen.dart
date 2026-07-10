@@ -17,6 +17,7 @@ import 'notification_center_screen.dart';
 import '../main.dart';
 import 'rental_statement_screen.dart';
 import '../services/chat_service.dart';
+import '../services/support_service.dart';
 import 'maintenance_requests_screen.dart';
 import 'provider_jobs_screen.dart';
 import 'provider_timeline_screen.dart';
@@ -25,6 +26,11 @@ import 'admin_dashboard_screen.dart';
 import 'admin_users_screen.dart';
 import 'admin_properties_screen.dart';
 import 'admin_financials_screen.dart';
+import 'admin_search_screen.dart';
+import 'admin_support_screen.dart';
+import 'admin_reviews_screen.dart';
+import 'admin_service_requests_screen.dart';
+import 'admin_reports_screen.dart';
 import 'properties_screen.dart';
 import 'add_property_screen.dart';
 import 'owner_collection_screen.dart';
@@ -157,7 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _buildEjariMenuItem('أصبح مالكاً',
                           Icons.business_center_outlined, AppTheme.accentColor,
                           _showBecomeOwnerDialog, isLast: true)
-                    else
+                    else if (!_isAdmin)
                       _buildEjariMenuItem('طرق الدفع المحفوظة',
                           Icons.payment_rounded, AppTheme.primaryColor, () {
                         Navigator.push(
@@ -165,57 +171,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             MaterialPageRoute(
                                 builder: (_) =>
                                     const PaymentMethodsScreen()));
+                      }, isLast: true)
+                    else
+                      _buildEjariMenuItem('لوحة التحكم',
+                          Icons.dashboard_rounded, AppTheme.primaryColor, () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const AdminDashboardScreen()));
                       }, isLast: true),
                   ]),
 
                   const SizedBox(height: AppTheme.spaceXl),
 
-                  // العقارات والحجوزات / مهام الفني
-                  EjariSectionHeader(
-                    title: _isTechnician ? 'المهام' : 'العقارات والحجوزات',
-                    subtitle: _isTechnician
-                        ? 'مهامك وجدولك'
-                        : _isTenant
-                            ? 'حجوزاتك وعقودك'
-                            : 'عقاراتك وطلبات الحجز',
-                  ),
-                  const SizedBox(height: AppTheme.spaceSm),
-                  _buildMenuCard(_propertyMenuItems()),
-
-                  const SizedBox(height: AppTheme.spaceXl),
+                  // العقارات والحجوزات / مهام الفني / إدارة
+                  if (!_isAdmin) ...[
+                    EjariSectionHeader(
+                      title: _isTechnician ? 'المهام' : 'العقارات والحجوزات',
+                      subtitle: _isTechnician
+                          ? 'مهامك وجدولك'
+                          : _isTenant
+                              ? 'حجوزاتك وعقودك'
+                              : 'عقاراتك وطلبات الحجز',
+                    ),
+                    const SizedBox(height: AppTheme.spaceSm),
+                    _buildMenuCard(_propertyMenuItems()),
+                    const SizedBox(height: AppTheme.spaceXl),
+                  ],
 
                   // المالية
-                  EjariSectionHeader(
-                    title: 'المالية',
-                    subtitle: _isTechnician
-                        ? 'محفظة الأرباح'
-                        : 'المحفظة والكشوف والتحصيل',
-                  ),
-                  const SizedBox(height: AppTheme.spaceSm),
-                  _buildMenuCard(_financeMenuItems()),
-
-                  const SizedBox(height: AppTheme.spaceXl),
+                  if (!_isAdmin) ...[
+                    EjariSectionHeader(
+                      title: 'المالية',
+                      subtitle: _isTechnician
+                          ? 'محفظة الأرباح'
+                          : 'المحفظة والكشوف والتحصيل',
+                    ),
+                    const SizedBox(height: AppTheme.spaceSm),
+                    _buildMenuCard(_financeMenuItems()),
+                    const SizedBox(height: AppTheme.spaceXl),
+                  ],
 
                   // الدعم
-                  const EjariSectionHeader(
-                    title: 'الدعم',
-                    subtitle: 'المساعدة والتواصل',
-                  ),
-                  const SizedBox(height: AppTheme.spaceSm),
-                  _buildMenuCard([
-                    _buildEjariMenuItem('مركز المساعدة',
-                        Icons.help_outline_rounded, AppTheme.primaryColor, () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const HelpCenterScreen()));
-                    }),
-                    _buildEjariMenuItem('شات الدعم الفني',
-                        Icons.support_agent_rounded, AppTheme.primaryColor,
-                        _openSupportChat, isLast: true),
-                  ]),
-
-                  const SizedBox(height: AppTheme.spaceXl),
+                  if (!_isAdmin) ...[
+                    const EjariSectionHeader(
+                      title: 'الدعم',
+                      subtitle: 'المساعدة والتواصل',
+                    ),
+                    const SizedBox(height: AppTheme.spaceSm),
+                    _buildMenuCard([
+                      _buildEjariMenuItem('مركز المساعدة',
+                          Icons.help_outline_rounded, AppTheme.primaryColor,
+                          () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const HelpCenterScreen()));
+                      }),
+                      _buildEjariMenuItem('شات الدعم الفني',
+                          Icons.support_agent_rounded, AppTheme.primaryColor,
+                          _openSupportChat, isLast: true),
+                    ]),
+                    const SizedBox(height: AppTheme.spaceXl),
+                  ],
 
                   // الإعدادات
                   const EjariSectionHeader(
@@ -241,7 +260,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: AppTheme.spaceXl),
                     const EjariSectionHeader(
                       title: 'إدارة المنصة',
-                      subtitle: 'لوحة المدير — منفصلة عن إشعارات المستخدمين',
+                      subtitle: 'لوحة المدير — أدوات التشغيل والإشراف',
                     ),
                     const SizedBox(height: AppTheme.spaceSm),
                     _buildMenuCard([
@@ -253,14 +272,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 builder: (_) =>
                                     const AdminDashboardScreen()));
                       }),
-                      _buildEjariMenuItem('المالية والمعاملات',
-                          Icons.account_balance_rounded, AppTheme.primaryColor,
-                          () {
+                      _buildEjariMenuItem('بحث شامل', Icons.manage_search_rounded,
+                          AppTheme.primaryColor, () {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) =>
-                                    const AdminFinancialsScreen()));
+                                builder: (_) => const AdminSearchScreen()));
                       }),
                       _buildEjariMenuItem('إدارة المستخدمين',
                           Icons.people_rounded, AppTheme.primaryColor, () {
@@ -276,6 +293,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             MaterialPageRoute(
                                 builder: (_) =>
                                     const AdminPropertiesScreen()));
+                      }),
+                      _buildEjariMenuItem('المالية والمعاملات',
+                          Icons.account_balance_rounded, AppTheme.primaryColor,
+                          () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const AdminFinancialsScreen()));
+                      }),
+                      _buildEjariMenuItem('صندوق الدعم',
+                          Icons.support_agent_rounded, AppTheme.accentColor,
+                          () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const AdminSupportScreen()));
+                      }),
+                      _buildEjariMenuItem('مراجعة التقييمات',
+                          Icons.star_rate_rounded, AppTheme.borderColor, () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const AdminReviewsScreen()));
+                      }),
+                      _buildEjariMenuItem('طلبات الخدمة',
+                          Icons.handyman_rounded, AppTheme.primaryColor, () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const AdminServiceRequestsScreen()));
+                      }),
+                      _buildEjariMenuItem('التقارير',
+                          Icons.analytics_rounded, AppTheme.primaryColor, () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const AdminReportsScreen()));
                       }, isLast: true),
                     ]),
                   ],
@@ -469,11 +525,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _openSupportChat() async {
     if (_userData == null || _userData!['email'] == null) return;
+    final email = _userData!['email'].toString();
+    final name = _userData!['name']?.toString() ?? 'مستخدم';
     final chatId = await ChatService.startChat(
-      _userData!['email'],
-      'admin@ejari.app',
+      email,
+      SupportService.adminEmail,
       'دعم إيجاري',
       'استفسار دعم فني',
+    );
+    await SupportService.createTicket(
+      userEmail: email,
+      userName: name,
+      subject: 'استفسار من الملف الشخصي',
+      message: 'بدء محادثة دعم',
+      chatId: chatId,
     );
     if (!mounted) return;
     Navigator.push(
@@ -482,7 +547,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             builder: (_) => ChatScreen(
                 chatId: chatId,
                 otherUserName: 'دعم إيجاري',
-                currentUserId: _userData!['email'])));
+                currentUserId: email)));
   }
 
   Future<void> _logout() async {

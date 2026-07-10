@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 ///
 /// The middle action solves the user's main job: finding the right property.
 /// Owners get "add property" in the same familiar location.
+/// Admins get search/users/support shortcuts.
 class EjariNavigationBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -19,10 +20,11 @@ class EjariNavigationBar extends StatelessWidget {
     this.role = 'tenant',
   });
 
+  bool get _isOwner => role == 'owner';
+  bool get _isAdmin => role == 'admin';
+
   @override
   Widget build(BuildContext context) {
-    final isOwner = role == 'owner';
-
     return SafeArea(
       top: false,
       child: Padding(
@@ -50,12 +52,16 @@ class EjariNavigationBar extends StatelessWidget {
               selectedIndex: currentIndex.clamp(0, 4),
               labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
               onDestinationSelected: (index) {
+                if (_isAdmin) {
+                  onTap(index);
+                  return;
+                }
                 if (index != 2) {
                   onTap(index);
                   return;
                 }
 
-                if (isOwner) {
+                if (_isOwner) {
                   onTap(2);
                 } else {
                   Navigator.push(
@@ -66,62 +72,94 @@ class EjariNavigationBar extends StatelessWidget {
                   );
                 }
               },
-              destinations: [
-                const NavigationDestination(
-                  icon: Icon(Icons.home_outlined),
-                  selectedIcon: Icon(Icons.home_rounded),
-                  label: 'الرئيسية',
-                ),
-                const NavigationDestination(
-                  icon: Icon(Icons.apartment_outlined),
-                  selectedIcon: Icon(Icons.apartment_rounded),
-                  label: 'العقارات',
-                ),
-                NavigationDestination(
-                  icon: Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withOpacity(0.12),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      isOwner ? Icons.add_home_outlined : Icons.search_rounded,
-                      color: AppTheme.primaryColor,
-                    ),
-                  ),
-                  selectedIcon: Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primaryColor.withOpacity(0.18),
-                          blurRadius: 18,
-                          offset: const Offset(0, 8),
+              destinations: _isAdmin
+                  ? const [
+                      NavigationDestination(
+                        icon: Icon(Icons.dashboard_outlined),
+                        selectedIcon: Icon(Icons.dashboard_rounded),
+                        label: 'لوحة',
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.people_outline_rounded),
+                        selectedIcon: Icon(Icons.people_rounded),
+                        label: 'المستخدمين',
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.manage_search_outlined),
+                        selectedIcon: Icon(Icons.manage_search_rounded),
+                        label: 'بحث',
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.support_agent_outlined),
+                        selectedIcon: Icon(Icons.support_agent_rounded),
+                        label: 'الدعم',
+                      ),
+                      NavigationDestination(
+                        icon: Icon(Icons.person_outline_rounded),
+                        selectedIcon: Icon(Icons.person_rounded),
+                        label: 'حسابي',
+                      ),
+                    ]
+                  : [
+                      const NavigationDestination(
+                        icon: Icon(Icons.home_outlined),
+                        selectedIcon: Icon(Icons.home_rounded),
+                        label: 'الرئيسية',
+                      ),
+                      const NavigationDestination(
+                        icon: Icon(Icons.apartment_outlined),
+                        selectedIcon: Icon(Icons.apartment_rounded),
+                        label: 'العقارات',
+                      ),
+                      NavigationDestination(
+                        icon: Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor.withOpacity(0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            _isOwner
+                                ? Icons.add_home_outlined
+                                : Icons.search_rounded,
+                            color: AppTheme.primaryColor,
+                          ),
                         ),
-                      ],
-                    ),
-                    child: Icon(
-                      isOwner ? Icons.add_home_rounded : Icons.search_rounded,
-                      color: Colors.white,
-                    ),
-                  ),
-                  label: isOwner ? 'إضافة' : 'بحث',
-                ),
-                const NavigationDestination(
-                  icon: Icon(Icons.star_border_rounded),
-                  selectedIcon: Icon(Icons.star_rounded),
-                  label: 'مميز',
-                ),
-                const NavigationDestination(
-                  icon: Icon(Icons.person_outline_rounded),
-                  selectedIcon: Icon(Icons.person_rounded),
-                  label: 'حسابي',
-                ),
-              ],
+                        selectedIcon: Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primaryColor.withOpacity(0.18),
+                                blurRadius: 18,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Icon(
+                            _isOwner
+                                ? Icons.add_home_rounded
+                                : Icons.search_rounded,
+                            color: Colors.white,
+                          ),
+                        ),
+                        label: _isOwner ? 'إضافة' : 'بحث',
+                      ),
+                      const NavigationDestination(
+                        icon: Icon(Icons.star_border_rounded),
+                        selectedIcon: Icon(Icons.star_rounded),
+                        label: 'مميز',
+                      ),
+                      const NavigationDestination(
+                        icon: Icon(Icons.person_outline_rounded),
+                        selectedIcon: Icon(Icons.person_rounded),
+                        label: 'حسابي',
+                      ),
+                    ],
             ),
           ),
         ),

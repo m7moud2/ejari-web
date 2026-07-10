@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'chat_screen.dart';
 import '../services/auth_service.dart';
 import '../services/chat_service.dart';
+import '../services/support_service.dart';
 
 class HelpCenterScreen extends StatefulWidget {
   const HelpCenterScreen({super.key});
@@ -13,6 +14,16 @@ class HelpCenterScreen extends StatefulWidget {
 }
 
 class _HelpCenterScreenState extends State<HelpCenterScreen> {
+  final _searchController = TextEditingController();
+  final _reportController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _reportController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,8 +36,9 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const TextField(
-              decoration: InputDecoration(
+            TextField(
+              controller: _searchController,
+              decoration: const InputDecoration(
                 hintText: 'بحث عن حل لمشكلة...',
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(),
@@ -52,21 +64,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                   Icons.support_agent_rounded,
                   'شات الدعم',
                   AppTheme.primaryColor,
-                  () async {
-                    final user = await AuthService.getCurrentUser();
-                    if (user != null && user['email'] != null) {
-                      String chatId = await ChatService.startChat(user['email'],
-                          'admin@ejari.app', 'دعم إيجاري', 'استفسار دعم فني');
-                      if (!context.mounted) return;
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => ChatScreen(
-                                  chatId: chatId,
-                                  otherUserName: 'دعم إيجاري',
-                                  currentUserId: user['email'])));
-                    }
-                  },
+                  () => _openSupportChat(),
                 ),
               ],
             ),
@@ -95,6 +93,41 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     );
   }
 
+  Future<void> _openSupportChat() async {
+    final user = await AuthService.getCurrentUser();
+    if (user == null || user['email'] == null) return;
+
+    final email = user['email'].toString();
+    final name = user['name']?.toString() ?? 'مستخدم';
+
+    final chatId = await ChatService.startChat(
+      email,
+      SupportService.adminEmail,
+      'دعم إيجاري',
+      'استفسار دعم فني',
+    );
+
+    await SupportService.createTicket(
+      userEmail: email,
+      userName: name,
+      subject: 'استفسار دعم فني',
+      message: 'بدء محادثة دعم من مركز المساعدة',
+      chatId: chatId,
+    );
+
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatScreen(
+          chatId: chatId,
+          otherUserName: 'دعم إيجاري',
+          currentUserId: email,
+        ),
+      ),
+    );
+  }
+
   void _launchWhatsApp() async {
     const url = "https://wa.me/201280083336";
     if (await canLaunchUrl(Uri.parse(url))) {
@@ -118,6 +151,9 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               Icon(icon, color: color, size: 30),
               const SizedBox(height: 8),
               Text(label,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(color: color, fontWeight: FontWeight.bold)),
             ],
           ),
@@ -141,9 +177,13 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           children: [
             Icon(icon, color: color, size: 24),
             const SizedBox(width: 16),
-            Text(label,
-                style: TextStyle(color: color, fontWeight: FontWeight.bold)),
-            const Spacer(),
+            Expanded(
+              child: Text(label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style:
+                      TextStyle(color: color, fontWeight: FontWeight.bold)),
+            ),
             Icon(Icons.arrow_forward_ios_rounded, color: color, size: 14),
           ],
         ),
@@ -152,6 +192,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   }
 
   void _showReportDialog(BuildContext context) {
+    _reportController.clear();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -160,21 +201,39 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const TextField(
+            TextField(
+              controller: _reportController,
               maxLines: 3,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: 'اشرح المشكلة التي واجهتك...',
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('تم إرسال بلاغك بنجاح وسيتم التواصل معك')),
-                );
+              onPressed: () async {
+                final text = _reportController.text.trim();
+                if (text.isEmpty) return;
+
+                final user = await AuthService.getCurrentUser();
+                if (user != null && user['email'] != null) {
+                  await SupportService.createTicket(
+                    userEmail: user['email'].toString(),
+                    userName: user['name']?.toString() ?? 'مستخدم',
+                    subject: 'بلاغ فني',
+                    message: text,
+                    category: 'technical',
+                  );
+                }
+
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text(
+                            'تم إرسال بلاغك بنجاح وسيتم التواصل معك')),
+                  );
+                }
               },
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor),
@@ -188,8 +247,10 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
 
   Widget _buildFaqItem(String question, String answer) {
     return ExpansionTile(
-      title:
-          Text(question, style: const TextStyle(fontWeight: FontWeight.bold)),
+      title: Text(question,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.bold)),
       children: [
         Padding(padding: const EdgeInsets.all(16), child: Text(answer))
       ],

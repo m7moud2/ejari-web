@@ -25,6 +25,9 @@ import 'my_contracts_screen.dart';
 import 'about_app_screen.dart';
 import 'request_verification_screen.dart';
 import 'unified_home_screen.dart';
+import 'admin_search_screen.dart';
+import 'admin_users_screen.dart';
+import 'admin_support_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -48,6 +51,35 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _currentRole = role);
   }
 
+  void _handleAdminNav(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        setState(() => _currentIndex = 0);
+        break;
+      case 1:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminUsersScreen()),
+        );
+        break;
+      case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminSearchScreen()),
+        );
+        break;
+      case 3:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const AdminSupportScreen()),
+        );
+        break;
+      case 4:
+        setState(() => _currentIndex = 4);
+        break;
+    }
+  }
+
   List<Widget> get _screens => [
         const UnifiedHomeScreen(),
         const PropertiesScreen(),
@@ -69,6 +101,10 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: _currentIndex,
         role: _currentRole,
         onTap: (index) {
+          if (_currentRole == 'admin') {
+            _handleAdminNav(context, index);
+            return;
+          }
           setState(() {
             _currentIndex = index;
           });

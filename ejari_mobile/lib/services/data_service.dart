@@ -2058,8 +2058,11 @@ class DataService {
   }
 
   /// Add a new review for a property
+  static const String _moderatedReviewsKey = 'admin_moderated_reviews_v1';
+
   static Future<void> addReview(
-      String propertyId, Map<String, dynamic> review) async {
+      String propertyId, Map<String, dynamic> review,
+      {String? propertyTitle}) async {
     final prefs = await SharedPreferences.getInstance();
     final key = _getReviewsKey(propertyId);
 
@@ -2075,6 +2078,206 @@ class DataService {
 
     // Save back to storage
     await prefs.setString(key, jsonEncode(reviews));
+
+    // Mirror to admin moderation inbox
+    final modId = 'REV-${DateTime.now().millisecondsSinceEpoch}';
+    final moderated = {
+      'id': modId,
+      'propertyId': propertyId,
+      'propertyTitle': propertyTitle ?? propertyId,
+      'userName': review['userName'] ?? 'مستخدم',
+      'rating': review['rating'] ?? 0,
+      'comment': review['comment'] ?? '',
+      'date': review['date'],
+      'moderationStatus': 'pending',
+    };
+    final modList = prefs.getStringList(_moderatedReviewsKey) ?? [];
+    modList.add(jsonEncode(moderated));
+    await prefs.setStringList(_moderatedReviewsKey, modList);
+
+    await addNotificationToUser(
+      _adminEmail,
+      'تقييم عقار جديد ⭐',
+      '${moderated['userName']}: ${moderated['rating']} نجوم — ${moderated['propertyTitle']}',
+      type: 'review',
+      refId: modId,
+      adminFeed: true,
+    );
+  }
+
+  static Future<List<Map<String, dynamic>>> getAllModeratedReviews() async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_moderatedReviewsKey) ?? [];
+    return list
+        .map((e) => jsonDecode(e) as Map<String, dynamic>)
+        .toList()
+        .reversed
+        .toList();
+  }
+
+  static Future<void> moderateReview(String id, String status) async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_moderatedReviewsKey) ?? [];
+    final updated = list.map((raw) {
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+      if (data['id'] == id) data['moderationStatus'] = status;
+      return jsonEncode(data);
+    }).toList();
+    await prefs.setStringList(_moderatedReviewsKey, updated);
+  }
+
+  static Future<void> respondToReview(String id, String response,
+      {String? adminEmail}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_moderatedReviewsKey) ?? [];
+    String? userName;
+    final updated = list.map((raw) {
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+      if (data['id'] == id) {
+        data['adminResponse'] = response;
+        data['moderationStatus'] = data['moderationStatus'] ?? 'approved';
+        userName = data['userName']?.toString();
+      }
+      return jsonEncode(data);
+    }).toList();
+    await prefs.setStringList(_moderatedReviewsKey, updated);
+
+    if (userName != null) {
+      await addNotificationToUser(
+        _adminEmail,
+        'تم الرد على تقييم',
+        response,
+        type: 'review',
+        refId: id,
+        adminFeed: true,
+      );
+    }
+  }
+
+  /// Unified admin lookup across bookings, contracts, receipts, maintenance, users.
+  static Future<List<Map<String, dynamic>>> adminGlobalSearch(
+      String query) async {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return [];
+
+    final results = <Map<String, dynamic>>[];
+    final prefs = await SharedPreferences.getInstance();
+
+    void addUnique(Map<String, dynamic> item) {
+      if (!results.any((r) => r['id'] == item['id'] && r['type'] == item['type'])) {
+        results.add(item);
+      }
+    }
+
+    bool matches(Map<String, dynamic> data, List<String> fields) {
+      for (final field in fields) {
+        final val = data[field]?.toString().toLowerCase() ?? '';
+        if (val.contains(q)) return true;
+      }
+      return false;
+    }
+
+    for (final key in [_bookingsKey, _requestsKey]) {
+      final list = prefs.getStringList(key) ?? [];
+      for (final raw in list) {
+        final data = jsonDecode(raw) as Map<String, dynamic>;
+        if (matches(data, [
+          'id',
+          '_id',
+          'contractNumber',
+          'title',
+          'tenantEmail',
+          'tenantName',
+          'ownerEmail',
+          'ownerId',
+        ])) {
+          final contract = data['contractNumber']?.toString();
+          addUnique({
+            'type': contract != null && contract.isNotEmpty ? 'contract' : 'booking',
+            'typeLabel': contract != null && contract.isNotEmpty ? 'عقد' : 'حجز',
+            'id': data['id']?.toString() ?? data['_id']?.toString(),
+            'title': data['title']?.toString() ?? 'حجز',
+            'subtitle':
+                '${data['tenantName'] ?? data['tenantEmail'] ?? ''} — ${data['status'] ?? ''}',
+            'data': data,
+          });
+        }
+      }
+    }
+
+    final receipts = prefs.getStringList(_receiptsKey) ?? [];
+    for (final raw in receipts) {
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+      if (matches(data, ['id', 'bookingRef', 'payer', 'payee', 'title'])) {
+        addUnique({
+          'type': 'receipt',
+          'typeLabel': 'إيصال',
+          'id': data['id']?.toString(),
+          'title': data['title']?.toString() ?? 'إيصال دفع',
+          'subtitle':
+              '${data['amount']} ج.م — ${data['payer'] ?? ''}',
+          'data': data,
+        });
+      }
+    }
+
+    final maintenance = await MaintenanceService.getAllRequests();
+    for (final req in maintenance) {
+      if (matches(req, [
+        'id',
+        'title',
+        'tenantId',
+        'tenantEmail',
+        'propertyTitle',
+        'description',
+      ])) {
+        addUnique({
+          'type': 'maintenance',
+          'typeLabel': 'صيانة',
+          'id': req['id']?.toString(),
+          'title': req['title']?.toString() ?? 'طلب صيانة',
+          'subtitle':
+              '${req['tenantId'] ?? req['tenantEmail'] ?? ''} — ${req['status'] ?? ''}',
+          'data': req,
+        });
+      }
+    }
+
+    final users = prefs.getStringList('users_list') ?? [];
+    for (final email in users) {
+      final userRaw = prefs.getString('user_$email');
+      if (userRaw == null) continue;
+      final user = jsonDecode(userRaw) as Map<String, dynamic>;
+      if (email.toLowerCase().contains(q) ||
+          (user['name']?.toString().toLowerCase().contains(q) ?? false) ||
+          (user['phone']?.toString().toLowerCase().contains(q) ?? false)) {
+        addUnique({
+          'type': 'user',
+          'typeLabel': 'مستخدم',
+          'id': email,
+          'title': user['name']?.toString() ?? email,
+          'subtitle': '$email — ${user['role'] ?? user['type'] ?? 'tenant'}',
+          'data': user,
+        });
+      }
+    }
+
+    final tickets = prefs.getStringList('support_tickets_v1') ?? [];
+    for (final raw in tickets) {
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+      if (matches(data, ['id', 'subject', 'userEmail', 'message'])) {
+        addUnique({
+          'type': 'support',
+          'typeLabel': 'دعم',
+          'id': data['id']?.toString(),
+          'title': data['subject']?.toString() ?? 'تذكرة دعم',
+          'subtitle': data['userEmail']?.toString() ?? '',
+          'data': data,
+        });
+      }
+    }
+
+    return results;
   }
 
   /// Get average rating for a property

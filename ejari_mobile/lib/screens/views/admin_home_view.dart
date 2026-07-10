@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/home_provider.dart';
 import '../../theme/app_theme.dart';
-import '../financial_ledger_screen.dart';
 import '../admin_users_screen.dart';
 import '../admin_properties_screen.dart';
 import '../admin_reports_screen.dart';
 import '../admin_financials_screen.dart';
-import '../chat_list_screen.dart';
 import '../admin_service_requests_screen.dart';
-import '../rewards_screen.dart';
+import '../admin_support_screen.dart';
+import '../admin_reviews_screen.dart';
+import '../admin_search_screen.dart';
+import '../admin_feedback_screen.dart';
+import '../settings_screen.dart';
 
 class AdminHomeView extends StatelessWidget {
   const AdminHomeView({super.key});
@@ -239,27 +241,28 @@ class AdminHomeView extends StatelessWidget {
             crossAxisCount: 2,
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
-            childAspectRatio: 1.1,
+            childAspectRatio: 1.15,
             children: [
-              _action(context, 'مراجعة المستخدمين', Icons.people,
+              _action(context, 'بحث شامل', Icons.manage_search_rounded,
+                  const AdminSearchScreen()),
+              _action(context, 'المستخدمين', Icons.people,
                   const AdminUsersScreen()),
-              _action(context, 'إدارة العقارات', Icons.home_work_rounded,
+              _action(context, 'العقارات', Icons.home_work_rounded,
                   const AdminPropertiesScreen()),
-              _action(
-                  context,
-                  'إدارة المدفوعات',
-                  Icons.account_balance_wallet_rounded,
-                  const FinancialLedgerScreen(role: 'admin')),
-              _action(context, 'إدارة النزاعات', Icons.gavel_rounded,
-                  const AdminReportsScreen()),
-              _action(context, 'المكافآت والعروض', Icons.local_offer_rounded,
-                  const RewardsScreen()),
+              _action(context, 'المالية', Icons.account_balance_wallet_rounded,
+                  const AdminFinancialsScreen()),
+              _action(context, 'صندوق الدعم', Icons.support_agent_rounded,
+                  const AdminSupportScreen()),
+              _action(context, 'التقييمات', Icons.star_rate_rounded,
+                  const AdminReviewsScreen()),
               _action(context, 'طلبات الخدمة', Icons.handyman_rounded,
                   const AdminServiceRequestsScreen()),
-              _action(context, 'شات الدعم', Icons.chat_bubble_rounded,
-                  const ChatListScreen()),
-              _action(context, 'تقارير سريعة', Icons.analytics_rounded,
-                  const AdminFinancialsScreen()),
+              _action(context, 'التقارير', Icons.analytics_rounded,
+                  const AdminReportsScreen()),
+              _action(context, 'تقييم التطبيق', Icons.feedback_rounded,
+                  const AdminFeedbackScreen()),
+              _action(context, 'الإعدادات', Icons.settings_rounded,
+                  const SettingsScreen()),
             ],
           ),
         ],

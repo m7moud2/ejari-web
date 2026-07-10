@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/firestore_chat_service.dart';
+import '../services/chat_service.dart';
+import '../services/data_service.dart';
+import '../config/app_config.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -22,17 +25,30 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  List<Map<String, dynamic>> _localMessages = [];
+  bool _loadingLocal = true;
 
   @override
   void initState() {
     super.initState();
-    // Scroll to bottom periodically if needed, or rely on reverse list
+    if (AppConfig.demoMode) {
+      _loadLocalMessages();
+    }
+  }
+
+  Future<void> _loadLocalMessages() async {
+    final messages = await ChatService.getMessages(widget.chatId);
+    if (!mounted) return;
+    setState(() {
+      _localMessages = messages;
+      _loadingLocal = false;
+    });
   }
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
       _scrollController.animateTo(
-        0.0, // Because we will use reverse: true in ListView
+        0.0,
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOut,
       );
@@ -42,12 +58,55 @@ class _ChatScreenState extends State<ChatScreen> {
   Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
 
-    final text = _messageController.text;
+    final text = _messageController.text.trim();
     _messageController.clear();
+
+    if (AppConfig.demoMode) {
+      await ChatService.sendMessage(widget.chatId, widget.currentUserId, text);
+
+      final isAdminSender = widget.currentUserId == 'admin@ejari.app';
+      if (isAdminSender) {
+        final otherId = widget.otherUserName == 'دعم إيجاري'
+            ? null
+            : _peerEmail();
+        if (otherId != null && otherId != 'admin@ejari.app') {
+          await DataService.addNotificationToUser(
+            otherId,
+            'رد من دعم إيجاري 💬',
+            text,
+            type: 'support',
+            refId: widget.chatId,
+          );
+        }
+      } else {
+        await DataService.addNotificationToUser(
+          'admin@ejari.app',
+          'رسالة دعم جديدة',
+          text,
+          type: 'support',
+          refId: widget.chatId,
+          adminFeed: true,
+        );
+      }
+
+      await _loadLocalMessages();
+      _scrollToBottom();
+      return;
+    }
 
     await FirestoreChatService.sendMessage(
         widget.chatId, widget.currentUserId, text);
     _scrollToBottom();
+  }
+
+  String? _peerEmail() {
+    // Best-effort for demo notifications
+    if (widget.currentUserId == 'admin@ejari.app') {
+      return widget.otherUserName.contains('@')
+          ? widget.otherUserName
+          : null;
+    }
+    return widget.currentUserId;
   }
 
   @override
@@ -62,13 +121,18 @@ class _ChatScreenState extends State<ChatScreen> {
               child: Icon(Icons.person, size: 20, color: AppTheme.primaryColor),
             ),
             const SizedBox(width: 10),
-            Text(widget.otherUserName),
+            Expanded(
+              child: Text(
+                widget.otherUserName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),
       body: Column(
         children: [
-          // Security Warning
           Container(
             padding: const EdgeInsets.all(12),
             color: AppTheme.borderColor.withOpacity(0.1),
@@ -89,51 +153,87 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirestoreChatService.getMessagesStream(widget.chatId),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                      child: CircularProgressIndicator(
-                          color: AppTheme.primaryColor));
-                }
-
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return const Center(child: Text('لا توجد رسائل حتى الآن.'));
-                }
-
-                final messages = snapshot.data!.docs;
-                // Reverse the messages to show the latest at the bottom
-                final reversedMessages = messages.reversed.toList();
-
-                return ListView.builder(
-                  controller: _scrollController,
-                  reverse: true, // Auto scrolls to bottom natively
-                  padding: const EdgeInsets.all(16),
-                  itemCount: reversedMessages.length,
-                  itemBuilder: (context, index) {
-                    final msg =
-                        reversedMessages[index].data() as Map<String, dynamic>;
-                    final isMe = msg['senderId'] == widget.currentUserId;
-
-                    // Handle Firestore Timestamp
-                    String timeStr = '';
-                    if (msg['timestamp'] != null) {
-                      final dt = (msg['timestamp'] as Timestamp).toDate();
-                      timeStr =
-                          '${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
-                    }
-
-                    return _buildMessageBubble(
-                        msg['text'] ?? '', isMe, timeStr);
-                  },
-                );
-              },
-            ),
+            child: AppConfig.demoMode
+                ? _buildLocalMessages()
+                : _buildFirestoreMessages(),
           ),
           _buildMessageInput(),
         ],
       ),
+    );
+  }
+
+  Widget _buildLocalMessages() {
+    if (_loadingLocal) {
+      return const Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryColor));
+    }
+
+    if (_localMessages.isEmpty) {
+      return const Center(child: Text('لا توجد رسائل حتى الآن.'));
+    }
+
+    final reversed = _localMessages.reversed.toList();
+    return ListView.builder(
+      controller: _scrollController,
+      reverse: true,
+      padding: const EdgeInsets.all(16),
+      itemCount: reversed.length,
+      itemBuilder: (context, index) {
+        final msg = reversed[index];
+        final isMe = msg['senderId'] == widget.currentUserId;
+        String timeStr = '';
+        final ts = msg['timestamp']?.toString();
+        if (ts != null && ts.isNotEmpty) {
+          final dt = DateTime.tryParse(ts);
+          if (dt != null) {
+            timeStr = '${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+          }
+        }
+        return _buildMessageBubble(msg['text'] ?? '', isMe, timeStr);
+      },
+    );
+  }
+
+  Widget _buildFirestoreMessages() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirestoreChatService.getMessagesStream(widget.chatId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+              child:
+                  CircularProgressIndicator(color: AppTheme.primaryColor));
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text('لا توجد رسائل حتى الآن.'));
+        }
+
+        final messages = snapshot.data!.docs;
+        final reversedMessages = messages.reversed.toList();
+
+        return ListView.builder(
+          controller: _scrollController,
+          reverse: true,
+          padding: const EdgeInsets.all(16),
+          itemCount: reversedMessages.length,
+          itemBuilder: (context, index) {
+            final msg =
+                reversedMessages[index].data() as Map<String, dynamic>;
+            final isMe = msg['senderId'] == widget.currentUserId;
+
+            String timeStr = '';
+            if (msg['timestamp'] != null) {
+              final dt = (msg['timestamp'] as Timestamp).toDate();
+              timeStr =
+                  '${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
+            }
+
+            return _buildMessageBubble(
+                msg['text'] ?? '', isMe, timeStr);
+          },
+        );
+      },
     );
   }
 

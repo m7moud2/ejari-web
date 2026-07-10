@@ -116,7 +116,11 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                     'date': DateTime.now().toIso8601String(),
                   };
 
-                  await DataService.addReview(widget.propertyId, newReview);
+                  await DataService.addReview(
+                    widget.propertyId,
+                    newReview,
+                    propertyTitle: widget.propertyTitle,
+                  );
 
                   if (context.mounted) {
                     setState(() {
