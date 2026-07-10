@@ -1,32 +1,69 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'data_service.dart';
 
 class ChatService {
   static const String _chatsKey = 'chats';
+  static const String adminEmail = 'admin@ejari.app';
 
-  // Get all chats for a user
   static Future<List<Map<String, dynamic>>> getChats(String userId) async {
     final prefs = await SharedPreferences.getInstance();
-    List<String> chatsJson = prefs.getStringList(_chatsKey) ?? [];
-    List<Map<String, dynamic>> allChats =
+    final chatsJson = prefs.getStringList(_chatsKey) ?? [];
+    final allChats =
         chatsJson.map((c) => jsonDecode(c) as Map<String, dynamic>).toList();
 
-    // Filter chats where user is participant
     return allChats
-        .where((chat) => chat['participants'].contains(userId))
-        .toList();
+        .where((chat) => (chat['participants'] as List?)?.contains(userId) == true)
+        .toList()
+      ..sort((a, b) {
+        final aTime = DateTime.tryParse(a['lastMessageTime']?.toString() ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        final bTime = DateTime.tryParse(b['lastMessageTime']?.toString() ?? '') ??
+            DateTime.fromMillisecondsSinceEpoch(0);
+        return bTime.compareTo(aTime);
+      });
   }
 
-  // Get messages for a specific chat
+  static Future<Map<String, dynamic>?> getChatById(String chatId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final chatsJson = prefs.getStringList(_chatsKey) ?? [];
+    for (final raw in chatsJson) {
+      final chat = jsonDecode(raw) as Map<String, dynamic>;
+      if (chat['id']?.toString() == chatId) return chat;
+    }
+    return null;
+  }
+
+  static String? peerIdFor(Map<String, dynamic> chat, String currentUserId) {
+    final participants =
+        (chat['participants'] as List?)?.map((p) => p.toString()).toList() ??
+            [];
+    for (final participant in participants) {
+      if (participant != currentUserId) return participant;
+    }
+    return null;
+  }
+
+  static String displayNameFor(Map<String, dynamic> chat, String currentUserId) {
+    final peer = peerIdFor(chat, currentUserId);
+    if (peer == null) return chat['otherUserName']?.toString() ?? 'مستخدم';
+    if (peer == adminEmail || peer == 'support' || peer == 'admin') {
+      return chat['otherUserName']?.toString() ?? 'دعم إيجاري';
+    }
+    if (currentUserId == adminEmail) {
+      return chat['initiatorName']?.toString() ?? peer;
+    }
+    return chat['otherUserName']?.toString() ?? peer;
+  }
+
   static Future<List<Map<String, dynamic>>> getMessages(String chatId) async {
     final prefs = await SharedPreferences.getInstance();
-    List<String> messagesJson = prefs.getStringList('messages_$chatId') ?? [];
+    final messagesJson = prefs.getStringList('messages_$chatId') ?? [];
     return messagesJson
         .map((m) => jsonDecode(m) as Map<String, dynamic>)
         .toList();
   }
 
-  // Send a message
   static Future<void> sendMessage(
       String chatId, String senderId, String text) async {
     final prefs = await SharedPreferences.getInstance();
@@ -38,17 +75,15 @@ class ChatService {
       'timestamp': DateTime.now().toIso8601String(),
     };
 
-    // Save message
-    List<String> messages = prefs.getStringList('messages_$chatId') ?? [];
+    final messages = prefs.getStringList('messages_$chatId') ?? [];
     messages.add(jsonEncode(message));
     await prefs.setStringList('messages_$chatId', messages);
 
-    // Update chat last message
-    List<String> chatsJson = prefs.getStringList(_chatsKey) ?? [];
-    List<Map<String, dynamic>> allChats =
+    final chatsJson = prefs.getStringList(_chatsKey) ?? [];
+    final allChats =
         chatsJson.map((c) => jsonDecode(c) as Map<String, dynamic>).toList();
 
-    int index = allChats.indexWhere((c) => c['id'] == chatId);
+    final index = allChats.indexWhere((c) => c['id'] == chatId);
     if (index != -1) {
       allChats[index]['lastMessage'] = text;
       allChats[index]['lastMessageTime'] = DateTime.now().toIso8601String();
@@ -57,33 +92,36 @@ class ChatService {
     }
   }
 
-  // Start a new chat
-  static Future<String> startChat(String user1Id, String user2Id,
-      String user2Name, String propertyTitle) async {
+  static Future<String> startChat(
+    String user1Id,
+    String user2Id,
+    String user2Name,
+    String propertyTitle, {
+    String? user1Name,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
-    List<String> chatsJson = prefs.getStringList(_chatsKey) ?? [];
-    List<Map<String, dynamic>> allChats =
+    final chatsJson = prefs.getStringList(_chatsKey) ?? [];
+    final allChats =
         chatsJson.map((c) => jsonDecode(c) as Map<String, dynamic>).toList();
 
-    // Check if chat already exists
-    // For simplicity, we just check participants. In real app, might be per property.
-    var existingChat = allChats.firstWhere(
+    final existingChat = allChats.cast<Map<String, dynamic>?>().firstWhere(
       (c) =>
-          c['participants'].contains(user1Id) &&
-          c['participants'].contains(user2Id),
-      orElse: () => {},
+          c!['participants']?.contains(user1Id) == true &&
+          c['participants']?.contains(user2Id) == true,
+      orElse: () => null,
     );
 
-    if (existingChat.isNotEmpty) {
-      return existingChat['id'];
+    if (existingChat != null) {
+      return existingChat['id']?.toString() ?? '';
     }
 
-    // Create new chat
-    String chatId = DateTime.now().millisecondsSinceEpoch.toString();
+    final chatId = DateTime.now().millisecondsSinceEpoch.toString();
     final newChat = {
       'id': chatId,
       'participants': [user1Id, user2Id],
-      'otherUserName': user2Name, // Simplified for demo
+      'otherUserName': user2Name,
+      'initiatorId': user1Id,
+      if (user1Name != null) 'initiatorName': user1Name,
       'subtitle': propertyTitle,
       'lastMessage': 'بدء المحادثة',
       'lastMessageTime': DateTime.now().toIso8601String(),
@@ -93,10 +131,20 @@ class ChatService {
     await prefs.setStringList(
         _chatsKey, allChats.map((c) => jsonEncode(c)).toList());
 
-    // Auto-send welcome message for support chats
-    if (user2Id == 'support' || user2Id == 'admin') {
-      await sendMessage(chatId, user2Id,
-          'أهلاً بك في دعم إيجاري. سيتم الرد عليك من خلال ممثل خدمة العملاء في أقرب وقت. يمكنك كتابة استفسارك هنا وسنوافيك بالرد.');
+    if (user2Id == adminEmail || user2Id == 'support' || user2Id == 'admin') {
+      await sendMessage(
+        chatId,
+        adminEmail,
+        'أهلاً بك في دعم إيجاري. سيتم الرد عليك من خلال ممثل خدمة العملاء في أقرب وقت. يمكنك كتابة استفسارك هنا وسنوافيك بالرد.',
+      );
+      await DataService.addNotificationToUser(
+        adminEmail,
+        'محادثة دعم جديدة 💬',
+        '${user1Name ?? user1Id}: $propertyTitle',
+        type: 'support',
+        refId: chatId,
+        adminFeed: true,
+      );
     }
 
     return chatId;
@@ -104,23 +152,20 @@ class ChatService {
 
   static Future<void> sendSmartResponse(
       String chatId, String userMessage) async {
-    // Simulate thinking time
     await Future.delayed(const Duration(seconds: 1));
 
-    String reply = generateAIResponse(userMessage);
-
+    final reply = generateAIResponse(userMessage);
     final prefs = await SharedPreferences.getInstance();
 
     final message = {
       'id': DateTime.now().millisecondsSinceEpoch.toString(),
       'senderId': 'ai_assistant',
       'text': reply,
-      'isAi': true, // Flag for UI styling
+      'isAi': true,
       'timestamp': DateTime.now().toIso8601String(),
     };
 
-    // Save message
-    List<String> messages = prefs.getStringList('messages_$chatId') ?? [];
+    final messages = prefs.getStringList('messages_$chatId') ?? [];
     messages.add(jsonEncode(message));
     await prefs.setStringList('messages_$chatId', messages);
   }
@@ -156,7 +201,6 @@ class ChatService {
       return 'العفو! أنا هنا دائماً لمساعدتك. 😊';
     }
 
-    // Default
     return 'أهلاً بك في "إيجاري"! 👋\nأنا مساعدك الذكي. كيف يمكنني خدمتك اليوم؟\n\n- استفسار عن الأسعار\n- كيفية الحجز\n- عقود الإيجار\n- الدعم الفني';
   }
 }

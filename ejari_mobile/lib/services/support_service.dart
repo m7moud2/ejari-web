@@ -88,8 +88,10 @@ class SupportService {
     bool isAdmin = false,
   }) async {
     await _mutate(ticketId, (ticket) {
-      final replies =
-          (ticket['replies'] as List<dynamic>? ?? []).cast<Map<String, dynamic>>();
+      final rawReplies = ticket['replies'] as List<dynamic>? ?? [];
+      final replies = rawReplies
+          .map((r) => Map<String, dynamic>.from(r as Map))
+          .toList();
       replies.add({
         'senderEmail': senderEmail,
         'senderName': senderName,

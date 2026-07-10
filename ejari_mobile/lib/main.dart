@@ -50,9 +50,12 @@ void main() async {
     await AuthService.initDemoAccounts();
     await DataService.initProperties();
     await DataService.initDemoBookings();
+    await DataService.initDemoReceipts();
     await MaintenanceService.initDemoRequests();
     await WalletService.init(userId: 'user@ejari.app');
     await WalletService.init(userId: 'owner@ejari.app');
+    await WalletService.init(userId: 'tech@ejari.app');
+    await DataService.initDemoJoinRequests();
   }
 
   // Load Saved Language Preference

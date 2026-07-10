@@ -4,7 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/payment_receipt.dart';
 import '../utils/api_client.dart';
 import '../utils/date_utils.dart';
+import '../utils/safe_parse.dart';
 import '../utils/rental_rules.dart';
+import '../utils/booking_validator.dart';
+import '../models/booking_status.dart';
 import 'activity_log_service.dart';
 import 'mock_data_seeder.dart';
 import 'wallet_service.dart';
@@ -15,7 +18,9 @@ class DataService {
   static const String _bookingsKey = 'bookings'; // For tenants
   static const String _requestsKey = 'requests'; // For owners (incoming)
   static const String _demoBookingsVersionKey = 'demo_bookings_version';
-  static const int _currentDemoBookingsVersion = 2;
+  static const int _currentDemoBookingsVersion = 4;
+  static const String _demoReceiptsVersionKey = 'demo_receipts_version';
+  static const int _currentDemoReceiptsVersion = 1;
   static const String _favoritesKey = 'favorites';
   static const String _propertiesKey = 'properties';
   static const String _manualPaymentsKey = 'manual_payments';
@@ -82,13 +87,18 @@ class DataService {
   static Future<void> initDemoBookings() async {
     final prefs = await SharedPreferences.getInstance();
     final savedVersion = prefs.getInt(_demoBookingsVersionKey) ?? 0;
-    if (savedVersion >= _currentDemoBookingsVersion) return;
+    final existingRequests = prefs.getStringList(_requestsKey) ?? [];
+    if (savedVersion >= _currentDemoBookingsVersion &&
+        existingRequests.isNotEmpty) {
+      return;
+    }
     await prefs.setInt(_demoBookingsVersionKey, _currentDemoBookingsVersion);
 
     final checkIn = DateTime.now().add(const Duration(days: 7));
     final demoRequests = [
       {
         'id': 'demo_req_1',
+        'contractNumber': 'CTR-DEMO-001',
         'propertyId': 'egy1',
         'title': 'شقة فاخرة على النيل - المعادي',
         'image': 'assets/images/home1.jpg',
@@ -98,8 +108,16 @@ class DataService {
         'tenantEmail': 'user@ejari.app',
         'ownerId': 'owner@ejari.app',
         'ownerEmail': 'owner@ejari.app',
-        'status': 'pending',
+        'status': BookingStatus.submitted,
         'requestDate': DateTime.now().toIso8601String(),
+        'statusHistory': [
+          {
+            'status': BookingStatus.submitted,
+            'label': 'إرسال الطلب',
+            'at': DateTime.now().toIso8601String(),
+            'note': 'بانتظار موافقة المالك',
+          },
+        ],
         'leaseStartDate': checkIn.toIso8601String(),
         'checkInDate': checkIn.toIso8601String(),
         'startDate': checkIn.toIso8601String(),
@@ -116,6 +134,7 @@ class DataService {
       },
       {
         'id': 'demo_req_2',
+        'contractNumber': 'CTR-DEMO-002',
         'propertyId': 'egy2',
         'title': 'فيلا مستقلة التجمع الخامس',
         'image': 'assets/images/home2.jpg',
@@ -125,9 +144,29 @@ class DataService {
         'tenantEmail': 'user@ejari.app',
         'ownerId': 'owner@ejari.app',
         'ownerEmail': 'owner@ejari.app',
-        'status': 'deposit_paid',
+        'status': BookingStatus.depositPaid,
+        'paymentStatus': 'deposit_paid',
         'requestDate':
             DateTime.now().subtract(const Duration(hours: 5)).toIso8601String(),
+        'depositPaidAt':
+            DateTime.now().subtract(const Duration(hours: 5)).toIso8601String(),
+        'statusHistory': [
+          {
+            'status': BookingStatus.submitted,
+            'label': 'إرسال الطلب',
+            'at': DateTime.now()
+                .subtract(const Duration(hours: 6))
+                .toIso8601String(),
+          },
+          {
+            'status': BookingStatus.depositPaid,
+            'label': 'دفع العربون',
+            'at': DateTime.now()
+                .subtract(const Duration(hours: 5))
+                .toIso8601String(),
+            'note': 'بانتظار موافقة المالك',
+          },
+        ],
         'leaseStartDate':
             DateTime.now().add(const Duration(days: 3)).toIso8601String(),
         'checkInDate':
@@ -155,6 +194,45 @@ class DataService {
     final existingBookings = prefs.getStringList(_bookingsKey) ?? [];
     final mergedBookings = {...existingBookings, ...encoded}.toList();
     await prefs.setStringList(_bookingsKey, mergedBookings);
+  }
+
+  /// Seed demo payment receipts so admin global search can find receipt IDs.
+  static Future<void> initDemoReceipts() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedVersion = prefs.getInt(_demoReceiptsVersionKey) ?? 0;
+    final existing = prefs.getStringList(_receiptsKey) ?? [];
+    if (savedVersion >= _currentDemoReceiptsVersion && existing.isNotEmpty) {
+      return;
+    }
+    await initDemoBookings();
+
+    final receipts = [
+      PaymentReceipt(
+        id: 'RCP-DEMO-001',
+        amount: 3000,
+        date: DateTime.now().subtract(const Duration(days: 2)),
+        bookingRef: 'demo_req_1',
+        payer: 'user@ejari.app',
+        payee: 'owner@ejari.app',
+        method: 'محفظة إيجاري',
+        title: 'عربون حجز — شقة المعادي',
+      ),
+      PaymentReceipt(
+        id: 'RCP-DEMO-002',
+        amount: 11250,
+        date: DateTime.now().subtract(const Duration(hours: 5)),
+        bookingRef: 'demo_req_2',
+        payer: 'user@ejari.app',
+        payee: 'owner@ejari.app',
+        method: 'بطاقة',
+        title: 'عربون حجز — فيلا التجمع',
+      ),
+    ];
+
+    final encoded = receipts.map((r) => jsonEncode(r.toJson())).toList();
+    final merged = {...existing, ...encoded}.toList();
+    await prefs.setStringList(_receiptsKey, merged);
+    await prefs.setInt(_demoReceiptsVersionKey, _currentDemoReceiptsVersion);
   }
 
   static Future<void> initProperties() async {
@@ -193,7 +271,7 @@ class DataService {
         'isVerified': true,
         'isFeatured': true,
         'phone': '01280083336',
-        'financialAccount': '01069813210',
+        'financialAccount': '',
         'status': 'approved',
         'isDemo': true,
       },
@@ -1180,28 +1258,7 @@ class DataService {
     final user = b['user'] as Map<String, dynamic>? ?? {};
 
     // Map Arabic status from backend database to Flutter UI status
-    String status = b['status']?.toString() ?? 'pending';
-    if (status == 'معلق') {
-      status = 'pending';
-    } else if (status == 'موعد معاينة') {
-      status = 'viewing_scheduled';
-    } else if (status == 'مؤكد') {
-      status = 'approved';
-    } else if (status == 'مدفوع') {
-      status = 'paid';
-    } else if (status == 'عربون') {
-      status = 'deposit_paid';
-    } else if (status == 'مكتمل') {
-      status = 'completed';
-    } else if (status == 'مؤكد نهائي') {
-      status = 'confirmed';
-    } else if (status == 'ملغي') {
-      status = 'cancelled';
-    } else if (status == 'مسترد') {
-      status = 'deposit_refunded';
-    } else if (status == 'ملغي') {
-      status = 'rejected';
-    }
+    String status = BookingStatus.normalize(b['status']?.toString());
 
     String title = prop['title'] ?? b['propertyTitle'] ?? 'طلب حجز وحدة';
     String price =
@@ -1251,6 +1308,86 @@ class DataService {
 
   static const String _corporateStateKey = 'corporate_booking_state';
 
+  static Future<List<Map<String, dynamic>>> _getAllBookingsRaw() async {
+    final prefs = await SharedPreferences.getInstance();
+    final bookings = prefs.getStringList(_bookingsKey) ?? [];
+    final requests = prefs.getStringList(_requestsKey) ?? [];
+    final seen = <String>{};
+    final all = <Map<String, dynamic>>[];
+
+    for (final raw in [...bookings, ...requests]) {
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+      final id = data['id']?.toString() ?? data['_id']?.toString() ?? '';
+      if (id.isEmpty || seen.contains(id)) continue;
+      seen.add(id);
+      all.add(data);
+    }
+    return all;
+  }
+
+  static List<Map<String, dynamic>> _appendStatusHistory(
+    Map<String, dynamic> data,
+    String newStatus, {
+    String? note,
+  }) {
+    final history = <Map<String, dynamic>>[];
+    final existing = data['statusHistory'];
+    if (existing is List) {
+      for (final item in existing) {
+        if (item is Map) {
+          history.add(Map<String, dynamic>.from(item));
+        }
+      }
+    }
+    history.add({
+      'status': BookingStatus.normalize(newStatus),
+      'label': BookingStatus.arabicLabel(newStatus),
+      'at': DateTime.now().toIso8601String(),
+      if (note != null) 'note': note,
+    });
+    data['statusHistory'] = history;
+    data['status'] = BookingStatus.normalize(newStatus);
+    return history;
+  }
+
+  static Future<Map<String, dynamic>?> _findPropertyById(String id) async {
+    final all = await getAllProperties(approvedOnly: false);
+    for (final p in all) {
+      if (p['id']?.toString() == id) return p;
+    }
+    return null;
+  }
+
+  /// Admin oversight — all bookings with normalized status.
+  static Future<List<Map<String, dynamic>>> getAdminBookingsOverview() async {
+    final all = await _getAllBookingsRaw();
+    return all
+        .map(_normalizeBooking)
+        .map((b) => {
+              ...b,
+              'statusLabel': BookingStatus.arabicLabel(b['status']?.toString()),
+            })
+        .toList()
+        .reversed
+        .toList();
+  }
+
+  /// Validate a booking request before persistence (demo server-side rules).
+  static Future<Map<String, dynamic>> validateBookingRequest(
+    Map<String, dynamic> request,
+  ) async {
+    final existing = await _getAllBookingsRaw();
+    final propertyId =
+        request['propertyId']?.toString() ?? request['id']?.toString();
+    final property =
+        propertyId != null ? await _findPropertyById(propertyId) : null;
+    return BookingValidator.validateRequest(
+      request: request,
+      existingBookings: existing,
+      property: property,
+    );
+  }
+
   static Future<List<Map<String, dynamic>>> getCorporateEmployees() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(_corporateStateKey);
@@ -1276,6 +1413,33 @@ class DataService {
     required double depositAmount,
     DateTime? cancelDate,
   }) async {
+    final booking = await _findBookingById(bookingId);
+    if (booking == null) {
+      return {'success': false, 'message': 'الحجز غير موجود', 'refundable': false};
+    }
+
+    final current = BookingStatus.normalize(booking['status']?.toString());
+    if (current == BookingStatus.depositRefunded ||
+        current == BookingStatus.cancelled ||
+        current == BookingStatus.completed) {
+      return {
+        'success': false,
+        'message': 'لا يمكن إلغاء هذا الحجز في حالته الحالية',
+        'refundable': false,
+        'status': current,
+      };
+    }
+
+    if (!BookingStatus.canTransition(current, BookingStatus.cancelled) &&
+        !BookingStatus.canTransition(current, BookingStatus.depositRefunded)) {
+      return {
+        'success': false,
+        'message': 'الإلغاء غير مسموح في هذه المرحلة',
+        'refundable': false,
+        'status': current,
+      };
+    }
+
     final effectiveCancel = cancelDate ?? DateTime.now();
     final refundable = RentalRules.isRefundable(
       checkInDate: checkInDate,
@@ -1286,7 +1450,8 @@ class DataService {
     if (refundable) {
       await refundBookingDeposit(bookingId, depositAmount: depositAmount);
     } else {
-      await updateRequestStatus(bookingId, 'cancelled');
+      await updateRequestStatus(bookingId, BookingStatus.cancelled,
+          note: 'إلغاء بدون استرداد — أقل من ٤٨ ساعة قبل الاستلام');
       await addNotification(
         'إلغاء بدون استرداد ❌',
         'تم إلغاء الحجز وفق السياسة: لا استرداد خلال ٤٨ ساعة من الاستلام.',
@@ -1294,15 +1459,79 @@ class DataService {
     }
 
     return {
+      'success': true,
       'refundable': refundable,
       'refundAmount': refundAmount,
       'daysBeforeCheckIn': checkInDate.difference(effectiveCancel).inDays,
-      'status': refundable ? 'deposit_refunded' : 'cancelled',
+      'status': refundable ? BookingStatus.depositRefunded : BookingStatus.cancelled,
     };
   }
 
   // Tenant sends a request
-  static Future<void> sendBookingRequest(Map<String, dynamic> request) async {
+  static Future<Map<String, dynamic>> sendBookingRequest(
+      Map<String, dynamic> request) async {
+    final validation = await validateBookingRequest(request);
+    if (validation['valid'] != true) {
+      return {
+        'success': false,
+        'message': validation['message']?.toString() ?? 'طلب حجز غير صالح',
+      };
+    }
+
+    // Apply server-side price correction if property found
+    final propertyId =
+        request['propertyId']?.toString() ?? request['id']?.toString();
+    if (propertyId != null) {
+      final property = await _findPropertyById(propertyId);
+      if (property != null) {
+        final baseRent = BookingValidator.parsePrice(property['price']);
+        if (baseRent > 0) {
+          final durationType =
+              request['durationType']?.toString() ?? 'شهر';
+          final durationCount =
+              int.tryParse(request['durationCount']?.toString() ?? '') ??
+                  int.tryParse(request['leaseMonths']?.toString() ?? '') ??
+                  1;
+          final corrected = BookingValidator.resolvePricing(
+            baseMonthlyRent: baseRent,
+            durationType: durationType,
+            durationCount: durationCount,
+            insurance: BookingValidator.parsePrice(request['insuranceCost']),
+          );
+          request['monthlyRent'] =
+              (corrected['monthlyRent'] as double).toStringAsFixed(0);
+          request['price'] = request['monthlyRent'];
+          request['depositAmount'] =
+              (corrected['depositAmount'] as double).toStringAsFixed(0);
+          request['remainingAmount'] =
+              (corrected['remainingAmount'] as double).toStringAsFixed(0);
+          request['currentAmount'] =
+              (corrected['currentAmount'] as double).toStringAsFixed(0);
+          request['leaseTotal'] =
+              (corrected['leaseTotal'] as double).toStringAsFixed(0);
+          request['rentalTier'] = corrected['rentalTier'];
+          request['rentalTierLabel'] = corrected['rentalTierLabel'];
+          request['requiresIncomeProof'] = corrected['requiresIncomeProof'];
+          request['requiresAdvanceDeposit'] = corrected['requiresAdvanceDeposit'];
+          request['showInstallments'] = corrected['showInstallments'];
+        }
+      }
+    }
+
+    final initialStatus = BookingStatus.normalize(
+      request['status']?.toString() ??
+          (request['paymentStatus'] == 'deposit_paid'
+              ? BookingStatus.depositPaid
+              : BookingStatus.submitted),
+    );
+    request['status'] = initialStatus;
+    _appendStatusHistory(
+      request,
+      initialStatus,
+      note: initialStatus == BookingStatus.depositPaid
+          ? 'تم دفع العربون — بانتظار موافقة المالك'
+          : 'تم إرسال الطلب — بانتظار المراجعة',
+    );
     // 1. Try backend API
     try {
       final body = {
@@ -1344,7 +1573,7 @@ class DataService {
           final List<String> bookings = prefs.getStringList(_bookingsKey) ?? [];
           bookings.add(jsonEncode(normalized));
           await prefs.setStringList(_bookingsKey, bookings);
-          return;
+          return {'success': true, 'id': normalized['id']?.toString()};
         }
       }
     } catch (e) {
@@ -1356,19 +1585,24 @@ class DataService {
     final prefs = await SharedPreferences.getInstance();
     final currentEmail = await _getCurrentUserEmail();
 
-    request['id'] = DateTime.now().millisecondsSinceEpoch.toString();
-    request['status'] = request['status'] ?? 'pending';
+    request['id'] = request['id']?.toString() ??
+        DateTime.now().millisecondsSinceEpoch.toString();
     request['requestDate'] = DateTime.now().toIso8601String();
-    request['tenantEmail'] = currentEmail; // Record who made the request
+    request['tenantEmail'] = currentEmail;
     request['ownerEmail'] =
         request['ownerEmail'] ?? request['ownerId']?.toString() ?? '';
     request['leaseMonths'] = request['leaseMonths'] ?? request['duration'];
     request['leaseStartDate'] =
         request['leaseStartDate'] ?? request['startDate'];
     request['leaseEndDate'] = request['leaseEndDate'] ?? request['endDate'];
+    request['checkInDate'] = request['checkInDate'] ??
+        request['leaseStartDate'] ??
+        request['startDate'];
     request['paidMonths'] = request['paidMonths'] ?? 0;
     request['remainingMonths'] = request['remainingMonths'];
     request['durationLabel'] = request['durationLabel'] ?? request['duration'];
+    request['durationType'] =
+        request['durationType'] ?? request['durationUnit'] ?? 'شهر';
 
     List<String> bookings = prefs.getStringList(_bookingsKey) ?? [];
     bookings.add(jsonEncode(request));
@@ -1391,6 +1625,8 @@ class DataService {
       adminBody:
           'طلب حجز ${request['title']} — ${request['depositAmount'] ?? ''} ج.م عربون.',
     );
+
+    return {'success': true, 'id': request['id']?.toString()};
   }
 
   // Owner gets their requests
@@ -1413,29 +1649,46 @@ class DataService {
   }
 
   // Owner updates status (Accept/Reject)
-  static Future<void> updateRequestStatus(
-      String requestId, String newStatus) async {
-    // 1. Try backend API update
-    String backendStatus = newStatus;
-    if (newStatus == 'viewing_scheduled') {
-      backendStatus = 'موعد معاينة';
-    } else if (newStatus == 'deposit_paid') {
-      backendStatus = 'عربون';
-    } else if (newStatus == 'completed') {
-      backendStatus = 'مكتمل';
-    } else if (newStatus == 'deposit_refunded') {
-      backendStatus = 'مسترد';
+  static Future<bool> updateRequestStatus(
+    String requestId,
+    String newStatus, {
+    String? note,
+  }) async {
+    final booking = await _findBookingById(requestId);
+    if (booking != null) {
+      final current = BookingStatus.normalize(booking['status']?.toString());
+      final target = BookingStatus.normalize(newStatus);
+      if (!BookingStatus.canTransition(current, target)) {
+        debugPrint(
+            'Invalid booking transition: $current -> $target for $requestId');
+        return false;
+      }
     }
-    if (newStatus == 'paid') {
+
+    final normalizedStatus = BookingStatus.normalize(newStatus);
+    String backendStatus = normalizedStatus;
+    if (normalizedStatus == BookingStatus.viewingScheduled) {
+      backendStatus = 'موعد معاينة';
+    } else if (normalizedStatus == BookingStatus.depositPaid) {
+      backendStatus = 'عربون';
+    } else if (normalizedStatus == BookingStatus.completed) {
+      backendStatus = 'مكتمل';
+    } else if (normalizedStatus == BookingStatus.depositRefunded) {
+      backendStatus = 'مسترد';
+    } else if (normalizedStatus == BookingStatus.paid) {
       backendStatus = 'مدفوع';
-    } else if (newStatus == 'approved') {
+    } else if (normalizedStatus == BookingStatus.approved) {
       backendStatus = 'مؤكد';
-    } else if (newStatus == 'rejected') {
+    } else if (normalizedStatus == BookingStatus.rejected) {
       backendStatus = 'ملغي';
-    } else if (newStatus == 'cancelled') {
+    } else if (normalizedStatus == BookingStatus.cancelled) {
       backendStatus = 'ملغي';
-    } else if (newStatus == 'confirmed') {
+    } else if (normalizedStatus == BookingStatus.confirmed) {
       backendStatus = 'مؤكد نهائي';
+    } else if (normalizedStatus == BookingStatus.active) {
+      backendStatus = 'نشط';
+    } else if (normalizedStatus == BookingStatus.submitted) {
+      backendStatus = 'معلق';
     }
 
     try {
@@ -1457,27 +1710,34 @@ class DataService {
       return list.map((item) {
         Map<String, dynamic> data = jsonDecode(item);
         if (data['id'] == requestId || data['_id'] == requestId) {
-          data['status'] = newStatus;
-          if (newStatus == 'rejected') {
+          data['status'] = normalizedStatus;
+          _appendStatusHistory(data, normalizedStatus, note: note);
+          if (normalizedStatus == BookingStatus.rejected) {
             data['rejectedAt'] = DateTime.now().toIso8601String();
-          } else if (newStatus == 'approved') {
+          } else if (normalizedStatus == BookingStatus.approved) {
             data['approvedAt'] = DateTime.now().toIso8601String();
-          } else if (newStatus == 'viewing_scheduled') {
+          } else if (normalizedStatus == BookingStatus.viewingScheduled) {
             data['viewingScheduledAt'] = DateTime.now().toIso8601String();
-          } else if (newStatus == 'deposit_paid') {
+          } else if (normalizedStatus == BookingStatus.depositPaid) {
             data['depositPaidAt'] = DateTime.now().toIso8601String();
             data['paymentStatus'] = 'deposit_paid';
             data['paymentPhase'] = 'deposit';
-          } else if (newStatus == 'completed' || newStatus == 'confirmed') {
+          } else if (normalizedStatus == BookingStatus.paid) {
+            data['paidAt'] = DateTime.now().toIso8601String();
+            data['paymentStatus'] = 'paid';
+            data['paymentPhase'] = 'rent_paid';
+          } else if (normalizedStatus == BookingStatus.active) {
+            data['activeAt'] = DateTime.now().toIso8601String();
+          } else if (normalizedStatus == BookingStatus.completed ||
+              normalizedStatus == BookingStatus.confirmed) {
             data['completedAt'] = DateTime.now().toIso8601String();
             data['paymentStatus'] = 'paid';
             data['paymentPhase'] = 'completed';
-            data['status'] = newStatus == 'confirmed' ? 'confirmed' : 'completed';
-          } else if (newStatus == 'deposit_refunded') {
+          } else if (normalizedStatus == BookingStatus.depositRefunded) {
             data['refundedAt'] = DateTime.now().toIso8601String();
             data['paymentStatus'] = 'refunded';
             data['paymentPhase'] = 'refunded';
-          } else if (newStatus == 'cancelled') {
+          } else if (normalizedStatus == BookingStatus.cancelled) {
             data['cancelledAt'] = DateTime.now().toIso8601String();
             data['paymentStatus'] = 'cancelled';
           }
@@ -1492,63 +1752,70 @@ class DataService {
     List<String> bookings = prefs.getStringList(_bookingsKey) ?? [];
     await prefs.setStringList(_bookingsKey, updateList(bookings));
 
-    final booking = await _findBookingById(requestId);
-    if (booking != null) {
-      final title = booking['title']?.toString() ?? 'الوحدة';
-      if (newStatus == 'approved') {
+    final updatedBooking = await _findBookingById(requestId);
+    if (updatedBooking != null) {
+      final title = updatedBooking['title']?.toString() ?? 'الوحدة';
+      if (normalizedStatus == BookingStatus.approved) {
         await _notifyBookingParties(
-          booking: booking,
+          booking: updatedBooking,
           tenantTitle: 'تمت الموافقة على طلبك! 🎉',
           tenantBody: 'وافق المالك على حجز $title. يمكنك الآن إتمام الدفع.',
           ownerTitle: 'تم قبول طلب الحجز ✅',
-          ownerBody: 'وافقت على طلب ${booking['tenantName']} لـ $title.',
+          ownerBody:
+              'وافقت على طلب ${updatedBooking['tenantName']} لـ $title.',
           type: 'booking',
         );
-      } else if (newStatus == 'rejected') {
+      } else if (normalizedStatus == BookingStatus.rejected) {
         await _notifyBookingParties(
-          booking: booking,
+          booking: updatedBooking,
           tenantTitle: 'تم رفض الطلب ❌',
           tenantBody: 'عذراً، تم رفض طلب حجز $title من قبل المالك.',
           ownerTitle: 'تم رفض طلب الحجز',
-          ownerBody: 'رفضت طلب ${booking['tenantName']} لـ $title.',
+          ownerBody:
+              'رفضت طلب ${updatedBooking['tenantName']} لـ $title.',
           type: 'booking',
         );
-      } else if (newStatus == 'deposit_paid') {
+      } else if (normalizedStatus == BookingStatus.depositPaid) {
         await _notifyBookingParties(
-          booking: booking,
+          booking: updatedBooking,
           tenantTitle: 'تم حجز عربون المعاينة ✅',
-          tenantBody: 'تم استلام العربون لـ $title. يمكنك متابعة تفاصيل الزيارة.',
+          tenantBody:
+              'تم استلام العربون لـ $title. يمكنك متابعة تفاصيل الزيارة.',
           ownerTitle: 'عربون مستلم 💰',
-          ownerBody: 'استلمت عربون حجز $title من ${booking['tenantName']}.',
+          ownerBody:
+              'استلمت عربون حجز $title من ${updatedBooking['tenantName']}.',
           type: 'payment',
-          notifyAdmin: _isHighValueBooking(booking),
+          notifyAdmin: _isHighValueBooking(updatedBooking),
           adminTitle: 'دفعة عربون — $title',
-          adminBody: 'عربون ${booking['depositAmount'] ?? ''} ج.م.',
+          adminBody: 'عربون ${updatedBooking['depositAmount'] ?? ''} ج.م.',
         );
-      } else if (newStatus == 'paid' || newStatus == 'completed' || newStatus == 'confirmed') {
+      } else if (normalizedStatus == BookingStatus.paid ||
+          normalizedStatus == BookingStatus.completed ||
+          normalizedStatus == BookingStatus.confirmed) {
         await _notifyBookingParties(
-          booking: booking,
+          booking: updatedBooking,
           tenantTitle: 'تم تأكيد الحجز! ✅',
           tenantBody: 'تم الدفع وتأكيد حجز $title. مبروك وحدتك الجديدة!',
           ownerTitle: 'حجز مؤكد 🎉',
           ownerBody: 'تم تأكيد حجز $title وإيداع المبلغ في محفظتك.',
           type: 'payment',
-          notifyAdmin: _isHighValueBooking(booking),
+          notifyAdmin: _isHighValueBooking(updatedBooking),
           adminTitle: 'حجز مؤكد — $title',
-          adminBody: 'تم إتمام دفع حجز بقيمة ${booking['price'] ?? ''} ج.م.',
+          adminBody:
+              'تم إتمام دفع حجز بقيمة ${updatedBooking['price'] ?? ''} ج.م.',
         );
-      } else if (newStatus == 'deposit_refunded') {
+      } else if (normalizedStatus == BookingStatus.depositRefunded) {
         await _notifyBookingParties(
-          booking: booking,
+          booking: updatedBooking,
           tenantTitle: 'تم استرداد العربون',
           tenantBody: 'تم تنفيذ استرداد العربون لـ $title وفق سياسة الإلغاء.',
           ownerTitle: 'استرداد عربون',
           ownerBody: 'تم استرداد عربون حجز $title للمستأجر.',
           type: 'payment',
         );
-      } else if (newStatus == 'viewing_scheduled') {
+      } else if (normalizedStatus == BookingStatus.viewingScheduled) {
         await _notifyBookingParties(
-          booking: booking,
+          booking: updatedBooking,
           tenantTitle: 'تم تحديد موعد المعاينة',
           tenantBody: 'يمكنك متابعة تفاصيل الزيارة من حجوزاتي.',
           ownerTitle: 'موعد معاينة مجدول',
@@ -1557,6 +1824,7 @@ class DataService {
         );
       }
     }
+    return true;
   }
 
   static bool _isHighValueBooking(Map<String, dynamic> booking) {
@@ -1668,9 +1936,9 @@ class DataService {
       double rev = 0.0;
       if (b['revenue'] is num) {
         rev = (b['revenue'] as num).toDouble();
-      } else if (b['amount'] is String) {
+      } else if (b['amount'] != null) {
         String clean =
-            (b['amount'] as String).replaceAll(RegExp(r'[^0-9.]'), '');
+            safeStr(b['amount']).replaceAll(RegExp(r'[^0-9.]'), '');
         rev = double.tryParse(clean) ?? 0.0;
       }
 
@@ -1852,7 +2120,8 @@ class DataService {
       title: 'استكمال $title',
     );
 
-    await updateRequestStatus(bookingId, 'confirmed');
+    await updateRequestStatus(bookingId, BookingStatus.paid,
+        note: 'تم إتمام دفع الإيجار');
     return {'success': true, 'receipt': receipt};
   }
 
@@ -1873,7 +2142,7 @@ class DataService {
   }
 
   static Future<void> completeBookingPayment(String bookingId) async {
-    await updateRequestStatus(bookingId, 'confirmed');
+    await updateRequestStatus(bookingId, BookingStatus.paid);
   }
 
   // Tenant gets their bookings
@@ -2159,6 +2428,10 @@ class DataService {
       String query) async {
     final q = query.trim().toLowerCase();
     if (q.isEmpty) return [];
+
+    await initDemoBookings();
+    await initDemoReceipts();
+    await MaintenanceService.initDemoRequests();
 
     final results = <Map<String, dynamic>>[];
     final prefs = await SharedPreferences.getInstance();
@@ -2615,5 +2888,167 @@ class DataService {
     );
     if (match.isEmpty) return false;
     return match['isVerified'] == true;
+  }
+
+  static const String _joinRequestsKey = 'provider_join_requests_v1';
+
+  static Future<void> initDemoJoinRequests() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.containsKey(_joinRequestsKey)) return;
+    final defaults = [
+      {
+        'id': 'JR-101',
+        'service': 'طلب انضمام: مصور فوتوغرافي',
+        'userName': 'كريم جمال',
+        'customerPhone': '01288887777',
+        'status': 'pending',
+        'createdAt': '2024-04-22',
+        'title': 'القاهرة، المعادي',
+        'notes': 'خبرة 5 سنوات في تصوير العقارات الفاخرة.',
+        'estimatedCost': 0,
+      },
+      {
+        'id': 'JR-102',
+        'service': 'طلب انضمام: شركة نقل أثاث',
+        'userName': 'شركة السلام للنقل',
+        'customerPhone': '01011223344',
+        'status': 'pending',
+        'createdAt': '2024-04-21',
+        'title': 'الجيزة، الشيخ زايد',
+        'notes': 'لدينا أسطول من 10 شاحنات مجهزة.',
+        'estimatedCost': 0,
+      },
+    ];
+    await prefs.setStringList(
+      _joinRequestsKey,
+      defaults.map((e) => jsonEncode(e)).toList(),
+    );
+  }
+
+  static Future<List<Map<String, dynamic>>> getJoinRequests() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList(_joinRequestsKey) ?? [];
+    return raw
+        .map((e) => Map<String, dynamic>.from(jsonDecode(e) as Map))
+        .toList();
+  }
+
+  static Future<void> updateJoinRequestStatus(
+    String id,
+    String status,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final requests = await getJoinRequests();
+    final index = requests.indexWhere((r) => r['id']?.toString() == id);
+    if (index == -1) return;
+    requests[index]['status'] = status;
+    requests[index]['updatedAt'] = DateTime.now().toIso8601String();
+    await prefs.setStringList(
+      _joinRequestsKey,
+      requests.map((e) => jsonEncode(e)).toList(),
+    );
+  }
+
+  static Future<List<Map<String, dynamic>>> getTechnicians() async {
+    final prefs = await SharedPreferences.getInstance();
+    final users = prefs.getStringList('users_list') ?? [];
+    final technicians = <Map<String, dynamic>>[];
+    for (final email in users) {
+      final raw = prefs.getString('user_$email');
+      if (raw == null) continue;
+      final user = Map<String, dynamic>.from(jsonDecode(raw) as Map);
+      final role = (user['role'] ?? user['type'] ?? 'tenant').toString();
+      if (role == 'technician' ||
+          role == 'provider' ||
+          role == 'service_provider' ||
+          role == 'tech') {
+        technicians.add({
+          ...user,
+          'email': email,
+          'name': user['name'] ?? email,
+        });
+      }
+    }
+    if (technicians.isEmpty) {
+      technicians.add({
+        'email': 'tech@ejari.app',
+        'name': 'فني صيانة تجريبي',
+      });
+    }
+    return technicians;
+  }
+
+  static Future<Map<String, dynamic>> getAdminDashboardStats() async {
+    final base = await getAdminGlobalStats();
+    final prefs = await SharedPreferences.getInstance();
+    final users = prefs.getStringList('users_list') ?? [];
+    int tenants = 0;
+    int owners = 0;
+    int technicians = 0;
+    for (final email in users) {
+      final raw = prefs.getString('user_$email');
+      if (raw == null) continue;
+      final user = Map<String, dynamic>.from(jsonDecode(raw) as Map);
+      final role = (user['role'] ?? user['type'] ?? 'tenant').toString();
+      switch (role) {
+        case 'owner':
+        case 'landlord':
+          owners++;
+          break;
+        case 'technician':
+        case 'provider':
+        case 'service_provider':
+        case 'tech':
+          technicians++;
+          break;
+        case 'admin':
+          break;
+        default:
+          tenants++;
+      }
+    }
+
+    final maintenance = await MaintenanceService.getAllRequests();
+    final openDisputes = maintenance
+        .where((r) =>
+            MaintenanceStatus.normalize(r['status']?.toString()) ==
+            MaintenanceStatus.disputed)
+        .length;
+    final activeMaintenance = maintenance.where((r) {
+      final st = MaintenanceStatus.normalize(r['status']?.toString());
+      return st != MaintenanceStatus.paid &&
+          st != MaintenanceStatus.completed &&
+          st != MaintenanceStatus.cancelled &&
+          st != MaintenanceStatus.rejected;
+    }).length;
+
+    final pendingPayments = (await getBookings())
+        .where((b) =>
+            b['status'] == 'deposit_paid' || b['status'] == 'pending')
+        .length;
+
+    double escrowBalance = 0;
+    for (final email in users) {
+      final wallet = await getWalletData(email);
+      escrowBalance += (wallet['escrow'] as num?)?.toDouble() ?? 0;
+    }
+
+    return {
+      'totalUsers': users.length,
+      'tenantsCount': tenants,
+      'ownersCount': owners,
+      'techniciansCount': technicians,
+      'pendingVerifications': base['pendingVerifications'] ?? 0,
+      'pendingProperties': (base['pendingVerifications'] as num?)?.toInt() ?? 0,
+      'activeBookings': base['activeBookings'] ?? 0,
+      'pendingPayments': pendingPayments,
+      'escrowBalance': escrowBalance.round(),
+      'openDisputes': openDisputes,
+      'activeMaintenance': activeMaintenance,
+      'platformRevenue': (base['totalRevenue'] as num?)?.round() ?? 0,
+      'todayTransactions':
+          (((base['totalRevenue'] as num?)?.toDouble() ?? 0) * 0.28).round(),
+      'systemAlerts': openDisputes + pendingPayments,
+    };
   }
 }

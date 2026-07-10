@@ -4,6 +4,7 @@ import '../services/data_service.dart';
 import 'my_bookings_screen.dart';
 import 'admin_users_screen.dart';
 import 'admin_service_requests_screen.dart';
+import 'admin_support_screen.dart';
 import 'tenant_wallet_screen.dart';
 
 class AdminSearchScreen extends StatefulWidget {
@@ -290,6 +291,9 @@ class _AdminSearchScreenState extends State<AdminSearchScreen> {
         break;
       case 'maintenance':
         page = const AdminServiceRequestsScreen();
+        break;
+      case 'support':
+        page = const AdminSupportScreen();
         break;
       case 'user':
         page = const AdminUsersScreen();

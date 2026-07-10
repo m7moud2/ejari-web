@@ -74,8 +74,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         ),
         title: Text(
           chat['participants'] != null && chat['participants'].length == 2
-              ? chat['participants'].firstWhere((p) => p != _currentUserId,
-                  orElse: () => chat['otherUserName'] ?? 'مستخدم')
+              ? ChatService.displayNameFor(chat, _currentUserId!)
               : (chat['otherUserName'] ?? 'مستخدم'),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -102,16 +101,17 @@ class _ChatListScreenState extends State<ChatListScreen> {
           style: const TextStyle(fontSize: 12, color: AppTheme.primaryColor),
         ),
         onTap: () {
+          final otherName = ChatService.displayNameFor(chat, _currentUserId!);
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => ChatScreen(
                 chatId: chat['id'],
-                otherUserName: chat['otherUserName'],
+                otherUserName: otherName,
                 currentUserId: _currentUserId!,
               ),
             ),
-          ).then((_) => _loadChats()); // Refresh on return
+          ).then((_) => _loadChats());
         },
       ),
     );

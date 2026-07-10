@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/firestore_chat_service.dart';
@@ -27,22 +28,73 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   List<Map<String, dynamic>> _localMessages = [];
   bool _loadingLocal = true;
+  Timer? _pollTimer;
+  String? _resolvedPeerEmail;
 
   @override
   void initState() {
     super.initState();
     if (AppConfig.demoMode) {
-      _loadLocalMessages();
+      _bootstrapDemoChat();
     }
   }
 
-  Future<void> _loadLocalMessages() async {
+  Future<void> _bootstrapDemoChat() async {
+    await _resolvePeerEmail();
+    await _loadLocalMessages();
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(
+      const Duration(seconds: 2),
+      (_) => _loadLocalMessages(silent: true),
+    );
+  }
+
+  Future<void> _resolvePeerEmail() async {
+    final chat = await ChatService.getChatById(widget.chatId);
+    if (chat == null) {
+      _resolvedPeerEmail = _fallbackPeerEmail();
+      return;
+    }
+    final peer = ChatService.peerIdFor(chat, widget.currentUserId);
+    if (peer != null &&
+        peer != ChatService.adminEmail &&
+        peer != 'support' &&
+        peer != 'admin') {
+      _resolvedPeerEmail = peer;
+      return;
+    }
+    _resolvedPeerEmail = _fallbackPeerEmail();
+  }
+
+  String? _fallbackPeerEmail() {
+    if (widget.currentUserId == ChatService.adminEmail) {
+      return widget.otherUserName.contains('@') ? widget.otherUserName : null;
+    }
+    return widget.currentUserId;
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadLocalMessages({bool silent = false}) async {
     final messages = await ChatService.getMessages(widget.chatId);
     if (!mounted) return;
+    final changed = messages.length != _localMessages.length ||
+        (messages.isNotEmpty &&
+            _localMessages.isNotEmpty &&
+            messages.last['id'] != _localMessages.last['id']);
     setState(() {
       _localMessages = messages;
       _loadingLocal = false;
     });
+    if (changed && !silent) {
+      _scrollToBottom();
+    }
   }
 
   void _scrollToBottom() {
@@ -64,12 +116,10 @@ class _ChatScreenState extends State<ChatScreen> {
     if (AppConfig.demoMode) {
       await ChatService.sendMessage(widget.chatId, widget.currentUserId, text);
 
-      final isAdminSender = widget.currentUserId == 'admin@ejari.app';
+      final isAdminSender = widget.currentUserId == ChatService.adminEmail;
       if (isAdminSender) {
-        final otherId = widget.otherUserName == 'دعم إيجاري'
-            ? null
-            : _peerEmail();
-        if (otherId != null && otherId != 'admin@ejari.app') {
+        final otherId = _resolvedPeerEmail ?? _fallbackPeerEmail();
+        if (otherId != null && otherId != ChatService.adminEmail) {
           await DataService.addNotificationToUser(
             otherId,
             'رد من دعم إيجاري 💬',
@@ -80,7 +130,7 @@ class _ChatScreenState extends State<ChatScreen> {
         }
       } else {
         await DataService.addNotificationToUser(
-          'admin@ejari.app',
+          ChatService.adminEmail,
           'رسالة دعم جديدة',
           text,
           type: 'support',
@@ -97,16 +147,6 @@ class _ChatScreenState extends State<ChatScreen> {
     await FirestoreChatService.sendMessage(
         widget.chatId, widget.currentUserId, text);
     _scrollToBottom();
-  }
-
-  String? _peerEmail() {
-    // Best-effort for demo notifications
-    if (widget.currentUserId == 'admin@ejari.app') {
-      return widget.otherUserName.contains('@')
-          ? widget.otherUserName
-          : null;
-    }
-    return widget.currentUserId;
   }
 
   @override

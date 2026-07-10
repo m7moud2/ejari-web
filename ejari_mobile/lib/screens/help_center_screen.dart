@@ -105,6 +105,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       SupportService.adminEmail,
       'دعم إيجاري',
       'استفسار دعم فني',
+      user1Name: name,
     );
 
     await SupportService.createTicket(

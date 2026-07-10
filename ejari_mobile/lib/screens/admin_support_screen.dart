@@ -182,6 +182,11 @@ class _AdminSupportScreenState extends State<AdminSupportScreen> {
   }
 
   Future<void> _openTicket(Map<String, dynamic> ticket) async {
+    final fresh =
+        await SupportService.getTicketById(ticket['id']?.toString() ?? '');
+    if (fresh == null) return;
+    ticket = fresh;
+
     final replyController = TextEditingController();
     final admin = await AuthService.getCurrentUser();
     final adminEmail = admin?['email']?.toString() ?? SupportService.adminEmail;
@@ -306,7 +311,9 @@ class _AdminSupportScreenState extends State<AdminSupportScreen> {
                               builder: (_) => ChatScreen(
                                 chatId: ticket['chatId'].toString(),
                                 otherUserName:
-                                    ticket['userName']?.toString() ?? 'مستخدم',
+                                    ticket['userName']?.toString() ??
+                                        ticket['userEmail']?.toString() ??
+                                        'مستخدم',
                                 currentUserId: adminEmail,
                               ),
                             ),

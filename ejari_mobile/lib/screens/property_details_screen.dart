@@ -10,6 +10,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../services/firestore_chat_service.dart';
+import '../services/chat_service.dart';
+import '../config/app_config.dart';
 import '../services/auth_service.dart';
 import '../widgets/ejari_image.dart';
 import '../widgets/ejari_section.dart';
@@ -141,12 +143,23 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
 
     if (!mounted) return;
-    final chatId = await FirestoreChatService.startChat(
-      currentUserId,
-      ownerId,
-      ownerName,
-      widget.property['title'] ?? '',
-    );
+    final String chatId;
+    if (AppConfig.demoMode) {
+      chatId = await ChatService.startChat(
+        currentUserId,
+        ownerId,
+        ownerName,
+        widget.property['title'] ?? '',
+        user1Name: currentUser['name']?.toString(),
+      );
+    } else {
+      chatId = await FirestoreChatService.startChat(
+        currentUserId,
+        ownerId,
+        ownerName,
+        widget.property['title'] ?? '',
+      );
+    }
 
     // Hide loading
     if (!mounted) return;

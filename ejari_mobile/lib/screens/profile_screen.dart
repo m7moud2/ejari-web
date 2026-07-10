@@ -18,7 +18,7 @@ import '../main.dart';
 import 'rental_statement_screen.dart';
 import '../services/chat_service.dart';
 import '../services/support_service.dart';
-import 'maintenance_requests_screen.dart';
+import 'my_service_requests_screen.dart';
 import 'provider_jobs_screen.dart';
 import 'provider_timeline_screen.dart';
 import 'provider_wallet_screen.dart';
@@ -31,7 +31,7 @@ import 'admin_support_screen.dart';
 import 'admin_reviews_screen.dart';
 import 'admin_service_requests_screen.dart';
 import 'admin_reports_screen.dart';
-import 'properties_screen.dart';
+import 'manage_properties_screen.dart';
 import 'add_property_screen.dart';
 import 'owner_collection_screen.dart';
 
@@ -377,7 +377,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _buildEjariMenuItem('عقاراتي', Icons.holiday_village_rounded,
             AppTheme.borderColor, () {
           Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const PropertiesScreen()));
+              MaterialPageRoute(builder: (_) => const ManagePropertiesScreen()));
         }),
         _buildEjariMenuItem('نشر عقار', Icons.add_business_rounded,
             AppTheme.primaryColor, () {
@@ -412,7 +412,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (_) => const MaintenanceRequestsScreen()));
+                builder: (_) => const MyServiceRequestsScreen()));
       }, isLast: true),
     ];
   }
@@ -469,6 +469,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             : _isTechnician
                 ? 'فني'
                 : 'مستأجر';
+    final verification =
+        _userData?['verified'] == true || _userData?['isVerified'] == true
+            ? 'موثق'
+            : 'قيد المراجعة';
 
     return EjariSurfaceCard(
       child: Row(
@@ -486,7 +490,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: EjariStatTile(
               icon: Icons.verified_user_rounded,
               label: 'الحالة',
-              value: 'موثق',
+              value: verification,
               accentColor: AppTheme.accentColor,
               compact: true,
             ),
@@ -532,6 +536,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       SupportService.adminEmail,
       'دعم إيجاري',
       'استفسار دعم فني',
+      user1Name: name,
     );
     await SupportService.createTicket(
       userEmail: email,
@@ -570,8 +575,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
               onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
+              if (_userData == null) return;
+              final email = _userData!['email']?.toString() ?? '';
+              final name = _userData!['name']?.toString() ?? 'مستأجر';
+              await SupportService.createTicket(
+                userEmail: email,
+                userName: name,
+                subject: 'طلب التحول إلى مالك',
+                message: 'يرغب المستأجر في تفعيل حساب مالك',
+              );
+              if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                     content: Text('تم إرسال الطلب. سنتواصل معك قريباً.')),
