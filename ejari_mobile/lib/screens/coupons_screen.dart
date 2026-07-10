@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
+import '../services/loyalty_service.dart';
 
 class CouponsScreen extends StatefulWidget {
   const CouponsScreen({super.key});
@@ -11,51 +12,26 @@ class CouponsScreen extends StatefulWidget {
 
 class _CouponsScreenState extends State<CouponsScreen> {
   final TextEditingController _couponController = TextEditingController();
+  List<Map<String, dynamic>> _availableCoupons = [];
+  bool _loading = true;
 
-  final List<Map<String, dynamic>> _availableCoupons = [
-    {
-      'code': 'WELCOME20',
-      'discount': '20%',
-      'title': 'خصم ترحيبي',
-      'description': 'خصم 20% على أول حجز',
-      'expiry': '2024-12-31',
-      'minAmount': '1000',
-      'isUsed': false,
-      'type': 'percentage',
-    },
-    {
-      'code': 'SUMMER50',
-      'discount': '50 ج.م',
-      'title': 'عرض الصيف',
-      'description': 'خصم 50 جنيه على أي حجز',
-      'expiry': '2024-08-31',
-      'minAmount': '500',
-      'isUsed': false,
-      'type': 'fixed',
-    },
-    {
-      'code': 'PREMIUM10',
-      'discount': '10%',
-      'title': 'خصم الباقة المميزة',
-      'description': 'خصم 10% على اشتراك الباقة الذهبية',
-      'expiry': '2024-12-31',
-      'minAmount': '0',
-      'isUsed': true,
-      'type': 'percentage',
-    },
-    {
-      'code': 'FRIEND100',
-      'discount': '100 ج.م',
-      'title': 'إحالة صديق',
-      'description': 'خصم 100 جنيه عند إحالة صديق',
-      'expiry': '2024-12-31',
-      'minAmount': '1000',
-      'isUsed': false,
-      'type': 'fixed',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadCoupons();
+  }
 
-  void _applyCoupon() {
+  Future<void> _loadCoupons() async {
+    final coupons = await LoyaltyService.getCoupons();
+    if (mounted) {
+      setState(() {
+        _availableCoupons = coupons;
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _applyCoupon() async {
     final code = _couponController.text.trim().toUpperCase();
     if (code.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,38 +40,22 @@ class _CouponsScreenState extends State<CouponsScreen> {
       return;
     }
 
-    final coupon = _availableCoupons.firstWhere(
-      (c) => c['code'] == code,
-      orElse: () => {},
-    );
-
-    if (coupon.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('كود الكوبون غير صحيح'),
-          backgroundColor: AppTheme.errorColor,
-        ),
-      );
-      return;
-    }
-
-    if (coupon['isUsed'] == true) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم استخدام هذا الكوبون من قبل'),
-          backgroundColor: AppTheme.borderColor,
-        ),
-      );
-      return;
-    }
+    final result = await LoyaltyService.applyCoupon(code);
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('تم تفعيل الكوبون: ${coupon['discount']} خصم'),
-        backgroundColor: AppTheme.primaryColor,
+        content: Text(result['message']?.toString() ?? ''),
+        backgroundColor: result['ok'] == true
+            ? AppTheme.primaryColor
+            : AppTheme.errorColor,
       ),
     );
-    _couponController.clear();
+
+    if (result['ok'] == true) {
+      _couponController.clear();
+      await _loadCoupons();
+    }
   }
 
   @override
@@ -104,7 +64,9 @@ class _CouponsScreenState extends State<CouponsScreen> {
       appBar: AppBar(
         title: const Text('الكوبونات والخصومات'),
       ),
-      body: SingleChildScrollView(
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

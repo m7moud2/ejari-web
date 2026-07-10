@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
+import '../services/auth_service.dart';
 import '../utils/date_utils.dart';
 import 'receipt_screen.dart';
+import 'my_bookings_screen.dart';
 import 'my_service_requests_screen.dart';
 import 'tech_job_screen.dart';
-import '../services/auth_service.dart';
+import 'admin_service_requests_screen.dart';
 
 class NotificationCenterScreen extends StatefulWidget {
   const NotificationCenterScreen({super.key});
@@ -50,6 +52,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       return 'Payment';
     }
     if (title.contains('صيانة') || title.contains('فني')) return 'Maintenance';
+    if (title.contains('حجز') || title.contains('عقد')) return 'Booking';
     if (title.contains('تأخير') || title.contains('رفض') || title.contains('إلغاء')) {
       return 'Alert';
     }
@@ -71,6 +74,10 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       return;
     }
     if (role == 'admin') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const AdminServiceRequestsScreen()),
+      );
       return;
     }
     Navigator.push(
@@ -207,6 +214,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
             await _openReceiptIfPayment(notif);
           } else if (type == 'Maintenance') {
             await _openMaintenance(notif);
+          } else if (type == 'Booking') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+            );
           }
         },
         child: Row(

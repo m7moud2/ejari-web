@@ -1633,6 +1633,15 @@ class DataService {
           request['requiresIncomeProof'] = corrected['requiresIncomeProof'];
           request['requiresAdvanceDeposit'] = corrected['requiresAdvanceDeposit'];
           request['showInstallments'] = corrected['showInstallments'];
+          request['pricingTier'] = corrected['pricingTier'];
+          request['pricingTierLabel'] = corrected['pricingTierLabel'];
+          request['effectiveDailyRate'] =
+              (corrected['effectiveDailyRate'] as double).toStringAsFixed(0);
+          request['premiumDailyRate'] =
+              (corrected['premiumDailyRate'] as double).toStringAsFixed(0);
+          request['savingsVsPremiumDaily'] =
+              (corrected['savingsVsPremiumDaily'] as double).toStringAsFixed(0);
+          request['totalDays'] = corrected['totalDays'];
         }
       }
     }

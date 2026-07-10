@@ -5,6 +5,8 @@ import 'my_bookings_screen.dart';
 import 'admin_users_screen.dart';
 import 'admin_service_requests_screen.dart';
 import 'admin_support_screen.dart';
+import 'admin_properties_screen.dart';
+import 'property_details_screen.dart';
 import 'tenant_wallet_screen.dart';
 
 class AdminSearchScreen extends StatefulWidget {
@@ -298,6 +300,22 @@ class _AdminSearchScreenState extends State<AdminSearchScreen> {
       case 'user':
         page = const AdminUsersScreen();
         break;
+      case 'property':
+        final property = result['data'] as Map<String, dynamic>?;
+        if (property != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PropertyDetailsScreen(property: property),
+            ),
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AdminPropertiesScreen()),
+          );
+        }
+        return;
     }
 
     if (page != null) {

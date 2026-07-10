@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import '../services/firestore_property_service.dart';
+import '../services/loyalty_service.dart';
 
 class LoyaltyScreen extends StatefulWidget {
   const LoyaltyScreen({super.key});
@@ -20,11 +20,11 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
   }
 
   Future<void> _loadLoyaltyData() async {
-    final properties = await FirestorePropertyService.getAllProperties();
+    final points = await LoyaltyService.getPoints();
     if (mounted) {
       setState(() {
-        _points = properties.length * 1250;
-        _balance = properties.length * 120;
+        _points = points;
+        _balance = (points * 0.08).round();
       });
     }
   }
@@ -194,12 +194,20 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                 child: const Text('إلغاء',
                     style: TextStyle(color: AppTheme.textSecondary))),
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _points -= requiredPoints;
-                });
+              onPressed: () async {
+                final ok = await LoyaltyService.redeemPoints(
+                  cost: requiredPoints,
+                  rewardTitle: title,
+                );
+                if (!context.mounted) return;
                 Navigator.pop(context);
-                _showSuccessAnimation(title);
+                if (ok) {
+                  await _loadLoyaltyData();
+                  if (context.mounted) _showSuccessAnimation(title);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('عذراً، نقاطك لا تكفي لهذا الامتياز ⚠️')));
+                }
               },
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor,

@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
+import '../services/auth_service.dart';
 import '../utils/date_utils.dart';
+import 'receipt_screen.dart';
+import 'my_bookings_screen.dart';
+import 'my_service_requests_screen.dart';
+import 'tenant_wallet_screen.dart';
+import 'tech_job_screen.dart';
+import 'admin_service_requests_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -35,6 +42,72 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تم تحديد الكل كمقروء')),
+      );
+    }
+  }
+
+  String _inferType(Map<String, dynamic> note) {
+    final title = note['title']?.toString() ?? '';
+    if (title.contains('قسط') || title.contains('دفع') || title.contains('عربون')) {
+      return 'Payment';
+    }
+    if (title.contains('صيانة') || title.contains('فني')) return 'Maintenance';
+    if (title.contains('حجز') || title.contains('عقد')) return 'Booking';
+    return 'General';
+  }
+
+  Future<void> _handleDeepLink(Map<String, dynamic> note) async {
+    final type = _inferType(note);
+    final role = await AuthService.getUserRole();
+    if (!mounted) return;
+
+    if (type == 'Payment') {
+      final refId = note['refId']?.toString();
+      if (refId != null && refId.startsWith('RCP-')) {
+        final receipt = await DataService.getReceiptById(refId);
+        if (receipt != null && mounted) {
+          await ReceiptScreen.showDialogFor(context, receipt);
+        }
+        return;
+      }
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const TenantWalletScreen()),
+      );
+      return;
+    }
+
+    if (type == 'Maintenance') {
+      final refId = note['refId']?.toString();
+      if (role == 'technician' && refId != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TechJobScreen(requestId: refId),
+          ),
+        );
+        return;
+      }
+      if (role == 'admin') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const AdminServiceRequestsScreen(),
+          ),
+        );
+        return;
+      }
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const MyServiceRequestsScreen()),
+      );
+      return;
+    }
+
+    if (type == 'Booking') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
       );
     }
   }
@@ -185,6 +258,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             await DataService.markNotificationAsRead(index);
             _loadNotifications();
           }
+          await _handleDeepLink(item);
         },
       ),
     );
