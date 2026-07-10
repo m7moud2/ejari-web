@@ -102,16 +102,18 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
               tooltip: 'تحميل نسخة PDF',
               icon: const Icon(Icons.picture_as_pdf),
               onPressed: () async {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('جارٍ إنشاء ملف PDF...')),
+                final html = ContractService.generatePrintableHtml(
+                  contractText: _contractText,
+                  contractNumber: widget.bookingDetails['contractNumber']
+                          ?.toString() ??
+                      widget.bookingDetails['id']?.toString() ??
+                      'CTR',
                 );
-                await Future.delayed(const Duration(seconds: 2));
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).hideCurrentSnackBar();
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content:
-                        Text('تم الحفظ في التنزيلات: Contract_Ejari.pdf ✅'),
+                  SnackBar(
+                    content: Text(
+                      'نسخة قابلة للطباعة جاهزة (${html.length} حرف) ✅',
+                    ),
                     backgroundColor: AppTheme.primaryColor,
                   ),
                 );

@@ -20,6 +20,7 @@ class _RequestVerificationScreenState extends State<RequestVerificationScreen> {
   String? _idFront;
   String? _idBack;
   String? _selfie;
+  String _docType = 'national_id';
   bool _isLoading = false;
   bool _isLoadingStatus = true;
   Map<String, String> _status = {'status': 'none', 'label': 'غير موثق'};
@@ -89,6 +90,7 @@ class _RequestVerificationScreenState extends State<RequestVerificationScreen> {
       idFront: _idFront!,
       idBack: _idBack!,
       selfie: _selfie!,
+      docType: _docType,
     );
 
     setState(() => _isLoading = false);
@@ -202,8 +204,20 @@ class _RequestVerificationScreenState extends State<RequestVerificationScreen> {
                                   (v == null || v.isEmpty) ? 'مطلوب' : null,
                             ),
                             const SizedBox(height: 20),
+                            const Text('نوع المستند',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              children: [
+                                _docChip('national_id', 'بطاقة'),
+                                _docChip('passport', 'جواز'),
+                                _docChip('license', 'رخصة'),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
                             CameraCaptureWidget(
-                              label: 'وجه البطاقة الأمامي',
+                              label: _docFrontLabel(),
                               captureHint: 'وجّه الكاميرا نحو وجه البطاقة',
                               icon: Icons.badge_outlined,
                               onImageCaptured: (img) =>
@@ -211,8 +225,8 @@ class _RequestVerificationScreenState extends State<RequestVerificationScreen> {
                             ),
                             const SizedBox(height: 16),
                             CameraCaptureWidget(
-                              label: 'وجه البطاقة الخلفي',
-                              captureHint: 'وجّه الكاميرا نحو ظهر البطاقة',
+                              label: _docBackLabel(),
+                              captureHint: 'التقط الصورة من الكاميرا',
                               icon: Icons.credit_card_rounded,
                               onImageCaptured: (img) =>
                                   setState(() => _idBack = img),
@@ -346,6 +360,38 @@ class _RequestVerificationScreenState extends State<RequestVerificationScreen> {
         ],
       ),
     );
+  }
+
+  Widget _docChip(String type, String label) {
+    final selected = _docType == type;
+    return ChoiceChip(
+      label: Text(label),
+      selected: selected,
+      onSelected: _canSubmit ? (_) => setState(() => _docType = type) : null,
+      selectedColor: AppTheme.primaryColor.withOpacity(0.15),
+    );
+  }
+
+  String _docFrontLabel() {
+    switch (_docType) {
+      case 'passport':
+        return 'صفحة جواز السفر';
+      case 'license':
+        return 'وجه الرخصة';
+      default:
+        return 'وجه البطاقة الأمامي';
+    }
+  }
+
+  String _docBackLabel() {
+    switch (_docType) {
+      case 'passport':
+        return 'صفحة إضافية (إن وجدت)';
+      case 'license':
+        return 'ظهر الرخصة';
+      default:
+        return 'وجه البطاقة الخلفي';
+    }
   }
 
   Widget _buildSubmittedPreview() {

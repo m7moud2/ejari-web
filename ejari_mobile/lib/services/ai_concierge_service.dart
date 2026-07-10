@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../services/data_service.dart';
+import 'smart_pricing_service.dart';
 
 /// خدمة الذكاء الاصطناعي لمساعد كونسيرج إيجاري
 /// تستخدم Gemini API محلياً عبر حزمة google_generative_ai
@@ -122,6 +123,10 @@ ${jsonEncode(propertiesList)}
         final price = _parsePrice(p['price']);
         return price >= 8000 || (p['type'] ?? '').contains('فلل');
       }).toList();
+    } else if (_containsAny(q, ['فاضي', 'شاغر', 'vacant', 'سرير', 'غرفة'])) {
+      final suggestion =
+          await SmartPricingService.occupancySuggestion('owner@ejari.app');
+      return {'reply': suggestion, 'properties': <Map<String, dynamic>>[]};
     } else if (_containsAny(q, ['شقة', 'شقق', 'apartment'])) {
       filtered = all
           .where((p) =>

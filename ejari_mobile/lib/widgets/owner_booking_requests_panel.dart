@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import 'ejari_section.dart';
+import 'tenant_score_card.dart';
 
 /// طلبات الحجز الواردة للمالك — قبول/رفض مع تحديث الحالة.
 class OwnerBookingRequestsPanel extends StatefulWidget {
@@ -121,6 +122,14 @@ class _OwnerBookingRequestsPanelState extends State<OwnerBookingRequestsPanel> {
                   style: const TextStyle(
                       fontSize: 11, color: AppTheme.textSecondary),
                 ),
+                if (r['tenantEmail'] != null) ...[
+                  const SizedBox(height: 8),
+                  TenantScoreCard(
+                    scoreData: {
+                      'tenantEmail': r['tenantEmail']?.toString() ?? '',
+                    },
+                  ),
+                ],
                 const SizedBox(height: 10),
                 Row(
                   children: [

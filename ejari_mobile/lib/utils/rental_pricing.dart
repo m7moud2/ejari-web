@@ -52,12 +52,18 @@ class RentalPricing {
   static int totalDays(String durationType, int count) {
     if (count <= 0) return 0;
     switch (durationType) {
+      case 'ساعة':
+        return (count / 24).ceil().clamp(1, count);
       case 'يوم':
         return count;
+      case '15 يوم':
+        return 15 * count;
       case 'أسبوع':
         return count * 7;
       case 'شهر':
         return count * 30;
+      case '3 شهور':
+        return count * 90;
       case 'سنة':
         return count * 365;
       default:
@@ -134,6 +140,19 @@ class RentalPricing {
       totalRent = monthlyRent * count;
       days = count * 30;
       tier = RentalPricingTier.monthly;
+    } else if (durationType == '3 شهور') {
+      totalRent = monthlyRent * 3 * count;
+      days = count * 90;
+      tier = RentalPricingTier.monthly;
+    } else if (durationType == '15 يوم') {
+      days = 15 * count;
+      totalRent = rentForDays(monthlyRent, days) * count;
+      tier = RentalPricingTier.shortTerm;
+    } else if (durationType == 'ساعة') {
+      final hourly = monthlyRent * 0.01;
+      totalRent = (hourly * count).roundToDouble();
+      days = 1;
+      tier = RentalPricingTier.daily;
     } else if (durationType == 'سنة') {
       totalRent = monthlyRent * 12 * count;
       days = count * 365;
@@ -169,6 +188,16 @@ class RentalPricing {
       savingsVsPremiumDaily: savings,
     );
   }
+
+  /// كل خيارات المدة المتاحة في واجهة الحجز.
+  static const List<String> durationOptions = [
+    'ساعة',
+    'يوم',
+    'أسبوع',
+    '15 يوم',
+    'شهر',
+    '3 شهور',
+  ];
 
   /// جدول الشرائح للعرض في الواجهة.
   static List<Map<String, dynamic>> tierTable(double monthlyRent) {

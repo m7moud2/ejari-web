@@ -17,6 +17,9 @@ import '../widgets/refund_calculator_dialog.dart';
 import '../widgets/corporate_bookings_strip.dart';
 import '../widgets/escrow_transparency_widget.dart';
 import '../utils/safe_parse.dart';
+import '../services/check_in_out_service.dart';
+import 'booking_qr_screen.dart';
+import 'owner_rating_screen.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -549,6 +552,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
                 if (status == BookingStatus.paid ||
                     status == BookingStatus.confirmed ||
+                    status == BookingStatus.active) ...[
+                  const SizedBox(height: 12),
+                  _buildCheckInOutRow(booking),
+                ],
+
+                if (status == BookingStatus.paid ||
+                    status == BookingStatus.confirmed ||
                     status == BookingStatus.active ||
                     status == BookingStatus.completed) ...[
                   const SizedBox(height: 16),
@@ -587,7 +597,31 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                         ),
                       ),
                     ],
-                  )
+                  ),
+                  if (status == BookingStatus.completed) ...[
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => OwnerRatingScreen(
+                                ownerEmail:
+                                    booking['ownerEmail']?.toString() ?? '',
+                                tenantEmail:
+                                    booking['tenantEmail']?.toString() ?? '',
+                                bookingId: booking['id']?.toString(),
+                              ),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.star_outline, size: 18),
+                        label: const Text('قيّم المالك'),
+                      ),
+                    ),
+                  ],
                 ]
               ],
             ),
@@ -626,6 +660,68 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       booking['checkInDate'] ??
           booking['leaseStartDate'] ??
           booking['startDate'],
+    );
+  }
+
+  Widget _buildCheckInOutRow(Map<String, dynamic> booking) {
+    final id = booking['id']?.toString() ?? '';
+    final checkedIn = booking['checkedInAt'] != null;
+    final checkedOut = booking['checkedOutAt'] != null;
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: checkedIn || id.isEmpty
+                    ? null
+                    : () async {
+                        final r = await CheckInOutService.checkIn(id);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(r['message']?.toString() ?? '')),
+                        );
+                        _loadBookings();
+                      },
+                icon: const Icon(Icons.login_rounded, size: 18),
+                label: Text(checkedIn ? 'تم الدخول ✓' : 'تسجيل الدخول'),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: !checkedIn || checkedOut || id.isEmpty
+                    ? null
+                    : () async {
+                        final r = await CheckInOutService.checkOut(id);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(r['message']?.toString() ?? '')),
+                        );
+                        _loadBookings();
+                      },
+                icon: const Icon(Icons.logout_rounded, size: 18),
+                label: Text(checkedOut ? 'تم الخروج ✓' : 'تسجيل الخروج'),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BookingQrScreen(booking: booking),
+              ),
+            ),
+            icon: const Icon(Icons.qr_code_2_rounded, size: 18),
+            label: const Text('عرض QR للدخول'),
+          ),
+        ),
+      ],
     );
   }
 

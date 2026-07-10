@@ -865,12 +865,9 @@ class _BookingScreenState extends State<BookingScreen> {
                               SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Row(
-                                  children: [
-                                    _buildDurationTab('يوم'),
-                                    _buildDurationTab('أسبوع'),
-                                    _buildDurationTab('شهر'),
-                                    _buildDurationTab('سنة'),
-                                  ],
+                                  children: RentalPricing.durationOptions
+                                      .map(_buildDurationTab)
+                                      .toList(),
                                 ),
                               ),
                               const SizedBox(height: 24),
@@ -1632,39 +1629,29 @@ class _BookingScreenState extends State<BookingScreen> {
                                       'wallet',
                                       AppTheme.primaryColor),
                                   _buildPaymentOption(
-                                      'إنستاباي',
-                                      Icons.send_to_mobile_rounded,
-                                      'instapay',
-                                      AppTheme.primaryColor),
-                                  _buildPaymentOption(
-                                      'فودافون كاش',
-                                      Icons.phone_android_rounded,
-                                      'vodafone_cash',
-                                      AppTheme.errorColor),
-                                  _buildPaymentOption(
-                                      'بطاقة ائتمان',
+                                      'Visa',
                                       Icons.credit_card_rounded,
-                                      'card',
-                                      AppTheme.borderColor),
+                                      'visa',
+                                      const Color(0xFF1A1F71)),
                                   _buildPaymentOption(
-                                      'أبل باي',
+                                      'Mastercard',
+                                      Icons.credit_card_rounded,
+                                      'mastercard',
+                                      const Color(0xFFEB001B)),
+                                  _buildPaymentOption(
+                                      'Apple Pay',
                                       Icons.apple_rounded,
                                       'apple_pay',
                                       AppTheme.textPrimary),
                                   _buildPaymentOption(
-                                      'فوري',
-                                      Icons.store_rounded,
-                                      'fawry',
-                                      AppTheme.borderColor),
+                                      'Google Pay',
+                                      Icons.g_mobiledata_rounded,
+                                      'google_pay',
+                                      const Color(0xFF4285F4)),
                                   _buildPaymentOption(
-                                      'تحويل بنكي',
-                                      Icons.account_balance_rounded,
-                                      'bank_transfer',
-                                      AppTheme.primaryColor),
-                                  _buildPaymentOption(
-                                      'دفع نقدي (كاش)',
-                                      Icons.payments_rounded,
-                                      'cash',
+                                      'InstaPay',
+                                      Icons.send_to_mobile_rounded,
+                                      'instapay',
                                       AppTheme.primaryColor),
                                 ],
                               ),

@@ -20,7 +20,7 @@ class DataService {
   static const String _bookingsKey = 'bookings'; // For tenants
   static const String _requestsKey = 'requests'; // For owners (incoming)
   static const String _demoBookingsVersionKey = 'demo_bookings_version';
-  static const int _currentDemoBookingsVersion = 5;
+  static const int _currentDemoBookingsVersion = 6;
   static const String _demoReceiptsVersionKey = 'demo_receipts_version';
   static const int _currentDemoReceiptsVersion = 1;
   static const String _favoritesKey = 'favorites';
@@ -83,7 +83,7 @@ class DataService {
 
   static const String _propsVersionKey = 'properties_version';
   static const int _currentPropsVersion =
-      8; // bumped — shared accommodation + occupancy demo
+      9; // bumped — ROS bed hierarchy + demo scores
 
   /// Seed cross-role demo bookings so owner dashboard shows real pending requests.
   static Future<void> initDemoBookings() async {
@@ -180,13 +180,71 @@ class DataService {
         'durationCount': 3,
         'durationUnit': 'أسبوع',
         'leaseMonths': 0,
-        'depositAmount': '11250',
+        'depositAmount': '500',
+        'securityDeposit': 500,
         'rentalTier': 'weekly',
         'rentalTierLabel': 'إيجار أسبوعي',
         'tenantType': 'individual',
         'tenantTypeLabel': 'فرد',
         'requiresAdvanceDeposit': true,
         'showInstallments': false,
+      },
+      {
+        'id': 'demo_bed_booking',
+        'contractNumber': 'CTR-BED-001',
+        'propertyId': 'shared_egy1',
+        'title': 'إقامة مشتركة — المعادي (سرير 3)',
+        'image': 'assets/images/home3.jpg',
+        'price': '2500',
+        'monthlyRent': '2500',
+        'tenantName': 'سارة أحمد',
+        'tenantEmail': 'tenant.demo@ejari.app',
+        'ownerId': 'owner@ejari.app',
+        'ownerEmail': 'owner@ejari.app',
+        'status': BookingStatus.approved,
+        'selectedBedId': 'bed_3',
+        'bedLabel': 'سرير 3 — غرفة A',
+        'requestDate':
+            DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
+        'checkInDate': DateTime.now().toIso8601String(),
+        'startDate': DateTime.now().toIso8601String(),
+        'leaseStartDate': DateTime.now().toIso8601String(),
+        'durationLabel': '1 شهر',
+        'duration': '1 شهر',
+        'durationType': 'شهر',
+        'durationCount': 1,
+        'depositAmount': '500',
+        'securityDeposit': 500,
+        'rentAmount': 500,
+        'rentalTier': 'monthly',
+        'rentalTierLabel': 'شهري',
+        'tenantType': 'individual',
+        'tenantTypeLabel': 'فرد',
+      },
+      {
+        'id': 'demo_active_checkin',
+        'contractNumber': 'CTR-ACTIVE-001',
+        'propertyId': 'shared_egy1',
+        'title': 'إقامة مشتركة — سرير 5',
+        'image': 'assets/images/home4.jpg',
+        'price': '2500',
+        'monthlyRent': '2500',
+        'tenantName': 'مستأجر تجريبي',
+        'tenantEmail': 'user@ejari.app',
+        'ownerId': 'owner@ejari.app',
+        'ownerEmail': 'owner@ejari.app',
+        'status': BookingStatus.active,
+        'selectedBedId': 'bed_5',
+        'bedLabel': 'سرير 5',
+        'checkInDate':
+            DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
+        'checkedInAt':
+            DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
+        'depositAmount': '500',
+        'securityDeposit': 500,
+        'durationLabel': '2 أسبوع',
+        'durationType': 'أسبوع',
+        'durationCount': 2,
       },
     ];
 
@@ -1431,6 +1489,33 @@ class DataService {
     await prefs.setString(_corporateStateKey, jsonEncode(employees));
   }
 
+  static List<Map<String, dynamic>> _generateCorporateEmployees(int count) {
+    const governorates = [
+      'القاهرة', 'الجيزة', 'الإسكندرية', 'الشرقية', 'القليوبية',
+      'الدقهلية', 'المنوفية', 'أسوان', 'الأقصر', 'بورسعيد',
+    ];
+    const roles = [
+      'مهندس', 'محاسب', 'مشرف', 'فني', 'مدير فرع', 'مساعد إداري',
+    ];
+    const firstNames = [
+      'أحمد', 'محمد', 'سارة', 'خالد', 'نورا', 'ياسمين', 'عمر', 'فاطمة',
+    ];
+    const lastNames = [
+      'سالم', 'حسن', 'إبراهيم', 'عمر', 'محمود', 'علي', 'مصطفى', 'كامل',
+    ];
+    return List.generate(count, (i) {
+      return {
+        'id': 'emp_${i + 1}',
+        'name': '${firstNames[i % firstNames.length]} ${lastNames[i % lastNames.length]}',
+        'role': roles[i % roles.length],
+        'governorate': governorates[i % governorates.length],
+        'status': i < 15 ? 'booked' : (i < 40 ? 'pending' : 'available'),
+        'monthlyRent': (2000 + (i % 8) * 500).toDouble(),
+        'department': 'قسم ${(i % 10) + 1}',
+      };
+    });
+  }
+
   /// ملخص مركز قيادة الشركات — موظفون، إنفاق، محافظات.
   static Future<Map<String, dynamic>> getCorporateCommandSummary() async {
     final user = await AuthService.getCurrentUser();
@@ -1438,48 +1523,8 @@ class DataService {
     var employees = await getCorporateEmployees();
 
     if (employees.isEmpty) {
-      employees = [
-        {
-          'id': 'emp1',
-          'name': 'أحمد سالم',
-          'role': 'مهندس ميداني',
-          'governorate': 'القاهرة',
-          'status': 'pending',
-          'monthlyRent': 0.0,
-        },
-        {
-          'id': 'emp2',
-          'name': 'محمد حسن',
-          'role': 'مشرف تشغيل',
-          'governorate': 'الجيزة',
-          'status': 'pending',
-          'monthlyRent': 0.0,
-        },
-        {
-          'id': 'emp3',
-          'name': 'سارة إبراهيم',
-          'role': 'محاسبة',
-          'governorate': 'الإسكندرية',
-          'status': 'pending',
-          'monthlyRent': 0.0,
-        },
-        {
-          'id': 'emp4',
-          'name': 'خالد عمر',
-          'role': 'فني صيانة',
-          'governorate': 'الشرقية',
-          'status': 'pending',
-          'monthlyRent': 0.0,
-        },
-        {
-          'id': 'emp5',
-          'name': 'نورا محمود',
-          'role': 'مديرة فرع',
-          'governorate': 'القليوبية',
-          'status': 'pending',
-          'monthlyRent': 0.0,
-        },
-      ];
+      employees = _generateCorporateEmployees(200);
+      await saveCorporateEmployees(employees);
     }
 
     final bookings = await getBookings();
@@ -3091,6 +3136,7 @@ class DataService {
     required String idFront,
     required String idBack,
     required String selfie,
+    String docType = 'national_id',
   }) async {
     final existing = await getIdentityVerificationForUser(email);
     if (existing != null && (existing['status'] ?? 'pending') == 'pending') {
@@ -3111,6 +3157,8 @@ class DataService {
       'idFront': idFront,
       'idBack': idBack,
       'selfie': selfie,
+      'docType': docType,
+      'docTypeLabel': _docTypeLabel(docType),
       'submittedAt': DateTime.now().toIso8601String(),
       'adminNote': null,
       'rejectionReason': null,
@@ -3810,5 +3858,75 @@ class DataService {
       );
     }
     return true;
+  }
+
+  static String _docTypeLabel(String type) {
+    switch (type) {
+      case 'passport':
+        return 'جواز سفر';
+      case 'license':
+        return 'رخصة قيادة';
+      default:
+        return 'بطاقة رقم قومي';
+    }
+  }
+
+  /// Public wrappers for ROS services.
+  static Future<Map<String, dynamic>?> findBookingById(String bookingId) =>
+      _findBookingById(bookingId);
+
+  static Future<Map<String, dynamic>?> findPropertyById(String id) =>
+      _findPropertyById(id);
+
+  static Future<bool> updateBookingFields(
+    String bookingId,
+    Map<String, dynamic> fields,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    var updated = false;
+
+    for (final key in [_bookingsKey, _requestsKey]) {
+      final list = prefs.getStringList(key) ?? [];
+      final newList = list.map((raw) {
+        final data = Map<String, dynamic>.from(jsonDecode(raw) as Map);
+        if (data['id']?.toString() == bookingId ||
+            data['_id']?.toString() == bookingId) {
+          data.addAll(fields);
+          updated = true;
+          return jsonEncode(data);
+        }
+        return raw;
+      }).toList();
+      if (updated) await prefs.setStringList(key, newList);
+    }
+    return updated;
+  }
+
+  /// إيرادات اليوم للمالك.
+  static Future<double> getOwnerTodayIncome(String ownerId) async {
+    await WalletService.init(userId: ownerId);
+    final txs = await WalletService.getTransactions(userId: ownerId);
+    final today = DateTime.now();
+    double total = 0;
+    for (final tx in txs) {
+      final date = DateParsing.parse(tx['date']);
+      if (date == null) continue;
+      if (date.year == today.year &&
+          date.month == today.month &&
+          date.day == today.day) {
+        final amount = (tx['amount'] as num?)?.toDouble() ?? 0;
+        if (amount > 0) total += amount;
+      }
+    }
+    if (total > 0) return total;
+    // Demo fallback
+    return 1250.0;
+  }
+
+  /// تهيئة بيانات ROS التجريبية.
+  static Future<void> initRosDemo() async {
+    await initProperties();
+    await initDemoBookings();
+    // Import deferred to avoid circular deps — called from main.dart
   }
 }

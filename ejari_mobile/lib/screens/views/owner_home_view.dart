@@ -12,6 +12,9 @@ import '../wallet_screen.dart';
 import '../notifications_screen.dart';
 import '../listing_plans_screen.dart';
 import '../../widgets/owner_booking_requests_panel.dart';
+import '../owner_qr_verify_screen.dart';
+import '../../widgets/bed_hierarchy_tree.dart';
+import '../../widgets/smart_pricing_hint_widget.dart';
 import '../../widgets/trust_score_badge.dart';
 
 class OwnerHomeView extends StatelessWidget {
@@ -43,6 +46,14 @@ class OwnerHomeView extends StatelessWidget {
                   ],
                   const SizedBox(height: AppTheme.spaceLg),
                   _buildRevenueIntelligence(stats),
+                  if ((stats['smartPricingHint'] as Map?) != null) ...[
+                    const SizedBox(height: AppTheme.spaceMd),
+                    SmartPricingHintWidget(
+                      propertyId: stats['smartPricingHint']['propertyId']?.toString() ?? 'shared_egy1',
+                      listedPrice: (stats['smartPricingHint']['price'] as num?)?.toDouble() ?? 2500,
+                      location: stats['smartPricingHint']['location']?.toString(),
+                    ),
+                  ],
                   const EjariSectionHeader(
                     title: 'إجراءات سريعة',
                     subtitle: 'إدارة العقارات والتحصيل والمتابعة',
@@ -327,6 +338,20 @@ class OwnerHomeView extends StatelessWidget {
             ),
             children: [
               EjariStatTile(
+                icon: Icons.today_rounded,
+                label: 'إيراد اليوم',
+                value: '${stats['todayIncome'] ?? 0} ج.م',
+                accentColor: AppTheme.accentColor,
+                compact: true,
+              ),
+              EjariStatTile(
+                icon: Icons.calendar_month_rounded,
+                label: 'إيراد الشهر',
+                value: '${stats['monthlyRevenue'] ?? 0} ج.م',
+                accentColor: AppTheme.primaryColor,
+                compact: true,
+              ),
+              EjariStatTile(
                 icon: Icons.pie_chart_rounded,
                 label: 'نسبة الإشغال',
                 value: '${stats['occupancyRate'] ?? 0}%',
@@ -505,6 +530,16 @@ class OwnerHomeView extends StatelessWidget {
 
   Widget _buildQuickActions(BuildContext context) {
     final actions = [
+      (
+        'شجرة الأسرّة',
+        Icons.account_tree_rounded,
+        const BedHierarchyScreen(),
+      ),
+      (
+        'تحقق QR',
+        Icons.qr_code_scanner_rounded,
+        const OwnerQrVerifyScreen(),
+      ),
       (
         'الباقات',
         Icons.workspace_premium,

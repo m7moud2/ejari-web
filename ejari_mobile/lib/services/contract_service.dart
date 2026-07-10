@@ -102,4 +102,35 @@ class ContractService {
 [بانتظار التوقيع]                            [بانتظار التوقيع]
 ''';
   }
+
+  /// HTML قابل للطباعة / تصدير PDF demo.
+  static String generatePrintableHtml({
+    required String contractText,
+    required String contractNumber,
+  }) {
+    final escaped = contractText
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('\n', '<br/>');
+    return '''
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+  <meta charset="UTF-8"/>
+  <title>عقد إيجاري — $contractNumber</title>
+  <style>
+    body { font-family: Tajawal, Arial, sans-serif; padding: 40px; line-height: 1.8; }
+    h1 { color: #0F3A30; border-bottom: 2px solid #B58D3D; padding-bottom: 12px; }
+    .footer { margin-top: 40px; color: #666; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>عقد إيجار إلكتروني — إيجاري</h1>
+  <p><strong>رقم العقد:</strong> $contractNumber</p>
+  <div>$escaped</div>
+  <div class="footer">تم إنشاؤه عبر منصة إيجاري — نسخة demo للطباعة</div>
+</body>
+</html>''';
+  }
 }

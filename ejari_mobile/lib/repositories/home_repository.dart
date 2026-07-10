@@ -237,6 +237,8 @@ class HomeRepository {
     final pendingCollection = await DataService.getPendingCollectionCount(ownerId);
     final vacantBeds = await DataService.getVacantBeds(ownerId);
     final overdue = await DataService.getOverduePayments(ownerId);
+    final todayIncome = await DataService.getOwnerTodayIncome(ownerId);
+    final firstProperty = properties.isNotEmpty ? properties.first : null;
 
     return {
       'userName': user?['name'] ?? 'المالك',
@@ -256,6 +258,18 @@ class HomeRepository {
           properties.where((p) => p['status'] == 'pending').length,
       'pendingBookings': pending,
       'monthlyRevenue': revenue,
+      'todayIncome': todayIncome.round(),
+      'smartPricingHint': firstProperty != null
+          ? {
+              'propertyId': firstProperty['id'],
+              'price': double.tryParse(
+                    firstProperty['price']?.toString().replaceAll(',', '') ??
+                        '2500',
+                  ) ??
+                  2500,
+              'location': firstProperty['location'] ?? firstProperty['governorate'],
+            }
+          : null,
       'escrowBalance': wallet['escrow'] ?? 0,
       'availableToWithdraw': wallet['available'] ?? 0,
       'pendingPayouts': wallet['pending'] ?? 0,
