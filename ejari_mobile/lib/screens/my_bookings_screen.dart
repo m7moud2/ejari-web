@@ -9,6 +9,8 @@ import 'chat_details_screen.dart';
 import '../utils/auth_gate.dart';
 import '../utils/date_utils.dart';
 import '../utils/rental_schedule_utils.dart';
+import '../widgets/refund_calculator_dialog.dart';
+import '../widgets/corporate_bookings_strip.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -70,6 +72,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                 ),
                 children: [
                   _buildOverviewCard(),
+                  const CorporateBookingsStrip(),
                   const SizedBox(height: AppTheme.spaceSm),
                   const EjariSurfaceCard(
                     elevated: false,
@@ -606,6 +609,21 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                     booking['depositAmount']?.toString() ??
                                         (monthly * 0.10).toString()) ??
                                 (monthly * 0.10);
+                            final checkIn = DateParsing.parse(
+                                  booking['checkInDate'] ??
+                                      booking['leaseStartDate'] ??
+                                      booking['startDate'],
+                                ) ??
+                                DateTime.now().add(const Duration(days: 3));
+
+                            final confirmed = await RefundCalculatorDialog.show(
+                              context,
+                              checkInDate: checkIn,
+                              depositAmount: deposit,
+                              bookingTitle: booking['title'] ?? 'الحجز',
+                            );
+                            if (confirmed != true || !mounted) return;
+
                             await WalletService.refundBookingDeposit(
                               title:
                                   'استرداد عربون ${booking['title'] ?? 'الحجز'}',

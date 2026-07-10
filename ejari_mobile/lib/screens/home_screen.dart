@@ -424,6 +424,9 @@ class _HomeContentState extends State<HomeContent> {
                                     area: property['area'] ?? '0',
                                     listingMode: property['listingMode'],
                                     isDemo: property['isDemo'] ?? false,
+                                    supportedDurations: (property['supportedDurations'] as List?)
+                                        ?.map((e) => e.toString())
+                                        .toList(),
                                     onTap: () => Navigator.push(
                                         context,
                                         MaterialPageRoute(

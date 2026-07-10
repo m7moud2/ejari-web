@@ -504,11 +504,12 @@ class DataService {
         'beds': '3',
         'baths': '2',
         'area': '160',
-        'ownerId': 'admin',
+        'ownerId': 'owner@ejari.app',
         'type': 'شقق',
         'amenities': ['أسانسير', 'جراج', 'سوبر لوكس'],
         'furnished': false,
         'listingMode': 'for_sale',
+        'governorate': 'القاهرة',
         'saleCommission': '1.5',
         'isFeatured': true,
         'status': 'approved',
@@ -756,8 +757,12 @@ class DataService {
 
   static Future<List<Map<String, dynamic>>> getOwnerProperties(
       String ownerId) async {
-    List<Map<String, dynamic>> all = await getAllProperties();
-    return all.where((p) => p['ownerId'] == ownerId).toList();
+    List<Map<String, dynamic>> all = await getAllProperties(approvedOnly: false);
+    return all
+        .where((p) =>
+            p['ownerId']?.toString() == ownerId ||
+            p['ownerEmail']?.toString() == ownerId)
+        .toList();
   }
 
   static Future<bool> isPropertyAvailable(
@@ -1006,7 +1011,9 @@ class DataService {
 
     // Filter requests for this owner
     return allRequests
-        .where((r) => r['ownerId'] == ownerId)
+        .where((r) =>
+            r['ownerId']?.toString() == ownerId ||
+            r['ownerEmail']?.toString() == ownerId)
         .toList()
         .reversed
         .toList();

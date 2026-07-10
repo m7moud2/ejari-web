@@ -13,6 +13,8 @@ import '../services/firestore_chat_service.dart';
 import '../services/auth_service.dart';
 import '../widgets/ejari_image.dart';
 import '../widgets/ejari_section.dart';
+import '../models/listing_type.dart';
+import '../widgets/rental_booking_widgets.dart';
 import 'map_search_screen.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
@@ -202,6 +204,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         property['location']?.toString() ?? 'موقع مميز داخل إيجاري';
     final price = property['price']?.toString() ?? '0';
     final isDemo = property['isDemo'] == true;
+    final isSale = isSaleListing(property);
+    final listingLabel = listingTypeFromProperty(property).arabicLabel;
     final propertyStatus = (property['status']?.toString().trim().isNotEmpty ?? false)
         ? property['status'].toString()
         : (isDemo ? 'متاح الآن' : 'متاح الآن');
@@ -352,6 +356,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               title: 'نظرة سريعة',
                               subtitle: 'أهم الأرقام والتقييمات',
                             ),
+                            const SizedBox(height: AppTheme.spaceSm),
+                            const PropertyTrustBadges(),
                             const SizedBox(height: AppTheme.spaceMd),
                             Wrap(
                               spacing: AppTheme.spaceXs,
@@ -405,14 +411,45 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               subtitle: 'الوصف والموقع على الخريطة',
                             ),
                             const SizedBox(height: AppTheme.spaceMd),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: (isSale ? AppTheme.borderColor : AppTheme.primaryColor).withOpacity(0.12),
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(listingLabel,
+                                      style: TextStyle(
+                                        color: isSale ? AppTheme.borderColor : AppTheme.primaryColor,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      )),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppTheme.spaceSm),
                             Text(
-                              '$price ج.م',
+                              isSale ? '$price ج.م' : '$price ج.م / شهر',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w900,
                                 color: AppTheme.primaryColor,
                               ),
                             ),
+                            if (isSale) ...[
+                              const SizedBox(height: 6),
+                              Text(
+                                'عربون معاينة: ${(double.tryParse(price.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0) * 0.05 ~/ 1} ج.م تقريباً',
+                                style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                              ),
+                            ] else ...[
+                              const SizedBox(height: 6),
+                              const Text(
+                                'الأسعار اليومية/الأسبوعية تظهر عند الحجز حسب المدة المختارة',
+                                style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                              ),
+                            ],
                             const SizedBox(height: AppTheme.spaceXs),
                             const Text(
                               'شقة فاخرة بتشطيب رائع وموقع متميز في قلب إيجاري، قريبة من الخدمات والمدارس ومحاور الحركة الرئيسية.',

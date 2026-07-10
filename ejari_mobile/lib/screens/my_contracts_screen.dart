@@ -66,7 +66,9 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
             'endDate': b['endDate']?.toString().isNotEmpty == true
                 ? b['endDate'].toString().substring(0, 10)
                 : '2027-06-06',
-            'duration': 'سنة واحدة',
+            'duration': b['durationLabel'] ?? b['duration'] ?? 'سنة واحدة',
+            'rentalTierLabel': b['rentalTierLabel'] ?? '',
+            'tenantTypeLabel': b['tenantTypeLabel'] ?? '',
             'status': 'active',
             'signedByOwner': true,
             'signedByTenant': true,

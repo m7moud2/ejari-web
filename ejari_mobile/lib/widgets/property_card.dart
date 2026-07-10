@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../models/listing_type.dart';
 import '../services/data_service.dart';
 import '../l10n/app_localizations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -15,6 +16,7 @@ class PropertyCard extends StatefulWidget {
   final String baths;
   final String area;
   final String? listingMode; // Added listingMode
+  final List<String>? supportedDurations;
   final bool isDemo;
   final VoidCallback onTap;
   final VoidCallback onBook;
@@ -30,6 +32,7 @@ class PropertyCard extends StatefulWidget {
     required this.baths,
     required this.area,
     this.listingMode, // Optional
+    this.supportedDurations,
     this.isDemo = false,
     required this.onTap,
     required this.onBook,
@@ -143,6 +146,23 @@ class _PropertyCardState extends State<PropertyCard> {
                               width: double.infinity,
                             ),
                           ),
+                  ),
+                ),
+
+                // Listing type badge
+                Positioned(
+                  bottom: 60,
+                  left: 15,
+                  child: _buildBadge(
+                    listingTypeFromProperty({
+                      'listingMode': widget.listingMode,
+                    }).arabicLabel,
+                    isSaleListing({'listingMode': widget.listingMode})
+                        ? AppTheme.borderColor
+                        : AppTheme.primaryColor,
+                    isSaleListing({'listingMode': widget.listingMode})
+                        ? Icons.sell_rounded
+                        : Icons.key_rounded,
                   ),
                 ),
 
@@ -331,11 +351,14 @@ class _PropertyCardState extends State<PropertyCard> {
                                   color: AppTheme.primaryColor,
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold)),
-                          Text(' ${context.tr('price_egp')}',
-                              style: const TextStyle(
-                                  color: AppTheme.primaryColor,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold)),
+                          Text(
+                            isSaleListing({'listingMode': widget.listingMode})
+                                ? ' ج.م'
+                                : ' ${context.tr('price_egp')}',
+                            style: const TextStyle(
+                                color: AppTheme.primaryColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
@@ -378,6 +401,30 @@ class _PropertyCardState extends State<PropertyCard> {
                     ],
                   ),
                   const SizedBox(height: 16),
+                  if (widget.supportedDurations != null &&
+                      widget.supportedDurations!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: widget.supportedDurations!
+                            .map((d) => Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryColor.withOpacity(0.08),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(d,
+                                      style: const TextStyle(
+                                          fontSize: 10,
+                                          color: AppTheme.primaryColor,
+                                          fontWeight: FontWeight.bold)),
+                                ))
+                            .toList(),
+                      ),
+                    ),
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(

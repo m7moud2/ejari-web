@@ -10,6 +10,11 @@ import 'success_payment_screen.dart';
 import '../utils/auth_gate.dart';
 import '../utils/date_utils.dart';
 import '../utils/rental_schedule_utils.dart';
+import '../utils/rental_rules.dart';
+import '../models/rental_duration_tier.dart';
+import '../models/tenant_type.dart';
+import '../widgets/rental_booking_widgets.dart';
+import 'corporate_booking_screen.dart';
 import '../widgets/image_upload_widget.dart';
 import '../widgets/ejari_image.dart';
 import '../widgets/ejari_section.dart';
@@ -36,6 +41,7 @@ class _BookingScreenState extends State<BookingScreen> {
   // Duration Settings
   String _selectedDurationType = 'شهر';
   int _duration = 1;
+  TenantType _tenantType = TenantType.individual;
 
   // Pricing
   double _basePrice = 0;
@@ -53,6 +59,7 @@ class _BookingScreenState extends State<BookingScreen> {
   bool _isPromissorySigned = false;
   String? _incomeLetterImage;
   String? _bankStatementImage;
+  String? _employmentLetterImage;
   bool _hasFinancialDocs = true;
   bool _isLoading = false;
 
@@ -68,7 +75,23 @@ class _BookingScreenState extends State<BookingScreen> {
 
   bool get isSale => widget.itemData['listingMode'] == 'for_sale';
   bool get _isCar => widget.itemType == 'car';
+  bool get _isPropertyRent => widget.itemType == 'property' && !isSale;
   double get _monthlyRent => _basePrice;
+
+  RentalDurationTier get _rentalTier =>
+      RentalRules.resolveTier(_selectedDurationType, _duration);
+
+  bool get _showInstallments =>
+      _isPropertyRent && RentalRules.showMonthlyInstallments(_rentalTier);
+
+  bool get _requiresIncomeProof =>
+      _isPropertyRent && RentalRules.requiresIncomeProof(_rentalTier);
+
+  bool get _requiresAdvanceOnly =>
+      _isPropertyRent && RentalRules.requiresAdvanceDeposit(_rentalTier);
+
+  DateTime get _checkInDate =>
+      _bookingRange?.start ?? DateTime.now().add(const Duration(days: 3));
 
   double get _leaseTotalAmount => isSale || _isCar ? _finalTotal : _totalPrice;
 
@@ -83,7 +106,8 @@ class _BookingScreenState extends State<BookingScreen> {
       return safeDeposit > _finalTotal ? _finalTotal : safeDeposit;
     }
 
-    final calculated = (_monthlyRent * 0.10).roundToDouble();
+    final calculated = (_currentMonthTotal * RentalRules.advanceDepositRate(_rentalTier))
+        .roundToDouble();
     final safeDeposit = calculated < 500 ? 500.0 : calculated;
     return safeDeposit > _currentMonthTotal ? _currentMonthTotal : safeDeposit;
   }
@@ -97,7 +121,7 @@ class _BookingScreenState extends State<BookingScreen> {
       ? 'عربون المعاينة'
       : _isCar
           ? 'عربون الحجز'
-          : 'عربون الشهر الأول';
+          : RentalRules.advanceDepositLabel(_rentalTier);
 
   @override
   void initState() {
@@ -378,12 +402,21 @@ class _BookingScreenState extends State<BookingScreen> {
       'paymentMethod': _selectedPaymentMethod,
       if (_selectedInsuranceType != null) 'insurance': _selectedInsuranceType,
       if (_insurancePrice > 0) 'insuranceCost': _insurancePrice,
+      ...RentalRules.bookingTierPayload(
+        tier: _rentalTier,
+        tenantType: _tenantType,
+        durationType: _selectedDurationType,
+        durationCount: _duration,
+        checkInDate: _checkInDate,
+      ),
+      'governorate': widget.itemData['governorate'] ?? '',
       'verification': {
         'selfie': _selfieImage,
         'idFront': _idFrontImage,
         'idBack': _idBackImage,
         'incomeLetter': _incomeLetterImage,
         'bankStatement': _bankStatementImage,
+        'employmentLetter': _employmentLetterImage,
         'hasPromissory': _isPromissorySigned,
       }
     });
@@ -488,6 +521,24 @@ class _BookingScreenState extends State<BookingScreen> {
                 light: false,
               ),
             ),
+            if (_isPropertyRent)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppTheme.screenPadding),
+                child: Row(
+                  children: [
+                    const RefundRuleTooltip(),
+                    const Spacer(),
+                    TextButton.icon(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CorporateBookingScreen()),
+                      ),
+                      icon: const Icon(Icons.groups_rounded, size: 16),
+                      label: const Text('حجز لموظفين', style: TextStyle(fontSize: 11)),
+                    ),
+                  ],
+                ),
+              ),
             Expanded(
               child: Container(
                 margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
@@ -528,8 +579,22 @@ class _BookingScreenState extends State<BookingScreen> {
                         return;
                       }
                       // For Properties (Rent): Tenant Validation
-                      if (widget.itemType == 'property' && !isSale) {
-                        if (_hasFinancialDocs) {
+                      if (_isPropertyRent) {
+                        if (_requiresIncomeProof) {
+                          if (_incomeLetterImage == null ||
+                              _bankStatementImage == null ||
+                              _employmentLetterImage == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text(
+                                      'يرجى إكمال قائمة المستندات: هوية، إثبات دخل، وعقد عمل'),
+                                  backgroundColor: AppTheme.errorColor),
+                            );
+                            return;
+                          }
+                        } else if (_requiresAdvanceOnly) {
+                          // Short-term: only ID + selfie required, advance payment shown
+                        } else if (_hasFinancialDocs) {
                           if (_incomeLetterImage == null ||
                               _bankStatementImage == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -660,9 +725,20 @@ class _BookingScreenState extends State<BookingScreen> {
                             _buildItemSummary(),
                             const SizedBox(height: 16),
                             _buildBookingTrustCard(),
-                            if (!isSale && !_isCar) ...[
+                            if (_isPropertyRent) ...[
+                              const SizedBox(height: 12),
+                              const EjariTrustBadges(),
+                            ],
+                            if (_showInstallments) ...[
                               const SizedBox(height: 16),
                               _buildMonthlyPlanCard(),
+                            ],
+                            if (_isPropertyRent) ...[
+                              const SizedBox(height: 16),
+                              TenantTypeSelector(
+                                selected: _tenantType,
+                                onChanged: (t) => setState(() => _tenantType = t),
+                              ),
                             ],
                             const SizedBox(height: 16),
                             if (widget.itemData['isDemo'] == true)
@@ -718,6 +794,35 @@ class _BookingScreenState extends State<BookingScreen> {
                                 ),
                               ),
                               const SizedBox(height: 24),
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withOpacity(0.06),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.category_rounded,
+                                        color: AppTheme.primaryColor, size: 20),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        'فئة الإيجار: ${_rentalTier.arabicLabel}\n${_rentalTier.paymentModelArabic}',
+                                        style: const TextStyle(fontSize: 12, height: 1.4),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              DurationCostHint(
+                                tier: _rentalTier,
+                                totalPrice: _totalPrice,
+                                monthlyRent: _monthlyRent,
+                                duration: _duration,
+                                durationType: _selectedDurationType,
+                              ),
+                              const SizedBox(height: 16),
                               Container(
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
@@ -1025,6 +1130,48 @@ class _BookingScreenState extends State<BookingScreen> {
                               const SizedBox(height: 24),
                               const Divider(),
                               const SizedBox(height: 16),
+                              if (_requiresIncomeProof) ...[
+                                DocumentChecklistStep(
+                                  hasId: _idFrontImage != null && _idBackImage != null,
+                                  hasIncome: _incomeLetterImage != null && _bankStatementImage != null,
+                                  hasEmployment: _employmentLetterImage != null,
+                                  onTapItem: (key) {
+                                    if (key == 'id') {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('ارفع الهوية من البطاقات أعلاه')),
+                                      );
+                                    } else if (key == 'income') {
+                                      _pickDoc((p) => _incomeLetterImage = p, 'خطاب الدخل');
+                                    } else if (key == 'employment') {
+                                      _pickDoc((p) => _employmentLetterImage = p, 'عقد العمل');
+                                    }
+                                  },
+                                ),
+                              ] else if (_requiresAdvanceOnly) ...[
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.accentColor.withOpacity(0.08),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(color: AppTheme.accentColor.withOpacity(0.2)),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text('دفع مقدم (بدون حزمة مستندات كاملة)',
+                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'للمدة أقل من ٦ شهور: المطلوب هو ${_paymentStageLabel} '
+                                        'بقيمة ${_bookingDepositAmount.toStringAsFixed(0)} ج.م فقط.',
+                                        style: const TextStyle(fontSize: 12, height: 1.5),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      const RefundRuleTooltip(),
+                                    ],
+                                  ),
+                                ),
+                              ] else ...[
                               const Align(
                                   alignment: Alignment.centerRight,
                                   child: Text(
@@ -1051,19 +1198,8 @@ class _BookingScreenState extends State<BookingScreen> {
                                       'مستند حديث يثبت الراتب أو الدخل.',
                                   icon: Icons.work_outline,
                                   isDone: _incomeLetterImage != null,
-                                  onTap: () {
-                                    final imageWidget = ImageUploadWidget(
-                                      label: 'خطاب الدخل',
-                                      icon: Icons.document_scanner,
-                                      onImageSelected: (path) => setState(
-                                          () => _incomeLetterImage = path),
-                                    );
-                                    showModalBottomSheet(
-                                        context: context,
-                                        builder: (_) => Container(
-                                            padding: const EdgeInsets.all(20),
-                                            child: imageWidget));
-                                  },
+                                  onTap: () => _pickDoc(
+                                      (p) => _incomeLetterImage = p, 'خطاب الدخل'),
                                 ),
                                 const SizedBox(height: 16),
                                 _buildVerificationCard(
@@ -1072,19 +1208,8 @@ class _BookingScreenState extends State<BookingScreen> {
                                       'للتأكد من القدرة على الالتزام بالإيجار.',
                                   icon: Icons.account_balance,
                                   isDone: _bankStatementImage != null,
-                                  onTap: () {
-                                    final imageWidget = ImageUploadWidget(
-                                      label: 'كشف الحساب',
-                                      icon: Icons.document_scanner,
-                                      onImageSelected: (path) => setState(
-                                          () => _bankStatementImage = path),
-                                    );
-                                    showModalBottomSheet(
-                                        context: context,
-                                        builder: (_) => Container(
-                                            padding: const EdgeInsets.all(20),
-                                            child: imageWidget));
-                                  },
+                                  onTap: () => _pickDoc(
+                                      (p) => _bankStatementImage = p, 'كشف الحساب'),
                                 ),
                               ] else ...[
                                 const SizedBox(height: 12),
@@ -1190,6 +1315,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                   ),
                                 ),
                               ],
+                            ],
                             ],
                           ],
                         ),
@@ -1315,6 +1441,12 @@ class _BookingScreenState extends State<BookingScreen> {
                                   if (!isSale)
                                     _buildWhiteSummaryRow('المدة',
                                         '$_duration $_selectedDurationType'),
+                                  if (_isPropertyRent)
+                                    _buildWhiteSummaryRow('فئة الإيجار',
+                                        _rentalTier.arabicLabel),
+                                  if (_isPropertyRent)
+                                    _buildWhiteSummaryRow('نوع المستأجر',
+                                        _tenantType.arabicLabel),
                                   _buildWhiteSummaryRow('النوع',
                                       isSale ? 'شراء نهائي' : 'إيجار ذكي'),
                                   ...[
@@ -1348,6 +1480,19 @@ class _BookingScreenState extends State<BookingScreen> {
                                 ],
                               ),
                             ),
+                            if (_isPropertyRent) ...[
+                              const SizedBox(height: 16),
+                              BookingSummaryCard(
+                                tier: _rentalTier,
+                                tenantType: _tenantType,
+                                depositAmount: _bookingDepositAmount,
+                                totalPrice: _leaseTotalAmount,
+                                showInstallments: _showInstallments,
+                                checkInDate: _checkInDate,
+                              ),
+                              const SizedBox(height: 8),
+                              const EjariTrustBadges(showOwner: false),
+                            ],
                             const SizedBox(height: 24),
                             if (!isSale) ...[
                               const Align(
@@ -1953,6 +2098,8 @@ class _BookingScreenState extends State<BookingScreen> {
                   ?.toString() ??
               '$_duration $_selectedDurationType',
           deposit: _bookingDepositAmount.toStringAsFixed(0),
+          rentalTierLabel: _rentalTier.arabicLabel,
+          tenantTypeLabel: _tenantType.arabicLabel,
           itemLabel: widget.itemType == 'car' ? 'السيارة' : 'العقار',
         ),
       ),
@@ -2281,5 +2428,17 @@ class _BookingScreenState extends State<BookingScreen> {
       ),
     );
     return confirmed ?? false;
+  }
+
+  void _pickDoc(void Function(String) onSelected, String label) {
+    final imageWidget = ImageUploadWidget(
+      label: label,
+      icon: Icons.document_scanner,
+      onImageSelected: (path) => setState(() => onSelected(path)),
+    );
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => Container(padding: const EdgeInsets.all(20), child: imageWidget),
+    );
   }
 }

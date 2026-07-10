@@ -9,6 +9,9 @@ import '../my_contracts_screen.dart';
 import '../maintenance_requests_screen.dart';
 import '../wallet_screen.dart';
 import '../notification_center_screen.dart';
+import '../listing_plans_screen.dart';
+import '../../widgets/owner_booking_requests_panel.dart';
+import '../../services/subscription_service.dart';
 
 class OwnerHomeView extends StatelessWidget {
   const OwnerHomeView({super.key});
@@ -63,7 +66,7 @@ class OwnerHomeView extends StatelessWidget {
                   subtitle: 'طلبات تحتاج مراجعة أو استكمال',
                 ),
                 const SizedBox(height: AppTheme.spaceSm),
-                _buildMiniList(),
+                const OwnerBookingRequestsPanel(),
                 const SizedBox(height: AppTheme.spaceLg),
                 const EjariSectionHeader(
                   title: 'أداء العقارات',
@@ -171,8 +174,7 @@ class OwnerHomeView extends StatelessWidget {
             children: [
               _heroMetric('عقارات', '${stats['propertiesCount'] ?? 0}'),
               _heroMetric('حجوزات جديدة', '${stats['pendingBookings'] ?? 0}'),
-              _heroMetric(
-                  'أرباح شهرية', '${stats['monthlyRevenue'] ?? 0} ج.م'),
+              _heroMetric('الباقة', stats['subscriptionPlan']?.toString() ?? 'مجاني'),
             ],
           ),
         ],
@@ -304,6 +306,11 @@ class OwnerHomeView extends StatelessWidget {
 
   Widget _buildQuickActions(BuildContext context) {
     final actions = [
+      (
+        'الباقات',
+        Icons.workspace_premium,
+        const ListingPlansScreen(),
+      ),
       (
         'إضافة عقار',
         Icons.add_home_work,

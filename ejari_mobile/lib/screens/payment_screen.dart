@@ -5,8 +5,13 @@ import '../services/wallet_service.dart';
 import '../utils/image_utils.dart';
 import '../widgets/ejari_image.dart';
 import '../widgets/ejari_section.dart';
-import 'rental_statement_screen.dart';
+import '../services/subscription_service.dart';
+import '../utils/rental_rules.dart';
+import '../models/rental_duration_tier.dart';
+import '../models/tenant_type.dart';
+import '../widgets/rental_booking_widgets.dart';
 import 'package:image_picker/image_picker.dart';
+import 'rental_statement_screen.dart';
 import 'success_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -39,6 +44,29 @@ class _PaymentScreenState extends State<PaymentScreen> {
   bool _isProcessing = false;
   String? _receiptPath;
   bool _acceptedPaymentSummary = false;
+
+  bool get _showInstallments {
+    if (widget.itemData['showInstallments'] == true) return true;
+    final tierName = widget.itemData['rentalTier']?.toString();
+    if (tierName != null) {
+      try {
+        final tier =
+            RentalDurationTier.values.firstWhere((t) => t.name == tierName);
+        return RentalRules.showMonthlyInstallments(tier);
+      } catch (_) {}
+    }
+    return false;
+  }
+
+  RentalDurationTier? get _tier {
+    final tierName = widget.itemData['rentalTier']?.toString();
+    if (tierName == null) return null;
+    try {
+      return RentalDurationTier.values.firstWhere((t) => t.name == tierName);
+    } catch (_) {
+      return null;
+    }
+  }
 
   final List<Map<String, dynamic>> _bnplMethods = [
     {
@@ -198,12 +226,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
         );
         await DataService.payForBooking(widget.itemData['id']);
       }
+    } else if (widget.itemType == 'subscription') {
+      final planId =
+          widget.itemData['id'] ?? widget.itemData['planId'] ?? 'bronze';
+      final userType = widget.itemData['userType'] ?? 'owner';
+      await SubscriptionService.subscribe(planId.toString(), userType.toString());
+      await WalletService.recordExternalPayment(
+        title: 'اشتراك ${widget.itemData['name'] ?? planId}',
+        amount: _displayAmount,
+        method: _selectedCategory,
+        bookingId: 'SUB-$planId',
+      );
     }
 
     if (!mounted) return;
     setState(() => _isProcessing = false);
 
-    final successMessage = _selectedCategory == 'manual'
+    final successMessage = widget.itemType == 'subscription'
+        ? 'تم تفعيل باقة ${widget.itemData['name'] ?? ''} بنجاح!'
+        : _selectedCategory == 'manual'
         ? 'لقد تم إرسال إيصال الدفع للمراجعة. سيتم تفعيل الخدمة فور التأكد من التحويل.'
         : widget.paymentStage == 'remaining'
             ? 'تم استلام المتبقي من الشهر الأول (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح عبر ${_getFriendlyMethodName()}.'
@@ -230,6 +271,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
 
     if (!mounted) return;
+    if (widget.itemType == 'subscription') {
+      Navigator.pop(context, true);
+      return;
+    }
     if (shouldOpenStatement == true) {
       Navigator.pushReplacement(
         context,
@@ -303,7 +348,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                   child: _buildHeroSummary(),
                 ),
-                if (widget.paymentStage != 'full')
+                if (widget.paymentStage != 'full' && _showInstallments)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
                       AppTheme.screenPadding,
@@ -339,6 +384,40 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                   child: _buildConsentCard(),
                 ),
+                if (_tier != null) ...[
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppTheme.screenPadding),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: AppTheme.spaceMd),
+                      decoration: BoxDecoration(
+                        color: AppTheme.borderColor.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const RefundRuleTooltip(),
+                              const Spacer(),
+                              Text(_tier!.arabicLabel,
+                                  style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(RentalRules.refundPolicyShortArabic,
+                              style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: AppTheme.screenPadding),
+                    child: EjariTrustBadges(showOwner: false),
+                  ),
+                  const SizedBox(height: AppTheme.spaceMd),
+                ],
               ],
             ),
           ),

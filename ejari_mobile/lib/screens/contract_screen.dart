@@ -12,6 +12,8 @@ class ContractScreen extends StatefulWidget {
   final String duration;
   final String? address;
   final String? deposit;
+  final String? rentalTierLabel;
+  final String? tenantTypeLabel;
   final bool signedByOwner;
   final bool signedByTenant;
   final bool isOwner;
@@ -28,6 +30,8 @@ class ContractScreen extends StatefulWidget {
     required this.duration,
     this.address,
     this.deposit,
+    this.rentalTierLabel,
+    this.tenantTypeLabel,
     this.signedByOwner = false,
     this.signedByTenant = false,
     this.isOwner = false,
@@ -120,6 +124,10 @@ class _ContractScreenState extends State<ContractScreen> {
                               _buildSummaryChip('المدة', widget.duration),
                               _buildSummaryChip('البدء', widget.startDate),
                               _buildSummaryChip('القيمة', '${widget.price} ج.م'),
+                              if (widget.rentalTierLabel != null)
+                                _buildSummaryChip('فئة الإيجار', widget.rentalTierLabel!),
+                              if (widget.tenantTypeLabel != null)
+                                _buildSummaryChip('نوع المستأجر', widget.tenantTypeLabel!),
                             ],
                           ),
                         ],
