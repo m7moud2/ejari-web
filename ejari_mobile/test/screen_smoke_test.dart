@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -31,8 +32,17 @@ import 'package:ejari_mobile/screens/my_bookings_screen.dart';
 import 'package:ejari_mobile/screens/my_service_requests_screen.dart';
 import 'package:ejari_mobile/screens/verification_screen.dart';
 import 'package:ejari_mobile/screens/unified_home_screen.dart';
+import 'package:ejari_mobile/screens/owner_occupancy_screen.dart';
+import 'package:ejari_mobile/screens/owner_collection_screen.dart';
+import 'package:ejari_mobile/screens/owner_qr_verify_screen.dart';
+import 'package:ejari_mobile/screens/owner_booking_requests_screen.dart';
+import 'package:ejari_mobile/screens/manage_properties_screen.dart';
+import 'package:ejari_mobile/screens/add_property_screen.dart';
+import 'package:ejari_mobile/screens/profile_screen.dart';
+import 'package:ejari_mobile/widgets/bed_hierarchy_tree.dart';
 
 Future<void> _initDemo() async {
+  await initializeDateFormatting('ar');
   SharedPreferences.setMockInitialValues({});
   await AuthService.initDemoAccounts();
   await DataService.initProperties();
@@ -124,6 +134,14 @@ void main() {
         const WalletScreen(),
         const MyContractsScreen(),
         const SubscriptionsScreen(),
+        const OwnerOccupancyScreen(),
+        const OwnerCollectionScreen(),
+        const OwnerQrVerifyScreen(),
+        const OwnerBookingRequestsScreen(),
+        const ManagePropertiesScreen(),
+        const AddPropertyScreen(),
+        const ProfileScreen(),
+        const BedHierarchyScreen(),
       ];
       for (final screen in ownerScreens) {
         await pumpScreen(tester, screen);
