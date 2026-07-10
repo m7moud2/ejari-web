@@ -56,7 +56,12 @@ class LoyaltyService {
     final seededKey = '$_seededKeyPrefix$userId';
     if (prefs.getBool(seededKey) == true) return;
 
-    final bookings = await DataService.getUserBookings(userId);
+    final allBookings = await DataService.getBookings();
+    final bookings = allBookings.where((b) {
+      final email =
+          b['tenantEmail']?.toString() ?? b['userId']?.toString() ?? '';
+      return email == userId;
+    }).toList();
     final receipts = await DataService.getReceiptsForUser(userId);
     final basePoints = (bookings.length * 150) + (receipts.length * 75) + 250;
     await prefs.setInt('$_pointsKeyPrefix$userId', basePoints);

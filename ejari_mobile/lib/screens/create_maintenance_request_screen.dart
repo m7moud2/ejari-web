@@ -4,6 +4,7 @@ import '../widgets/ejari_section.dart';
 import '../services/maintenance_service.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
+import '../widgets/camera_capture_widget.dart';
 
 class CreateMaintenanceRequestScreen extends StatefulWidget {
   const CreateMaintenanceRequestScreen({super.key});
@@ -25,6 +26,7 @@ class _CreateMaintenanceRequestScreenState
   String _selectedPropertyTitle = '';
   DateTime? _preferredTime;
   bool _submitting = false;
+  List<String> _attachedImages = [];
   List<Map<String, dynamic>> _properties = [];
 
   @override
@@ -283,30 +285,37 @@ class _CreateMaintenanceRequestScreenState
               const SizedBox(height: 12),
               EjariSurfaceCard(
                 elevated: false,
-                child: Row(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.photo_camera_outlined,
-                        color: AppTheme.accentColor.withOpacity(0.8)),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Text(
-                        'إرفاق صور (قريباً)',
-                        style: TextStyle(color: AppTheme.textSecondary),
-                      ),
+                    const Text('صور المشكلة (اختياري)',
+                        style: TextStyle(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 8),
+                    CameraCaptureWidget(
+                      label: 'التقط صورة للمشكلة',
+                      captureHint: 'استخدم الكاميرا فقط لتوثيق العطل',
+                      icon: Icons.photo_camera_outlined,
+                      onImageCaptured: (img) {
+                        if (img == null) return;
+                        setState(() {
+                          if (_attachedImages.length < 3) {
+                            _attachedImages.add(img);
+                          }
+                        });
+                      },
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.accentColor.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(8),
+                    if (_attachedImages.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          'تم إرفاق ${_attachedImages.length} صورة',
+                          style: const TextStyle(
+                            color: AppTheme.primaryColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                      child: const Text('تجريبي',
-                          style: TextStyle(
-                              fontSize: 11,
-                              color: AppTheme.accentColor,
-                              fontWeight: FontWeight.w800)),
-                    ),
                   ],
                 ),
               ),
@@ -363,6 +372,7 @@ class _CreateMaintenanceRequestScreenState
       title: _titleController.text,
       description: _descriptionController.text,
       scheduledAt: _preferredTime?.toIso8601String(),
+      images: _attachedImages.isEmpty ? null : _attachedImages,
       lat: 30.0444 + (DateTime.now().millisecond % 100) / 10000,
       lng: 31.2357 + (DateTime.now().microsecond % 100) / 10000,
     );

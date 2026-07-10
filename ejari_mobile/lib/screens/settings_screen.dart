@@ -9,6 +9,7 @@ import '../config/social_links.dart';
 import 'package:local_auth/local_auth.dart'; // Add import
 import '../services/push_notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'wallet_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -72,13 +73,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSectionHeader('الحسابات والتحويلات'),
           _buildListTile(
             title: 'تفاصيل استلام الأرباح',
-            subtitle: 'سيتم إضافة طريقة السحب لاحقاً',
+            subtitle: 'إدارة السحب والتحويل البنكي',
             icon: Icons.account_balance_wallet_rounded,
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('سيتم إضافة طريقة السحب لاحقاً'),
-                ),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const WalletScreen()),
               );
             },
           ),

@@ -434,7 +434,7 @@ class _WalletScreenState extends State<WalletScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'سيتم إضافة طريقة السحب لاحقاً. اختر وسيلة التحويل المفضلة:',
+              'اختر وسيلة التحويل المفضلة لاستلام أرباحك:',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.primaryColor),
             ),

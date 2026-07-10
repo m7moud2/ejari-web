@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/ai_concierge_service.dart';
 import '../screens/property_details_screen.dart';
+import '../utils/safe_parse.dart';
 
 class AiChatScreen extends StatefulWidget {
   const AiChatScreen({super.key});
@@ -73,7 +74,7 @@ class _AiChatScreenState extends State<AiChatScreen>
     setState(() => _isTyping = true);
 
     final result = await AiConciergeService.getChatResponse(input);
-    final String responseText = result['reply'] as String;
+    final String responseText = safeStr(result['reply'], 'عذراً، لم أتمكن من الرد الآن.');
     final List<Map<String, dynamic>> properties =
         (result['properties'] as List<dynamic>)
             .map((e) => e as Map<String, dynamic>)
