@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'services/auth_service.dart';
 import 'services/data_service.dart';
 import 'services/maintenance_service.dart';
+import 'services/wallet_service.dart';
 
 import 'screens/splash_screen.dart';
 import 'config/app_config.dart';
@@ -50,6 +51,8 @@ void main() async {
     await DataService.initProperties();
     await DataService.initDemoBookings();
     await MaintenanceService.initDemoRequests();
+    await WalletService.init(userId: 'user@ejari.app');
+    await WalletService.init(userId: 'owner@ejari.app');
   }
 
   // Load Saved Language Preference

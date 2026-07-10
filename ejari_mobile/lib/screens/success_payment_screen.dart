@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../models/payment_receipt.dart';
 import 'contract_view_screen.dart';
+import 'receipt_screen.dart';
 import 'package:intl/intl.dart';
 
 class SuccessPaymentScreen extends StatefulWidget {
   final double amount;
   final String transactionId;
-  final String paymentMethod; // New parameter
+  final String paymentMethod;
+  final PaymentReceipt? receipt;
   final String successTitle;
   final String successMessage;
 
@@ -15,6 +18,7 @@ class SuccessPaymentScreen extends StatefulWidget {
     required this.amount,
     required this.transactionId,
     required this.paymentMethod,
+    this.receipt,
     this.successTitle = 'تم الدفع بنجاح!',
     this.successMessage =
         'تم تأكيد عملية الدفع وحجز الوحدة بنجاح.\nشكراً لاستخدامك إيجاري.',
@@ -159,11 +163,48 @@ class _SuccessPaymentScreenState extends State<SuccessPaymentScreen>
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () {
+                        if (widget.receipt != null) {
+                          ReceiptScreen.showDialogFor(context, widget.receipt!);
+                          return;
+                        }
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('إيصال الدفع'),
+                            content: Text(
+                              'رقم: ${widget.transactionId}\n'
+                              'المبلغ: ${widget.amount.toStringAsFixed(0)} ج.م\n'
+                              'الوسيلة: ${_getPaymentMethodName(widget.paymentMethod)}',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: const Text('إغلاق'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.receipt_long_outlined),
+                      label: const Text('عرض الإيصال'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        side: const BorderSide(color: AppTheme.primaryColor),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () {
                         final mockBooking = {
-                          'title': 'حجز عقار - معاملة ${widget.transactionId}',
+                          'title': widget.receipt?.title ??
+                              'حجز — ${widget.transactionId}',
                           'price': widget.amount,
-                          'tenantName': 'مستخدم إيجاري',
-                          'ownerName': 'المالك المعتمد',
+                          'tenantName': widget.receipt?.payer ?? 'مستخدم إيجاري',
+                          'ownerName': widget.receipt?.payee ?? 'المالك',
                           'startDate': DateTime.now().toIso8601String(),
                           'endDate': DateTime.now()
                               .add(const Duration(days: 365))
@@ -178,35 +219,35 @@ class _SuccessPaymentScreenState extends State<SuccessPaymentScreen>
                         );
                       },
                       icon: const Icon(Icons.description_outlined),
-                      label: const Text('عرض العقد'),
+                      label: const Text('العقد'),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
-                        side: const BorderSide(color: AppTheme.primaryColor),
+                        side: const BorderSide(color: AppTheme.borderColor),
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).popUntil((route) => route.isFirst);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
-                        elevation: 0,
-                      ),
-                      child: const Text('الرئيسية',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  child: const Text('الرئيسية',
+                      style: TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
+                ),
               ),
               const SizedBox(height: 12),
             ],

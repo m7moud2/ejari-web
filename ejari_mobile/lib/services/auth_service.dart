@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:async';
 import '../config/app_config.dart';
 import '../utils/api_client.dart';
+import 'wallet_service.dart';
 
 /// AuthService — يدعم 3 أوضاع:
 /// 1) Firebase Auth + Firestore إذا ما فيش API محلي
@@ -199,6 +200,7 @@ class AuthService {
     await prefs.setString(_userDataKey, jsonEncode(compatibleUserData));
     await _saveAuthToken(token, prefs: prefs);
     await prefs.setBool(_guestModeKey, false);
+    await WalletService.init(userId: email);
   }
 
   static Future<void> _storeFirebaseSession({
@@ -513,6 +515,7 @@ class AuthService {
       await prefs.setString(_currentUserEmailKey, account['email']!);
       await prefs.setString(_userDataKey, jsonEncode(user));
       await prefs.setBool(_guestModeKey, false);
+      await WalletService.init(userId: account['email']!);
       return user;
     }
 
@@ -528,8 +531,10 @@ class AuthService {
       });
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_userRoleKey, 'admin');
+      await prefs.setString(_currentUserEmailKey, email);
       await prefs.setString(_userDataKey, jsonEncode(user));
       await prefs.setBool(_guestModeKey, false);
+      await WalletService.init(userId: email);
       return user;
     }
 

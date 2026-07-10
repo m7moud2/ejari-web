@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../utils/date_utils.dart';
+import 'receipt_screen.dart';
 
 class NotificationCenterScreen extends StatefulWidget {
   const NotificationCenterScreen({super.key});
@@ -29,6 +30,15 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       _notifications = notes;
       _loading = false;
     });
+  }
+
+  Future<void> _openReceiptIfPayment(Map<String, dynamic> note) async {
+    final refId = note['refId']?.toString();
+    if (refId == null || !refId.startsWith('RCP-')) return;
+    final receipt = await DataService.getReceiptById(refId);
+    if (receipt != null && mounted) {
+      await ReceiptScreen.showDialogFor(context, receipt);
+    }
   }
 
   String _inferType(Map<String, dynamic> note) {
@@ -167,6 +177,9 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           if (index >= 0) {
             await DataService.markNotificationAsRead(index);
             await _load();
+          }
+          if (type == 'Payment') {
+            await _openReceiptIfPayment(notif);
           }
         },
         child: Row(

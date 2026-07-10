@@ -1,155 +1,297 @@
 import 'dart:async';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/date_utils.dart';
+import 'financial_service.dart';
 
+/// مصدر الحقيقة الوحيد لأرصدة المحفظة — لكل مستخدم على حدة.
 class WalletService {
-  static const String _balanceKey = 'wallet_balance';
-  static const String _pendingBalanceKey = 'owner_pending_balance'; // للمالك
-  static const String _escrowBalanceKey =
-      'booking_escrow_balance'; // عربون محجوز
-  static const String _transactionsKey = 'wallet_transactions';
+  static const String _balancesKey = 'wallet_balances_v2';
+  static const String _escrowKey = 'wallet_escrow_v2';
+  static const String _pendingKey = 'wallet_pending_v2';
+  static const String _transactionsPrefix = 'wallet_tx_v2_';
+  static const String _currentUserKey = 'current_user_email';
+  static const double _platformFeePercent = 0.05;
 
-  // الأرصدة الحالية (Demo State)
-  static double _balance = 0.0; // رصيد المستأجر أو الرصيد القابل للسحب للمالك
-  static double _pendingBalance = 0.0; // رصيد معلق للمالك (تحت التسوية)
-  static double _escrowBalance = 0.0; // عربون حجوزات تحت الحجز إلى حين الحسم
+  static String? _activeUserId;
+  static double _balance = 0.0;
+  static double _pendingBalance = 0.0;
+  static double _escrowBalance = 0.0;
   static List<Map<String, dynamic>> _transactions = [];
-
-  // تهيئة الخدمة
-  static Future<void> init() async {
-    final prefs = await SharedPreferences.getInstance();
-    _balance = prefs.getDouble(_balanceKey) ?? 0.0; // Start with 0
-    _pendingBalance = prefs.getDouble(_pendingBalanceKey) ?? 0.0;
-    _escrowBalance = prefs.getDouble(_escrowBalanceKey) ?? 0.0;
-
-    final String? transString = prefs.getString(_transactionsKey);
-    if (transString != null) {
-      final List<dynamic> decoded = jsonDecode(transString);
-      _transactions = decoded.cast<Map<String, dynamic>>();
-    }
-  }
 
   static double get currentBalance => _balance;
   static double get pendingBalance => _pendingBalance;
   static double get escrowBalance => _escrowBalance;
+  static double get platformFeePercent => _platformFeePercent;
 
-  static Future<double> getBalance() async {
-    await Future.delayed(const Duration(milliseconds: 200));
+  static Future<String?> _resolveUserId([String? userId]) async {
+    if (userId != null && userId.isNotEmpty) return userId;
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_currentUserKey);
+  }
+
+  static Future<Map<String, double>> _loadBalancesMap(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(key);
+    if (raw == null) return {};
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      return decoded.map(
+        (k, v) => MapEntry(k, (v as num).toDouble()),
+      );
+    } catch (_) {
+      return {};
+    }
+  }
+
+  static Future<void> _saveBalancesMap(
+      String key, Map<String, double> map) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(key, jsonEncode(map));
+  }
+
+  static Future<void> init({String? userId}) async {
+    _activeUserId = await _resolveUserId(userId);
+    if (_activeUserId == null || _activeUserId!.isEmpty) {
+      _balance = 0;
+      _pendingBalance = 0;
+      _escrowBalance = 0;
+      _transactions = [];
+      return;
+    }
+
+    final balances = await _loadBalancesMap(_balancesKey);
+    final escrow = await _loadBalancesMap(_escrowKey);
+    final pending = await _loadBalancesMap(_pendingKey);
+
+    _balance = balances[_activeUserId] ?? _defaultBalanceFor(_activeUserId!);
+    _escrowBalance = escrow[_activeUserId] ?? 0;
+    _pendingBalance = pending[_activeUserId] ?? 0;
+
+    final prefs = await SharedPreferences.getInstance();
+    final txRaw = prefs.getString('$_transactionsPrefix$_activeUserId');
+    if (txRaw != null) {
+      try {
+        _transactions =
+            (jsonDecode(txRaw) as List).cast<Map<String, dynamic>>();
+      } catch (_) {
+        _transactions = [];
+      }
+    } else {
+      _transactions = [];
+    }
+  }
+
+  static double _defaultBalanceFor(String userId) {
+    if (userId == 'user@ejari.app') return 15000;
+    if (userId == 'owner@ejari.app') return 8500;
+    if (userId == 'admin@ejari.app') return 0;
+    return 5000;
+  }
+
+  static Future<void> _persistUserState() async {
+    if (_activeUserId == null || _activeUserId!.isEmpty) return;
+
+    final balances = await _loadBalancesMap(_balancesKey);
+    final escrow = await _loadBalancesMap(_escrowKey);
+    final pending = await _loadBalancesMap(_pendingKey);
+
+    balances[_activeUserId!] = _balance;
+    escrow[_activeUserId!] = _escrowBalance;
+    pending[_activeUserId!] = _pendingBalance;
+
+    await _saveBalancesMap(_balancesKey, balances);
+    await _saveBalancesMap(_escrowKey, escrow);
+    await _saveBalancesMap(_pendingKey, pending);
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      '$_transactionsPrefix$_activeUserId',
+      jsonEncode(_transactions),
+    );
+  }
+
+  static Future<double> getBalance({String? userId}) async {
+    await init(userId: userId);
     return _balance;
   }
 
-  static Future<List<Map<String, dynamic>>> getTransactions() async {
-    _transactions.sort((a, b) {
-      DateTime dateA = DateParsing.parse(a['date']) ?? DateTime.fromMillisecondsSinceEpoch(0);
-      DateTime dateB = DateParsing.parse(b['date']) ?? DateTime.fromMillisecondsSinceEpoch(0);
-      return dateB.compareTo(dateA);
-    });
-    return _transactions;
+  static Future<Map<String, dynamic>> getWalletSummary({String? userId}) async {
+    await init(userId: userId);
+    return {
+      'balance': _balance,
+      'available': _balance,
+      'pending': _pendingBalance,
+      'escrow': _escrowBalance,
+      'currency': 'ج.م',
+    };
   }
 
-  /// -------------------------------------------------------------
-  /// عملية الدفع عبر المحفظة (خصم فعلي)
-  /// -------------------------------------------------------------
+  static Future<List<Map<String, dynamic>>> getTransactions({String? userId}) async {
+    await init(userId: userId);
+    _transactions.sort((a, b) {
+      final dateA =
+          DateParsing.parse(a['date']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final dateB =
+          DateParsing.parse(b['date']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return dateB.compareTo(dateA);
+    });
+    return List<Map<String, dynamic>>.from(_transactions);
+  }
+
   static Future<bool> payFromWallet({
     required String title,
     required double amount,
-    required String category, // rent, service
+    required String category,
     required String bookingId,
+    String? userId,
   }) async {
-    await Future.delayed(const Duration(seconds: 1)); // محاكاة الاتصال بالسيرفر
-
-    // 1. التحقق الصارم من الرصيد
+    await init(userId: userId);
     if (_balance < amount) {
-      debugPrint(
-          '⛔ فشل الدفع: الرصيد ($_balance) أقل من المبلغ المطلوب ($amount)');
+      debugPrint('⛔ رصيد غير كافٍ: $_balance < $amount');
       return false;
     }
-
-    // 2. الخصم
     _balance -= amount;
-
-    // 3. تسجيل المعاملة
-    final transaction = {
+    _transactions.insert(0, {
       'id': 'TRX-${DateTime.now().millisecondsSinceEpoch}',
       'title': title,
-      'amount': -amount, // بالسالب لأنه خصم
+      'amount': -amount,
       'date': DateTime.now().toIso8601String(),
       'type': 'expense',
-      'method': 'wallet', // وسيلة الدفع
+      'method': 'wallet',
       'category': category,
       'bookingId': bookingId,
       'status': 'completed',
-    };
-    _transactions.insert(0, transaction);
-
-    await _saveData();
+    });
+    await _persistUserState();
     return true;
   }
 
-  /// -------------------------------------------------------------
-  /// عملية الدفع الخارجي (فيزا، فوري، إلخ)
-  /// لا تخصم من المحفظة، لكن تسجل في السجل
-  /// -------------------------------------------------------------
   static Future<void> recordExternalPayment({
     required String title,
     required double amount,
-    required String method, // card, fawry, valu
+    required String method,
     required String bookingId,
+    String? userId,
   }) async {
-    // هنا لا نتحقق من الرصيد لأن الدفع تم خارجياً
-    // فقط نسجل العملية للأرشيف لإصدار الإيصال
-
-    final transaction = {
+    await init(userId: userId);
+    _transactions.insert(0, {
       'id': 'EXT-${DateTime.now().millisecondsSinceEpoch}',
       'title': title,
-      'amount': -amount, // بالسالب لأنه دفع
+      'amount': -amount,
       'date': DateTime.now().toIso8601String(),
       'type': 'expense',
       'method': method,
       'category': 'rent',
       'bookingId': bookingId,
       'status': 'completed',
-    };
-    _transactions.insert(0, transaction);
-    await _saveData();
+    });
+    await _persistUserState();
   }
 
-  /// -------------------------------------------------------------
-  /// توريد المبلغ للمالك (Backend Logic Simulation)
-  /// -------------------------------------------------------------
-  static Future<void> depositToOwner({
+  /// خصم من مستأجر + إيداع للمالك (بعد عمولة ٥٪) + عربون escrow.
+  static Future<bool> processBookingPayment({
+    required String tenantId,
+    required String ownerId,
+    required double amount,
+    required String bookingId,
+    required String title,
+    required String method,
+    bool useWallet = false,
+    bool isDeposit = true,
+  }) async {
+    if (useWallet) {
+      final ok = await payFromWallet(
+        title: title,
+        amount: amount,
+        category: isDeposit ? 'booking_deposit' : 'rent',
+        bookingId: bookingId,
+        userId: tenantId,
+      );
+      if (!ok) return false;
+    } else {
+      await recordExternalPayment(
+        title: title,
+        amount: amount,
+        method: method,
+        bookingId: bookingId,
+        userId: tenantId,
+      );
+    }
+
+    if (isDeposit) {
+      await holdBookingDeposit(
+        title: title,
+        amount: amount,
+        bookingId: bookingId,
+        method: method,
+        userId: tenantId,
+      );
+    } else {
+      await creditOwnerFromPayment(
+        ownerId: ownerId,
+        totalAmount: amount,
+        bookingId: bookingId,
+        title: title,
+      );
+    }
+    return true;
+  }
+
+  static Future<void> creditOwnerFromPayment({
     required String ownerId,
     required double totalAmount,
+    required String bookingId,
+    required String title,
   }) async {
-    // حساب النسبة (مثلاً التطبيق يأخذ 10%)
-    double platformFee = totalAmount * 0.10;
-    double ownerNet = totalAmount - platformFee;
+    final breakdown = FinancialService.calculateRentBreakdown(totalAmount);
+    final ownerNet = totalAmount - (totalAmount * _platformFeePercent);
 
-    // إضافة للمالك في "الرصيد المعلق"
-    // في الواقع يجب أن يكون هناك WalletService منفصل لكل مستخدم
-    // هنا سنحاكي أننا نضيف الرصيد للمالك الحالي (لو كنا فاتحين حسابه)
-    // أو نسجله في قاعدة البيانات
-
-    // محاكاة: إضافة للمتغير المحلي لغرض العرض في شاشة المالك
+    await init(userId: ownerId);
     _pendingBalance += ownerNet;
-    await _saveData();
+    _transactions.insert(0, {
+      'id': 'INC-${DateTime.now().millisecondsSinceEpoch}',
+      'title': title,
+      'amount': ownerNet,
+      'date': DateTime.now().toIso8601String(),
+      'type': 'income',
+      'method': 'system',
+      'category': 'rent',
+      'bookingId': bookingId,
+      'status': 'pending_settlement',
+      'platformFee': totalAmount * _platformFeePercent,
+      'breakdown': breakdown.details,
+    });
+    await _persistUserState();
 
-    debugPrint('💰 تم إيداع $ownerNet للمالك (بعد خصم $platformFee رسوم)');
+    await init(userId: 'admin@ejari.app');
+    final adminFee = totalAmount * _platformFeePercent;
+    _balance += adminFee;
+    _transactions.insert(0, {
+      'id': 'ADM-${DateTime.now().millisecondsSinceEpoch}',
+      'title': 'عمولة منصة — $title',
+      'amount': adminFee,
+      'date': DateTime.now().toIso8601String(),
+      'type': 'commission',
+      'method': 'system',
+      'category': 'platform',
+      'bookingId': bookingId,
+      'status': 'completed',
+    });
+    await _persistUserState();
   }
 
-  /// -------------------------------------------------------------
-  /// حجز عربون المعاينة في رصيد مؤقت قابل للاسترداد
-  /// -------------------------------------------------------------
   static Future<void> holdBookingDeposit({
     required String title,
     required double amount,
     required String bookingId,
     String method = 'deposit',
+    String? userId,
   }) async {
+    await init(userId: userId);
     _escrowBalance += amount;
-    final transaction = {
+    _transactions.insert(0, {
       'id': 'ESC-${DateTime.now().millisecondsSinceEpoch}',
       'title': title,
       'amount': -amount,
@@ -159,21 +301,20 @@ class WalletService {
       'category': 'booking_deposit',
       'bookingId': bookingId,
       'status': 'held',
-    };
-    _transactions.insert(0, transaction);
-    await _saveData();
+    });
+    await _persistUserState();
   }
 
-  /// -------------------------------------------------------------
-  /// استرداد العربون عند عدم إتمام الصفقة
-  /// -------------------------------------------------------------
   static Future<void> refundBookingDeposit({
     required String title,
     required double amount,
     required String bookingId,
+    String? userId,
   }) async {
+    await init(userId: userId);
     _escrowBalance = (_escrowBalance - amount).clamp(0.0, double.infinity);
-    final transaction = {
+    _balance += amount;
+    _transactions.insert(0, {
       'id': 'REF-${DateTime.now().millisecondsSinceEpoch}',
       'title': title,
       'amount': amount,
@@ -183,43 +324,46 @@ class WalletService {
       'category': 'booking_deposit',
       'bookingId': bookingId,
       'status': 'completed',
-    };
-    _transactions.insert(0, transaction);
-    await _saveData();
+    });
+    await _persistUserState();
   }
 
-  /// -------------------------------------------------------------
-  /// ترحيل العربون المحجوز إلى التسوية النهائية
-  /// -------------------------------------------------------------
   static Future<void> releaseBookingDeposit({
     required String title,
     required double amount,
     required String bookingId,
     required String ownerId,
+    String? tenantId,
   }) async {
-    _escrowBalance = (_escrowBalance - amount).clamp(0.0, double.infinity);
-    await depositToOwner(ownerId: ownerId, totalAmount: amount);
-    final transaction = {
-      'id': 'REL-${DateTime.now().millisecondsSinceEpoch}',
-      'title': title,
-      'amount': 0,
-      'date': DateTime.now().toIso8601String(),
-      'type': 'release',
-      'method': 'system',
-      'category': 'booking_deposit',
-      'bookingId': bookingId,
-      'status': 'completed',
-    };
-    _transactions.insert(0, transaction);
-    await _saveData();
+    if (tenantId != null) {
+      await init(userId: tenantId);
+      _escrowBalance = (_escrowBalance - amount).clamp(0.0, double.infinity);
+      await _persistUserState();
+    }
+    await creditOwnerFromPayment(
+      ownerId: ownerId,
+      totalAmount: amount,
+      bookingId: bookingId,
+      title: title,
+    );
   }
 
-  /// -------------------------------------------------------------
-  /// شحن الرصيد
-  /// -------------------------------------------------------------
-  static Future<void> topUpWallet(double amount) async {
+  static Future<void> depositToOwner({
+    required String ownerId,
+    required double totalAmount,
+  }) async {
+    await creditOwnerFromPayment(
+      ownerId: ownerId,
+      totalAmount: totalAmount,
+      bookingId: 'legacy',
+      title: 'إيداع إيجار',
+    );
+  }
+
+  static Future<void> topUpWallet(double amount, {String? userId}) async {
+    await init(userId: userId);
     _balance += amount;
-    final transaction = {
+    _transactions.insert(0, {
       'id': 'TOP-${DateTime.now().millisecondsSinceEpoch}',
       'title': 'شحن رصيد',
       'amount': amount,
@@ -228,16 +372,32 @@ class WalletService {
       'method': 'card',
       'category': 'topup',
       'status': 'completed',
-    };
-    _transactions.insert(0, transaction);
-    await _saveData();
+    });
+    await _persistUserState();
   }
 
-  static Future<void> _saveData() async {
+  static Future<List<Map<String, dynamic>>> getAllTransactionsForAdmin() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble(_balanceKey, _balance);
-    await prefs.setDouble(_pendingBalanceKey, _pendingBalance);
-    await prefs.setDouble(_escrowBalanceKey, _escrowBalance);
-    await prefs.setString(_transactionsKey, jsonEncode(_transactions));
+    final keys = prefs.getKeys().where((k) => k.startsWith(_transactionsPrefix));
+    final all = <Map<String, dynamic>>[];
+    for (final key in keys) {
+      final userId = key.replaceFirst(_transactionsPrefix, '');
+      final raw = prefs.getString(key);
+      if (raw == null) continue;
+      try {
+        final list = (jsonDecode(raw) as List).cast<Map<String, dynamic>>();
+        for (final tx in list) {
+          all.add({...tx, 'userId': userId});
+        }
+      } catch (_) {}
+    }
+    all.sort((a, b) {
+      final dateA =
+          DateParsing.parse(a['date']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final dateB =
+          DateParsing.parse(b['date']) ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return dateB.compareTo(dateA);
+    });
+    return all;
   }
 }

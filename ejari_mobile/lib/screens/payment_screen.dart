@@ -10,8 +10,9 @@ import '../utils/rental_rules.dart';
 import '../models/rental_duration_tier.dart';
 import '../widgets/rental_booking_widgets.dart';
 import 'package:image_picker/image_picker.dart';
-import 'rental_statement_screen.dart';
-import 'success_screen.dart';
+import '../models/payment_receipt.dart';
+import '../services/auth_service.dart';
+import 'success_payment_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final String itemType;
@@ -188,7 +189,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     if (!_validateFields()) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('يرجى إكمال كافة البيانات المطلوبة لإتمام الدفع الآمن'),
+          content: Text('يرجى الموافقة على ملخص الدفع وإكمال البيانات المطلوبة'),
           backgroundColor: AppTheme.errorColor,
           behavior: SnackBarBehavior.floating,
         ),
@@ -197,90 +198,94 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
 
     setState(() => _isProcessing = true);
-    await Future.delayed(const Duration(seconds: 4));
+    await Future.delayed(const Duration(seconds: 2));
+
+    final bookingId = widget.itemData['id']?.toString() ?? '';
+    final useWallet = _selectedCategory == 'wallet_balance';
+    final method = useWallet
+        ? 'wallet'
+        : _selectedCategory == 'cards'
+            ? _selectedSubMethod
+            : _selectedSubMethod;
+
+    Map<String, dynamic> result = {'success': false};
 
     if (widget.itemType == 'booking') {
       if (widget.paymentStage == 'remaining') {
-        await WalletService.recordExternalPayment(
-          title:
-              'استكمال دفعة الشهر الأول ${widget.itemData['title'] ?? 'الحجز'}',
+        result = await DataService.completeBookingPaymentWithReceipt(
+          bookingId,
           amount: _displayAmount,
-          method: _selectedCategory,
-          bookingId: widget.itemData['id']?.toString() ?? '',
-        );
-        await DataService.completeBookingPayment(widget.itemData['id']);
-        await WalletService.releaseBookingDeposit(
-          title: 'عربون ${widget.itemData['title'] ?? 'الحجز'}',
-          amount: widget.depositAmount ??
-              ((widget.totalAmount ?? widget.amount) * 0.10),
-          bookingId: widget.itemData['id']?.toString() ?? '',
-          ownerId: widget.itemData['ownerId']?.toString() ?? 'unknown_owner',
+          method: method,
+          useWallet: useWallet,
         );
       } else {
-        await WalletService.recordExternalPayment(
-          title: 'عربون ${widget.itemData['title'] ?? 'الحجز'}',
+        result = await DataService.payForBooking(
+          bookingId,
           amount: _displayAmount,
-          method: _selectedCategory,
-          bookingId: widget.itemData['id']?.toString() ?? '',
+          method: method,
+          useWallet: useWallet,
         );
-        await DataService.payForBooking(widget.itemData['id']);
       }
     } else if (widget.itemType == 'subscription') {
       final planId =
           widget.itemData['id'] ?? widget.itemData['planId'] ?? 'bronze';
       final userType = widget.itemData['userType'] ?? 'owner';
       await SubscriptionService.subscribe(planId.toString(), userType.toString());
+      final user = await AuthService.getCurrentUser();
       await WalletService.recordExternalPayment(
         title: 'اشتراك ${widget.itemData['name'] ?? planId}',
         amount: _displayAmount,
-        method: _selectedCategory,
+        method: method,
         bookingId: 'SUB-$planId',
+        userId: user?['email']?.toString(),
       );
+      result = {'success': true};
     }
 
     if (!mounted) return;
     setState(() => _isProcessing = false);
 
+    if (result['success'] != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result['message']?.toString() ?? 'فشلت عملية الدفع'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+      return;
+    }
+
+    final receipt = result['receipt'] as PaymentReceipt?;
     final successMessage = widget.itemType == 'subscription'
         ? 'تم تفعيل باقة ${widget.itemData['name'] ?? ''} بنجاح!'
         : _selectedCategory == 'manual'
-        ? 'لقد تم إرسال إيصال الدفع للمراجعة. سيتم تفعيل الخدمة فور التأكد من التحويل.'
-        : widget.paymentStage == 'remaining'
-            ? 'تم استلام المتبقي من الشهر الأول (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح عبر ${_getFriendlyMethodName()}.'
-            : 'تم استلام عربون المعاينة (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح عبر ${_getFriendlyMethodName()}.';
+            ? 'تم إرسال إيصال الدفع للمراجعة.'
+            : widget.paymentStage == 'remaining'
+                ? 'تم استلام المتبقي (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح.'
+                : 'تم استلام العربون (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح.';
 
-    await _showSuccessVibe(successMessage);
-  }
-
-  Future<void> _showSuccessVibe(String message) async {
-    final shouldOpenStatement = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => SuccessScreen(
-          title: widget.paymentStage == 'remaining'
-              ? 'تم استكمال الصفقة! 🎉'
-              : 'تم حفظ العربون بنجاح! 🎉',
-          message: message,
-          onContinue: () {
-            Navigator.pop(context, true); // Close success and signal continue
-          },
-          buttonText: 'عرض كشف الحساب',
-        ),
-      ),
-    );
-
-    if (!mounted) return;
-    if (widget.itemType == 'subscription') {
-      Navigator.pop(context, true);
-      return;
-    }
-    if (shouldOpenStatement == true) {
-      Navigator.pushReplacement(
+    if (receipt != null) {
+      await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const RentalStatementScreen(),
+          builder: (_) => SuccessPaymentScreen(
+            amount: receipt.amount,
+            transactionId: receipt.id,
+            paymentMethod: receipt.method,
+            receipt: receipt,
+            successTitle: widget.paymentStage == 'remaining'
+                ? 'تم استكمال الصفقة! 🎉'
+                : 'تم الدفع بنجاح! 🎉',
+            successMessage: successMessage,
+          ),
         ),
       );
+      if (mounted) Navigator.pop(context, true);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(successMessage), backgroundColor: AppTheme.primaryColor),
+      );
+      if (mounted) Navigator.pop(context, true);
     }
   }
 
@@ -804,6 +809,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           mainAxisExtent: 82,
         ),
         children: [
+          _buildCatCard('wallet_balance', 'محفظة إيجاري', Icons.wallet_rounded),
           _buildCatCard('cards', 'بطاقة بنكية', Icons.credit_card_rounded),
           _buildCatCard('bnpl', 'تقسيط مباشر', Icons.timer_outlined),
           _buildCatCard(

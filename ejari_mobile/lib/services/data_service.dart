@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/payment_receipt.dart';
 import '../utils/api_client.dart';
 import '../utils/date_utils.dart';
 import '../utils/rental_rules.dart';
+import 'activity_log_service.dart';
 import 'mock_data_seeder.dart';
+import 'wallet_service.dart';
 
 class DataService {
   static const String _bookingsKey = 'bookings'; // For tenants
@@ -17,6 +20,8 @@ class DataService {
   static const String _manualPaymentsKey = 'manual_payments';
   static const String _appFeedbackKey = 'app_feedback';
   static const String _currentUserKey = 'current_user_email';
+  static const String _receiptsKey = 'payment_receipts_v2';
+  static const String _adminEmail = 'admin@ejari.app';
 
   static Future<void> saveAppFeedback(Map<String, dynamic> feedback) async {
     final prefs = await SharedPreferences.getInstance();
@@ -28,7 +33,8 @@ class DataService {
 
     // Notify admin
     await addNotificationToUser('admin@ejari.app', 'تقييم جديد للتطبيق ⭐',
-        'قام أحد المستخدمين بتقييم التطبيق بـ ${feedback['rating']} نجوم.');
+        'قام أحد المستخدمين بتقييم التطبيق بـ ${feedback['rating']} نجوم.',
+        adminFeed: true);
   }
 
   static Future<String?> _getCurrentUserEmail() async {
@@ -783,7 +789,8 @@ class DataService {
 
     // Notify admin? (In this local demo, we just add it)
     await addNotificationToUser('admin@ejari.app', 'طلب إضافة عقار جديد',
-        'لديك طلب جديد لإضافة عقار (${property['title']}) ينتظر المراجعة.');
+        'لديك طلب جديد لإضافة عقار (${property['title']}) ينتظر المراجعة.',
+        adminFeed: true);
   }
 
   static Future<void> updatePropertyStatus(String id, String status) async {
@@ -817,18 +824,155 @@ class DataService {
   }
 
   static Future<void> addNotificationToUser(
-      String email, String title, String body) async {
+    String email,
+    String title,
+    String body, {
+    String type = 'general',
+    String? refId,
+    bool adminFeed = false,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     List<String> list = prefs.getStringList(_notificationsKey) ?? [];
     final note = {
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
       'title': title,
       'body': body,
       'date': DateTime.now().toIso8601String(),
       'read': false,
       'userEmail': email,
+      'type': type,
+      if (refId != null) 'refId': refId,
+      'feedType': adminFeed ? 'admin' : 'user',
     };
     list.add(jsonEncode(note));
     await prefs.setStringList(_notificationsKey, list);
+
+    await ActivityLogService.append(
+      userId: email,
+      action: title,
+      detail: body,
+      category: type,
+      refId: refId,
+    );
+  }
+
+  static Future<void> _notifyBookingParties({
+    required Map<String, dynamic> booking,
+    required String tenantTitle,
+    required String tenantBody,
+    required String ownerTitle,
+    required String ownerBody,
+    String type = 'booking',
+    bool notifyAdmin = false,
+    String? adminTitle,
+    String? adminBody,
+  }) async {
+    final tenantEmail = booking['tenantEmail']?.toString() ?? '';
+    final ownerEmail = booking['ownerEmail']?.toString() ??
+        booking['ownerId']?.toString() ??
+        '';
+    final refId = booking['id']?.toString();
+
+    if (tenantEmail.isNotEmpty) {
+      await addNotificationToUser(
+        tenantEmail,
+        tenantTitle,
+        tenantBody,
+        type: type,
+        refId: refId,
+      );
+    }
+    if (ownerEmail.isNotEmpty && ownerEmail != tenantEmail) {
+      await addNotificationToUser(
+        ownerEmail,
+        ownerTitle,
+        ownerBody,
+        type: type,
+        refId: refId,
+      );
+    }
+    if (notifyAdmin) {
+      await addNotificationToUser(
+        _adminEmail,
+        adminTitle ?? tenantTitle,
+        adminBody ?? tenantBody,
+        type: type,
+        refId: refId,
+        adminFeed: true,
+      );
+    }
+  }
+
+  static Future<Map<String, dynamic>?> _findBookingById(String bookingId) async {
+    final prefs = await SharedPreferences.getInstance();
+    for (final key in [_bookingsKey, _requestsKey]) {
+      final list = prefs.getStringList(key) ?? [];
+      for (final raw in list) {
+        final data = jsonDecode(raw) as Map<String, dynamic>;
+        if (data['id']?.toString() == bookingId ||
+            data['_id']?.toString() == bookingId) {
+          return data;
+        }
+      }
+    }
+    return null;
+  }
+
+  // --- Payment Receipts ---
+
+  static Future<PaymentReceipt> createPaymentReceipt({
+    required double amount,
+    required String bookingRef,
+    required String payer,
+    required String payee,
+    required String method,
+    String? title,
+  }) async {
+    final receipt = PaymentReceipt(
+      id: 'RCP-${DateTime.now().millisecondsSinceEpoch}',
+      amount: amount,
+      date: DateTime.now(),
+      bookingRef: bookingRef,
+      payer: payer,
+      payee: payee,
+      method: method,
+      title: title,
+    );
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_receiptsKey) ?? [];
+    list.add(jsonEncode(receipt.toJson()));
+    await prefs.setStringList(_receiptsKey, list);
+
+    await addNotificationToUser(
+      payer,
+      'إيصال دفع جديد 🧾',
+      'تم إصدار إيصال ${receipt.id} بمبلغ ${amount.toStringAsFixed(0)} ج.م',
+      type: 'payment',
+      refId: receipt.id,
+    );
+    return receipt;
+  }
+
+  static Future<List<PaymentReceipt>> getReceiptsForUser(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_receiptsKey) ?? [];
+    return list
+        .map((e) => PaymentReceipt.fromJson(jsonDecode(e) as Map<String, dynamic>))
+        .where((r) => r.payer == email || r.payee == email)
+        .toList()
+        .reversed
+        .toList();
+  }
+
+  static Future<PaymentReceipt?> getReceiptById(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_receiptsKey) ?? [];
+    for (final raw in list) {
+      final receipt =
+          PaymentReceipt.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+      if (receipt.id == id) return receipt;
+    }
+    return null;
   }
 
   static Future<void> updatePropertyActive(String id, bool isActive) async {
@@ -915,9 +1059,11 @@ class DataService {
   static Future<List<Map<String, dynamic>>> getNotifications() async {
     final prefs = await SharedPreferences.getInstance();
     final currentEmail = await _getCurrentUserEmail();
+    final isAdmin = currentEmail == _adminEmail;
 
     List<String> list = prefs.getStringList(_notificationsKey) ?? [];
     if (list.isEmpty) {
+      if (currentEmail == null) return [];
       return [
         {
           'title': 'مرحباً بك في إيجاري! 👋',
@@ -926,55 +1072,101 @@ class DataService {
               .subtract(const Duration(hours: 2))
               .toIso8601String(),
           'read': false,
+          'userEmail': currentEmail,
+          'feedType': 'user',
         }
       ];
     }
 
     final allNotes =
         list.map((e) => jsonDecode(e) as Map<String, dynamic>).toList();
-    // Filter by user if email is present in note (or show all if not set for backward compat)
-    return allNotes
-        .where((n) => n['userEmail'] == null || n['userEmail'] == currentEmail)
+
+    return allNotes.where((n) {
+      final target = n['userEmail']?.toString();
+      if (target == null || target.isEmpty) return false;
+      if (target != currentEmail) return false;
+      final feedType = n['feedType']?.toString() ?? 'user';
+      if (isAdmin) return feedType == 'admin' || feedType == 'user';
+      return feedType == 'user';
+    }).toList().reversed.toList();
+  }
+
+  static Future<List<Map<String, dynamic>>> getAdminNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_notificationsKey) ?? [];
+    return list
+        .map((e) => jsonDecode(e) as Map<String, dynamic>)
+        .where((n) =>
+            n['userEmail'] == _adminEmail && n['feedType'] == 'admin')
         .toList()
         .reversed
         .toList();
   }
 
-  static Future<void> addNotification(String title, String body) async {
-    final prefs = await SharedPreferences.getInstance();
+  static Future<void> addNotification(String title, String body,
+      {String type = 'general', String? refId}) async {
     final currentEmail = await _getCurrentUserEmail();
-
-    List<String> list = prefs.getStringList(_notificationsKey) ?? [];
-    final note = {
-      'title': title,
-      'body': body,
-      'date': DateTime.now().toIso8601String(),
-      'read': false,
-      'userEmail': currentEmail, // Targeted notification
-    };
-    list.add(jsonEncode(note));
-    await prefs.setStringList(_notificationsKey, list);
+    if (currentEmail == null) return;
+    await addNotificationToUser(
+      currentEmail,
+      title,
+      body,
+      type: type,
+      refId: refId,
+    );
   }
 
   static Future<void> markNotificationAsRead(int index) async {
     final prefs = await SharedPreferences.getInstance();
+    final currentEmail = await _getCurrentUserEmail();
+    final isAdmin = currentEmail == _adminEmail;
     List<String> list = prefs.getStringList(_notificationsKey) ?? [];
-    if (index >= 0 && index < list.length) {
-      // Note: index in _notifications list is reversed from storage list
-      int actualIndex = list.length - 1 - index;
-      Map<String, dynamic> note = jsonDecode(list[actualIndex]);
-      note['read'] = true;
-      list[actualIndex] = jsonEncode(note);
-      await prefs.setStringList(_notificationsKey, list);
-    }
+
+    final visible = list
+        .map((e) => jsonDecode(e) as Map<String, dynamic>)
+        .where((n) {
+          final target = n['userEmail']?.toString();
+          if (target != currentEmail) return false;
+          final feedType = n['feedType']?.toString() ?? 'user';
+          if (isAdmin) return feedType == 'admin' || feedType == 'user';
+          return feedType == 'user';
+        })
+        .toList()
+        .reversed
+        .toList();
+
+    if (index < 0 || index >= visible.length) return;
+    final targetNote = visible[index];
+    final storageIndex = list.indexWhere((raw) {
+      final n = jsonDecode(raw) as Map<String, dynamic>;
+      return n['id'] == targetNote['id'] ||
+          (n['title'] == targetNote['title'] &&
+              n['date'] == targetNote['date'] &&
+              n['userEmail'] == targetNote['userEmail']);
+    });
+    if (storageIndex < 0) return;
+    final note = jsonDecode(list[storageIndex]) as Map<String, dynamic>;
+    note['read'] = true;
+    list[storageIndex] = jsonEncode(note);
+    await prefs.setStringList(_notificationsKey, list);
   }
 
   static Future<void> markAllNotificationsAsRead() async {
     final prefs = await SharedPreferences.getInstance();
+    final currentEmail = await _getCurrentUserEmail();
+    final isAdmin = currentEmail == _adminEmail;
     List<String> list = prefs.getStringList(_notificationsKey) ?? [];
     List<String> updated = list.map((e) {
       Map<String, dynamic> note = jsonDecode(e);
-      note['read'] = true;
+      final target = note['userEmail']?.toString();
+      final feedType = note['feedType']?.toString() ?? 'user';
+      final matchesUser = target == currentEmail;
+      final matchesFeed = isAdmin
+          ? feedType == 'admin' || feedType == 'user'
+          : feedType == 'user';
+      if (matchesUser && matchesFeed) {
+        note['read'] = true;
+      }
       return jsonEncode(note);
     }).toList();
     await prefs.setStringList(_notificationsKey, updated);
@@ -1000,6 +1192,10 @@ class DataService {
       status = 'deposit_paid';
     } else if (status == 'مكتمل') {
       status = 'completed';
+    } else if (status == 'مؤكد نهائي') {
+      status = 'confirmed';
+    } else if (status == 'ملغي') {
+      status = 'cancelled';
     } else if (status == 'مسترد') {
       status = 'deposit_refunded';
     } else if (status == 'ملغي') {
@@ -1087,9 +1283,9 @@ class DataService {
     final refundAmount = refundable ? depositAmount : 0.0;
 
     if (refundable) {
-      await refundBookingDeposit(bookingId);
+      await refundBookingDeposit(bookingId, depositAmount: depositAmount);
     } else {
-      await updateRequestStatus(bookingId, 'rejected');
+      await updateRequestStatus(bookingId, 'cancelled');
       await addNotification(
         'إلغاء بدون استرداد ❌',
         'تم إلغاء الحجز وفق السياسة: لا استرداد خلال ٤٨ ساعة من الاستلام.',
@@ -1100,7 +1296,7 @@ class DataService {
       'refundable': refundable,
       'refundAmount': refundAmount,
       'daysBeforeCheckIn': checkInDate.difference(effectiveCancel).inDays,
-      'status': refundable ? 'deposit_refunded' : 'rejected',
+      'status': refundable ? 'deposit_refunded' : 'cancelled',
     };
   }
 
@@ -1180,6 +1376,20 @@ class DataService {
     List<String> requests = prefs.getStringList(_requestsKey) ?? [];
     requests.add(jsonEncode(request));
     await prefs.setStringList(_requestsKey, requests);
+
+    await _notifyBookingParties(
+      booking: request,
+      tenantTitle: 'تم إرسال طلب الحجز 📋',
+      tenantBody:
+          'طلبك لـ ${request['title']} قيد المراجعة. سيتم إبلاغك عند موافقة المالك.',
+      ownerTitle: 'طلب حجز جديد 🔔',
+      ownerBody:
+          'استلمت طلب حجز من ${request['tenantName']} لـ ${request['title']}.',
+      notifyAdmin: true,
+      adminTitle: 'حجز جديد للمراجعة',
+      adminBody:
+          'طلب حجز ${request['title']} — ${request['depositAmount'] ?? ''} ج.م عربون.',
+    );
   }
 
   // Owner gets their requests
@@ -1221,6 +1431,10 @@ class DataService {
       backendStatus = 'مؤكد';
     } else if (newStatus == 'rejected') {
       backendStatus = 'ملغي';
+    } else if (newStatus == 'cancelled') {
+      backendStatus = 'ملغي';
+    } else if (newStatus == 'confirmed') {
+      backendStatus = 'مؤكد نهائي';
     }
 
     try {
@@ -1253,14 +1467,18 @@ class DataService {
             data['depositPaidAt'] = DateTime.now().toIso8601String();
             data['paymentStatus'] = 'deposit_paid';
             data['paymentPhase'] = 'deposit';
-          } else if (newStatus == 'completed') {
+          } else if (newStatus == 'completed' || newStatus == 'confirmed') {
             data['completedAt'] = DateTime.now().toIso8601String();
             data['paymentStatus'] = 'paid';
             data['paymentPhase'] = 'completed';
+            data['status'] = newStatus == 'confirmed' ? 'confirmed' : 'completed';
           } else if (newStatus == 'deposit_refunded') {
             data['refundedAt'] = DateTime.now().toIso8601String();
             data['paymentStatus'] = 'refunded';
             data['paymentPhase'] = 'refunded';
+          } else if (newStatus == 'cancelled') {
+            data['cancelledAt'] = DateTime.now().toIso8601String();
+            data['paymentStatus'] = 'cancelled';
           }
         }
         return jsonEncode(data);
@@ -1273,29 +1491,81 @@ class DataService {
     List<String> bookings = prefs.getStringList(_bookingsKey) ?? [];
     await prefs.setStringList(_bookingsKey, updateList(bookings));
 
-    // Add Notification based on status
-    if (newStatus == 'approved') {
-      await addNotification('تمت الموافقة على طلبك! 🎉',
-          'وافق المالك على طلب حجز الوحدة. يمكنك الآن إتمام الدفع.');
-    } else if (newStatus == 'rejected') {
-      await addNotification(
-          'تم رفض الطلب ❌', 'عذراً، تم رفض طلب حجز الوحدة من قبل المالك.');
-    } else if (newStatus == 'deposit_paid') {
-      await addNotification('تم حجز عربون المعاينة ✅',
-          'تم استلام العربون، ويمكنك متابعة تفاصيل الزيارة ثم إكمال الصفقة عند الموافقة.');
-    } else if (newStatus == 'viewing_scheduled') {
-      await addNotification('تم تحديد موعد المعاينة',
-          'تم تسجيل طلبك ويمكنك متابعة تفاصيل الزيارة من حجوزاتي.');
-    } else if (newStatus == 'paid') {
-      await addNotification('تم الدفع بنجاح! ✅',
-          'تم استلام المبلغ وتوثيق العقد الإلكتروني. مبروك وحدتك الجديدة!');
-    } else if (newStatus == 'completed') {
-      await addNotification('تم استكمال الصفقة 🎉',
-          'تم سداد باقي المبلغ وتحديث حالة الحجز بنجاح.');
-    } else if (newStatus == 'deposit_refunded') {
-      await addNotification(
-          'تم استرداد العربون', 'تم تنفيذ الاسترداد وفق حالة الحجز الحالية.');
+    final booking = await _findBookingById(requestId);
+    if (booking != null) {
+      final title = booking['title']?.toString() ?? 'الوحدة';
+      if (newStatus == 'approved') {
+        await _notifyBookingParties(
+          booking: booking,
+          tenantTitle: 'تمت الموافقة على طلبك! 🎉',
+          tenantBody: 'وافق المالك على حجز $title. يمكنك الآن إتمام الدفع.',
+          ownerTitle: 'تم قبول طلب الحجز ✅',
+          ownerBody: 'وافقت على طلب ${booking['tenantName']} لـ $title.',
+          type: 'booking',
+        );
+      } else if (newStatus == 'rejected') {
+        await _notifyBookingParties(
+          booking: booking,
+          tenantTitle: 'تم رفض الطلب ❌',
+          tenantBody: 'عذراً، تم رفض طلب حجز $title من قبل المالك.',
+          ownerTitle: 'تم رفض طلب الحجز',
+          ownerBody: 'رفضت طلب ${booking['tenantName']} لـ $title.',
+          type: 'booking',
+        );
+      } else if (newStatus == 'deposit_paid') {
+        await _notifyBookingParties(
+          booking: booking,
+          tenantTitle: 'تم حجز عربون المعاينة ✅',
+          tenantBody: 'تم استلام العربون لـ $title. يمكنك متابعة تفاصيل الزيارة.',
+          ownerTitle: 'عربون مستلم 💰',
+          ownerBody: 'استلمت عربون حجز $title من ${booking['tenantName']}.',
+          type: 'payment',
+          notifyAdmin: _isHighValueBooking(booking),
+          adminTitle: 'دفعة عربون — $title',
+          adminBody: 'عربون ${booking['depositAmount'] ?? ''} ج.م.',
+        );
+      } else if (newStatus == 'paid' || newStatus == 'completed' || newStatus == 'confirmed') {
+        await _notifyBookingParties(
+          booking: booking,
+          tenantTitle: 'تم تأكيد الحجز! ✅',
+          tenantBody: 'تم الدفع وتأكيد حجز $title. مبروك وحدتك الجديدة!',
+          ownerTitle: 'حجز مؤكد 🎉',
+          ownerBody: 'تم تأكيد حجز $title وإيداع المبلغ في محفظتك.',
+          type: 'payment',
+          notifyAdmin: _isHighValueBooking(booking),
+          adminTitle: 'حجز مؤكد — $title',
+          adminBody: 'تم إتمام دفع حجز بقيمة ${booking['price'] ?? ''} ج.م.',
+        );
+      } else if (newStatus == 'deposit_refunded') {
+        await _notifyBookingParties(
+          booking: booking,
+          tenantTitle: 'تم استرداد العربون',
+          tenantBody: 'تم تنفيذ استرداد العربون لـ $title وفق سياسة الإلغاء.',
+          ownerTitle: 'استرداد عربون',
+          ownerBody: 'تم استرداد عربون حجز $title للمستأجر.',
+          type: 'payment',
+        );
+      } else if (newStatus == 'viewing_scheduled') {
+        await _notifyBookingParties(
+          booking: booking,
+          tenantTitle: 'تم تحديد موعد المعاينة',
+          tenantBody: 'يمكنك متابعة تفاصيل الزيارة من حجوزاتي.',
+          ownerTitle: 'موعد معاينة مجدول',
+          ownerBody: 'تم جدولة معاينة لـ $title.',
+          type: 'booking',
+        );
+      }
     }
+  }
+
+  static bool _isHighValueBooking(Map<String, dynamic> booking) {
+    final price = double.tryParse(
+          (booking['price'] ?? booking['monthlyRent'] ?? '0')
+              .toString()
+              .replaceAll(RegExp(r'[^0-9.]'), ''),
+        ) ??
+        0;
+    return price >= 20000;
   }
 
   // Owner gets their bookings (filtered by ownerId / property ownership)
@@ -1355,13 +1625,16 @@ class DataService {
     return total;
   }
 
-  // Get Wallet Data
+  // Get Wallet Data — from WalletService per-user store
   static Future<Map<String, dynamic>> getWalletData(String ownerId) async {
+    await WalletService.init(userId: ownerId);
+    final summary = await WalletService.getWalletSummary(userId: ownerId);
     final revenue = await getOwnerRevenue(ownerId);
     return {
-      'totalBalance': revenue,
-      'available': revenue * 0.8, // 80% available
-      'escrow': revenue * 0.2, // 20% in escrow
+      'totalBalance': summary['balance'] ?? revenue,
+      'available': summary['balance'] ?? revenue * 0.8,
+      'pending': summary['pending'] ?? revenue * 0.15,
+      'escrow': summary['escrow'] ?? revenue * 0.05,
       'currency': 'ج.م',
     };
   }
@@ -1369,6 +1642,23 @@ class DataService {
   // Get Wallet Transactions
   static Future<List<Map<String, dynamic>>> getWalletTransactions(
       String ownerId) async {
+    final walletTx = await WalletService.getTransactions(userId: ownerId);
+    if (walletTx.isNotEmpty) {
+      return walletTx.map((tx) {
+        final amount = (tx['amount'] as num?)?.toDouble() ?? 0;
+        return {
+          'title': tx['title'] ?? 'معاملة',
+          'reason': tx['category']?.toString() ?? '',
+          'amount': amount >= 0
+              ? '+${amount.toStringAsFixed(0)}'
+              : amount.toStringAsFixed(0),
+          'date': DateParsing.parse(tx['date']) ?? DateTime.now(),
+          'type': tx['type'] ?? 'deposit',
+          'status': tx['status'] ?? 'completed',
+        };
+      }).toList();
+    }
+
     final bookings = await getOwnerBookings(ownerId);
     List<Map<String, dynamic>> transactions = [];
 
@@ -1427,17 +1717,162 @@ class DataService {
     ];
   }
 
-  // Tenant pays for booking
-  static Future<void> payForBooking(String bookingId) async {
+  // Tenant pays for booking — with wallet debit, receipt, owner credit
+  static Future<Map<String, dynamic>> payForBooking(
+    String bookingId, {
+    double? amount,
+    String method = 'wallet',
+    bool useWallet = true,
+  }) async {
+    final booking = await _findBookingById(bookingId);
+    if (booking == null) {
+      return {'success': false, 'message': 'الحجز غير موجود'};
+    }
+
+    final deposit = amount ??
+        double.tryParse(
+          (booking['depositAmount'] ?? booking['currentAmount'] ?? '0')
+              .toString()
+              .replaceAll(RegExp(r'[^0-9.]'), ''),
+        ) ??
+        0;
+    final tenantId = booking['tenantEmail']?.toString() ?? '';
+    final ownerId = booking['ownerEmail']?.toString() ??
+        booking['ownerId']?.toString() ??
+        '';
+    final title = booking['title']?.toString() ?? 'حجز';
+
+    if (useWallet && method == 'wallet') {
+      final ok = await WalletService.processBookingPayment(
+        tenantId: tenantId,
+        ownerId: ownerId,
+        amount: deposit,
+        bookingId: bookingId,
+        title: 'عربون $title',
+        method: 'wallet',
+        useWallet: true,
+        isDeposit: true,
+      );
+      if (!ok) {
+        return {'success': false, 'message': 'رصيد المحفظة غير كافٍ'};
+      }
+    } else {
+      await WalletService.processBookingPayment(
+        tenantId: tenantId,
+        ownerId: ownerId,
+        amount: deposit,
+        bookingId: bookingId,
+        title: 'عربون $title',
+        method: method,
+        useWallet: false,
+        isDeposit: true,
+      );
+    }
+
+    final receipt = await createPaymentReceipt(
+      amount: deposit,
+      bookingRef: bookingId,
+      payer: tenantId,
+      payee: ownerId,
+      method: method,
+      title: 'عربون $title',
+    );
+
     await updateRequestStatus(bookingId, 'deposit_paid');
+    return {'success': true, 'receipt': receipt};
+  }
+
+  static Future<Map<String, dynamic>> completeBookingPaymentWithReceipt(
+    String bookingId, {
+    required double amount,
+    required String method,
+    bool useWallet = false,
+  }) async {
+    final booking = await _findBookingById(bookingId);
+    if (booking == null) {
+      return {'success': false, 'message': 'الحجز غير موجود'};
+    }
+
+    final tenantId = booking['tenantEmail']?.toString() ?? '';
+    final ownerId = booking['ownerEmail']?.toString() ??
+        booking['ownerId']?.toString() ??
+        '';
+    final title = booking['title']?.toString() ?? 'حجز';
+
+    if (useWallet) {
+      final ok = await WalletService.payFromWallet(
+        title: 'استكمال $title',
+        amount: amount,
+        category: 'rent',
+        bookingId: bookingId,
+        userId: tenantId,
+      );
+      if (!ok) {
+        return {'success': false, 'message': 'رصيد المحفظة غير كافٍ'};
+      }
+    } else {
+      await WalletService.recordExternalPayment(
+        title: 'استكمال $title',
+        amount: amount,
+        method: method,
+        bookingId: bookingId,
+        userId: tenantId,
+      );
+    }
+
+    final deposit = double.tryParse(
+          (booking['depositAmount'] ?? '0')
+              .toString()
+              .replaceAll(RegExp(r'[^0-9.]'), ''),
+        ) ??
+        0;
+
+    await WalletService.releaseBookingDeposit(
+      title: 'عربون $title',
+      amount: deposit,
+      bookingId: bookingId,
+      ownerId: ownerId,
+      tenantId: tenantId,
+    );
+
+    await WalletService.creditOwnerFromPayment(
+      ownerId: ownerId,
+      totalAmount: amount,
+      bookingId: bookingId,
+      title: 'إيجار $title',
+    );
+
+    final receipt = await createPaymentReceipt(
+      amount: amount,
+      bookingRef: bookingId,
+      payer: tenantId,
+      payee: ownerId,
+      method: method,
+      title: 'استكمال $title',
+    );
+
+    await updateRequestStatus(bookingId, 'confirmed');
+    return {'success': true, 'receipt': receipt};
+  }
+
+  static Future<void> refundBookingDeposit(
+    String bookingId, {
+    double? depositAmount,
+  }) async {
+    final booking = await _findBookingById(bookingId);
+    if (booking != null && depositAmount != null && depositAmount > 0) {
+      await WalletService.refundBookingDeposit(
+        title: 'استرداد عربون ${booking['title'] ?? 'حجز'}',
+        amount: depositAmount,
+        bookingId: bookingId,
+        userId: booking['tenantEmail']?.toString(),
+      );
+    }
+    await updateRequestStatus(bookingId, 'deposit_refunded');
   }
 
   static Future<void> completeBookingPayment(String bookingId) async {
-    await updateRequestStatus(bookingId, 'completed');
-  }
-
-  static Future<void> refundBookingDeposit(String bookingId) async {
-    await updateRequestStatus(bookingId, 'deposit_refunded');
+    await updateRequestStatus(bookingId, 'confirmed');
   }
 
   // Tenant gets their bookings

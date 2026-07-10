@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
+import '../services/wallet_service.dart';
 
 class AdminFinancialsScreen extends StatefulWidget {
   const AdminFinancialsScreen({super.key});
@@ -16,6 +17,7 @@ class _AdminFinancialsScreenState extends State<AdminFinancialsScreen>
   double _platformEarnings = 0;
   double _escrowBalance = 0;
   List<Map<String, dynamic>> _recentTransactions = [];
+  List<Map<String, dynamic>> _adminAlerts = [];
   late TabController _tabController;
 
   @override
@@ -27,36 +29,43 @@ class _AdminFinancialsScreenState extends State<AdminFinancialsScreen>
 
   Future<void> _loadData() async {
     final stats = await DataService.getAdminGlobalStats();
+    final adminTx = await WalletService.getAllTransactionsForAdmin();
+    final adminNotes = await DataService.getAdminNotifications();
 
     if (mounted) {
       setState(() {
-        _totalVolume = stats['totalRevenue'];
-        _platformEarnings = _totalVolume * 0.15;
-        _escrowBalance = _totalVolume * 0.10;
-        _recentTransactions = [
-          {
-            'title': 'عمولة حجز - إيجاري',
-            'amount': '+${(_totalVolume * 0.05).toStringAsFixed(0)}',
-            'date': 'اليوم، 10:30 ص',
-            'status': 'completed',
-            'type': 'commission'
-          },
-          {
-            'title': 'تسوية أرباح - InstaPay',
-            'amount': '-5,000',
-            'date': 'اليوم، 09:45 ص',
-            'status': 'completed',
-            'account': '01069813210',
-            'type': 'withdrawal'
-          },
-          {
-            'title': 'رسوم توثيق عقد رقم #882',
-            'amount': '+450',
-            'date': 'أمس، 04:15 م',
-            'status': 'completed',
-            'type': 'fees'
-          },
-        ];
+        _totalVolume = (stats['totalRevenue'] as num).toDouble();
+        _platformEarnings = _totalVolume * WalletService.platformFeePercent;
+        _escrowBalance = adminTx
+            .where((t) => t['type'] == 'escrow')
+            .fold<double>(
+                0, (sum, t) => sum + ((t['amount'] as num?)?.abs() ?? 0));
+        _recentTransactions = adminTx.take(8).map((tx) {
+          final amount = (tx['amount'] as num?)?.toDouble() ?? 0;
+          return {
+            'title': tx['title'] ?? 'معاملة',
+            'amount': amount >= 0
+                ? '+${amount.toStringAsFixed(0)}'
+                : amount.toStringAsFixed(0),
+            'date': tx['date']?.toString() ?? '',
+            'status': tx['status'] ?? 'completed',
+            'type': tx['type'] ?? 'general',
+            'userId': tx['userId'] ?? '',
+          };
+        }).toList();
+        if (_recentTransactions.isEmpty) {
+          _recentTransactions = [
+            {
+              'title': 'لا توجد معاملات بعد',
+              'amount': '0',
+              'date': DateTime.now().toIso8601String(),
+              'status': 'pending',
+              'type': 'info',
+              'userId': '',
+            }
+          ];
+        }
+        _adminAlerts = adminNotes.take(5).toList();
         _isLoading = false;
       });
     }
@@ -129,6 +138,32 @@ class _AdminFinancialsScreenState extends State<AdminFinancialsScreen>
             ],
           ),
           const SizedBox(height: 32),
+          if (_adminAlerts.isNotEmpty) ...[
+            const Text('تنبيهات الإشراف (حجوزات عالية القيمة)',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 12),
+            ..._adminAlerts.map((n) => Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.errorColor.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: AppTheme.errorColor.withOpacity(0.2)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(n['title']?.toString() ?? '',
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(n['body']?.toString() ?? '',
+                          style: const TextStyle(
+                              fontSize: 12, color: AppTheme.textSecondary)),
+                    ],
+                  ),
+                )),
+            const SizedBox(height: 24),
+          ],
           const Text('المعاملات المالية الأخيرة',
               style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
