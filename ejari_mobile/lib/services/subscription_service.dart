@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'auth_service.dart';
 import 'data_service.dart';
+import '../utils/safe_parse.dart';
 
 class SubscriptionService {
   static const String _subscriptionKeyPrefix = 'user_subscription_';
@@ -146,7 +147,7 @@ class SubscriptionService {
 
     if (userType == 'owner' && isDowngrade) {
       final plan = ownerPlans[normalized] ?? ownerPlans['free']!;
-      final limit = plan['properties_limit'] as int;
+      final limit = safeInt(plan['properties_limit'], -1);
       if (limit != -1) {
         final count = await getOwnerPropertyCount();
         if (count > limit) {
@@ -219,7 +220,7 @@ class SubscriptionService {
 
     final planId = normalizePlanId(sub['plan']?.toString() ?? 'free', 'tenant');
     final plan = tenantPlans[planId] ?? tenantPlans['free']!;
-    final limit = plan['bookings_limit'] as int;
+    final limit = safeInt(plan['bookings_limit'], -1);
     if (limit == -1) {
       return {'can_book': true, 'plan_id': planId, 'limit': limit};
     }
@@ -261,7 +262,7 @@ class SubscriptionService {
         normalizePlanId(sub['plan']?.toString() ?? 'free', 'owner');
     final plan = ownerPlans[planId] ?? ownerPlans['free']!;
     final currentCount = await getOwnerPropertyCount(ownerId);
-    final limit = plan['properties_limit'] as int;
+    final limit = safeInt(plan['properties_limit'], -1);
     final hasPackageRoom = limit == -1 || currentCount < limit;
 
     return {

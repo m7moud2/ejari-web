@@ -16,6 +16,7 @@ import '../widgets/rental_booking_widgets.dart';
 import '../widgets/refund_calculator_dialog.dart';
 import '../widgets/corporate_bookings_strip.dart';
 import '../widgets/escrow_transparency_widget.dart';
+import '../utils/safe_parse.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -207,17 +208,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   Widget _buildRentalTransparencyCard(Map<String, dynamic> booking) {
     final snapshot = RentalScheduleUtils.buildLeaseSnapshot(booking);
-    final totalUnits = (snapshot['totalUnits'] as num?)?.toInt() ??
-        (snapshot['leaseMonths'] as num?)?.toInt() ??
-        0;
-    final remainingUnits = (snapshot['remainingUnits'] as num?)?.toInt() ?? 0;
-    final elapsedUnits = (snapshot['elapsedUnits'] as num?)?.toInt() ?? 0;
+    final totalUnits = safeInt(snapshot['totalUnits'],
+        safeInt(snapshot['leaseMonths']));
+    final remainingUnits = safeInt(snapshot['remainingUnits']);
+    final elapsedUnits = safeInt(snapshot['elapsedUnits']);
     final unitLabel = snapshot['durationUnit']?.toString() ?? 'شهر';
-    final progress =
-        ((snapshot['progress'] as num?) ?? 0.0).toDouble().clamp(0.0, 1.0);
-    final monthlyRent = (snapshot['monthlyRent'] as num?)?.toDouble() ?? 0.0;
-    final nextDueAmount = (snapshot['nextDueAmount'] as num?)?.toDouble() ?? 0.0;
-    final remainingAmount = (snapshot['remainingAmount'] as num?)?.toDouble() ?? 0.0;
+    final progress = safeDouble(snapshot['progress']).clamp(0.0, 1.0);
+    final monthlyRent = safeDouble(snapshot['monthlyRent']);
+    final nextDueAmount = safeDouble(snapshot['nextDueAmount']);
+    final remainingAmount = safeDouble(snapshot['remainingAmount']);
     final nextDueDate = DateParsing.display(
       snapshot['nextDueDate'],
       fallback: 'قريباً',

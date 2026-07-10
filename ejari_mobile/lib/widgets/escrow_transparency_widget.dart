@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/booking_status.dart';
 import '../services/wallet_service.dart';
+import '../utils/safe_parse.dart';
 import 'ejari_section.dart';
 
 /// شفافية الضمان — يوضح أين المال (محجوز / مُفرج / مُسترد).
@@ -13,10 +14,7 @@ class EscrowTransparencyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = _resolveEscrowState(booking);
-    final deposit =
-        (booking['depositAmount'] as num?)?.toDouble() ??
-            double.tryParse(booking['depositAmount']?.toString() ?? '') ??
-            0;
+    final deposit = safeDouble(booking['depositAmount']);
 
     return EjariSurfaceCard(
       padding: const EdgeInsets.all(12),
@@ -149,10 +147,7 @@ class EscrowTransparencyWidget extends StatelessWidget {
   _EscrowState _resolveEscrowState(Map<String, dynamic> booking) {
     final status =
         BookingStatus.normalize(booking['status']?.toString());
-    final deposit =
-        (booking['depositAmount'] as num?)?.toDouble() ??
-            double.tryParse(booking['depositAmount']?.toString() ?? '') ??
-            0;
+    final deposit = safeDouble(booking['depositAmount']);
     final feePercent = WalletService.platformFeePercent;
 
     switch (status) {

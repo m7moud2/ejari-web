@@ -4,6 +4,7 @@ import '../utils/auth_gate.dart';
 import '../services/auth_service.dart';
 import '../services/support_service.dart';
 import '../services/data_service.dart';
+import '../utils/safe_parse.dart';
 
 class ProfessionalServicesScreen extends StatefulWidget {
   final Map<String, dynamic>? property;
@@ -352,7 +353,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                     children: [
                       Row(
                         children: [
-                          Text(pkg['title'] as String,
+                          Text(safeStr(pkg['title'], 'باقة'),
                               style: const TextStyle(
                                   fontWeight: FontWeight.w900,
                                   fontSize: 16,
@@ -364,7 +365,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                             decoration: BoxDecoration(
                                 color: color,
                                 borderRadius: BorderRadius.circular(10)),
-                            child: Text(pkg['tag'] as String,
+                            child: Text(safeStr(pkg['tag'], ''),
                                 style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
@@ -372,7 +373,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                           ),
                         ],
                       ),
-                      Text(pkg['subtitle'] as String,
+                      Text(safeStr(pkg['subtitle'], ''),
                           style: const TextStyle(
                               color: AppTheme.primaryColor, fontSize: 12)),
                     ],
@@ -502,7 +503,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                 children: [
                   Row(
                     children: [
-                      Text(type['title'] as String,
+                      Text(safeStr(type['title'], ''),
                           style: TextStyle(
                               fontWeight: FontWeight.w800,
                               fontSize: 14,
@@ -516,7 +517,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                           decoration: BoxDecoration(
                               color: color,
                               borderRadius: BorderRadius.circular(8)),
-                          child: Text(type['badge'] as String,
+                          child: Text(safeStr(type['badge'], ''),
                               style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 9,
@@ -526,7 +527,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(type['desc'] as String,
+                  Text(safeStr(type['desc'], ''),
                       style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontSize: 11,
@@ -1214,10 +1215,10 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                             width: sel ? 2 : 1),
                       ),
                       child: Row(children: [
-                        Text(s['icon'] as String,
+                        Text(safeStr(s['icon'], '✨'),
                             style: const TextStyle(fontSize: 22)),
                         const SizedBox(width: 8),
-                        Text(s['name'] as String,
+                        Text(safeStr(s['name'], ''),
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: sel
@@ -1237,7 +1238,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text(
-                          '✨ تم تطبيق أسلوب "${(styles[selectedStyle]['name'] as String)}" على عقارك — النتيجة جاهزة!'),
+                          '✨ تم تطبيق أسلوب "${safeStr(styles[selectedStyle]['name'], 'عصري')}" على عقارك — النتيجة جاهزة!'),
                       backgroundColor: styles[selectedStyle]['color'] as Color,
                       behavior: SnackBarBehavior.floating,
                       duration: const Duration(seconds: 3),

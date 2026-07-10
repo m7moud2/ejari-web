@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
+import '../utils/safe_parse.dart';
 import 'contract_screen.dart';
 import 'rental_statement_screen.dart';
 import 'tenant_installments_screen.dart';
@@ -309,7 +310,7 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildInfoRow(Icons.location_on, contract['address']),
+                _buildInfoRow(Icons.location_on, safeStr(contract['address'], '—')),
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(12),

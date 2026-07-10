@@ -5,6 +5,7 @@ import '../services/data_service.dart';
 import 'package:intl/intl.dart';
 import '../utils/date_utils.dart';
 import '../utils/rental_schedule_utils.dart';
+import '../utils/safe_parse.dart';
 import 'payment_methods_screen.dart';
 import 'rewards_screen.dart';
 import 'rental_statement_screen.dart';
@@ -48,17 +49,14 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
       final snapshot = RentalScheduleUtils.buildLeaseSnapshot(booking);
       rentSummary = {
         'title': booking['title']?.toString() ?? 'حجز إيجار',
-        'monthlyRent': (snapshot['monthlyRent'] as num?)?.toDouble() ?? 0.0,
-        'nextDueAmount': (snapshot['nextDueAmount'] as num?)?.toDouble() ?? 0.0,
+        'monthlyRent': safeDouble(snapshot['monthlyRent']),
+        'nextDueAmount': safeDouble(snapshot['nextDueAmount']),
         'nextDueDate': snapshot['nextDueDate'] as DateTime?,
-        'remainingMonths': (snapshot['remainingMonths'] as num?)?.toInt() ?? 0,
-        'paidMonths': (booking['paidMonths'] is num)
-            ? (booking['paidMonths'] as num).toInt()
-            : int.tryParse((booking['paidMonths'] ?? '0').toString()) ?? 0,
-        'leaseMonths': (snapshot['leaseMonths'] as num?)?.toInt() ?? 0,
-        'depositAmount': (snapshot['depositAmount'] as num?)?.toDouble() ?? 0.0,
-        'remainingAmount':
-            (snapshot['remainingAmount'] as num?)?.toDouble() ?? 0.0,
+        'remainingMonths': safeInt(snapshot['remainingMonths']),
+        'paidMonths': safeInt(booking['paidMonths']),
+        'leaseMonths': safeInt(snapshot['leaseMonths'], 1),
+        'depositAmount': safeDouble(snapshot['depositAmount']),
+        'remainingAmount': safeDouble(snapshot['remainingAmount']),
       };
     }
 

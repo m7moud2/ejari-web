@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
+import '../utils/safe_parse.dart';
 import '../services/data_service.dart';
 import 'provider_jobs_screen.dart';
 import 'provider_wallet_screen.dart';
@@ -93,7 +94,7 @@ class _ServiceProviderHomeScreenState extends State<ServiceProviderHomeScreen> {
                               children: [
                                 _buildHeaderStat(
                                     'الأرباح',
-                                    '${_stats?['earnings'].toStringAsFixed(0)} ج.م',
+                                    '${safeDouble(_stats?['earnings']).toStringAsFixed(0)} ج.م',
                                     Icons.account_balance_wallet),
                                 const SizedBox(width: 24),
                                 _buildHeaderStat('التقييم',

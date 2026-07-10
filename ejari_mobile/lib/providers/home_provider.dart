@@ -13,7 +13,7 @@ class HomeProvider extends ChangeNotifier {
   Future<void> loadHomeData(String role) async {
     isLoading = true;
     hasError = false;
-    notifyListeners();
+    if (hasListeners) notifyListeners();
 
     try {
       stats = await _repository.fetchHomeStats(role);
@@ -22,7 +22,7 @@ class HomeProvider extends ChangeNotifier {
       errorMessage = e.toString();
     } finally {
       isLoading = false;
-      notifyListeners();
+      if (hasListeners) notifyListeners();
     }
   }
 }

@@ -20,4 +20,21 @@ void main() {
       expect(safeStrList([null, 'a', 1]), ['', 'a', '1']);
     });
   });
+
+  group('safeDouble', () {
+    test('parses strings and numbers', () {
+      expect(safeDouble('3000'), 3000);
+      expect(safeDouble(42.5), 42.5);
+      expect(safeDouble(null), 0);
+      expect(safeDouble('abc', 9), 9);
+    });
+  });
+
+  group('safeInt', () {
+    test('parses strings and numbers', () {
+      expect(safeInt('12'), 12);
+      expect(safeInt(3.9), 3);
+      expect(safeInt(null, 1), 1);
+    });
+  });
 }

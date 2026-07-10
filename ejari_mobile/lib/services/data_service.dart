@@ -2796,7 +2796,7 @@ class DataService {
   static Future<Map<String, List<double>>> getAdminChartData() async {
     final stats = await getAdminGlobalStats();
     final revenue = (stats['totalRevenue'] as num).toDouble();
-    final users = stats['totalUsers'] as int;
+    final users = safeInt(stats['totalUsers']);
 
     return {
       'userGrowth': [

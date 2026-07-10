@@ -164,7 +164,7 @@ class BookingStatus {
     ];
     final currentIdx = order.indexOf(current);
     return steps.map((step) {
-      final stepStatus = step['status'] as String;
+      final stepStatus = step['status']?.toString() ?? '';
       final stepIdx = order.indexOf(stepStatus);
       final done = currentIdx >= 0 && stepIdx >= 0 && stepIdx <= currentIdx;
       final active = stepStatus == current ||

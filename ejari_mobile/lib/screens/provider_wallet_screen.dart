@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../services/auth_service.dart';
 import '../services/wallet_service.dart';
+import '../utils/safe_parse.dart';
 
 class ProviderWalletScreen extends StatefulWidget {
   const ProviderWalletScreen({super.key});
@@ -93,15 +94,14 @@ class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
               style: TextStyle(color: Colors.white70, fontSize: 14)),
           const SizedBox(height: 8),
           Text(
-            '${_stats?['earnings'].toStringAsFixed(0)} ج.م',
+            '${safeDouble(_stats?['earnings']).toStringAsFixed(0)} ج.م',
             style: const TextStyle(
                 color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () async {
-              final amount =
-                  (_stats?['earnings'] as num?)?.toDouble() ?? 0;
+              final amount = safeDouble(_stats?['earnings']);
               if (amount <= 0) return;
               final user = await AuthService.getCurrentUser();
               final techId = user?['email']?.toString() ?? 'tech@ejari.app';
@@ -159,7 +159,7 @@ class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(job['service'],
+                Text(safeStr(job['service'], 'صيانة'),
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 Text('رقم الطلب: ${job['id']}',
                     style: const TextStyle(
