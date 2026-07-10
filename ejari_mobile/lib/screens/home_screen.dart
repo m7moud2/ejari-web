@@ -19,7 +19,7 @@ import 'advanced_filters_screen.dart';
 import 'service_details_screen.dart';
 import '../l10n/app_localizations.dart';
 import 'ai_concierge_screen.dart';
-import 'maintenance_requests_screen.dart';
+import 'my_service_requests_screen.dart';
 import 'my_bookings_screen.dart';
 import 'my_contracts_screen.dart';
 import 'about_app_screen.dart';
@@ -28,6 +28,11 @@ import 'unified_home_screen.dart';
 import 'admin_search_screen.dart';
 import 'admin_users_screen.dart';
 import 'admin_support_screen.dart';
+import 'manage_properties_screen.dart';
+import 'owner_collection_screen.dart';
+import 'provider_jobs_screen.dart';
+import 'provider_timeline_screen.dart';
+import 'provider_wallet_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -80,13 +85,34 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  List<Widget> get _screens => [
-        const UnifiedHomeScreen(),
-        const PropertiesScreen(),
-        const AddPropertyScreen(),
-        const PropertyReelsScreen(),
-        const ProfileScreen(),
-      ];
+  List<Widget> get _screens {
+    switch (_currentRole) {
+      case 'technician':
+        return const [
+          UnifiedHomeScreen(),
+          ProviderJobsScreen(),
+          ProviderTimelineScreen(),
+          ProviderWalletScreen(),
+          ProfileScreen(),
+        ];
+      case 'owner':
+        return const [
+          UnifiedHomeScreen(),
+          ManagePropertiesScreen(),
+          AddPropertyScreen(),
+          OwnerCollectionScreen(),
+          ProfileScreen(),
+        ];
+      default:
+        return const [
+          UnifiedHomeScreen(),
+          PropertiesScreen(),
+          AddPropertyScreen(),
+          PropertyReelsScreen(),
+          ProfileScreen(),
+        ];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1278,7 +1304,7 @@ class _HomeContentState extends State<HomeContent> {
         title: 'طلب صيانة',
         subtitle: 'بلّغ وتابع التنفيذ',
         icon: Icons.home_repair_service_outlined,
-        page: const MaintenanceRequestsScreen(),
+        page: const MyServiceRequestsScreen(),
       ),
       (
         title: 'أقساطي',

@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
 import '../services/data_service.dart';
-import '../services/wallet_service.dart';
 import 'contract_view_screen.dart';
 import 'payment_screen.dart';
 import 'chat_details_screen.dart';
 import '../utils/auth_gate.dart';
 import '../utils/date_utils.dart';
 import '../utils/rental_schedule_utils.dart';
+import '../models/booking_status.dart';
+import '../models/rental_duration_tier.dart';
+import '../models/tenant_type.dart';
+import '../widgets/booking_status_timeline.dart';
+import '../widgets/rental_booking_widgets.dart';
 import '../widgets/refund_calculator_dialog.dart';
 import '../widgets/corporate_bookings_strip.dart';
 
@@ -99,9 +103,18 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   Widget _buildOverviewCard() {
     final total = _bookings.length;
-    final depositPaid =
-        _bookings.where((b) => b['status'] == 'deposit_paid').length;
-    final approved = _bookings.where((b) => b['status'] == 'approved').length;
+    final depositPaid = _bookings
+        .where((b) =>
+            BookingStatus.normalize(b['status']?.toString()) ==
+                BookingStatus.depositPaid ||
+            BookingStatus.normalize(b['status']?.toString()) ==
+                BookingStatus.viewingScheduled)
+        .length;
+    final approved = _bookings
+        .where((b) =>
+            BookingStatus.normalize(b['status']?.toString()) ==
+            BookingStatus.approved)
+        .length;
     final refunded =
         _bookings.where((b) => b['status'] == 'deposit_refunded').length;
 
@@ -201,9 +214,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     final unitLabel = snapshot['durationUnit']?.toString() ?? 'شهر';
     final progress =
         ((snapshot['progress'] as num?) ?? 0.0).toDouble().clamp(0.0, 1.0);
-    final monthlyRent = (snapshot['monthlyRent'] as num).toDouble();
-    final nextDueAmount = (snapshot['nextDueAmount'] as num).toDouble();
-    final remainingAmount = (snapshot['remainingAmount'] as num).toDouble();
+    final monthlyRent = (snapshot['monthlyRent'] as num?)?.toDouble() ?? 0.0;
+    final nextDueAmount = (snapshot['nextDueAmount'] as num?)?.toDouble() ?? 0.0;
+    final remainingAmount = (snapshot['remainingAmount'] as num?)?.toDouble() ?? 0.0;
     final nextDueDate = DateParsing.display(
       snapshot['nextDueDate'],
       fallback: 'قريباً',
@@ -326,45 +339,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   }
 
   Widget _buildBookingCard(Map<String, dynamic> booking) {
-    String status = booking['status'] ?? 'pending';
-    Color statusColor;
-    String statusText;
-
-    switch (status) {
-      case 'pending':
-        statusColor = AppTheme.borderColor;
-        statusText = 'قيد الانتظار';
-        break;
-      case 'viewing_scheduled':
-      case 'deposit_paid':
-        statusColor = AppTheme.primaryColor;
-        statusText = 'عربون المعاينة';
-        break;
-      case 'deposit_refunded':
-        statusColor = AppTheme.borderColor;
-        statusText = 'تم استرداد العربون';
-        break;
-      case 'approved': // Was accepted
-        statusColor = AppTheme.primaryColor;
-        statusText = 'تمت الموافقة';
-        break;
-      case 'rejected':
-        statusColor = AppTheme.errorColor;
-        statusText = 'مرفوض';
-        break;
-      case 'active':
-      case 'paid':
-        statusColor = AppTheme.primaryColor;
-        statusText = 'نشط / مدفوع';
-        break;
-      case 'completed':
-        statusColor = AppTheme.primaryColor;
-        statusText = 'مكتمل';
-        break;
-      default:
-        statusColor = AppTheme.primaryColor;
-        statusText = status;
-    }
+    final status = BookingStatus.normalize(booking['status']?.toString());
+    final statusColor = _statusColor(status);
+    final statusText = BookingStatus.arabicLabel(status);
 
     // Format date
     String dateStr = '';
@@ -489,6 +466,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                               !(booking['duration']?.toString() ?? '')
                                   .contains('مرة واحدة')) ...[
                             const SizedBox(height: 12),
+                            BookingStatusTimeline(booking: booking),
+                            const SizedBox(height: 12),
                             _buildRentalTransparencyCard(booking),
                           ],
                         ],
@@ -498,173 +477,78 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                 ),
 
                 // Action Buttons
-                if (status == 'approved') ...[
+                if (status == BookingStatus.submitted ||
+                    status == BookingStatus.pending ||
+                    status == BookingStatus.corporatePending) ...[
                   const SizedBox(height: AppTheme.spaceMd),
+                  const EjariSurfaceCard(
+                    elevated: false,
+                    padding: EdgeInsets.all(12),
+                    child: Text(
+                      'طلبك قيد المراجعة. سيتم إبلاغك عند موافقة المالك.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildCancelButton(booking, status),
+                ],
+
+                if (status == BookingStatus.approved) ...[
+                  const SizedBox(height: AppTheme.spaceMd),
+                  BookingSummaryCard(
+                    tier: _resolveTier(booking),
+                    tenantType: _resolveTenantType(booking),
+                    depositAmount: _parseAmount(booking['depositAmount']),
+                    totalPrice: _parseAmount(
+                        booking['leaseTotal'] ?? booking['currentAmount']),
+                    showInstallments: booking['showInstallments'] == true,
+                    checkInDate: _checkInDate(booking),
+                  ),
+                  const SizedBox(height: AppTheme.spaceSm),
                   SizedBox(
                     width: double.infinity,
                     height: AppTheme.ctaHeight,
                     child: ElevatedButton.icon(
-                      onPressed: () async {
-                        final allowed = await AuthGate.requireLogin(
-                          context,
-                          actionLabel: 'دفع الحجز وإصدار العقد',
-                        );
-                        if (!allowed || !mounted) return;
-                        final result = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PaymentScreen(
-                              itemType: 'booking',
-                              itemData: booking,
-                              amount: double.tryParse((booking['monthlyRent'] ??
-                                          booking['price'] ??
-                                          0)
-                                      .toString()) ??
-                                  0.0,
-                            ),
-                          ),
-                        );
-
-                        if (result == true) {
-                          _loadBookings();
-                        }
-                      },
+                      onPressed: () => _openPayment(
+                        booking,
+                        stage: 'remaining',
+                        amount: _parseAmount(booking['remainingAmount']),
+                      ),
                       icon: const Icon(Icons.payment, size: 18),
-                      label: const Text('ادفع الآن واصدر العقد'),
+                      label: const Text('ادفع المتبقي واصدر العقد'),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'بعد الدفع، سيظهر لك العقد الإلكتروني وتتبع العملية من نفس الصفحة.',
-                    style: TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 11,
-                      height: 1.4,
+                  _buildCancelButton(booking, status),
+                ],
+
+                if (status == BookingStatus.depositPaid ||
+                    status == BookingStatus.viewingScheduled) ...[
+                  const SizedBox(height: 16),
+                  const EjariSurfaceCard(
+                    elevated: false,
+                    padding: EdgeInsets.all(12),
+                    child: Text(
+                      'تم دفع العربون. بانتظار موافقة المالك قبل استكمال الدفع.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                        height: 1.4,
+                      ),
                     ),
                   ),
+                  const SizedBox(height: 8),
+                  _buildCancelButton(booking, status),
                 ],
 
-                if (status == 'viewing_scheduled' ||
-                    status == 'deposit_paid') ...[
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () async {
-                            final allowed = await AuthGate.requireLogin(
-                              context,
-                              actionLabel: 'استكمال دفعة الشهر الأول',
-                            );
-                            if (!allowed || !mounted) return;
-                            final monthly = double.tryParse(
-                                    (booking['monthlyRent'] ??
-                                            booking['price'] ??
-                                            0)
-                                        .toString()) ??
-                                0.0;
-                            final deposit = double.tryParse(
-                                    booking['depositAmount']?.toString() ??
-                                        (monthly * 0.10).toString()) ??
-                                (monthly * 0.10);
-                            final remaining = double.tryParse(
-                                    booking['remainingAmount']?.toString() ??
-                                        (monthly - deposit).toString()) ??
-                                (monthly - deposit);
-
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PaymentScreen(
-                                  itemType: 'booking',
-                                  itemData: booking,
-                                  amount: remaining,
-                                  paymentStage: 'remaining',
-                                  totalAmount: monthly,
-                                  depositAmount: deposit,
-                                  remainingAmount: remaining,
-                                ),
-                              ),
-                            );
-
-                            if (result == true) {
-                              _loadBookings();
-                            }
-                          },
-                          icon: const Icon(Icons.payment, size: 18),
-                          label: const Text('استكمال دفعة الشهر الأول'),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () async {
-                            final monthly = double.tryParse(
-                                    (booking['monthlyRent'] ??
-                                            booking['price'] ??
-                                            0)
-                                        .toString()) ??
-                                0.0;
-                            final deposit = double.tryParse(
-                                    booking['depositAmount']?.toString() ??
-                                        (monthly * 0.10).toString()) ??
-                                (monthly * 0.10);
-                            final checkIn = DateParsing.parse(
-                                  booking['checkInDate'] ??
-                                      booking['leaseStartDate'] ??
-                                      booking['startDate'],
-                                ) ??
-                                DateTime.now().add(const Duration(days: 3));
-
-                            final confirmed = await RefundCalculatorDialog.show(
-                              context,
-                              checkInDate: checkIn,
-                              depositAmount: deposit,
-                              bookingTitle: booking['title'] ?? 'الحجز',
-                            );
-                            if (confirmed != true || !mounted) return;
-
-                            final result = await DataService.cancelBookingWithRefund(
-                              bookingId: booking['id'].toString(),
-                              checkInDate: checkIn,
-                              depositAmount: deposit,
-                            );
-
-                            if (result['refundable'] == true) {
-                              await WalletService.refundBookingDeposit(
-                                title:
-                                    'استرداد عربون ${booking['title'] ?? 'الحجز'}',
-                                amount: deposit,
-                                bookingId: booking['id'].toString(),
-                              );
-                            }
-                            if (!mounted) return;
-                            _loadBookings();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  result['refundable'] == true
-                                      ? 'تم استرداد عربون بقيمة ${deposit.toStringAsFixed(0)} ج.م بنجاح'
-                                      : 'تم الإلغاء بدون استرداد — أقل من ٤٨ ساعة قبل الاستلام',
-                                ),
-                                backgroundColor: result['refundable'] == true
-                                    ? AppTheme.primaryColor
-                                    : AppTheme.errorColor,
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.keyboard_return_rounded,
-                              size: 18),
-                          label: const Text('استرداد العربون'),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-
-                if (status == 'paid' ||
-                    status == 'active' ||
-                    status == 'completed') ...[
+                if (status == BookingStatus.paid ||
+                    status == BookingStatus.confirmed ||
+                    status == BookingStatus.active ||
+                    status == BookingStatus.completed) ...[
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -708,6 +592,142 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           ),
         ],
       ),
+      ),
+    );
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case BookingStatus.rejected:
+      case BookingStatus.cancelled:
+      case BookingStatus.disputed:
+        return AppTheme.errorColor;
+      case BookingStatus.submitted:
+      case BookingStatus.pending:
+      case BookingStatus.corporatePending:
+      case BookingStatus.depositRefunded:
+        return AppTheme.borderColor;
+      default:
+        return AppTheme.primaryColor;
+    }
+  }
+
+  double _parseAmount(dynamic raw) {
+    return double.tryParse(
+          raw?.toString().replaceAll(RegExp(r'[^0-9.]'), '') ?? '',
+        ) ??
+        0;
+  }
+
+  DateTime? _checkInDate(Map<String, dynamic> booking) {
+    return DateParsing.parse(
+      booking['checkInDate'] ??
+          booking['leaseStartDate'] ??
+          booking['startDate'],
+    );
+  }
+
+  RentalDurationTier _resolveTier(Map<String, dynamic> booking) {
+    final name = booking['rentalTier']?.toString();
+    if (name != null) {
+      try {
+        return RentalDurationTier.values.firstWhere((t) => t.name == name);
+      } catch (_) {}
+    }
+    return RentalDurationTier.shortTerm;
+  }
+
+  TenantType _resolveTenantType(Map<String, dynamic> booking) {
+    return tenantTypeFromValue(booking['tenantType']?.toString());
+  }
+
+  Future<void> _openPayment(
+    Map<String, dynamic> booking, {
+    required String stage,
+    required double amount,
+  }) async {
+    final allowed = await AuthGate.requireLogin(
+      context,
+      actionLabel: 'دفع الحجز وإصدار العقد',
+    );
+    if (!allowed || !mounted) return;
+
+    final monthly = _parseAmount(booking['monthlyRent'] ?? booking['price']);
+    final deposit = _parseAmount(booking['depositAmount']);
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentScreen(
+          itemType: 'booking',
+          itemData: booking,
+          amount: amount,
+          paymentStage: stage,
+          totalAmount: monthly,
+          depositAmount: deposit,
+          remainingAmount: amount,
+        ),
+      ),
+    );
+
+    if (result == true) {
+      _loadBookings();
+    }
+  }
+
+  Widget _buildCancelButton(Map<String, dynamic> booking, String status) {
+    if (status == BookingStatus.paid ||
+        status == BookingStatus.active ||
+        status == BookingStatus.completed ||
+        status == BookingStatus.cancelled ||
+        status == BookingStatus.rejected ||
+        status == BookingStatus.depositRefunded) {
+      return const SizedBox.shrink();
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => _cancelBooking(booking),
+        icon: const Icon(Icons.cancel_outlined, size: 18),
+        label: const Text('إلغاء الحجز'),
+      ),
+    );
+  }
+
+  Future<void> _cancelBooking(Map<String, dynamic> booking) async {
+    final deposit = _parseAmount(booking['depositAmount']);
+    final checkIn = _checkInDate(booking) ??
+        DateTime.now().add(const Duration(days: 3));
+
+    final confirmed = await RefundCalculatorDialog.show(
+      context,
+      checkInDate: checkIn,
+      depositAmount: deposit,
+      bookingTitle: booking['title'] ?? 'الحجز',
+    );
+    if (confirmed != true || !mounted) return;
+
+    final result = await DataService.cancelBookingWithRefund(
+      bookingId: booking['id'].toString(),
+      checkInDate: checkIn,
+      depositAmount: deposit,
+    );
+
+    if (!mounted) return;
+    _loadBookings();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result['success'] != true
+              ? result['message']?.toString() ?? 'تعذر الإلغاء'
+              : result['refundable'] == true
+                  ? 'تم استرداد عربون بقيمة ${deposit.toStringAsFixed(0)} ج.م بنجاح'
+                  : 'تم الإلغاء بدون استرداد — أقل من ٤٨ ساعة قبل الاستلام',
+        ),
+        backgroundColor: result['refundable'] == true
+            ? AppTheme.primaryColor
+            : AppTheme.errorColor,
       ),
     );
   }

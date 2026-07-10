@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
+import '../utils/safe_parse.dart';
 
 class VerificationScreen extends StatefulWidget {
   const VerificationScreen({super.key});
@@ -311,7 +312,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(request['userName'],
+                    Text(safeStr(request['userName'], 'مستخدم'),
                         style: const TextStyle(
                             fontWeight: FontWeight.bold, fontSize: 16)),
                     Text(

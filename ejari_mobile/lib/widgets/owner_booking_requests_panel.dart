@@ -36,6 +36,7 @@ class _OwnerBookingRequestsPanelState extends State<OwnerBookingRequestsPanel> {
               r['status'] == 'viewing_scheduled' ||
               r['status'] == 'deposit_paid' ||
               r['status'] == 'pending' ||
+              r['status'] == 'submitted' ||
               r['status'] == 'corporate_pending')
           .toList();
       _loading = false;

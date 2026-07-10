@@ -22,6 +22,7 @@ class EjariNavigationBar extends StatelessWidget {
 
   bool get _isOwner => role == 'owner';
   bool get _isAdmin => role == 'admin';
+  bool get _isTechnician => role == 'technician';
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +54,10 @@ class EjariNavigationBar extends StatelessWidget {
               labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
               onDestinationSelected: (index) {
                 if (_isAdmin) {
+                  onTap(index);
+                  return;
+                }
+                if (_isTechnician) {
                   onTap(index);
                   return;
                 }
@@ -100,16 +105,45 @@ class EjariNavigationBar extends StatelessWidget {
                         label: 'حسابي',
                       ),
                     ]
-                  : [
+                  : _isTechnician
+                      ? const [
+                          NavigationDestination(
+                            icon: Icon(Icons.home_outlined),
+                            selectedIcon: Icon(Icons.home_rounded),
+                            label: 'الرئيسية',
+                          ),
+                          NavigationDestination(
+                            icon: Icon(Icons.handyman_outlined),
+                            selectedIcon: Icon(Icons.handyman_rounded),
+                            label: 'المهام',
+                          ),
+                          NavigationDestination(
+                            icon: Icon(Icons.schedule_outlined),
+                            selectedIcon: Icon(Icons.schedule_rounded),
+                            label: 'الجدول',
+                          ),
+                          NavigationDestination(
+                            icon: Icon(Icons.account_balance_wallet_outlined),
+                            selectedIcon:
+                                Icon(Icons.account_balance_wallet_rounded),
+                            label: 'المحفظة',
+                          ),
+                          NavigationDestination(
+                            icon: Icon(Icons.person_outline_rounded),
+                            selectedIcon: Icon(Icons.person_rounded),
+                            label: 'حسابي',
+                          ),
+                        ]
+                      : [
                       const NavigationDestination(
                         icon: Icon(Icons.home_outlined),
                         selectedIcon: Icon(Icons.home_rounded),
                         label: 'الرئيسية',
                       ),
-                      const NavigationDestination(
+                      NavigationDestination(
                         icon: Icon(Icons.apartment_outlined),
                         selectedIcon: Icon(Icons.apartment_rounded),
-                        label: 'العقارات',
+                        label: _isOwner ? 'عقاراتي' : 'العقارات',
                       ),
                       NavigationDestination(
                         icon: Container(
@@ -149,10 +183,18 @@ class EjariNavigationBar extends StatelessWidget {
                         ),
                         label: _isOwner ? 'إضافة' : 'بحث',
                       ),
-                      const NavigationDestination(
-                        icon: Icon(Icons.star_border_rounded),
-                        selectedIcon: Icon(Icons.star_rounded),
-                        label: 'مميز',
+                      NavigationDestination(
+                        icon: Icon(
+                          _isOwner
+                              ? Icons.payments_outlined
+                              : Icons.star_border_rounded,
+                        ),
+                        selectedIcon: Icon(
+                          _isOwner
+                              ? Icons.payments_rounded
+                              : Icons.star_rounded,
+                        ),
+                        label: _isOwner ? 'تحصيل' : 'مميز',
                       ),
                       const NavigationDestination(
                         icon: Icon(Icons.person_outline_rounded),

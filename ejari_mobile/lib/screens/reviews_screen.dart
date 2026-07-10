@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_utils.dart';
 import '../services/data_service.dart';
+import '../utils/safe_parse.dart';
 
 class ReviewsScreen extends StatefulWidget {
   final String propertyId;
@@ -210,6 +211,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   }
 
   Widget _buildReviewCard(Map<String, dynamic> review, int index) {
+    final userName = safeStr(review['userName'], 'مستخدم');
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -226,9 +228,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
               CircleAvatar(
                 backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
                 child: Text(
-                  review['userName']?.isNotEmpty == true
-                      ? review['userName'][0]
-                      : '?',
+                  userName.isNotEmpty ? userName[0] : '?',
                   style: const TextStyle(
                       color: AppTheme.primaryColor,
                       fontWeight: FontWeight.bold),
@@ -239,7 +239,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(review['userName'],
+                    Text(userName,
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                     Row(
                       children: List.generate(5, (index) {
@@ -263,7 +263,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          Text(review['comment']),
+          Text(safeStr(review['comment'])),
           const SizedBox(height: 16),
           Row(
             children: [
@@ -280,7 +280,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
               _buildInteractionButton(
                 Icons.reply_rounded,
                 'رد المالك',
-                () => _showReplyDialog(review['userName']),
+                () => _showReplyDialog(userName),
               ),
             ],
           ),
@@ -310,7 +310,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(review['reply'],
+                  Text(safeStr(review['reply']),
                       style: const TextStyle(
                           fontSize: 13, color: AppTheme.textSecondary)),
                 ],

@@ -6,6 +6,7 @@ import '../services/firestore_property_service.dart';
 import '../services/wallet_service.dart';
 import '../utils/rental_rules.dart';
 import '../models/rental_duration_tier.dart';
+import '../models/booking_status.dart';
 import '../models/tenant_type.dart';
 import 'success_payment_screen.dart';
 
@@ -175,6 +176,8 @@ class _CorporateBookingScreenState extends State<CorporateBookingScreen> {
     final assigned = _employees.where((e) => e['status'] == 'assigned').toList();
 
     for (final emp in assigned) {
+      final checkIn = DateTime.now().add(const Duration(days: 14));
+      final checkOut = checkIn.add(const Duration(days: 180));
       await DataService.sendBookingRequest({
         'itemType': 'property',
         'propertyId': emp['propertyId'],
@@ -182,7 +185,8 @@ class _CorporateBookingScreenState extends State<CorporateBookingScreen> {
         'price': emp['monthlyRent'].toString(),
         'monthlyRent': emp['monthlyRent'].toString(),
         'ownerId': emp['ownerId'] ?? 'owner@ejari.app',
-        'status': 'corporate_pending',
+        'ownerEmail': emp['ownerId'] ?? 'owner@ejari.app',
+        'status': BookingStatus.corporatePending,
         'bookingMode': 'corporate',
         'employeeName': emp['name'],
         'employeeId': emp['id'],
@@ -193,7 +197,14 @@ class _CorporateBookingScreenState extends State<CorporateBookingScreen> {
         'rentalTierLabel': RentalDurationTier.medium.arabicLabel,
         'duration': '٦ شهور',
         'durationLabel': '٦ شهور',
+        'durationType': 'شهر',
+        'durationCount': 6,
         'leaseMonths': 6,
+        'leaseStartDate': checkIn.toIso8601String(),
+        'leaseEndDate': checkOut.toIso8601String(),
+        'checkInDate': checkIn.toIso8601String(),
+        'startDate': checkIn.toIso8601String(),
+        'endDate': checkOut.toIso8601String(),
         'depositAmount': ((emp['monthlyRent'] as num) * 0.20).toStringAsFixed(0),
         'transactionId': txId,
         'refundPolicy': RentalRules.refundPolicyLegalArabic,

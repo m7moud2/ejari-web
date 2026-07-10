@@ -6,6 +6,7 @@ import '../utils/auth_gate.dart';
 import 'rental_statement_screen.dart';
 import 'payment_screen.dart';
 import '../utils/rental_schedule_utils.dart';
+import '../utils/safe_parse.dart';
 
 class TenantInstallmentsScreen extends StatefulWidget {
   const TenantInstallmentsScreen({super.key});
@@ -529,7 +530,7 @@ class _TenantInstallmentsScreenState extends State<TenantInstallmentsScreen> {
   }
 
   Widget _installmentCard(Map<String, dynamic> inst) {
-    final status = inst['status'] as String;
+    final status = safeStr(inst['status'], 'Upcoming');
     final isPaid = status == 'Paid';
     final dueDate = inst['dueDate'] as DateTime;
     final days = dueDate.difference(DateTime.now()).inDays;

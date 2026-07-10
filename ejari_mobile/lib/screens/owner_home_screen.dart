@@ -11,6 +11,7 @@ import 'notifications_screen.dart';
 import 'wallet_screen.dart';
 import 'chat_list_screen.dart';
 import 'merchant_requests_screen.dart';
+import '../utils/safe_parse.dart';
 
 class OwnerHomeScreen extends StatefulWidget {
   const OwnerHomeScreen({super.key});
@@ -518,7 +519,10 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   Widget _buildOverviewCard() {
     final verified = _userData?['isVerified'] == true;
     final activeRequests = _requests
-        .where((r) => (r['status'] ?? 'pending').toString() == 'pending')
+        .where((r) {
+          final st = (r['status'] ?? 'pending').toString();
+          return st == 'pending' || st == 'submitted';
+        })
         .length;
 
     return Container(
@@ -651,13 +655,18 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   }
 
   Widget _buildRequestCard(Map<String, dynamic> request) {
-    String status = request['status'] ?? 'pending';
-    Color statusColor = status == 'pending'
+    String status = safeStr(request['status'], 'pending');
+    final isAwaitingOwner =
+        status == 'pending' || status == 'submitted' || status == 'deposit_paid';
+    Color statusColor = isAwaitingOwner
         ? AppTheme.borderColor
         : (status == 'accepted' ? AppTheme.primaryColor : AppTheme.errorColor);
-    String statusText = status == 'pending'
-        ? 'قيد الانتظار'
-        : (status == 'accepted' ? 'مقبول' : 'مرفوض');
+    String statusText = switch (status) {
+      'pending' || 'submitted' => 'قيد الانتظار',
+      'deposit_paid' => 'عربون مدفوع',
+      'accepted' || 'approved' => 'مقبول',
+      _ => 'مرفوض',
+    };
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -721,7 +730,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                         color: AppTheme.primaryColor,
                         fontWeight: FontWeight.bold)),
                 const SizedBox(height: 12),
-                if (status == 'pending')
+                if (status == 'pending' || status == 'submitted')
                   Row(
                     children: [
                       Expanded(
@@ -785,16 +794,16 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(property['title'],
+                Text(safeStr(property['title'], 'عقار'),
                     style: const TextStyle(fontWeight: FontWeight.bold),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
-                Text('${property['price']} ج.م',
+                Text('${safeStr(property['price'], '0')} ج.م',
                     style: const TextStyle(
                         color: AppTheme.primaryColor,
                         fontSize: 12,
                         fontWeight: FontWeight.bold)),
-                Text(property['location'],
+                Text(safeStr(property['location'], '—'),
                     style: const TextStyle(
                         color: AppTheme.textSecondary, fontSize: 12)),
               ],

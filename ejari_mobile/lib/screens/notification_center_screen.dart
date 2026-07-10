@@ -4,6 +4,9 @@ import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../utils/date_utils.dart';
 import 'receipt_screen.dart';
+import 'my_service_requests_screen.dart';
+import 'tech_job_screen.dart';
+import '../services/auth_service.dart';
 
 class NotificationCenterScreen extends StatefulWidget {
   const NotificationCenterScreen({super.key});
@@ -52,6 +55,28 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     }
     if (title.contains('تذكير') || title.contains('موعد')) return 'Reminder';
     return 'General';
+  }
+
+  Future<void> _openMaintenance(Map<String, dynamic> note) async {
+    final refId = note['refId']?.toString();
+    final role = await AuthService.getUserRole();
+    if (!mounted) return;
+    if (role == 'technician' && refId != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TechJobScreen(requestId: refId),
+        ),
+      );
+      return;
+    }
+    if (role == 'admin') {
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const MyServiceRequestsScreen()),
+    );
   }
 
   @override
@@ -180,6 +205,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           }
           if (type == 'Payment') {
             await _openReceiptIfPayment(notif);
+          } else if (type == 'Maintenance') {
+            await _openMaintenance(notif);
           }
         },
         child: Row(

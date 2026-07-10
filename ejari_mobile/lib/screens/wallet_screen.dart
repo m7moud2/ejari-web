@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../services/auth_service.dart';
+import '../services/wallet_service.dart';
+import '../utils/safe_parse.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -33,9 +35,9 @@ class _WalletScreenState extends State<WalletScreen>
     final transactions = await DataService.getWalletTransactions(ownerId);
     if (mounted) {
       setState(() {
-        _totalBalance = (walletData['totalBalance'] as num).toDouble();
-        _available = (walletData['available'] as num).toDouble();
-        _escrow = (walletData['escrow'] as num).toDouble();
+        _totalBalance = (walletData['totalBalance'] as num?)?.toDouble() ?? 0;
+        _available = (walletData['available'] as num?)?.toDouble() ?? 0;
+        _escrow = (walletData['escrow'] as num?)?.toDouble() ?? 0;
         _allTransactions = transactions;
         _isLoading = false;
       });
@@ -300,14 +302,14 @@ class _WalletScreenState extends State<WalletScreen>
               ),
             ),
             title: Text(
-              item['title'] as String,
+              safeStr(item['title'], 'معاملة'),
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 4),
-                Text(item['reason'] as String,
+                Text(safeStr(item['reason']),
                     style: const TextStyle(
                         color: AppTheme.textPrimary, fontSize: 13)),
                 const SizedBox(height: 4),
@@ -432,16 +434,15 @@ class _WalletScreenState extends State<WalletScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-              'اختر وسيلة تحويل الأموال:',
+              'سيتم إضافة طريقة السحب لاحقاً. اختر وسيلة التحويل المفضلة:',
+              textAlign: TextAlign.center,
               style: TextStyle(color: AppTheme.primaryColor),
             ),
             const SizedBox(height: 20),
             _buildWithdrawOption(context, 'تحويل بنكي', Icons.account_balance,
                 AppTheme.primaryColor),
-            _buildWithdrawOption(context, 'فودافون كاش', Icons.phone_android,
+            _buildWithdrawOption(context, 'محفظة إلكترونية', Icons.phone_android,
                 AppTheme.errorColor),
-            _buildWithdrawOption(context, 'انستا باي (InstaPay)',
-                Icons.mobile_screen_share, AppTheme.primaryColor),
           ],
         ),
         actions: [
@@ -537,24 +538,40 @@ class _WalletScreenState extends State<WalletScreen>
             child: const Text('إلغاء'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (controller.text.isEmpty) return;
+              final amount = double.tryParse(controller.text) ?? 0;
+              final user = await AuthService.getCurrentUser();
+              final ownerId = user?['email']?.toString() ?? 'owner@ejari.app';
+              final ok = await WalletService.requestWithdrawal(
+                amount: amount,
+                userId: ownerId,
+                method: method,
+              );
+              if (!context.mounted) return;
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Row(
                     children: [
-                      const Icon(Icons.check_circle, color: Colors.white),
+                      Icon(
+                        ok ? Icons.check_circle : Icons.error_outline,
+                        color: Colors.white,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
-                          child: Text(
-                              'تم تقديم طلب سحب ${controller.text} ج.م عبر $method')),
+                        child: Text(ok
+                            ? 'تم تقديم طلب سحب ${controller.text} ج.م عبر $method'
+                            : 'تعذر تقديم طلب السحب — تحقق من الرصيد'),
+                      ),
                     ],
                   ),
-                  backgroundColor: AppTheme.primaryColor,
+                  backgroundColor:
+                      ok ? AppTheme.primaryColor : AppTheme.errorColor,
                   behavior: SnackBarBehavior.floating,
                 ),
               );
+              if (ok) _loadWalletData();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryColor,

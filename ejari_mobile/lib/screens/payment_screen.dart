@@ -7,6 +7,7 @@ import '../widgets/ejari_image.dart';
 import '../widgets/ejari_section.dart';
 import '../services/subscription_service.dart';
 import '../utils/rental_rules.dart';
+import '../models/booking_status.dart';
 import '../models/rental_duration_tier.dart';
 import '../widgets/rental_booking_widgets.dart';
 import 'package:image_picker/image_picker.dart';
@@ -212,7 +213,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
     Map<String, dynamic> result = {'success': false};
 
     if (widget.itemType == 'booking') {
-      if (widget.paymentStage == 'remaining') {
+      final bookingStatus =
+          BookingStatus.normalize(widget.itemData['status']?.toString());
+      if (widget.paymentStage == 'remaining' ||
+          bookingStatus == BookingStatus.approved) {
         result = await DataService.completeBookingPaymentWithReceipt(
           bookingId,
           amount: _displayAmount,
@@ -1038,15 +1042,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
               borderRadius: BorderRadius.circular(16)),
           child: Column(
             children: [
-              Text('قم بالتحويل لأي من الحسابات التالية وارفع الإيصال:',
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).textTheme.bodyLarge?.color)),
-              const SizedBox(height: 8),
-              _buildAccountLine('فودافون كاش:', '01069813210'),
-              const SizedBox(height: 8),
-              _buildAccountLine('InstaPay IPA:', 'ejari@instapay'),
+              Text(
+                'سيتم إضافة تفاصيل التحويل لاحقاً. بعد إتمام التحويل، ارفع الإيصال أدناه:',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+              ),
             ],
           ),
         ),
@@ -1079,32 +1082,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     child: Text('اضغط لرفع صورة الإيصال 📸',
                         style: TextStyle(color: AppTheme.primaryColor)))
                 : null,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildAccountLine(String label, String value) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-              fontSize: 12,
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Flexible(
-          child: Text(
-            value,
-            textAlign: TextAlign.end,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

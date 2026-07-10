@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
 import '../services/auth_service.dart';
 import '../services/maintenance_service.dart';
+import '../utils/safe_parse.dart';
 import 'payment_screen.dart';
 
 class MyServiceRequestsScreen extends StatefulWidget {
@@ -302,7 +303,7 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
 
   String _categoryLabel(String? id) {
     for (final c in MaintenanceService.categories) {
-      if (c['id'] == id) return c['name'] as String;
+      if (c['id'] == id) return safeStr(c['name'], 'خدمة');
     }
     return id ?? 'خدمة';
   }

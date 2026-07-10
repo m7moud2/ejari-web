@@ -5,6 +5,7 @@ import '../widgets/ejari_section.dart';
 import '../services/maintenance_service.dart';
 import '../services/auth_service.dart';
 import 'create_maintenance_request_screen.dart';
+import 'my_service_requests_screen.dart';
 import '../utils/auth_gate.dart';
 
 class MaintenanceRequestsScreen extends StatefulWidget {
@@ -25,7 +26,19 @@ class _MaintenanceRequestsScreenState extends State<MaintenanceRequestsScreen> {
   @override
   void initState() {
     super.initState();
-    _load();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrap());
+  }
+
+  Future<void> _bootstrap() async {
+    final role = await AuthService.getUserRole();
+    if (role == 'tenant' && mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const MyServiceRequestsScreen()),
+      );
+      return;
+    }
+    await _load();
   }
 
   Future<void> _load() async {

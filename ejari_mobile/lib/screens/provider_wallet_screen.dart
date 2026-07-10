@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../services/auth_service.dart';
+import '../services/wallet_service.dart';
 
 class ProviderWalletScreen extends StatefulWidget {
   const ProviderWalletScreen({super.key});
@@ -98,12 +99,27 @@ class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
           ),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text(
-                        'طلب السحب قيد المعالجة - سيتم التحويل خلال 48 ساعة')),
+            onPressed: () async {
+              final amount =
+                  (_stats?['earnings'] as num?)?.toDouble() ?? 0;
+              if (amount <= 0) return;
+              final user = await AuthService.getCurrentUser();
+              final techId = user?['email']?.toString() ?? 'tech@ejari.app';
+              final ok = await WalletService.requestWithdrawal(
+                amount: amount,
+                userId: techId,
               );
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(ok
+                      ? 'تم تقديم طلب السحب — سيتم التحويل خلال 48 ساعة'
+                      : 'تعذر تقديم طلب السحب'),
+                  backgroundColor:
+                      ok ? AppTheme.primaryColor : AppTheme.errorColor,
+                ),
+              );
+              if (ok) _loadData();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).scaffoldBackgroundColor,

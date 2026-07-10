@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import '../utils/auth_gate.dart';
+import '../utils/safe_parse.dart';
 
 class OwnerCollectionScreen extends StatefulWidget {
   const OwnerCollectionScreen({super.key});
@@ -67,6 +68,7 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
 
       tenants.add({
         'name': r['tenantName'] ?? r['employeeName'] ?? 'مستأجر',
+        'email': r['tenantEmail'] ?? r['tenantId'] ?? 'user@ejari.app',
         'property': r['title'] ?? 'عقار',
         'status': isLate ? 'Late' : (paidMonths > 0 ? 'Paid' : 'Upcoming'),
         'lateAmount': isLate ? rent * 0.8 : 0.0,
@@ -216,7 +218,7 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
   }
 
   Widget _tenantCard(Map<String, dynamic> tenant) {
-    final status = tenant['status'] as String;
+    final status = safeStr(tenant['status'], 'Upcoming');
     final isLate = status == 'Late';
     final isPaid = status == 'Paid';
     final color = isLate
@@ -246,11 +248,11 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(tenant['name'],
+                    Text(safeStr(tenant['name'], 'مستأجر'),
                         style: const TextStyle(
                             fontWeight: FontWeight.w900, fontSize: 15)),
                     const SizedBox(height: 4),
-                    Text(tenant['property'],
+                    Text(safeStr(tenant['property'], 'عقار'),
                         style: const TextStyle(
                             color: AppTheme.textSecondary, fontSize: 12)),
                   ],
@@ -374,8 +376,9 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
 
   Future<void> _sendReminder(Map<String, dynamic> tenant) async {
     final rent = tenant['rent'] as double? ?? 0;
+    final tenantEmail = tenant['email']?.toString() ?? 'user@ejari.app';
     await DataService.addNotificationToUser(
-      'user@ejari.app',
+      tenantEmail,
       'تذكير بسداد الإيجار 📅',
       'يرجى سداد إيجار ${tenant['property']} (${rent.toStringAsFixed(0)} ج.م) قبل ${DateFormat('yyyy/MM/dd').format(tenant['nextDueDate'] as DateTime)}.',
     );

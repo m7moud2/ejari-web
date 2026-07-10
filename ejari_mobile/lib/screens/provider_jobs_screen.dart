@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
 import '../services/maintenance_service.dart';
 import '../services/auth_service.dart';
+import '../utils/safe_parse.dart';
 import 'tech_job_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -146,17 +147,21 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          _info(Icons.person_outline, job['tenantId']?.toString() ?? ''),
-          _info(Icons.location_on_outlined,
-              job['propertyTitle']?.toString().isNotEmpty == true
-                  ? job['propertyTitle']
-                  : job['propertyId']?.toString() ?? ''),
+          _info(Icons.person_outline, safeStr(job['tenantId'])),
+          _info(
+              Icons.location_on_outlined,
+              safeStr(
+                job['propertyTitle']?.toString().isNotEmpty == true
+                    ? job['propertyTitle']
+                    : job['propertyId'],
+                'موقع غير محدد',
+              )),
           _info(Icons.payments_outlined,
               '${job['estimatedCost'] ?? 0} ج.م تقديري'),
-          if (job['description'] != null)
+          if (safeStr(job['description']).isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 6),
-              child: Text(job['description'],
+              child: Text(safeStr(job['description']),
                   style: const TextStyle(
                       color: AppTheme.textSecondary, fontSize: 13)),
             ),

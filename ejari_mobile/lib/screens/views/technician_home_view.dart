@@ -240,16 +240,23 @@ class _TechnicianHomeViewState extends State<TechnicianHomeView> {
   }
 
   Widget _urgentBanner() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppTheme.errorColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.errorColor.withOpacity(0.2)),
-      ),
-      child: Text(
-        '⚠️ ${_stats['urgentRequests']} طلب عاجل يحتاج تدخلك',
-        style: const TextStyle(fontWeight: FontWeight.w800),
+    return InkWell(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ProviderJobsScreen()),
+      ).then((_) => _load()),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppTheme.errorColor.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppTheme.errorColor.withOpacity(0.2)),
+        ),
+        child: Text(
+          '⚠️ ${_stats['urgentRequests']} طلب عاجل يحتاج تدخلك',
+          style: const TextStyle(fontWeight: FontWeight.w800),
+        ),
       ),
     );
   }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/maintenance_service.dart';
 import '../services/auth_service.dart';
+import '../services/data_service.dart';
+import '../utils/safe_parse.dart';
 
 class AdminServiceRequestsScreen extends StatefulWidget {
   const AdminServiceRequestsScreen({super.key});
@@ -28,32 +30,7 @@ class _AdminServiceRequestsScreenState
 
   Future<void> _loadRequests() async {
     final maintenanceRequests = await MaintenanceService.getAllRequests();
-
-    // Add demo join requests for providers
-    final joinRequests = [
-      {
-        'id': 'JR-101',
-        'service': 'طلب انضمام: مصور فوتوغرافي',
-        'userName': 'كريم جمال',
-        'customerPhone': '01288887777',
-        'status': 'pending',
-        'createdAt': '2024-04-22',
-        'title': 'القاهرة، المعادي',
-        'notes': 'خبرة 5 سنوات في تصوير العقارات الفاخرة.',
-        'estimatedCost': 0,
-      },
-      {
-        'id': 'JR-102',
-        'service': 'طلب انضمام: شركة نقل أثاث',
-        'userName': 'شركة السلام للنقل',
-        'customerPhone': '01011223344',
-        'status': 'pending',
-        'createdAt': '2024-04-21',
-        'title': 'الجيزة، الشيخ زايد',
-        'notes': 'لدينا أسطول من 10 شاحنات مجهزة.',
-        'estimatedCost': 0,
-      },
-    ];
+    final joinRequests = await DataService.getJoinRequests();
 
     if (mounted) {
       setState(() {
@@ -329,8 +306,10 @@ class _AdminServiceRequestsScreenState
         statusIcon = Icons.help_outline;
     }
 
-    final displayTitle =
-        request['title'] ?? request['service'] ?? 'طلب صيانة';
+    final displayTitle = safeStr(
+      request['title'] ?? request['service'],
+      'طلب صيانة',
+    );
     final isMaintenance = request['id']?.toString().startsWith('MNT') == true ||
         request['id']?.toString().startsWith('JR') != true;
 
@@ -370,7 +349,7 @@ class _AdminServiceRequestsScreenState
                   ],
                 ),
                 Text(
-                  request['id'],
+                  safeStr(request['id']),
                   style: const TextStyle(
                       color: AppTheme.textSecondary, fontSize: 12),
                 ),
@@ -413,14 +392,18 @@ class _AdminServiceRequestsScreenState
                 ),
                 const SizedBox(height: 12),
                 _buildInfoRow(Icons.person,
-                    'العميل: ${request['userName'] ?? request['tenantId'] ?? 'عميل'}'),
+                    'العميل: ${safeStr(request['userName'] ?? request['tenantId'], 'عميل')}'),
                 _buildInfoRow(
-                    Icons.phone, request['customerPhone'] ?? request['tenantPhone'] ?? '—'),
+                    Icons.phone,
+                    safeStr(
+                        request['customerPhone'] ?? request['tenantPhone'],
+                        '—')),
                 _buildInfoRow(Icons.engineering,
-                    'الفني: ${request['assignedTo'] ?? request['technicianId'] ?? 'غير معين'}'),
-                _buildInfoRow(Icons.calendar_today, '${request['createdAt']}'),
+                    'الفني: ${safeStr(request['assignedTo'] ?? request['technicianId'], 'غير معين')}'),
+                _buildInfoRow(Icons.calendar_today,
+                    safeStr(request['createdAt'], '—')),
                 _buildInfoRow(Icons.location_on,
-                    request['propertyTitle'] ?? request['title'] ?? '—'),
+                    safeStr(request['propertyTitle'] ?? request['title'], '—')),
                 if (request['description'] != null || request['notes'] != null) ...[
                   const SizedBox(height: 8),
                   Container(
@@ -430,7 +413,7 @@ class _AdminServiceRequestsScreenState
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      request['description'] ?? request['notes'] ?? '',
+                      safeStr(request['description'] ?? request['notes']),
                       style: const TextStyle(
                           color: AppTheme.textSecondary, fontSize: 13),
                     ),
@@ -473,15 +456,35 @@ class _AdminServiceRequestsScreenState
         children: [
           Expanded(
             child: OutlinedButton(
-              onPressed: () => _updateStatus(request, MaintenanceStatus.cancelled),
+              onPressed: () => _updateJoinRequest(request, 'rejected'),
               child: const Text('رفض'),
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
             child: ElevatedButton(
-              onPressed: () => _updateStatus(request, MaintenanceStatus.completed),
+              onPressed: () => _updateJoinRequest(request, 'approved'),
               child: const Text('قبول'),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (status == MaintenanceStatus.disputed) {
+      return Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () => _resolveDispute(request, 'reassign'),
+              child: const Text('إعادة تعيين'),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () => _resolveDispute(request, 'close'),
+              child: const Text('إغلاق النزاع'),
             ),
           ),
         ],
@@ -533,7 +536,40 @@ class _AdminServiceRequestsScreenState
   }
 
   Future<void> _assignTechnician(Map<String, dynamic> request) async {
-    const techEmail = 'tech@ejari.app';
+    final technicians = await DataService.getTechnicians();
+    if (!mounted) return;
+
+    final selected = await showDialog<Map<String, dynamic>>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('اختر الفني'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: technicians.length,
+            itemBuilder: (context, index) {
+              final tech = technicians[index];
+              return ListTile(
+                leading: const Icon(Icons.handyman_rounded),
+                title: Text(tech['name']?.toString() ?? ''),
+                subtitle: Text(tech['email']?.toString() ?? ''),
+                onTap: () => Navigator.pop(ctx, tech),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إلغاء'),
+          ),
+        ],
+      ),
+    );
+
+    if (selected == null) return;
+    final techEmail = selected['email']?.toString() ?? 'tech@ejari.app';
     final cost = (request['estimatedCost'] as num?)?.toDouble() ?? 200;
     final user = await AuthService.getCurrentUser();
     await MaintenanceService.assignTechnician(
@@ -545,15 +581,54 @@ class _AdminServiceRequestsScreenState
     _loadRequests();
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم تعيين tech@ejari.app للمهمة'),
+      SnackBar(
+        content: Text('تم تعيين $techEmail للمهمة'),
         backgroundColor: AppTheme.primaryColor,
       ),
     );
   }
 
+  Future<void> _updateJoinRequest(
+    Map<String, dynamic> request,
+    String status,
+  ) async {
+    await DataService.updateJoinRequestStatus(
+      request['id']?.toString() ?? '',
+      status,
+    );
+    await _loadRequests();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(status == 'approved' ? 'تم قبول الطلب' : 'تم رفض الطلب'),
+      ),
+    );
+  }
+
+  Future<void> _resolveDispute(
+    Map<String, dynamic> request,
+    String resolution,
+  ) async {
+    final user = await AuthService.getCurrentUser();
+    await MaintenanceService.resolveDispute(
+      request['id']?.toString() ?? '',
+      resolution,
+      actor: user?['email']?.toString(),
+    );
+    await _loadRequests();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('تم تحديث حالة النزاع')),
+    );
+  }
+
   void _updateStatus(Map<String, dynamic> request, String newStatus) async {
-    if (request['id']?.toString().startsWith('JR') != true) {
+    if (request['id']?.toString().startsWith('JR') == true) {
+      await DataService.updateJoinRequestStatus(
+        request['id']?.toString() ?? '',
+        newStatus == MaintenanceStatus.cancelled ? 'rejected' : 'approved',
+      );
+    } else {
       await MaintenanceService.updateStatus(request['id'], newStatus);
     }
     _loadRequests();
@@ -583,22 +658,42 @@ class _AdminServiceRequestsScreenState
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(request['service']),
+        title: Text(safeStr(request['service'] ?? request['title'], 'طلب خدمة')),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildDetailRow('رقم الطلب', request['id']),
-              _buildDetailRow('العميل', request['customer']),
-              _buildDetailRow('الهاتف', request['customerPhone']),
-              _buildDetailRow('مقدم الخدمة', request['provider']),
-              _buildDetailRow('التاريخ', request['date']),
-              _buildDetailRow('الوقت', request['time']),
-              _buildDetailRow('السعر', '${request['price']} ج.م'),
-              _buildDetailRow('العنوان', request['address']),
-              if (request['notes'] != null)
-                _buildDetailRow('ملاحظات', request['notes']),
+              _buildDetailRow('رقم الطلب', safeStr(request['id'])),
+              _buildDetailRow(
+                  'العميل',
+                  safeStr(request['customer'] ??
+                      request['userName'] ??
+                      request['tenantId'],
+                      '—')),
+              _buildDetailRow('الهاتف',
+                  safeStr(request['customerPhone'] ?? request['tenantPhone'], '—')),
+              _buildDetailRow(
+                  'مقدم الخدمة',
+                  safeStr(request['provider'] ??
+                      request['assignedTo'] ??
+                      request['technicianId'],
+                      '—')),
+              _buildDetailRow('التاريخ',
+                  safeStr(request['date'] ?? request['createdAt'], '—')),
+              _buildDetailRow('الوقت', safeStr(request['time'], '—')),
+              _buildDetailRow(
+                  'السعر',
+                  '${safeStr(request['price'] ?? request['estimatedCost'], '0')} ج.م'),
+              _buildDetailRow(
+                  'العنوان',
+                  safeStr(request['address'] ??
+                      request['propertyTitle'] ??
+                      request['title'],
+                      '—')),
+              if (request['notes'] != null || request['description'] != null)
+                _buildDetailRow(
+                    'ملاحظات', safeStr(request['notes'] ?? request['description'])),
             ],
           ),
         ),

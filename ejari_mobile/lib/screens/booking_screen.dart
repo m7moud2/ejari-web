@@ -12,6 +12,7 @@ import '../utils/date_utils.dart';
 import '../utils/rental_schedule_utils.dart';
 import '../utils/rental_rules.dart';
 import '../models/rental_duration_tier.dart';
+import '../models/booking_status.dart';
 import '../models/tenant_type.dart';
 import '../widgets/rental_booking_widgets.dart';
 import 'corporate_booking_screen.dart';
@@ -375,10 +376,11 @@ class _BookingScreenState extends State<BookingScreen> {
             durationLabel,
             fallback: 1,
           );
-    final leaseStartDate = DateTime.now();
-    final leaseEndDate = leaseMonths > 0
-        ? RentalScheduleUtils.addMonths(leaseStartDate, leaseMonths)
-        : leaseStartDate;
+    final leaseStartDate = _bookingRange?.start ?? _checkInDate;
+    final leaseEndDate = _bookingRange?.end ??
+        (leaseMonths > 0
+            ? RentalScheduleUtils.addMonths(leaseStartDate, leaseMonths)
+            : leaseStartDate.add(Duration(days: _duration)));
     final monthlyRent = _monthlyRent;
     final nextDueAmount = _isCar || isSale
         ? _remainingAfterDepositAmount
@@ -386,8 +388,8 @@ class _BookingScreenState extends State<BookingScreen> {
             ? _remainingAfterDepositAmount
             : monthlyRent;
 
-    // Save to backend
-    await DataService.sendBookingRequest({
+    // Save to backend with server-side validation
+    final result = await DataService.sendBookingRequest({
       'itemType': widget.itemType,
       'propertyId': widget.itemData['id'],
       'title': widget.itemData['title'],
@@ -398,8 +400,10 @@ class _BookingScreenState extends State<BookingScreen> {
       'leaseMonths': leaseMonths,
       'leaseStartDate': leaseStartDate.toIso8601String(),
       'leaseEndDate': leaseEndDate.toIso8601String(),
+      'checkInDate': leaseStartDate.toIso8601String(),
+      'durationType': _selectedDurationType,
+      'durationCount': durationMeta['count'] ?? _duration,
       'durationUnit': durationMeta['unit'],
-      'durationCount': durationMeta['count'],
       'leaseTotal': _leaseTotalAmount.toStringAsFixed(0),
       'totalAmount': _leaseTotalAmount.toStringAsFixed(0),
       'currentAmount': _currentMonthTotal.toStringAsFixed(0),
@@ -417,11 +421,12 @@ class _BookingScreenState extends State<BookingScreen> {
           : _isCar
               ? durationLabel
               : durationLabel,
-      'startDate': DateTime.now().toIso8601String(),
+      'startDate': leaseStartDate.toIso8601String(),
+      'endDate': leaseEndDate.toIso8601String(),
       'ownerId': widget.itemData['ownerId'] ?? 'admin',
       'ownerEmail':
           widget.itemData['ownerEmail'] ?? widget.itemData['ownerId'] ?? 'admin',
-      'status': 'viewing_scheduled',
+      'status': BookingStatus.depositPaid,
       'paymentStatus': 'deposit_paid',
       'paymentPhase': 'deposit',
       'transactionId': transactionId,
@@ -433,7 +438,7 @@ class _BookingScreenState extends State<BookingScreen> {
         tenantType: _tenantType,
         durationType: _selectedDurationType,
         durationCount: _duration,
-        checkInDate: _checkInDate,
+        checkInDate: leaseStartDate,
       ),
       'governorate': widget.itemData['governorate'] ?? '',
       'verification': {
@@ -446,6 +451,19 @@ class _BookingScreenState extends State<BookingScreen> {
         'hasPromissory': _isPromissorySigned,
       }
     });
+
+    if (result['success'] != true) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              result['message']?.toString() ?? 'تعذر إتمام الحجز'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+      return;
+    }
 
     if (!mounted) return;
     setState(() => _isLoading = false);

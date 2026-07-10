@@ -200,10 +200,15 @@ class _TechJobScreenState extends State<TechJobScreen> {
       return Column(
         children: [
           OutlinedButton.icon(
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text('تم إرفاق صور قبل/بعد — تجريبي')),
-            ),
+            onPressed: () async {
+              await MaintenanceService.attachDemoPhotos(id);
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text('تم إرفاق صور قبل/بعد')),
+              );
+              await _load();
+            },
             icon: const Icon(Icons.camera_alt),
             label: const Text('إرفاق صور'),
           ),

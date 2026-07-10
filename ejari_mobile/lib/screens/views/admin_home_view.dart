@@ -31,7 +31,7 @@ class AdminHomeView extends StatelessWidget {
           const SizedBox(height: 14),
           _buildMetrics(stats),
           const SizedBox(height: 14),
-          _buildAlerts(stats),
+          _buildAlerts(context, stats),
           const SizedBox(height: 14),
           _buildQuickActions(context),
         ],
@@ -186,37 +186,62 @@ class AdminHomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildAlerts(Map<String, dynamic> stats) {
+  Widget _buildAlerts(BuildContext context, Map<String, dynamic> stats) {
     return Column(
       children: [
-        _alert('تنبيه أمني: ${stats['systemAlerts'] ?? 0} أحداث تحتاج مراجعة',
-            AppTheme.errorColor),
+        _alert(
+          context,
+          'تنبيه أمني: ${stats['systemAlerts'] ?? 0} أحداث تحتاج مراجعة',
+          AppTheme.errorColor,
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const AdminServiceRequestsScreen(),
+            ),
+          ),
+        ),
         const SizedBox(height: 10),
         _alert(
-            'يوجد ${stats['pendingVerifications'] ?? 0} حسابات في انتظار التوثيق',
-            AppTheme.borderColor),
+          context,
+          'يوجد ${stats['pendingVerifications'] ?? 0} حسابات في انتظار التوثيق',
+          AppTheme.borderColor,
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AdminUsersScreen()),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _alert(String message, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: color.withOpacity(0.20)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.notification_important_rounded, color: color),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(message,
-                style: TextStyle(
-                    color: color, fontWeight: FontWeight.w800, height: 1.4)),
-          ),
-        ],
+  Widget _alert(
+    BuildContext context,
+    String message,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.10),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: color.withOpacity(0.20)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.notification_important_rounded, color: color),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(message,
+                  style: TextStyle(
+                      color: color, fontWeight: FontWeight.w800, height: 1.4)),
+            ),
+            Icon(Icons.chevron_left, color: color.withOpacity(0.7)),
+          ],
+        ),
       ),
     );
   }

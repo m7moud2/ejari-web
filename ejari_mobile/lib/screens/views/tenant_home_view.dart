@@ -9,6 +9,8 @@ import '../tenant_installments_screen.dart';
 import '../search_results_screen.dart';
 import '../payment_screen.dart';
 import '../notifications_screen.dart';
+import '../my_service_requests_screen.dart';
+import '../property_details_screen.dart';
 
 class TenantHomeView extends StatelessWidget {
   const TenantHomeView({super.key});
@@ -419,6 +421,18 @@ class TenantHomeView extends StatelessWidget {
               MaterialPageRoute(builder: (_) => const MyContractsScreen()),
             ),
       ),
+      (
+        title: 'صيانة',
+        subtitle: 'طلب ومتابعة',
+        icon: Icons.build_circle_outlined,
+        color: const Color(0xFF3D5A80),
+        onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const MyServiceRequestsScreen(),
+              ),
+            ),
+      ),
     ];
 
     return GridView.count(
@@ -427,7 +441,7 @@ class TenantHomeView extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: AppTheme.spaceSm,
       crossAxisSpacing: AppTheme.spaceSm,
-      childAspectRatio: 1.35,
+      childAspectRatio: 1.25,
       children: quickActions.map((action) {
         return Material(
           color: AppTheme.surfaceColor,
@@ -638,9 +652,7 @@ class TenantHomeView extends StatelessWidget {
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => SearchResultsScreen(
-                          query: item['title'] ?? 'عقار مميز',
-                        ),
+                        builder: (_) => PropertyDetailsScreen(property: item),
                       ),
                     ),
                     child: Container(

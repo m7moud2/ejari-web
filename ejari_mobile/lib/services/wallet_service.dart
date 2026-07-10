@@ -378,6 +378,28 @@ class WalletService {
     await _persistUserState();
   }
 
+  static Future<bool> requestWithdrawal({
+    required double amount,
+    String? userId,
+    String method = 'تحويل بنكي',
+  }) async {
+    await init(userId: userId);
+    if (amount <= 0 || amount > _balance) return false;
+    _balance -= amount;
+    _transactions.insert(0, {
+      'id': 'WD-${DateTime.now().millisecondsSinceEpoch}',
+      'title': 'طلب سحب',
+      'amount': -amount,
+      'date': DateTime.now().toIso8601String(),
+      'type': 'withdrawal',
+      'method': method,
+      'category': 'withdrawal',
+      'status': 'pending',
+    });
+    await _persistUserState();
+    return true;
+  }
+
   static Future<List<Map<String, dynamic>>> getAllTransactionsForAdmin() async {
     final prefs = await SharedPreferences.getInstance();
     final keys = prefs.getKeys().where((k) => k.startsWith(_transactionsPrefix));

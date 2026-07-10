@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/api_client.dart';
+import '../utils/safe_parse.dart';
 import 'data_service.dart';
 import 'financial_service.dart';
 import 'wallet_service.dart';
@@ -111,7 +112,10 @@ class MaintenanceService {
     final timeline = r['timeline'];
     List<Map<String, dynamic>> events = [];
     if (timeline is List) {
-      events = timeline.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      events = timeline
+          .where((e) => e is Map)
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
     }
 
     return {
@@ -121,12 +125,15 @@ class MaintenanceService {
       'ownerId': r['ownerId']?.toString() ?? '',
       'propertyId': r['property']?.toString() ?? r['propertyId']?.toString() ?? '',
       'technicianId': r['technicianId']?.toString() ?? r['assignedTo']?.toString() ?? '',
-      'assignedTo': r['assignedTo']?.toString() ?? r['technicianId']?.toString(),
+      'assignedTo': r['assignedTo']?.toString() ?? r['technicianId']?.toString() ?? '',
       'category': r['type'] ?? r['category'] ?? 'other',
       'priority': priority,
       'urgency': priority,
-      'title': r['title'] ?? r['description']?.toString().split('\n').first ?? 'طلب صيانة',
-      'description': r['description'] ?? '',
+      'title': safeStr(
+        r['title'] ?? r['description']?.toString().split('\n').first,
+        'طلب صيانة',
+      ),
+      'description': safeStr(r['description']),
       'status': status,
       'createdAt': r['createdAt'] ?? DateTime.now().toIso8601String(),
       'updatedAt': r['updatedAt'] ?? DateTime.now().toIso8601String(),
@@ -140,7 +147,14 @@ class MaintenanceService {
       'paymentStatus': r['paymentStatus']?.toString() ?? 'unpaid',
       'rejectReason': r['rejectReason']?.toString(),
       'disputeReason': r['disputeReason']?.toString(),
-      'images': r['images'] is List ? List<String>.from(r['images']) : <String>[],
+      'images': safeStrList(r['images']),
+      'userName': r['userName']?.toString() ??
+          r['tenantName']?.toString() ??
+          r['tenantId']?.toString() ??
+          '',
+      'customerPhone': r['customerPhone']?.toString() ??
+          r['tenantPhone']?.toString() ??
+          '',
       'lat': r['lat'],
       'lng': r['lng'],
       'rating': r['rating'],
@@ -426,7 +440,12 @@ class MaintenanceService {
       'updatedAt': now,
       'scheduledAt': scheduledAt,
       'estimatedCost': FinancialService.generateTechnicianQuote(
-        categories.firstWhere((c) => c['id'] == category, orElse: () => {'name': 'أخرى'})['name'] as String,
+        safeStr(
+          categories
+              .firstWhere((c) => c['id'] == category,
+                  orElse: () => {'name': 'أخرى'})['name'],
+          'أخرى',
+        ),
       ),
       'paymentStatus': 'unpaid',
       'timeline': [
@@ -760,6 +779,59 @@ class MaintenanceService {
       );
     }
     return ok;
+  }
+
+  static Future<bool> resolveDispute(
+    String requestId,
+    String resolution, {
+    String? actor,
+  }) async {
+    switch (resolution) {
+      case 'reassign':
+        return _transition(
+          requestId,
+          MaintenanceStatus.submitted,
+          extra: {
+            'technicianId': null,
+            'assignedTo': null,
+            'disputeReason': null,
+            'techAccepted': false,
+          },
+          note: 'تم إعادة فتح الطلب بعد النزاع',
+          actor: actor,
+        );
+      case 'close':
+        return _transition(
+          requestId,
+          MaintenanceStatus.completed,
+          extra: {'disputeReason': null},
+          note: 'تم إغلاق النزاع من الإدارة',
+          actor: actor,
+        );
+      case 'approve_refund':
+        return _transition(
+          requestId,
+          MaintenanceStatus.cancelled,
+          extra: {'disputeReason': null, 'refundApproved': true},
+          note: 'تم حل النزاع — استرداد للعميل',
+          actor: actor,
+        );
+      default:
+        return false;
+    }
+  }
+
+  static Future<bool> attachDemoPhotos(String requestId) async {
+    final requests = await getAllRequests();
+    final index = requests.indexWhere((r) => r['id']?.toString() == requestId);
+    if (index == -1) return false;
+    requests[index]['photos'] = [
+      'assets/images/home1.jpg',
+      'assets/images/home2.jpg',
+    ];
+    requests[index]['updatedAt'] = DateTime.now().toIso8601String();
+    await _persist(requests);
+    return true;
   }
 
   static Future<bool> cancelRequest(

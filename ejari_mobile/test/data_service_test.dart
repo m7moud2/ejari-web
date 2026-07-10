@@ -17,7 +17,8 @@ void main() {
       final requests = await DataService.getOwnerRequests('owner@ejari.app');
       expect(requests.length, greaterThanOrEqualTo(2));
       expect(
-        requests.any((r) => r['status'] == 'pending'),
+        requests.any((r) =>
+            r['status'] == 'pending' || r['status'] == 'submitted'),
         isTrue,
       );
       expect(

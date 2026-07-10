@@ -159,23 +159,8 @@ class HomeRepository {
 
     final baseTech = await _loadTechStats();
 
-    final baseAdmin = {
-      'userName': 'الأدمن',
-      'totalUsers': 1205,
-      'tenantsCount': 840,
-      'ownersCount': 210,
-      'techniciansCount': 155,
-      'pendingVerifications': 12,
-      'pendingProperties': 15,
-      'activeBookings': 45,
-      'pendingPayments': 8,
-      'escrowBalance': 150000,
-      'openDisputes': 3,
-      'activeMaintenance': 8,
-      'platformRevenue': 85000,
-      'todayTransactions': 24000,
-      'systemAlerts': 2,
-    };
+    final baseAdmin = await DataService.getAdminDashboardStats();
+    baseAdmin['userName'] = 'الأدمن';
 
     // In production, this queries Firebase Collections based on role using limits
     return HomeStatsModel(

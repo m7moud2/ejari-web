@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/home_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/ejari_section.dart';
-import '../manage_properties_screen.dart';
+import '../add_property_screen.dart';
 import '../owner_collection_screen.dart';
 import '../my_contracts_screen.dart';
 import '../maintenance_requests_screen.dart';
@@ -313,7 +313,7 @@ class OwnerHomeView extends StatelessWidget {
       (
         'إضافة عقار',
         Icons.add_home_work,
-        const ManagePropertiesScreen(),
+        const AddPropertyScreen(),
       ),
       (
         'تحصيل الإيجارات',

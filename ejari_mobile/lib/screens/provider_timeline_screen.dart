@@ -4,6 +4,7 @@ import '../widgets/ejari_section.dart';
 import '../services/maintenance_service.dart';
 import '../services/auth_service.dart';
 import 'package:intl/intl.dart';
+import 'tech_job_screen.dart';
 
 class ProviderTimelineScreen extends StatefulWidget {
   const ProviderTimelineScreen({super.key});
@@ -104,9 +105,17 @@ class _ProviderTimelineScreenState extends State<ProviderTimelineScreen> {
           Expanded(
             child: EjariSurfaceCard(
               padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+              child: InkWell(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        TechJobScreen(requestId: job['id']?.toString()),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                   Row(
                     children: [
                       Expanded(
@@ -134,7 +143,8 @@ class _ProviderTimelineScreenState extends State<ProviderTimelineScreen> {
                           style: const TextStyle(fontSize: 11),
                         )),
                   ],
-                ],
+                  ],
+                ),
               ),
             ),
           ),

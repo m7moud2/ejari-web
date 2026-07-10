@@ -63,11 +63,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSectionHeader('الحسابات والتحويلات'),
           _buildListTile(
             title: 'تفاصيل استلام الأرباح',
-            subtitle: '01069813210 - InstaPay',
+            subtitle: 'سيتم إضافة طريقة السحب لاحقاً',
             icon: Icons.account_balance_wallet_rounded,
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('الحساب معتمد ومؤمن ✅')));
+                const SnackBar(
+                  content: Text('سيتم إضافة طريقة السحب لاحقاً'),
+                ),
+              );
             },
           ),
           const Divider(height: 32),

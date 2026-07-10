@@ -144,7 +144,7 @@ class _SuccessPaymentScreenState extends State<SuccessPaymentScreen>
                         _getPaymentMethodName(widget.paymentMethod)),
                     const SizedBox(height: 12),
                     _buildDetailRow(
-                        'الحساب الوجهة', '01069813210 (محفظة/InstaPay)'),
+                        'الحساب الوجهة', 'سيتم إضافة تفاصيل التحويل لاحقاً'),
                     const Divider(height: 28),
                     const Text(
                       'سيصلك إشعار فور مراجعة المالك للطلب. يمكنك متابعة حالة الحجز من "حجوزاتي".',
