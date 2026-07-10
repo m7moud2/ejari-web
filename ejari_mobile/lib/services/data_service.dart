@@ -1633,15 +1633,6 @@ class DataService {
           request['requiresIncomeProof'] = corrected['requiresIncomeProof'];
           request['requiresAdvanceDeposit'] = corrected['requiresAdvanceDeposit'];
           request['showInstallments'] = corrected['showInstallments'];
-          request['pricingTier'] = corrected['pricingTier'];
-          request['pricingTierLabel'] = corrected['pricingTierLabel'];
-          request['effectiveDailyRate'] =
-              (corrected['effectiveDailyRate'] as double).toStringAsFixed(0);
-          request['premiumDailyRate'] =
-              (corrected['premiumDailyRate'] as double).toStringAsFixed(0);
-          request['savingsVsPremiumDaily'] =
-              (corrected['savingsVsPremiumDaily'] as double).toStringAsFixed(0);
-          request['totalDays'] = corrected['totalDays'];
         }
       }
     }
@@ -2317,24 +2308,6 @@ class DataService {
         .toList();
   }
 
-  /// Bookings for a specific tenant email (used by loyalty/subscription checks).
-  static Future<List<Map<String, dynamic>>> getUserBookings(String email) async {
-    if (email.isEmpty) return [];
-    final current = await _getCurrentUserEmail();
-    if (email == current) {
-      return getBookings();
-    }
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getStringList(_bookingsKey) ?? [];
-    return raw
-        .map((item) =>
-            _normalizeBooking(jsonDecode(item) as Map<String, dynamic>))
-        .where((b) => b['tenantEmail']?.toString() == email)
-        .toList()
-        .reversed
-        .toList();
-  }
-
   // --- Favorites ---
 
   static Future<void> toggleFavorite(Map<String, dynamic> item) async {
@@ -2694,28 +2667,6 @@ class DataService {
           'title': data['subject']?.toString() ?? 'تذكرة دعم',
           'subtitle': data['userEmail']?.toString() ?? '',
           'data': data,
-        });
-      }
-    }
-
-    final properties = await getAllProperties();
-    for (final prop in properties) {
-      if (matches(prop, [
-        'id',
-        'title',
-        'location',
-        'ownerEmail',
-        'ownerId',
-        'address',
-      ])) {
-        addUnique({
-          'type': 'property',
-          'typeLabel': 'عقار',
-          'id': prop['id']?.toString(),
-          'title': prop['title']?.toString() ?? 'عقار',
-          'subtitle':
-              '${prop['location'] ?? ''} — ${prop['price'] ?? ''} ج.م',
-          'data': prop,
         });
       }
     }

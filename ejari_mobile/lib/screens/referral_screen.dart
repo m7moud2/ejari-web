@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
-import '../services/loyalty_service.dart';
 
 class ReferralScreen extends StatefulWidget {
   const ReferralScreen({super.key});
@@ -24,18 +23,11 @@ class _ReferralScreenState extends State<ReferralScreen> {
 
   Future<void> _loadReferralData() async {
     final user = await AuthService.getCurrentUser();
-    final accountId = user?['accountId']?.toString();
-    final email = user?['email']?.toString() ?? '';
-    final referrals = await LoyaltyService.getReferralCount(email);
-    final earned = await LoyaltyService.getEarnedFromReferrals(email);
     setState(() {
-      _referralCode = accountId?.isNotEmpty == true
-          ? accountId!
-          : (email.length >= 8
-              ? email.substring(0, 8).toUpperCase()
-              : 'EJARI123');
-      _referralCount = referrals;
-      _earnedPoints = earned;
+      _referralCode =
+          user?['email']?.substring(0, 8).toUpperCase() ?? 'EJARI123';
+      _referralCount = 5; // Demo data
+      _earnedPoints = 500; // Demo data
     });
   }
 

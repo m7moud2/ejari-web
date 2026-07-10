@@ -243,7 +243,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                                     'أوتوماتيك',
                                             year: item['year'] ?? 2023,
                                             type: item['type'] ?? 'سيارة',
-                                            onTap: () => _showCarDetails(context, item),
+                                            onTap: () {},
                                             onBook: () {
                                               Navigator.push(
                                                 context,
@@ -362,51 +362,6 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             textAlign: TextAlign.center,
           ),
         ],
-      ),
-    );
-  }
-
-  void _showCarDetails(BuildContext context, Map<String, dynamic> car) {
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(car['title']?.toString() ?? 'سيارة',
-                style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryColor)),
-            const SizedBox(height: 12),
-            Text('${car['type'] ?? ''} • ${car['year'] ?? ''}',
-                style: const TextStyle(color: AppTheme.textSecondary)),
-            const SizedBox(height: 8),
-            Text('${car['price']} ج.م / يوم',
-                style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BookingScreen(
-                        itemType: 'car',
-                        itemData: car,
-                      ),
-                    ),
-                  );
-                },
-                child: const Text('احجز الآن'),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

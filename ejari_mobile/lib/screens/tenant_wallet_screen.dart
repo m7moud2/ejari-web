@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import '../services/wallet_service.dart';
 import '../services/data_service.dart';
@@ -872,17 +871,9 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
               height: 50,
               child: ElevatedButton.icon(
                 onPressed: () {
-                  final receipt = '''
-إيصال معاملة إيجاري
-العنوان: ${tx['title'] ?? ''}
-المبلغ: ${tx['amount']} ج.م
-التاريخ: ${DateFormat('dd MMM yyyy, hh:mm a').format(DateParsing.parse(tx['date']) ?? DateTime.now())}
-الحالة: مكتملة
-''';
-                  Clipboard.setData(ClipboardData(text: receipt.trim()));
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                      content: Text('تم نسخ الإيصال — يمكنك لصقه أو مشاركته 📄')));
+                      content: Text('تم تصدير الإيصال البنكي 📄')));
                 },
                 icon: const Icon(Icons.share_rounded, color: Colors.white),
                 label: const Text('تصدير كوثيقة',

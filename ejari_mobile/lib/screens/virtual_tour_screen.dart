@@ -332,7 +332,11 @@ class _VirtualTourScreenState extends State<VirtualTourScreen> {
 
   Widget _buildHotspot(String label) {
     return GestureDetector(
-      onTap: () => _navigateToHotspot(label),
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('الانتقال إلى: $label')),
+        );
+      },
       child: Container(
         width: 50,
         height: 50,
@@ -377,27 +381,6 @@ class _VirtualTourScreenState extends State<VirtualTourScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  void _navigateToHotspot(String label) {
-    final roomIndex = _rooms.indexWhere(
-      (room) => room['name']?.toString().contains(label) == true ||
-          label.contains(room['name']?.toString().split(' ').last ?? ''),
-    );
-    if (roomIndex >= 0) {
-      setState(() => _currentRoom = roomIndex);
-      return;
-    }
-    final fallback = switch (label) {
-      'الشرفة' => 0,
-      'المطبخ' => 2,
-      'الحمام' => 1,
-      _ => _currentRoom,
-    };
-    setState(() => _currentRoom = fallback);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('انتقلت إلى: ${_rooms[_currentRoom]['name']}')),
     );
   }
 

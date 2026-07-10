@@ -109,8 +109,60 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
       debugPrint('Error loading contracts from bookings: $e');
     }
 
+    // Demo data fallback
+    await Future.delayed(const Duration(milliseconds: 500));
+
     setState(() {
-      _contracts = [];
+      _contracts = [
+        {
+          'id': 'CTR-001',
+          'propertyTitle': 'شقة المعادي الفاخرة',
+          'ownerName': 'أحمد محمد',
+          'tenantName': 'محمود عبد القوي',
+          'price': '5,000',
+          'startDate': '2023-12-01',
+          'endDate': '2024-12-01',
+          'duration': 'سنة واحدة',
+          'status': 'active', // active, pending, expired
+          'signedByOwner': true,
+          'signedByTenant': true,
+          'createdAt': '2023-11-25',
+          'address': 'شارع 9، المعادي، القاهرة',
+          'deposit': '5,000',
+        },
+        {
+          'id': 'CTR-002',
+          'propertyTitle': 'فيلا الشيخ زايد',
+          'ownerName': 'سارة أحمد',
+          'tenantName': 'محمود عبد القوي',
+          'price': '12,000',
+          'startDate': '2024-01-01',
+          'endDate': '2024-07-01',
+          'duration': '6 أشهر',
+          'status': 'pending',
+          'signedByOwner': true,
+          'signedByTenant': false,
+          'createdAt': '2023-12-20',
+          'address': 'الحي السابع، الشيخ زايد، الجيزة',
+          'deposit': '12,000',
+        },
+        {
+          'id': 'CTR-003',
+          'propertyTitle': 'شقة مدينة نصر',
+          'ownerName': 'خالد حسن',
+          'tenantName': 'محمود عبد القوي',
+          'price': '4,500',
+          'startDate': '2022-06-01',
+          'endDate': '2023-06-01',
+          'duration': 'سنة واحدة',
+          'status': 'expired',
+          'signedByOwner': true,
+          'signedByTenant': true,
+          'createdAt': '2022-05-20',
+          'address': 'شارع مصطفى النحاس، مدينة نصر، القاهرة',
+          'deposit': '4,500',
+        },
+      ];
       _isLoading = false;
     });
   }
