@@ -43,6 +43,14 @@ void main() {
       final userResults =
           await DataService.adminGlobalSearch('user@ejari.app');
       expect(userResults.any((r) => r['type'] == 'user'), isTrue);
+
+      final accountIdResults =
+          await DataService.adminGlobalSearch('EJR-100002');
+      expect(accountIdResults.any((r) => r['type'] == 'user'), isTrue);
+      expect(
+        accountIdResults.firstWhere((r) => r['type'] == 'user')['data']['email'],
+        'user@ejari.app',
+      );
     });
   });
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
 import 'chat_screen.dart';
@@ -34,6 +35,7 @@ import 'admin_support_screen.dart';
 import 'admin_reviews_screen.dart';
 import 'admin_service_requests_screen.dart';
 import 'admin_reports_screen.dart';
+import 'account_id_search_screen.dart';
 import 'manage_properties_screen.dart';
 import 'add_property_screen.dart';
 import 'owner_collection_screen.dart';
@@ -143,6 +145,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _buildAccountIdCard(),
+                  const SizedBox(height: AppTheme.spaceMd),
                   _buildAccountSnapshot(),
                   const SizedBox(height: AppTheme.spaceXl),
 
@@ -168,6 +172,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           MaterialPageRoute(
                               builder: (_) =>
                                   const NotificationCenterScreen()));
+                    }),
+                    _buildEjariMenuItem('بحث برقم الحساب',
+                        Icons.badge_outlined, AppTheme.primaryColor, () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  const AccountIdSearchScreen()));
                     }),
                     if (_isTenant)
                       _buildEjariMenuItem('أصبح مالكاً',
@@ -493,6 +505,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
             MaterialPageRoute(builder: (_) => const RentalStatementScreen()));
       }, isLast: true),
     ];
+  }
+
+  Widget _buildAccountIdCard() {
+    final accountId = _userData?['accountId']?.toString() ?? '—';
+
+    return EjariSurfaceCard(
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.fingerprint_rounded,
+              color: AppTheme.primaryColor,
+            ),
+          ),
+          const SizedBox(width: AppTheme.spaceMd),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'رقم الحساب',
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  accountId,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: 'نسخ رقم الحساب',
+            onPressed: accountId == '—'
+                ? null
+                : () {
+                    Clipboard.setData(ClipboardData(text: accountId));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('تم نسخ رقم الحساب')),
+                    );
+                  },
+            icon: const Icon(Icons.copy_rounded, color: AppTheme.primaryColor),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildAccountSnapshot() {

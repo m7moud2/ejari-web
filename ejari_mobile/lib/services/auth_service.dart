@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import '../config/app_config.dart';
+import '../utils/account_id_service.dart';
 import '../utils/api_client.dart';
 import 'wallet_service.dart';
 
@@ -36,24 +37,28 @@ class AuthService {
       'email': 'owner@ejari.app',
       'password': 'owner123',
       'role': 'owner',
+      'accountId': 'EJR-100003',
     },
     {
       'name': 'مستأجر تجريبي',
       'email': 'user@ejari.app',
       'password': 'user123',
       'role': 'tenant',
+      'accountId': 'EJR-100002',
     },
     {
       'name': 'فني صيانة تجريبي',
       'email': 'tech@ejari.app',
       'password': 'tech123',
       'role': 'provider',
+      'accountId': 'EJR-100004',
     },
     {
       'name': 'مدير تجريبي',
       'email': 'admin@ejari.app',
       'password': 'admin123',
       'role': 'admin',
+      'accountId': 'EJR-100001',
     },
   ];
 
@@ -157,6 +162,7 @@ class AuthService {
     required String role,
     String? password,
     bool offlineSignup = false,
+    String? accountId,
   }) {
     return _withCompatibleIdentity({
       'id': email,
@@ -167,6 +173,7 @@ class AuthService {
       'type': role,
       if (password != null) 'password': password,
       if (offlineSignup) 'offlineSignup': true,
+      if (accountId != null && accountId.isNotEmpty) 'accountId': accountId,
     });
   }
 
@@ -180,7 +187,11 @@ class AuthService {
         (compatibleUserData['email'] ?? '').toString().trim().toLowerCase();
     if (email.isEmpty) return;
 
-    await prefs.setString('user_$email', jsonEncode(compatibleUserData));
+    final storedUser = await AccountIdService.ensureUserHasAccountId(
+      compatibleUserData,
+    );
+
+    await prefs.setString('user_$email', jsonEncode(storedUser));
 
     final users = prefs.getStringList(_usersListKey) ?? <String>[];
     if (!users.contains(email)) {
@@ -190,14 +201,14 @@ class AuthService {
 
     await prefs.setString(
       _userRoleKey,
-      compatibleUserData['role'] ?? compatibleUserData['type'] ?? 'tenant',
+      storedUser['role'] ?? storedUser['type'] ?? 'tenant',
     );
     await prefs.setString(
       _userIdKey,
-      compatibleUserData['id']?.toString() ?? email,
+      storedUser['id']?.toString() ?? email,
     );
     await prefs.setString(_currentUserEmailKey, email);
-    await prefs.setString(_userDataKey, jsonEncode(compatibleUserData));
+    await prefs.setString(_userDataKey, jsonEncode(storedUser));
     await _saveAuthToken(token, prefs: prefs);
     await prefs.setBool(_guestModeKey, false);
     await WalletService.init(userId: email);
@@ -314,12 +325,15 @@ class AuthService {
     );
 
     if (_useLocalAuth) {
+      final email = (userData['email'] ?? '').toString().trim().toLowerCase();
+      final accountId = await AccountIdService.assignAccountIdForEmail(email);
       final fallbackUser = _buildLocalUser(
         name: userData['name'] ?? '',
-        email: userData['email'] ?? '',
+        email: email,
         role: registrationRoleFields['role'] as String,
         password: userData['password'] ?? '',
         offlineSignup: true,
+        accountId: accountId,
       )..addAll(registrationRoleFields);
       await _storeLocalAccount(
         fallbackUser,
@@ -405,12 +419,15 @@ class AuthService {
           e.toString().contains('HandshakeException');
 
       if (AppConfig.demoMode || isNetworkError || _baseUrl == null) {
+        final email = (userData['email'] ?? '').toString().trim().toLowerCase();
+        final accountId = await AccountIdService.assignAccountIdForEmail(email);
         final fallbackUser = _buildLocalUser(
           name: userData['name'] ?? '',
-          email: userData['email'] ?? '',
+          email: email,
           role: registrationRoleFields['role'] as String,
           password: userData['password'] ?? '',
           offlineSignup: true,
+          accountId: accountId,
         )..addAll(registrationRoleFields);
 
         await _storeLocalAccount(
@@ -436,15 +453,15 @@ class AuthService {
       }
 
       final role = localAccount['role'] ?? localAccount['type'] ?? 'tenant';
-      final user = _buildLocalUser(
-        name: localAccount['name'] ?? 'مستخدم إيجاري',
-        email: localAccount['email'] ?? email,
-        role: role.toString(),
-        password: localAccount['password'] ?? password,
-        offlineSignup: localAccount['offlineSignup'] == true,
-      )..addAll({
-          if (localAccount['status'] != null) 'status': localAccount['status'],
-        });
+      final user = _withCompatibleIdentity({
+        ...localAccount,
+        'name': localAccount['name'] ?? 'مستخدم إيجاري',
+        'email': localAccount['email'] ?? email,
+        'role': role.toString(),
+        'type': role.toString(),
+        if (localAccount['password'] != null)
+          'password': localAccount['password'] ?? password,
+      });
 
       await _storeLocalAccount(
         user,
@@ -903,17 +920,53 @@ class AuthService {
     await prefs.setStringList(_usersListKey, users.toList()..sort());
 
     for (final account in _demoAccounts) {
-      await prefs.setString(
-        'user_${account['email']}',
-        jsonEncode({
-          'id': account['email'],
-          '_id': account['email'],
-          'name': account['name'],
-          'email': account['email'],
-          'role': account['role'],
-          'type': account['role'],
-        }),
-      );
+      final email = account['email']!;
+      Map<String, dynamic> merged = {};
+      final existingRaw = prefs.getString('user_$email');
+      if (existingRaw != null && existingRaw.isNotEmpty) {
+        try {
+          final parsed = jsonDecode(existingRaw);
+          if (parsed is Map<String, dynamic>) {
+            merged = Map<String, dynamic>.from(parsed);
+          }
+        } catch (_) {}
+      }
+
+      merged.addAll({
+        'id': email,
+        '_id': email,
+        'uid': email,
+        'name': account['name'],
+        'email': email,
+        'role': account['role'],
+        'type': account['role'],
+        'password': account['password'],
+        'accountId': account['accountId'],
+      });
+
+      await prefs.setString('user_$email', jsonEncode(merged));
+    }
+
+    await _backfillMissingAccountIds();
+    await AccountIdService.ensureCounterAtLeast(100005);
+  }
+
+  static Future<void> _backfillMissingAccountIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    final emails = prefs.getStringList(_usersListKey) ?? <String>[];
+
+    for (final email in emails) {
+      final raw = prefs.getString('user_$email');
+      if (raw == null || raw.isEmpty) continue;
+      try {
+        final user = jsonDecode(raw) as Map<String, dynamic>;
+        final existing = user['accountId']?.toString().trim();
+        if (existing != null && existing.isNotEmpty) continue;
+
+        final accountId = await AccountIdService.assignAccountIdForEmail(email);
+        user['accountId'] = accountId;
+        await prefs.setString('user_$email', jsonEncode(user));
+      } catch (_) {}
     }
   }
 

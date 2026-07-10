@@ -124,6 +124,8 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   itemCount: _users.length,
                   itemBuilder: (context, index) {
                     final user = _users[index];
+                    final uid =
+                        user['uid'] ?? user['email'] ?? user['id'] ?? '';
                     return Card(
                       margin: const EdgeInsets.only(bottom: 12),
                       shape: RoundedRectangleBorder(
@@ -167,10 +169,20 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                           children: [
                             Text(user['email'] ?? '',
                                 style: const TextStyle(fontSize: 12)),
+                            if (user['accountId'] != null &&
+                                user['accountId'].toString().isNotEmpty)
+                              Text(
+                                user['accountId'].toString(),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
                             const SizedBox(height: 4),
                             GestureDetector(
                               onTap: () => _changeRole(
-                                  user['uid'], user['type'] ?? 'tenant'),
+                                  uid.toString(), user['type'] ?? 'tenant'),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 2),
@@ -202,7 +214,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                 size: 20,
                               ),
                               onPressed: () => _toggleBlock(
-                                  user['uid'], user['isBlocked'] ?? false),
+                                  uid.toString(), user['isBlocked'] ?? false),
                               tooltip: user['isBlocked'] == true
                                   ? 'فك الحظر'
                                   : 'حظر المستخدم',
@@ -210,7 +222,7 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                             IconButton(
                               icon: const Icon(Icons.delete_outline,
                                   color: AppTheme.primaryColor, size: 20),
-                              onPressed: () => _deleteUser(user['uid']),
+                              onPressed: () => _deleteUser(uid.toString()),
                               tooltip: 'حذف نهائي',
                             ),
                           ],

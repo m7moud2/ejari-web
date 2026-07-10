@@ -2523,13 +2523,15 @@ class DataService {
       final user = jsonDecode(userRaw) as Map<String, dynamic>;
       if (email.toLowerCase().contains(q) ||
           (user['name']?.toString().toLowerCase().contains(q) ?? false) ||
-          (user['phone']?.toString().toLowerCase().contains(q) ?? false)) {
+          (user['phone']?.toString().toLowerCase().contains(q) ?? false) ||
+          (user['accountId']?.toString().toLowerCase().contains(q) ?? false)) {
         addUnique({
           'type': 'user',
           'typeLabel': 'مستخدم',
           'id': email,
           'title': user['name']?.toString() ?? email,
-          'subtitle': '$email — ${user['role'] ?? user['type'] ?? 'tenant'}',
+          'subtitle':
+              '${user['accountId'] ?? ''} — ${user['role'] ?? user['type'] ?? 'tenant'}',
           'data': user,
         });
       }

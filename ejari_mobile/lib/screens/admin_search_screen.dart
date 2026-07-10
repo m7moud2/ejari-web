@@ -63,7 +63,7 @@ class _AdminSearchScreenState extends State<AdminSearchScreen> {
             child: TextField(
               controller: _controller,
               decoration: InputDecoration(
-                hintText: 'رقم عقد، حجز، إيصال، صيانة، بريد...',
+                hintText: 'رقم عقد، حجز، إيصال، صيانة، EJR-...',
                 prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _controller.text.isNotEmpty
                     ? IconButton(
