@@ -95,6 +95,33 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
           }
         }
 
+        // Listing mode (rent / sale)
+        if (filters['listingMode'] != null) {
+          final mode = filters['listingMode'].toString();
+          if (mode == 'rent' && property['listingMode'] == 'for_sale') {
+            return false;
+          }
+          if (mode == 'sale' && property['listingMode'] != 'for_sale') {
+            return false;
+          }
+        }
+
+        // Governorate
+        if (filters['governorate'] != null) {
+          final gov = filters['governorate'].toString();
+          final loc =
+              '${property['governorate'] ?? ''} ${property['location'] ?? ''}';
+          if (!loc.contains(gov)) return false;
+        }
+
+        // Furnished
+        if (filters['furnished'] != null) {
+          final furnished = property['furnished'] == true ||
+              property['isFurnished'] == true;
+          if (filters['furnished'] == true && !furnished) return false;
+          if (filters['furnished'] == false && furnished) return false;
+        }
+
         // Amenities
         if (filters['amenities'] != null) {
           final List<String> requiredAmenities =

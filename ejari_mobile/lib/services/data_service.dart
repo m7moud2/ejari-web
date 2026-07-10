@@ -14,6 +14,7 @@ import 'mock_data_seeder.dart';
 import 'wallet_service.dart';
 import 'financial_service.dart';
 import 'maintenance_service.dart';
+import 'subscription_service.dart';
 
 class DataService {
   static const String _bookingsKey = 'bookings'; // For tenants
@@ -1377,6 +1378,17 @@ class DataService {
   static Future<Map<String, dynamic>> validateBookingRequest(
     Map<String, dynamic> request,
   ) async {
+    if (request['bookingMode'] != 'corporate') {
+      final ability = await SubscriptionService.checkBookingAbility();
+      if (ability['can_book'] != true) {
+        return {
+          'valid': false,
+          'message': ability['message']?.toString() ??
+              'تجاوزت حد الحجوزات في باقتك الحالية',
+        };
+      }
+    }
+
     final existing = await _getAllBookingsRaw();
     final propertyId =
         request['propertyId']?.toString() ?? request['id']?.toString();

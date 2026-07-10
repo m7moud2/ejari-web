@@ -17,6 +17,18 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
   int _selectedBaths = 0;
   String _selectedType = 'الكل';
   bool? _isFurnished;
+  String _listingFilter = 'all';
+  String _selectedGovernorate = 'الكل';
+
+  static const List<String> _governorates = [
+    'الكل',
+    'القاهرة',
+    'الجيزة',
+    'الإسكندرية',
+    'القليوبية',
+    'الشرقية',
+    'مطروح',
+  ];
 
   final List<String> _propertyTypes = ['الكل', 'شقق', 'فلل', 'مكاتب', 'فندقي'];
   final List<String> _selectedAmenities = [];
@@ -68,6 +80,19 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
       final price = double.tryParse(priceStr) ?? 0.0;
       if (price < minPrice || price > maxPrice) return false;
 
+      if (_listingFilter == 'rent' && p['listingMode'] == 'for_sale') {
+        return false;
+      }
+      if (_listingFilter == 'sale' && p['listingMode'] != 'for_sale') {
+        return false;
+      }
+
+      if (_selectedGovernorate != 'الكل') {
+        final loc =
+            '${p['governorate'] ?? ''} ${p['location'] ?? ''}'.toString();
+        if (!loc.contains(_selectedGovernorate)) return false;
+      }
+
       if (_selectedType != 'الكل' && p['type'] != _selectedType) return false;
 
       if (_selectedBeds > 0) {
@@ -95,6 +120,9 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
       'type': _selectedType != 'الكل' ? _selectedType : null,
       'furnished': _isFurnished,
       'amenities': _selectedAmenities.isNotEmpty ? _selectedAmenities : null,
+      'listingMode': _listingFilter == 'all' ? null : _listingFilter,
+      'governorate':
+          _selectedGovernorate != 'الكل' ? _selectedGovernorate : null,
     };
 
     Navigator.pushReplacement(
@@ -134,6 +162,8 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
                 _selectedBaths = 0;
                 _selectedType = 'الكل';
                 _isFurnished = null;
+                _listingFilter = 'all';
+                _selectedGovernorate = 'الكل';
                 _selectedAmenities.clear();
                 _updateFiltersCount();
               });
@@ -197,6 +227,57 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
                 _buildSectionTitle('ما الذي تبحث عنه؟'),
                 const SizedBox(height: 16),
                 _buildPropertyTypes(),
+                const SizedBox(height: 24),
+                _buildSectionTitle('نوع العرض'),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildGlassyChip(
+                          'للإيجار', _listingFilter == 'rent', () {
+                        setState(() => _listingFilter = 'rent');
+                        _updateFiltersCount();
+                      }),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildGlassyChip(
+                          'للبيع', _listingFilter == 'sale', () {
+                        setState(() => _listingFilter = 'sale');
+                        _updateFiltersCount();
+                      }),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildGlassyChip('الكل', _listingFilter == 'all',
+                          () {
+                        setState(() => _listingFilter = 'all');
+                        _updateFiltersCount();
+                      }),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _buildSectionTitle('المحافظة'),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: _selectedGovernorate,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: AppTheme.backgroundColor,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  items: _governorates
+                      .map((g) => DropdownMenuItem(value: g, child: Text(g)))
+                      .toList(),
+                  onChanged: (val) {
+                    if (val == null) return;
+                    setState(() => _selectedGovernorate = val);
+                    _updateFiltersCount();
+                  },
+                ),
                 const SizedBox(height: 36),
                 _buildSectionTitle('نطاق الاستثمار المخطط'),
                 const SizedBox(height: 12),

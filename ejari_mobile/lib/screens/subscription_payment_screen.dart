@@ -21,6 +21,7 @@ class SubscriptionPaymentScreen extends StatelessWidget {
     return PaymentScreen(
       itemType: 'subscription',
       itemData: {
+        'id': planId,
         'name': planDetails['name'],
         'planId': planId,
         'userType': userType,

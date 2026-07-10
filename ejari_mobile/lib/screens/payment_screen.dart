@@ -14,6 +14,7 @@ import 'package:image_picker/image_picker.dart';
 import '../models/payment_receipt.dart';
 import '../services/auth_service.dart';
 import '../services/maintenance_service.dart';
+import '../services/payment_methods_service.dart';
 import 'success_payment_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -146,6 +147,38 @@ class _PaymentScreenState extends State<PaymentScreen> {
   final _phoneController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    _loadSavedPaymentMethod();
+  }
+
+  Future<void> _loadSavedPaymentMethod() async {
+    final saved = await PaymentMethodsService.getSelectedMethod();
+    final defaultCard = await PaymentMethodsService.getDefaultCard();
+    if (!mounted) return;
+    setState(() {
+      _selectedCategory = saved['category'] ?? 'cards';
+      _selectedSubMethod = saved['subMethod'] ?? 'visa';
+    });
+    if (defaultCard != null && _selectedCategory == 'cards') {
+      final num = defaultCard['number']?.toString() ?? '';
+      final last4 = num.replaceAll('*', '').trim().split(' ').last;
+      _cardNumberController.text = last4.length == 4
+          ? '424242424242$last4'.substring(0, 16)
+          : '';
+      _expiryController.text = defaultCard['expiry']?.toString() ?? '';
+      _nameController.text = defaultCard['holder']?.toString() ?? '';
+    }
+  }
+
+  Future<void> _persistPaymentSelection() async {
+    await PaymentMethodsService.saveSelectedMethod(
+      category: _selectedCategory,
+      subMethod: _selectedSubMethod,
+    );
+  }
+
+  @override
   void dispose() {
     _cardNumberController.dispose();
     _expiryController.dispose();
@@ -201,6 +234,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     setState(() => _isProcessing = true);
     await Future.delayed(const Duration(seconds: 2));
+    await _persistPaymentSelection();
 
     final bookingId = widget.itemData['id']?.toString() ?? '';
     final useWallet = _selectedCategory == 'wallet_balance';
@@ -838,11 +872,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget _buildCatCard(String id, String label, IconData icon) {
     final isSelected = _selectedCategory == id;
     return GestureDetector(
-      onTap: () => setState(() {
+      onTap: () {
+        setState(() {
         _selectedCategory = id;
         if (id == 'bnpl') _selectedSubMethod = 'valu';
         if (id == 'wallets') _selectedSubMethod = 'vodafone';
-      }),
+        });
+        _persistPaymentSelection();
+      },
       child: Container(
         margin: const EdgeInsets.all(8),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),

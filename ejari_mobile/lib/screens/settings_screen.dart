@@ -7,6 +7,7 @@ import 'feedback_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config/social_links.dart';
 import 'package:local_auth/local_auth.dart'; // Add import
+import '../services/push_notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -28,6 +29,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
     _language = localeNotifier.value.languageCode;
     _loadBiometricState();
+    _loadNotificationState();
+  }
+
+  Future<void> _loadNotificationState() async {
+    final enabled = await PushNotificationService.isEnabled();
+    if (mounted) {
+      setState(() => _notificationsEnabled = enabled);
+    }
   }
 
   Future<void> _loadBiometricState() async {
@@ -120,7 +129,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             subtitle: 'تلقي تحديثات الحجز والعروض',
             icon: Icons.notifications,
             value: _notificationsEnabled,
-            onChanged: (val) => setState(() => _notificationsEnabled = val),
+            onChanged: (val) async {
+              setState(() => _notificationsEnabled = val);
+              await PushNotificationService.setEnabled(val);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      val ? 'تم تفعيل الإشعارات' : 'تم إيقاف الإشعارات',
+                    ),
+                  ),
+                );
+              }
+            },
           ),
           _buildSwitchTile(
             title: 'تفعيل البصمة',

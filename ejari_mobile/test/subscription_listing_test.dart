@@ -15,4 +15,10 @@ void main() {
     expect(SubscriptionService.ownerPlans['gold']!['featured'], true);
     expect(SubscriptionService.ownerPlans['bronze']!['properties_limit'], 5);
   });
+
+  test('SubscriptionService tenant plus plan has booking limit', () {
+    expect(SubscriptionService.tenantPlans['plus']!['bookings_limit'], 10);
+    expect(SubscriptionService.normalizePlanId('basic', 'owner'), 'bronze');
+    expect(SubscriptionService.normalizePlanId('pro', 'owner'), 'silver');
+  });
 }

@@ -35,7 +35,22 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   }
 
   Future<void> _subscribe(String planId) async {
-    final planDetails = SubscriptionService.getPlanDetails(planId, _userType);
+    final normalized =
+        SubscriptionService.normalizePlanId(planId, _userType);
+    final change = await SubscriptionService.canChangePlan(normalized, _userType);
+    if (change['allowed'] != true) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(change['message']?.toString() ?? 'تغيير الباقة غير مسموح'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+      return;
+    }
+
+    final planDetails = SubscriptionService.getPlanDetails(normalized, _userType);
 
     if (planDetails != null && planDetails['price'] > 0) {
       final navigator = Navigator.of(context);
@@ -48,7 +63,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       await navigator.push(
         MaterialPageRoute(
           builder: (context) => SubscriptionPaymentScreen(
-            planId: planId,
+            planId: normalized,
             userType: _userType,
             planDetails: planDetails,
           ),
@@ -58,7 +73,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       _loadUserData(); // Reload after payment
     } else {
       // Free plan - subscribe directly
-      await SubscriptionService.subscribe(planId, _userType);
+      await SubscriptionService.subscribe(normalized, _userType);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -169,43 +184,41 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         [
           'عقار واحد فقط',
           '5 طلبات شهرياً',
-          'دعم فني محدود',
+          'عمولة على الإيجار',
         ],
         AppTheme.primaryColor,
       ),
       _buildPlanCard(
-        'basic',
-        'أساسي',
+        'bronze',
+        'برونزي',
         '299',
         [
           'حتى 5 عقارات',
-          'طلبات غير محدودة',
-          'دعم فني عادي',
+          'بدون عمولة',
+          'دعم فني أساسي',
         ],
         AppTheme.primaryColor,
       ),
       _buildPlanCard(
-        'pro',
-        'احترافي',
+        'silver',
+        'فضي',
         '599',
         [
-          'عقارات غير محدودة',
+          'حتى 15 عقار',
           'أولوية في الظهور',
-          'إحصائيات متقدمة',
-          'دعم فني سريع',
+          'Reels تسويقية',
         ],
         AppTheme.primaryColor,
         isPopular: true,
       ),
       _buildPlanCard(
-        'premium',
-        'مميز',
-        '999',
+        'gold',
+        'ذهبي (Ejari)',
+        '1299',
         [
-          'كل مزايا الباقة الاحترافية',
-          'دعم فني مخصص 24/7',
-          'تسويق للعقارات',
-          'تقارير شهرية',
+          'عقارات غير محدودة',
+          'تمييز الإعلانات',
+          'أولوية كاملة',
         ],
         AppTheme.primaryColor,
       ),
@@ -219,8 +232,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         'مجاني',
         '0',
         [
-          'بحث عادي',
           '3 طلبات حجز شهرياً',
+          'بحث عادي',
           'دعم فني محدود',
         ],
         AppTheme.primaryColor,
@@ -230,9 +243,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         'بلس',
         '99',
         [
-          'طلبات غير محدودة',
+          '10 طلبات حجز شهرياً',
           'إشعارات فورية',
-          'حفظ عمليات البحث',
           'دعم فني سريع',
         ],
         AppTheme.primaryColor,
@@ -243,10 +255,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         'بريميوم',
         '199',
         [
-          'كل مزايا باقة بلس',
+          'حجوزات غير محدودة',
           'أولوية في الطلبات',
           'معاينات مجانية',
-          'استشارات عقارية',
         ],
         AppTheme.primaryColor,
       ),
@@ -256,7 +267,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   Widget _buildPlanCard(String planId, String name, String price,
       List<String> features, Color color,
       {bool isPopular = false}) {
-    bool isCurrent = _currentPlan == planId;
+  bool isCurrent = _currentPlan ==
+      SubscriptionService.normalizePlanId(planId, _userType);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),

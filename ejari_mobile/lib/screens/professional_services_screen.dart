@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../utils/auth_gate.dart';
+import '../services/auth_service.dart';
+import '../services/support_service.dart';
+import '../services/data_service.dart';
 
 class ProfessionalServicesScreen extends StatefulWidget {
   final Map<String, dynamic>? property;
@@ -917,8 +920,32 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
 
   void _showBookingConfirmation(BuildContext context, String serviceName) {
     AuthGate.requireLogin(context, actionLabel: 'حجز خدمة $serviceName')
-        .then((allowed) {
+        .then((allowed) async {
       if (!allowed || !context.mounted) return;
+
+      final user = await AuthService.getCurrentUser();
+      final email = user?['email']?.toString() ?? '';
+      final name = user?['name']?.toString() ?? 'مستخدم';
+      final propertyTitle = widget.property?['title']?.toString() ?? 'عقار عام';
+      final dateLabel =
+          '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}';
+      final timeLabel = _selectedTime ?? '—';
+
+      await SupportService.createTicket(
+        userEmail: email,
+        userName: name,
+        subject: 'طلب خدمة: $serviceName',
+        message:
+            'عقار: $propertyTitle\nالخدمة: $serviceName\nالتاريخ: $dateLabel\nالوقت: $timeLabel',
+        category: 'professional_service',
+      );
+
+      await DataService.addNotification(
+        'تم استلام طلب "$serviceName" ✅',
+        'سيتواصل فريق إيجاري خلال 24 ساعة لتأكيد الموعد.',
+      );
+
+      if (!context.mounted) return;
       showModalBottomSheet(
       context: context,
       isScrollControlled: true,

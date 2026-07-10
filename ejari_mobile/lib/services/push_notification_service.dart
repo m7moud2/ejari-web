@@ -28,6 +28,10 @@ class PushNotificationService {
         debugPrint('Push notifications skipped in demo mode.');
         return;
       }
+      if (!await isEnabled()) {
+        debugPrint('Push notifications disabled by user preference.');
+        return;
+      }
       // 1. Request Permission
       final NotificationSettings settings = await _messaging.requestPermission(
         alert: true,
@@ -146,6 +150,22 @@ class PushNotificationService {
   static Future<void> _cancelPromoNotifications() async {
     for (var i = 0; i < _promoCount; i++) {
       await _localNotificationsPlugin.cancel(_promoBaseId + i);
+    }
+  }
+
+  static const String _enabledKey = 'notifications_enabled';
+
+  static Future<bool> isEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_enabledKey) ?? true;
+  }
+
+  static Future<void> setEnabled(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_enabledKey, enabled);
+    if (!enabled) {
+      await _cancelPromoNotifications();
+      await prefs.setBool('promo_notifications_scheduled', false);
     }
   }
 

@@ -16,6 +16,7 @@ import 'help_center_screen.dart';
 import 'edit_profile_screen.dart';
 import 'notification_center_screen.dart';
 import '../main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'rental_statement_screen.dart';
 import '../services/chat_service.dart';
 import '../services/support_service.dart';
@@ -39,6 +40,7 @@ import 'account_id_search_screen.dart';
 import 'manage_properties_screen.dart';
 import 'add_property_screen.dart';
 import 'owner_collection_screen.dart';
+import 'corporate_command_center_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -459,6 +461,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             context,
             MaterialPageRoute(
                 builder: (_) => const MyServiceRequestsScreen()));
+      }),
+      _buildEjariMenuItem('حجز سكن للموظفين', Icons.corporate_fare_rounded,
+          AppTheme.accentColor, () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => const CorporateCommandCenterScreen()));
       }, isLast: true),
     ];
   }
@@ -621,12 +630,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _toggleLanguage() {
-    if (localeNotifier.value.languageCode == 'ar') {
-      localeNotifier.value = const Locale('en', 'US');
-    } else {
-      localeNotifier.value = const Locale('ar', 'SA');
-    }
+  void _toggleLanguage() async {
+    final isArabic = localeNotifier.value.languageCode == 'ar';
+    final next = isArabic ? 'en' : 'ar';
+    localeNotifier.value = isArabic
+        ? const Locale('en', 'US')
+        : const Locale('ar', 'SA');
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('language_code', next);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isArabic ? 'Language changed to English' : 'تم تغيير اللغة إلى العربية',
+        ),
+      ),
+    );
   }
 
   Future<void> _openSupportChat() async {

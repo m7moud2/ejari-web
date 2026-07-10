@@ -63,6 +63,13 @@ class SubscriptionService {
       'bookings_limit': 3,
       'notifications': false,
     },
+    'plus': {
+      'name': 'بلس',
+      'price': 99,
+      'bookings_limit': 10,
+      'notifications': true,
+      'priority': false,
+    },
     'premium': {
       'name': 'بريميوم',
       'price': 199,
@@ -71,6 +78,33 @@ class SubscriptionService {
       'priority': true,
     },
   };
+
+  /// Legacy plan ids from older UI screens.
+  static const Map<String, String> _ownerPlanAliases = {
+    'basic': 'bronze',
+    'pro': 'silver',
+    'premium': 'gold',
+  };
+
+  static const Map<String, String> _tenantPlanAliases = {
+    'plus': 'plus',
+    'premium': 'premium',
+  };
+
+  static String normalizePlanId(String planId, String userType) {
+    if (userType == 'owner') {
+      return _ownerPlanAliases[planId] ?? planId;
+    }
+    return _tenantPlanAliases[planId] ?? planId;
+  }
+
+  static int _planRank(String planId, String userType) {
+    final normalized = normalizePlanId(planId, userType);
+    final plans = userType == 'tenant' ? tenantPlans : ownerPlans;
+    final keys = plans.keys.toList();
+    final idx = keys.indexOf(normalized);
+    return idx >= 0 ? idx : 0;
+  }
 
   static Future<String> _ownerKey() async {
     final user = await AuthService.getCurrentUser();
@@ -99,11 +133,48 @@ class SubscriptionService {
     };
   }
 
+  static Future<Map<String, dynamic>> canChangePlan(
+    String newPlanId,
+    String userType,
+  ) async {
+    final normalized = normalizePlanId(newPlanId, userType);
+    final sub = await getCurrentSubscription();
+    final currentId =
+        normalizePlanId(sub['plan']?.toString() ?? 'free', userType);
+    final isDowngrade = _planRank(normalized, userType) <
+        _planRank(currentId, userType);
+
+    if (userType == 'owner' && isDowngrade) {
+      final plan = ownerPlans[normalized] ?? ownerPlans['free']!;
+      final limit = plan['properties_limit'] as int;
+      if (limit != -1) {
+        final count = await getOwnerPropertyCount();
+        if (count > limit) {
+          return {
+            'allowed': false,
+            'message':
+                'لا يمكن التخفيض: لديك $count عقار/ات والباقة تسمح بـ $limit فقط',
+            'current_count': count,
+            'limit': limit,
+          };
+        }
+      }
+    }
+
+    return {'allowed': true, 'plan_id': normalized};
+  }
+
   static Future<void> subscribe(String planId, String userType) async {
+    final normalized = normalizePlanId(planId, userType);
+    final change = await canChangePlan(normalized, userType);
+    if (change['allowed'] != true) {
+      throw StateError(change['message']?.toString() ?? 'تغيير الباقة غير مسموح');
+    }
+
     final prefs = await SharedPreferences.getInstance();
     final key = await _ownerKey();
     final subscription = {
-      'plan': planId,
+      'plan': normalized,
       'type': userType,
       'start_date': DateTime.now().toIso8601String(),
       'end_date': DateTime.now().add(const Duration(days: 30)).toIso8601String(),
@@ -113,7 +184,65 @@ class SubscriptionService {
   }
 
   static Map<String, dynamic>? getPlanDetails(String planId, String userType) {
-    return userType == 'owner' ? ownerPlans[planId] : tenantPlans[planId];
+    final normalized = normalizePlanId(planId, userType);
+    return userType == 'owner'
+        ? ownerPlans[normalized]
+        : tenantPlans[normalized];
+  }
+
+  static Future<int> getTenantMonthlyBookingCount() async {
+    final user = await AuthService.getCurrentUser();
+    final email = user?['email']?.toString() ?? '';
+    if (email.isEmpty) return 0;
+
+    final bookings = await DataService.getBookings();
+    final now = DateTime.now();
+    final monthStart = DateTime(now.year, now.month);
+
+    return bookings.where((b) {
+      final raw = b['requestDate']?.toString() ??
+          b['createdAt']?.toString() ??
+          b['leaseStartDate']?.toString() ??
+          '';
+      final dt = DateTime.tryParse(raw);
+      if (dt == null) return false;
+      return !dt.isBefore(monthStart);
+    }).length;
+  }
+
+  static Future<Map<String, dynamic>> checkBookingAbility() async {
+    final sub = await getCurrentSubscription();
+    final userType = sub['type']?.toString() ?? 'owner';
+    if (userType != 'tenant') {
+      return {'can_book': true};
+    }
+
+    final planId = normalizePlanId(sub['plan']?.toString() ?? 'free', 'tenant');
+    final plan = tenantPlans[planId] ?? tenantPlans['free']!;
+    final limit = plan['bookings_limit'] as int;
+    if (limit == -1) {
+      return {'can_book': true, 'plan_id': planId, 'limit': limit};
+    }
+
+    final used = await getTenantMonthlyBookingCount();
+    if (used >= limit) {
+      return {
+        'can_book': false,
+        'plan_id': planId,
+        'plan_name': plan['name'],
+        'used': used,
+        'limit': limit,
+        'message':
+            'وصلت حد الحجوزات (${used}/$limit) — ترقّ إلى باقة أعلى للمتابعة',
+      };
+    }
+
+    return {
+      'can_book': true,
+      'plan_id': planId,
+      'used': used,
+      'limit': limit,
+    };
   }
 
   static Future<int> getOwnerPropertyCount([String? ownerId]) async {
@@ -128,7 +257,8 @@ class SubscriptionService {
 
   static Future<Map<String, dynamic>> checkListingAbility({String? ownerId}) async {
     final sub = await getCurrentSubscription();
-    final planId = sub['plan']?.toString() ?? 'free';
+    final planId =
+        normalizePlanId(sub['plan']?.toString() ?? 'free', 'owner');
     final plan = ownerPlans[planId] ?? ownerPlans['free']!;
     final currentCount = await getOwnerPropertyCount(ownerId);
     final limit = plan['properties_limit'] as int;
