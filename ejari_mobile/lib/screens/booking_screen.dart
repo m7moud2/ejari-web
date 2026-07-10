@@ -15,7 +15,6 @@ import '../models/rental_duration_tier.dart';
 import '../models/booking_status.dart';
 import '../models/tenant_type.dart';
 import '../widgets/rental_booking_widgets.dart';
-import 'corporate_booking_screen.dart';
 import '../widgets/image_upload_widget.dart';
 import '../widgets/ejari_image.dart';
 import '../widgets/ejari_section.dart';
@@ -567,21 +566,11 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             ),
             if (_isPropertyRent)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.screenPadding),
-                child: Row(
-                  children: [
-                    const RefundRuleTooltip(),
-                    const Spacer(),
-                    TextButton.icon(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const CorporateBookingScreen()),
-                      ),
-                      icon: const Icon(Icons.groups_rounded, size: 16),
-                      label: const Text('حجز لموظفين', style: TextStyle(fontSize: 11)),
-                    ),
-                  ],
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: AppTheme.screenPadding),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: RefundRuleTooltip(),
                 ),
               ),
             Expanded(

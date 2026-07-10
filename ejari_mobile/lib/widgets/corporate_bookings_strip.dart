@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import 'ejari_section.dart';
-import '../screens/corporate_booking_screen.dart';
+import '../screens/corporate_command_center_screen.dart';
 
-/// شريط لوحة الحجز الجماعي — قائمة حجوزات الموظفين.
+/// ملخص سريع لحجوزات الموظفين — يوجّه إلى مركز قيادة الشركات.
 class CorporateBookingsStrip extends StatefulWidget {
   const CorporateBookingsStrip({super.key});
 
@@ -48,20 +48,22 @@ class _CorporateBookingsStripState extends State<CorporateBookingsStrip> {
             children: [
               const Expanded(
                 child: EjariSectionHeader(
-                  title: 'حجوزات الموظفين',
-                  subtitle: 'متابعة الحجز الجماعي عبر المحافظات',
+                  title: 'إسكان الموظفين (شركات)',
+                  subtitle: 'متابعة من مركز قيادة الشركات — ليس ضمن حجز العقار الشخصي',
                 ),
               ),
               TextButton.icon(
                 onPressed: () async {
                   await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const CorporateBookingScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const CorporateCommandCenterScreen(),
+                    ),
                   );
                   _load();
                 },
-                icon: const Icon(Icons.add_business_rounded, size: 16),
-                label: const Text('حجز جديد', style: TextStyle(fontSize: 11)),
+                icon: const Icon(Icons.corporate_fare_rounded, size: 16),
+                label: const Text('مركز القيادة', style: TextStyle(fontSize: 11)),
               ),
             ],
           ),
@@ -69,7 +71,7 @@ class _CorporateBookingsStripState extends State<CorporateBookingsStrip> {
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 8),
               child: Text(
-                'لا توجد حجوزات جماعية بعد. ابدأ بتعيين وحدات لموظفيك.',
+                'لا توجد حجوزات موظفين بعد. افتح مركز قيادة الشركات لإضافة حجز.',
                 style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
               ),
             )

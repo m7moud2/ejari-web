@@ -5,6 +5,7 @@ import 'package:ejari_mobile/services/data_service.dart';
 import 'package:ejari_mobile/services/trust_score_service.dart';
 import 'package:ejari_mobile/services/operations_feed_service.dart';
 import 'package:ejari_mobile/utils/rental_rules.dart';
+import 'package:ejari_mobile/models/tenant_type.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -63,6 +64,13 @@ void main() {
       expect(summary['totalEmployees'], greaterThan(0));
       expect(summary['governorateCount'], greaterThan(0));
       expect(summary['employees'], isA<List>());
+    });
+
+    test('tenant types are personal rental only', () {
+      expect(TenantType.values.length, 3);
+      expect(TenantType.values, contains(TenantType.individual));
+      expect(TenantType.values, contains(TenantType.family));
+      expect(TenantType.values, contains(TenantType.multiplePersons));
     });
   });
 

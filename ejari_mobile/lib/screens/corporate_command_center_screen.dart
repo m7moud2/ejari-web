@@ -120,6 +120,23 @@ class _CorporateCommandCenterScreenState
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CorporateBookingScreen(),
+                          ),
+                        );
+                        _load();
+                      },
+                      icon: const Icon(Icons.add_home_work_rounded),
+                      label: const Text('حجز سكن جديد للموظفين'),
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceSm),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
                       onPressed: () => Navigator.push(
                         context,
                         MaterialPageRoute(
