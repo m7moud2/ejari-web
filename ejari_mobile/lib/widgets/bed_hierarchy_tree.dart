@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
 import '../services/bed_hierarchy_service.dart';
 import 'ejari_section.dart';
 
@@ -126,19 +127,28 @@ class BedHierarchyTree extends StatelessWidget {
               color: color,
             ),
             const SizedBox(width: 4),
-            Text(
-              bed['label']?.toString() ?? 'سرير',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: color,
+            Flexible(
+              child: Text(
+                bed['label']?.toString() ?? 'سرير',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
               ),
             ),
             if (!vacant && bed['tenantName'] != null) ...[
               const SizedBox(width: 4),
-              Text(
-                '(${bed['tenantName']})',
-                style: const TextStyle(fontSize: 9, color: AppTheme.textSecondary),
+              Flexible(
+                child: Text(
+                  '(${bed['tenantName']})',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                      fontSize: 9, color: AppTheme.textSecondary),
+                ),
               ),
             ],
           ],
@@ -192,8 +202,9 @@ class _BedHierarchyScreenState extends State<BedHierarchyScreen> {
       });
       return;
     }
-    final trees =
-        await BedHierarchyService.getOwnerTrees('owner@ejari.app');
+    final user = await AuthService.getCurrentUser();
+    final ownerId = user?['email']?.toString() ?? 'owner@ejari.app';
+    final trees = await BedHierarchyService.getOwnerTrees(ownerId);
     setState(() {
       _trees = trees;
       _loading = false;

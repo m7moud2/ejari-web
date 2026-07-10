@@ -40,6 +40,7 @@ import 'account_id_search_screen.dart';
 import 'manage_properties_screen.dart';
 import 'add_property_screen.dart';
 import 'owner_collection_screen.dart';
+import 'owner_booking_requests_screen.dart';
 import 'corporate_command_center_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -434,8 +435,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         }),
         _buildEjariMenuItem('طلبات الحجز', Icons.inbox_rounded,
             AppTheme.primaryColor, () {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const MyBookingsScreen()));
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const OwnerBookingRequestsScreen(),
+            ),
+          );
         }, isLast: true),
       ];
     }

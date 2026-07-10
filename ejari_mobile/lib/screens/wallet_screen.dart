@@ -30,7 +30,7 @@ class _WalletScreenState extends State<WalletScreen>
 
   Future<void> _loadWalletData() async {
     final user = await AuthService.getCurrentUser();
-    final ownerId = user?['email'] ?? 'owner123';
+    final ownerId = user?['email']?.toString() ?? 'owner@ejari.app';
     final walletData = await DataService.getWalletData(ownerId);
     final transactions = await DataService.getWalletTransactions(ownerId);
     if (mounted) {

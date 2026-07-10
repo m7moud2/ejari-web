@@ -355,7 +355,7 @@ class MockDataSeeder {
       'governorate': 'القاهرة',
       'lat': 29.9600,
       'lng': 31.2700,
-      'image': 'assets/images/home7.jpg',
+      'image': 'assets/images/properties/shared_bed.jpg',
       'beds': '8',
       'baths': '2',
       'area': '180',

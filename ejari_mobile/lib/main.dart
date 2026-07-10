@@ -21,6 +21,7 @@ import 'config/app_config.dart';
 import 'providers/auth_provider.dart';
 import 'providers/property_provider.dart';
 import 'providers/home_provider.dart';
+import 'widgets/ejari_error_boundary.dart';
 
 // Global Notifiers
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
@@ -29,6 +30,7 @@ final ValueNotifier<Locale> localeNotifier =
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  EjariErrorFallback.install();
 
   // Safe Firebase Initialization
   if (!AppConfig.demoMode) {

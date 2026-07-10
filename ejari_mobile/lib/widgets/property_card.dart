@@ -3,8 +3,8 @@ import '../theme/app_theme.dart';
 import '../models/listing_type.dart';
 import '../services/data_service.dart';
 import '../l10n/app_localizations.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'ejari_image.dart';
+import '../utils/property_image_resolver.dart';
+import 'property_image.dart';
 
 class PropertyCard extends StatefulWidget {
   final String id;
@@ -46,13 +46,6 @@ class PropertyCard extends StatefulWidget {
 
 class _PropertyCardState extends State<PropertyCard> {
   bool _isFavorite = false;
-
-  bool _isNetworkImage(String value) {
-    final uri = Uri.tryParse(value.trim());
-    return uri != null &&
-        (uri.scheme == 'http' || uri.scheme == 'https') &&
-        uri.host.isNotEmpty;
-  }
 
   @override
   void initState() {
@@ -112,42 +105,22 @@ class _PropertyCardState extends State<PropertyCard> {
                 child: ClipRRect(
                     borderRadius:
                         const BorderRadius.vertical(top: Radius.circular(24)),
-                    child: _isNetworkImage(widget.image)
-                        ? CachedNetworkImage(
-                            imageUrl: widget.image.trim(),
-                            height: 220,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              height: 220,
-                              color: AppTheme.backgroundColor,
-                              child: const Center(
-                                  child: CircularProgressIndicator(
-                                      color: AppTheme.primaryColor)),
-                            ),
-                            errorWidget: (context, url, error) =>
-                                const EjariImage(
-                              path: 'assets/images/home1.jpg',
-                              fit: BoxFit.cover,
-                              height: 220,
-                              width: double.infinity,
-                            ),
-                          )
-                        : Image.asset(
-                            widget.image.startsWith('assets/')
-                                ? widget.image
-                                : 'assets/images/home1.jpg',
-                            height: 220,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const EjariImage(
-                              path: 'assets/images/home1.jpg',
-                              fit: BoxFit.cover,
-                              height: 220,
-                              width: double.infinity,
-                            ),
-                          ),
+                    child: PropertyImage(
+                      imagePath: PropertyImageResolver.resolvePath(
+                        widget.image,
+                        property: {
+                          'listingMode': widget.listingMode,
+                          'type': widget.title,
+                        },
+                      ),
+                      property: {
+                        'image': widget.image,
+                        'listingMode': widget.listingMode,
+                      },
+                      height: 220,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
 
@@ -300,11 +273,14 @@ class _PropertyCardState extends State<PropertyCard> {
                         border: Border.all(color: Colors.white, width: 1),
                       ),
                       child: const Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.science_rounded,
                               color: Colors.white, size: 12),
                           SizedBox(width: 4),
-                          Text('متاحة للتجربة والتقييم',
+                          Text('تجريبي',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 9,
@@ -496,7 +472,7 @@ class _PropertyCardState extends State<PropertyCard> {
 
   Widget _buildBadge(String label, Color color, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         gradient: LinearGradient(
             colors: [color, color.withOpacity(0.8)],
@@ -505,17 +481,20 @@ class _PropertyCardState extends State<PropertyCard> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [],
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: Colors.white, size: 16),
-          const SizedBox(width: 4),
-          Text(label,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold)),
-        ],
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 14),
+            const SizedBox(width: 4),
+            Text(label,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }

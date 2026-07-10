@@ -96,30 +96,34 @@ class TrustScoreBadge extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'درجة الثقة — $level',
-                    style: TextStyle(
-                      color: light ? Colors.white : AppTheme.textPrimary,
-                      fontWeight: FontWeight.w800,
-                      fontSize: 12,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'درجة الثقة — $level',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: light ? Colors.white : AppTheme.textPrimary,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                      ),
                     ),
-                  ),
-                  Text(
-                    data['summary']?.toString() ?? '',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: light
-                          ? Colors.white.withOpacity(0.7)
-                          : AppTheme.textSecondary,
-                      fontSize: 10,
+                    Text(
+                      data['summary']?.toString() ?? '',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: light
+                            ? Colors.white.withOpacity(0.7)
+                            : AppTheme.textSecondary,
+                        fontSize: 10,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           );
@@ -168,8 +172,10 @@ class TrustScoreCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              TrustScoreBadge(trustData: trustData),
-              const Spacer(),
+              Expanded(
+                child: TrustScoreBadge(trustData: trustData),
+              ),
+              const SizedBox(width: 8),
               Text(
                 '$score/100',
                 style: const TextStyle(

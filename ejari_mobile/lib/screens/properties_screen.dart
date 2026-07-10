@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/property_card.dart';
+import '../widgets/empty_state_view.dart';
+import '../utils/property_image_resolver.dart';
 import '../theme/app_theme.dart';
 import 'property_details_screen.dart';
 import 'booking_screen.dart';
@@ -125,14 +127,17 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
           // Listing mode filter
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                _listingChip('rent', 'للإيجار'),
-                const SizedBox(width: 8),
-                _listingChip('sale', 'للبيع'),
-                const SizedBox(width: 8),
-                _listingChip('all', 'الكل'),
-              ],
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _listingChip('rent', 'للإيجار'),
+                  const SizedBox(width: 8),
+                  _listingChip('sale', 'للبيع'),
+                  const SizedBox(width: 8),
+                  _listingChip('all', 'الكل'),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 8),
@@ -175,47 +180,46 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
           ),
 
           Expanded(
-            child: _isLoading
-                ? const ColoredBox(
-                    color: AppTheme.backgroundColor,
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: AppTheme.primaryColor,
+            child: RefreshIndicator(
+              color: AppTheme.primaryColor,
+              onRefresh: _loadProperties,
+              child: _isLoading
+                  ? const ColoredBox(
+                      color: AppTheme.backgroundColor,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: AppTheme.primaryColor,
+                        ),
                       ),
-                    ),
-                  )
-                : _filteredProperties.isEmpty
-                    ? const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.apartment,
-                                size: 80, color: AppTheme.primaryColor),
-                            SizedBox(height: 16),
-                            Text(
-                              'لا توجد عقارات متاحة',
-                              style: TextStyle(
-                                color: AppTheme.textSecondary,
-                                fontSize: 16,
-                              ),
+                    )
+                  : _filteredProperties.isEmpty
+                      ? ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: const [
+                            EmptyStateView(
+                              icon: Icons.apartment_outlined,
+                              title: 'لا توجد عقارات متاحة',
+                              subtitle:
+                                  'جرّب تغيير الفلاتر أو اسحب للأسفل للتحديث.',
                             ),
                           ],
-                        ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        itemCount: _filteredProperties.length,
-                        itemBuilder: (context, index) {
-                          final property = _filteredProperties[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 8),
-                            child: PropertyCard(
-                              id: property['id'] ?? '0',
-                              title: property['title'],
-                              price: property['price'],
-                              location: property['location'],
-                              image: property['image'],
+                        )
+                      : ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(bottom: 16),
+                          itemCount: _filteredProperties.length,
+                          itemBuilder: (context, index) {
+                            final property = _filteredProperties[index];
+                            final image = PropertyImageResolver.resolve(property);
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              child: PropertyCard(
+                                id: property['id'] ?? '0',
+                                title: property['title'],
+                                price: property['price'],
+                                location: property['location'],
+                                image: image,
                               beds: property['beds'],
                               baths: property['baths'],
                               area: property['area'],
@@ -241,6 +245,7 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
                           );
                         },
                       ),
+            ),
           ),
         ],
       ),
@@ -282,26 +287,27 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
 
   Widget _listingChip(String mode, String label) {
     final selected = _listingFilter == mode;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _listingFilter = mode),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: selected ? AppTheme.primaryColor : AppTheme.surfaceColor,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: selected ? AppTheme.primaryColor : AppTheme.borderColor.withOpacity(0.3),
-            ),
+    return GestureDetector(
+      onTap: () => setState(() => _listingFilter = mode),
+      child: Container(
+        constraints: const BoxConstraints(minWidth: 88),
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+        decoration: BoxDecoration(
+          color: selected ? AppTheme.primaryColor : AppTheme.surfaceColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected
+                ? AppTheme.primaryColor
+                : AppTheme.borderColor.withOpacity(0.3),
           ),
-          child: Text(label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: selected ? Colors.white : AppTheme.textPrimary,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              )),
         ),
+        child: Text(label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: selected ? Colors.white : AppTheme.textPrimary,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            )),
       ),
     );
   }

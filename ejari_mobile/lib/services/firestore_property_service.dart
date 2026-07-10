@@ -4,6 +4,7 @@ import '../config/app_config.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import '../services/mock_data_seeder.dart';
+import '../utils/property_image_resolver.dart';
 
 class FirestorePropertyService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -206,14 +207,14 @@ class FirestorePropertyService {
     }
 
     final imagesList = p['images'] as List<dynamic>?;
-    String imageStr = 'assets/images/home1.jpg';
+    String imageStr = PropertyImageResolver.defaultImage;
     if (imagesList != null && imagesList.isNotEmpty) {
       imageStr = imagesList[0].toString();
     } else if (p['image'] != null) {
       imageStr = p['image'].toString();
     }
 
-    return {
+    final normalized = {
       ...p,
       'id': p['id'] ?? '',
       'title': p['title'] ?? '',
@@ -238,6 +239,10 @@ class FirestorePropertyService {
       'corporateEligible': p['corporateEligible'] ?? false,
       'lat': p['lat'],
       'lng': p['lng'],
+    };
+    return {
+      ...normalized,
+      'image': PropertyImageResolver.resolve(normalized),
     };
   }
 }

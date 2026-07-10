@@ -29,7 +29,7 @@ class _OwnerBookingRequestsPanelState extends State<OwnerBookingRequestsPanel> {
     final ownerId = user?['email']?.toString() ??
         user?['uid']?.toString() ??
         user?['id']?.toString() ??
-        'admin';
+        'owner@ejari.app';
     final requests = await DataService.getOwnerRequests(ownerId);
     setState(() {
       _requests = requests
@@ -96,19 +96,25 @@ class _OwnerBookingRequestsPanelState extends State<OwnerBookingRequestsPanel> {
                     Expanded(
                       child: Text(
                         r['tenantName'] ?? r['tenantTypeLabel'] ?? r['employeeName'] ?? 'مستأجر',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.borderColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        r['rentalTierLabel'] ?? r['status']?.toString() ?? '',
-                        style: const TextStyle(fontSize: 10),
+                    Flexible(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppTheme.borderColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          r['rentalTierLabel'] ?? r['status']?.toString() ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 10),
+                        ),
                       ),
                     ),
                   ],

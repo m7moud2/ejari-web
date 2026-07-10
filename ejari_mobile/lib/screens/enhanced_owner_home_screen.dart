@@ -48,7 +48,7 @@ class _EnhancedOwnerHomeScreenState extends State<EnhancedOwnerHomeScreen> {
 
   Future<void> _loadData() async {
     final user = await AuthService.getCurrentUser();
-    final ownerId = user?['email'] ?? 'owner123';
+    final ownerId = user?['email']?.toString() ?? 'owner@ejari.app';
 
     final properties = await DataService.getOwnerProperties(ownerId);
     final bookings = await DataService.getOwnerBookings(ownerId);

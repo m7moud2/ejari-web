@@ -98,6 +98,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/promo/
+    - assets/images/properties/
 
   fonts:
     - family: Tajawal

@@ -1104,11 +1104,17 @@ class _BookingScreenState extends State<BookingScreen> {
                                                 fontWeight: FontWeight.bold)),
                                       ),
                                       const SizedBox(width: 12),
-                                      Text(
+                                      Flexible(
+                                        child: Text(
                                           '${_finalTotal.toStringAsFixed(0)} ${context.tr('price_egp')}',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.end,
                                           style: const TextStyle(
                                               fontWeight: FontWeight.bold,
-                                              color: AppTheme.primaryColor)),
+                                              color: AppTheme.primaryColor),
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ],

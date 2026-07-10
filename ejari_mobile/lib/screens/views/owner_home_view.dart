@@ -12,6 +12,7 @@ import '../wallet_screen.dart';
 import '../notifications_screen.dart';
 import '../listing_plans_screen.dart';
 import '../../widgets/owner_booking_requests_panel.dart';
+import '../owner_booking_requests_screen.dart';
 import '../owner_qr_verify_screen.dart';
 import '../../widgets/bed_hierarchy_tree.dart';
 import '../../widgets/smart_pricing_hint_widget.dart';
@@ -23,6 +24,12 @@ class OwnerHomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stats = context.watch<HomeProvider>().stats.ownerStats;
+    final smartHint = stats['smartPricingHint'] is Map
+        ? Map<String, dynamic>.from(stats['smartPricingHint'] as Map)
+        : null;
+    final trustData = stats['trustData'] is Map
+        ? Map<String, dynamic>.from(stats['trustData'] as Map)
+        : null;
 
     return RefreshIndicator(
       color: AppTheme.accentColor,
@@ -39,19 +46,21 @@ class OwnerHomeView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildOverviewSection(stats),
+                  _buildOverviewSection(stats, trustData),
                   if (stats['contextualAction'] != null) ...[
                     const SizedBox(height: AppTheme.spaceMd),
                     _buildContextualBanner(context, stats),
                   ],
                   const SizedBox(height: AppTheme.spaceLg),
                   _buildRevenueIntelligence(stats),
-                  if ((stats['smartPricingHint'] as Map?) != null) ...[
+                  if (smartHint != null) ...[
                     const SizedBox(height: AppTheme.spaceMd),
                     SmartPricingHintWidget(
-                      propertyId: stats['smartPricingHint']['propertyId']?.toString() ?? 'shared_egy1',
-                      listedPrice: (stats['smartPricingHint']['price'] as num?)?.toDouble() ?? 2500,
-                      location: stats['smartPricingHint']['location']?.toString(),
+                      propertyId:
+                          smartHint['propertyId']?.toString() ?? 'shared_egy1',
+                      listedPrice:
+                          (smartHint['price'] as num?)?.toDouble() ?? 2500,
+                      location: smartHint['location']?.toString(),
                     ),
                   ],
                   const EjariSectionHeader(
@@ -257,7 +266,10 @@ class OwnerHomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildOverviewSection(Map<String, dynamic> stats) {
+  Widget _buildOverviewSection(
+    Map<String, dynamic> stats,
+    Map<String, dynamic>? trustData,
+  ) {
     return EjariSurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,7 +286,7 @@ class OwnerHomeView extends StatelessWidget {
               crossAxisCount: 2,
               mainAxisSpacing: AppTheme.spaceXs,
               crossAxisSpacing: AppTheme.spaceXs,
-              mainAxisExtent: 96,
+              mainAxisExtent: 100,
             ),
             children: [
               EjariStatTile(
@@ -306,11 +318,9 @@ class OwnerHomeView extends StatelessWidget {
               ),
             ],
           ),
-          if (stats['trustData'] != null) ...[
+          if (trustData != null) ...[
             const SizedBox(height: AppTheme.spaceSm),
-            TrustScoreCard(
-              trustData: Map<String, dynamic>.from(stats['trustData'] as Map),
-            ),
+            TrustScoreCard(trustData: trustData),
           ],
         ],
       ),
@@ -334,7 +344,7 @@ class OwnerHomeView extends StatelessWidget {
               crossAxisCount: 2,
               mainAxisSpacing: AppTheme.spaceXs,
               crossAxisSpacing: AppTheme.spaceXs,
-              mainAxisExtent: 88,
+              mainAxisExtent: 92,
             ),
             children: [
               EjariStatTile(
@@ -429,7 +439,12 @@ class OwnerHomeView extends StatelessWidget {
       child: InkWell(
         onTap: () {
           if (isRequests) {
-            // scroll to booking panel — panel is below on same page
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const OwnerBookingRequestsScreen(),
+              ),
+            );
           } else {
             Navigator.push(
               context,
@@ -661,13 +676,22 @@ class OwnerHomeView extends StatelessWidget {
             ),
             title: Text(
               v['bedLabel'] ?? v['roomLabel'] ?? 'سرير',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
             ),
             subtitle: Text(
               v['propertyTitle']?.toString() ?? '',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 11),
             ),
             trailing: TextButton(
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -676,7 +700,7 @@ class OwnerHomeView extends StatelessWidget {
                   ),
                 ),
               ),
-              child: const Text('عرض للمستأجرين'),
+              child: const Text('عرض', style: TextStyle(fontSize: 11)),
             ),
           );
         }).toList(),

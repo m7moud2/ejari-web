@@ -4,6 +4,7 @@ import '../services/data_service.dart';
 import '../services/auth_service.dart';
 import '../utils/auth_gate.dart';
 import 'add_property_screen.dart';
+import '../widgets/property_image.dart';
 
 class ManagePropertiesScreen extends StatefulWidget {
   const ManagePropertiesScreen({super.key});
@@ -150,15 +151,13 @@ class _ManagePropertiesScreenState extends State<ManagePropertiesScreen> {
               ClipRRect(
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(16)),
-                child: Image.asset(
-                  property['image'] ?? 'assets/images/home1.jpg',
+                child: PropertyImage(
+                  property: property,
                   height: 150,
                   width: double.infinity,
                   fit: BoxFit.cover,
-                  errorBuilder: (c, e, s) => Container(
-                    height: 150,
-                    color: AppTheme.backgroundColor,
-                    child: const Icon(Icons.home, size: 50),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
                   ),
                 ),
               ),

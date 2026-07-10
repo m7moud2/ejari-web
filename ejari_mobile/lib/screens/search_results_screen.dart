@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/property_card.dart';
+import '../widgets/empty_state_view.dart';
+import '../utils/property_image_resolver.dart';
 import '../services/firestore_property_service.dart';
 import 'property_details_screen.dart';
 import 'booking_screen.dart';
@@ -168,56 +170,36 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                 ),
               ),
             )
-          : _results.isEmpty
-              ? Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+          : RefreshIndicator(
+              color: AppTheme.primaryColor,
+              onRefresh: _performSearch,
+              child: _results.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
                       children: [
-                        const Icon(Icons.search_off,
-                            size: 80, color: AppTheme.primaryColor),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'لا توجد نتائج مطابقة لبحثك',
-                          style: TextStyle(
-                              fontSize: 18, color: AppTheme.textSecondary),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'حاول استخدام كلمات مفتاحية مختلفة أو افتح الفلتر المتقدم لتوسيع البحث.',
-                          style: TextStyle(color: AppTheme.textSecondary),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 18),
-                        ElevatedButton.icon(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(Icons.tune_rounded),
-                          label: const Text('تعديل البحث'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primaryColor,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
+                        EmptyStateView(
+                          icon: Icons.search_off_rounded,
+                          title: 'لا توجد نتائج مطابقة لبحثك',
+                          subtitle:
+                              'حاول استخدام كلمات مفتاحية مختلفة أو افتح الفلتر المتقدم.',
+                          actionLabel: 'تعديل البحث',
+                          onAction: () => Navigator.pop(context),
                         ),
                       ],
-                    ),
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _results.length,
-                  itemBuilder: (context, index) {
-                    final property = _results[index];
-                    return PropertyCard(
-                      id: property['id'] ?? '0',
-                      title: property['title'] ?? '',
-                      price: property['price'] ?? '0',
-                      location: property['location'] ?? '',
-                      image: property['image'] ?? 'assets/images/home1.jpg',
+                    )
+                  : ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _results.length,
+                      itemBuilder: (context, index) {
+                        final property = _results[index];
+                        final image = PropertyImageResolver.resolve(property);
+                        return PropertyCard(
+                          id: property['id'] ?? '0',
+                          title: property['title'] ?? '',
+                          price: property['price'] ?? '0',
+                          location: property['location'] ?? '',
+                          image: image,
                       beds: property['beds'] ?? '0',
                       baths: property['baths'] ?? '0',
                       area: property['area'] ?? '0',
@@ -245,6 +227,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                     );
                   },
                 ),
+            ),
     );
   }
 }

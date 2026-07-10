@@ -11,6 +11,7 @@ import '../models/booking_status.dart';
 import 'activity_log_service.dart';
 import 'auth_service.dart';
 import 'mock_data_seeder.dart';
+import '../utils/property_image_resolver.dart';
 import 'wallet_service.dart';
 import 'financial_service.dart';
 import 'maintenance_service.dart';
@@ -51,39 +52,41 @@ class DataService {
   }
 
   // High quality default image for fallbacks
-  static const String defaultPropertyImage = 'assets/images/home1.jpg';
+  static const String defaultPropertyImage =
+      'assets/images/properties/default.jpg';
   static const String defaultCarImage = 'assets/images/car.jpg';
 
-  static String getSafeImagePath(String? path, {String? type}) {
-    if (path == null || path.isEmpty) {
-      return type == 'car' ? defaultCarImage : defaultPropertyImage;
+  static String getSafeImagePath(String? path, {String? type, Map<String, dynamic>? property}) {
+    if (type == 'car') {
+      if (path == null || path.isEmpty) return defaultCarImage;
+      final brokenAssets = [
+        'assets/images/car_coupe1.jpg',
+        'assets/images/car_coupe2.jpg',
+        'assets/images/car_hatchback1.jpg',
+        'assets/images/car_hatchback2.jpg',
+        'assets/images/car_sedan1.jpg',
+        'assets/images/car_sedan2.jpg',
+        'assets/images/car_sedan3.jpg',
+        'assets/images/car_suv1.jpg',
+        'assets/images/car_suv2.jpg',
+        'assets/images/car_suv3.jpg',
+      ];
+      if (brokenAssets.contains(path)) return defaultCarImage;
+      return path;
     }
+    return PropertyImageResolver.resolvePath(path, property: property);
+  }
 
-    // List of known broken/empty placeholders from our research
-    final brokenAssets = [
-      'assets/images/car_coupe1.jpg',
-      'assets/images/car_coupe2.jpg',
-      'assets/images/car_hatchback1.jpg',
-      'assets/images/car_hatchback2.jpg',
-      'assets/images/car_sedan1.jpg',
-      'assets/images/car_sedan2.jpg',
-      'assets/images/car_sedan3.jpg',
-      'assets/images/car_suv1.jpg',
-      'assets/images/car_suv2.jpg',
-      'assets/images/car_suv3.jpg',
-    ];
-
-    if (brokenAssets.contains(path)) {
-      return type == 'car' ? defaultCarImage : defaultPropertyImage;
-    }
-    return path;
+  static Map<String, dynamic> _ensurePropertyImage(Map<String, dynamic> p) {
+    final resolved = PropertyImageResolver.resolve(p);
+    return {...p, 'image': resolved};
   }
 
   // --- Properties (Dynamic) ---
 
   static const String _propsVersionKey = 'properties_version';
   static const int _currentPropsVersion =
-      9; // bumped — ROS bed hierarchy + demo scores
+      10; // bumped — property images + overflow fixes
 
   /// Seed cross-role demo bookings so owner dashboard shows real pending requests.
   static Future<void> initDemoBookings() async {
@@ -788,7 +791,7 @@ class DataService {
         ...MockDataSeeder.getEgyptianProperties(),
         MockDataSeeder.getSharedAccommodationProperty(),
       ],
-    );
+    ).map(_ensurePropertyImage).toList();
     await prefs.setStringList(
         _propertiesKey, merged.map((e) => jsonEncode(e)).toList());
     await initDemoOccupancy();
@@ -819,14 +822,14 @@ class DataService {
     }
 
     final imagesList = p['images'] as List<dynamic>?;
-    String imageStr = 'assets/images/home1.jpg';
+    String imageStr = defaultPropertyImage;
     if (imagesList != null && imagesList.isNotEmpty) {
       imageStr = imagesList[0].toString();
     } else if (p['image'] != null) {
       imageStr = p['image'].toString();
     }
 
-    return {
+    final normalized = {
       ...p,
       'id': id,
       'title': p['title'] ?? '',
@@ -861,6 +864,7 @@ class DataService {
       'perBedPricing': p['perBedPricing'],
       'depositAmount': p['depositAmount'],
     };
+    return _ensurePropertyImage(normalized);
   }
 
   static Future<List<Map<String, dynamic>>> getAllProperties(

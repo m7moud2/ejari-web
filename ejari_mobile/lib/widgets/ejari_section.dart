@@ -136,38 +136,44 @@ class EjariStatTile extends StatelessWidget {
     final color = accentColor ?? AppTheme.primaryColor;
 
     return Container(
-      padding: EdgeInsets.all(compact ? AppTheme.spaceSm : AppTheme.spaceMd),
+      padding: EdgeInsets.all(compact ? 8 : AppTheme.spaceMd),
       decoration: BoxDecoration(
         color: AppTheme.backgroundColor.withOpacity(0.55),
         borderRadius: BorderRadius.circular(AppTheme.cardRadius - 4),
         border: Border.all(color: color.withOpacity(0.12)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: compact ? 18 : 20),
-          SizedBox(height: compact ? 6 : 10),
-          Text(
-            label,
-            style: TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: compact ? 10 : 11,
-              fontWeight: FontWeight.w700,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: compact ? 16 : 20),
+            SizedBox(height: compact ? 4 : 10),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: compact ? 9 : 11,
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: AppTheme.textPrimary,
-              fontSize: compact ? 13 : 15,
-              fontWeight: FontWeight.w900,
+            const SizedBox(height: 2),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: compact ? 12 : 15,
+                fontWeight: FontWeight.w900,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

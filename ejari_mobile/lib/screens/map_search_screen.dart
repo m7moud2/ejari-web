@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart' as loc;
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
+import '../widgets/property_image.dart';
 import 'property_details_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:math' as math;
@@ -428,17 +429,12 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
             ClipRRect(
               borderRadius:
                   const BorderRadius.horizontal(right: Radius.circular(24)),
-              child: Image.asset(
-                prop['image'] ?? 'assets/images/home1.jpg',
+              child: PropertyImage(
+                imagePath: prop['image']?.toString(),
+                property: prop,
                 width: compact ? 100 : 120,
                 height: compact ? 120 : 180,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  width: compact ? 100 : 120,
-                  height: compact ? 120 : 180,
-                  color: AppTheme.surfaceColor,
-                  child: const Icon(Icons.home_rounded),
-                ),
               ),
             ),
             Expanded(

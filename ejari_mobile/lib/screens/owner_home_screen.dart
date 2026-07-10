@@ -12,6 +12,7 @@ import 'wallet_screen.dart';
 import 'chat_list_screen.dart';
 import 'merchant_requests_screen.dart';
 import '../utils/safe_parse.dart';
+import '../widgets/property_image.dart';
 
 class OwnerHomeScreen extends StatefulWidget {
   const OwnerHomeScreen({super.key});
@@ -780,13 +781,12 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              property['image'] ?? 'assets/images/home1.jpg',
+            child: PropertyImage(
+              property: property,
               width: 60,
               height: 60,
               fit: BoxFit.cover,
-              errorBuilder: (c, e, s) => Container(
-                  width: 60, height: 60, color: AppTheme.backgroundColor),
+              borderRadius: BorderRadius.circular(8),
             ),
           ),
           const SizedBox(width: 12),

@@ -126,22 +126,27 @@ class _AdminServiceRequestsScreenState
             const Expanded(child: Center(child: CircularProgressIndicator()))
           else ...[
             // Statistics Cards
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  _buildStatCard('الكل', totalRequests, AppTheme.primaryColor),
-                  const SizedBox(width: 12),
-                  _buildStatCard(
-                      'قيد الانتظار', pendingCount, AppTheme.borderColor),
-                  const SizedBox(width: 12),
-                  _buildStatCard(
-                      'جاري التنفيذ', inProgressCount, AppTheme.primaryColor),
-                  const SizedBox(width: 12),
-                  _buildStatCard(
-                      'مكتمل', completedCount, AppTheme.primaryColor),
-                ],
-              ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final narrow = constraints.maxWidth < 360;
+                return Container(
+                  padding: EdgeInsets.all(narrow ? 10 : 16),
+                  child: Row(
+                    children: [
+                      _buildStatCard('الكل', totalRequests, AppTheme.primaryColor),
+                      SizedBox(width: narrow ? 6 : 12),
+                      _buildStatCard(
+                          'قيد الانتظار', pendingCount, AppTheme.borderColor),
+                      SizedBox(width: narrow ? 6 : 12),
+                      _buildStatCard(
+                          'جاري التنفيذ', inProgressCount, AppTheme.primaryColor),
+                      SizedBox(width: narrow ? 6 : 12),
+                      _buildStatCard(
+                          'مكتمل', completedCount, AppTheme.primaryColor),
+                    ],
+                  ),
+                );
+              },
             ),
 
             // Filter Tabs

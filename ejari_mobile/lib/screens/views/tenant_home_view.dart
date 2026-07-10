@@ -640,67 +640,77 @@ class TenantHomeView extends StatelessWidget {
       ),
     ];
 
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: AppTheme.spaceSm,
-      crossAxisSpacing: AppTheme.spaceSm,
-      childAspectRatio: 1.25,
-      children: quickActions.map((action) {
-        return Material(
-          color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(AppTheme.cardRadius),
-          elevation: 0,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(AppTheme.cardRadius),
-            onTap: action.onTap,
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: AppTheme.surfaceCardDecoration(
-                elevated: true,
-                radius: AppTheme.cardRadius,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: action.color.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(action.icon, color: action.color, size: 22),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final narrow = constraints.maxWidth < 360;
+        return GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: AppTheme.spaceSm,
+          crossAxisSpacing: AppTheme.spaceSm,
+          childAspectRatio: narrow ? 1.05 : 1.25,
+          children: quickActions.map((action) {
+            return Material(
+              color: AppTheme.surfaceColor,
+              borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+              elevation: 0,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+                onTap: action.onTap,
+                child: Container(
+                  padding: EdgeInsets.all(narrow ? 10 : 12),
+                  decoration: AppTheme.surfaceCardDecoration(
+                    elevated: true,
+                    radius: AppTheme.cardRadius,
                   ),
-                  Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        action.title,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                          color: AppTheme.textPrimary,
+                      Container(
+                        width: narrow ? 34 : 40,
+                        height: narrow ? 34 : 40,
+                        decoration: BoxDecoration(
+                          color: action.color.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(12),
                         ),
+                        child: Icon(action.icon,
+                            color: action.color, size: narrow ? 18 : 22),
                       ),
-                      Text(
-                        action.subtitle,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: AppTheme.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            action.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: narrow ? 12 : 14,
+                              fontWeight: FontWeight.w900,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            action.subtitle,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: narrow ? 10 : 11,
+                              color: AppTheme.textSecondary,
+                              height: 1.2,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          }).toList(),
         );
-      }).toList(),
+      },
     );
   }
 
