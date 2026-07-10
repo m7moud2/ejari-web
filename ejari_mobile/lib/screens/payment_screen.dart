@@ -12,6 +12,7 @@ import '../widgets/rental_booking_widgets.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/payment_receipt.dart';
 import '../services/auth_service.dart';
+import '../services/maintenance_service.dart';
 import 'success_payment_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
@@ -240,6 +241,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
         userId: user?['email']?.toString(),
       );
       result = {'success': true};
+    } else if (widget.itemType == 'service') {
+      final requestId = widget.itemData['id']?.toString() ?? '';
+      final user = await AuthService.getCurrentUser();
+      final tenantId = user?['email']?.toString() ?? '';
+      result = await MaintenanceService.confirmAndPay(
+        requestId: requestId,
+        tenantId: tenantId,
+        useWallet: useWallet,
+        method: method,
+      );
     }
 
     if (!mounted) return;

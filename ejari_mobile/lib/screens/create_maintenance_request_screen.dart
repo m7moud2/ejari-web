@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ejari_section.dart';
 import '../services/maintenance_service.dart';
 import '../services/auth_service.dart';
+import '../services/data_service.dart';
 
 class CreateMaintenanceRequestScreen extends StatefulWidget {
   const CreateMaintenanceRequestScreen({super.key});
@@ -19,106 +21,120 @@ class _CreateMaintenanceRequestScreenState
 
   String? _selectedCategory;
   String _selectedPriority = 'medium';
+  String? _selectedPropertyId;
+  String _selectedPropertyTitle = '';
+  DateTime? _preferredTime;
+  bool _submitting = false;
+  List<Map<String, dynamic>> _properties = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProperties();
+  }
+
+  Future<void> _loadProperties() async {
+    final bookings = await DataService.getBookings();
+    final props = bookings
+        .map((b) => {
+              'id': b['propertyId']?.toString() ?? b['id']?.toString() ?? '',
+              'title': b['title']?.toString() ?? 'عقار محجوز',
+            })
+        .where((p) => p['id'].toString().isNotEmpty)
+        .toList();
+
+    if (props.isEmpty) {
+      final all = await DataService.getAllProperties();
+      props.addAll(all
+          .take(5)
+          .map((p) => {
+                'id': p['id']?.toString() ?? '',
+                'title': p['title']?.toString() ?? 'عقار',
+              }));
+    }
+
+    if (mounted) {
+      setState(() {
+        _properties = props;
+        if (props.isNotEmpty) {
+          _selectedPropertyId = props.first['id']?.toString();
+          _selectedPropertyTitle = props.first['title']?.toString() ?? '';
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: const Text('طلب صيانة جديد'),
+        backgroundColor: AppTheme.surfaceColor,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.08),
-                  borderRadius: BorderRadius.circular(20),
-                  border:
-                      Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
-                ),
-                child: const Row(
+              EjariSurfaceCard(
+                child: Row(
                   children: [
-                    Icon(Icons.support_agent_rounded,
-                        color: AppTheme.primaryColor),
-                    SizedBox(width: 12),
-                    Expanded(
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentColor.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(Icons.support_agent_rounded,
+                          color: AppTheme.primaryColor),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
                       child: Text(
-                        'اكتب المشكلة بشكل واضح، واختار النوع والأولوية، وسيتم تجهيز الطلب بشكل منظم قبل أي متابعة.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          height: 1.5,
-                          color: AppTheme.textPrimary,
-                        ),
+                        'اختر العقار ونوع المشكلة — سيتم إرسال الطلب للمالك والإدارة وتعيين فني.',
+                        style: TextStyle(fontSize: 13, height: 1.5),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'أمثلة سريعة',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
+              const EjariSectionHeader(title: 'العقار المرتبط'),
+              const SizedBox(height: 10),
+              if (_properties.isEmpty)
+                const Text('لا توجد عقارات — أضف حجزاً أولاً',
+                    style: TextStyle(color: AppTheme.textSecondary))
+              else
+                DropdownButtonFormField<String>(
+                  value: _selectedPropertyId,
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.home_work_outlined),
+                    labelText: 'اختر العقار',
+                  ),
+                  items: _properties
+                      .map((p) => DropdownMenuItem(
+                            value: p['id']?.toString(),
+                            child: Text(p['title']?.toString() ?? ''),
+                          ))
+                      .toList(),
+                  onChanged: (v) => setState(() {
+                    _selectedPropertyId = v;
+                    _selectedPropertyTitle = _properties
+                        .firstWhere((p) => p['id'] == v,
+                            orElse: () => {'title': ''})['title']
+                        ?.toString() ?? '';
+                  }),
+                  validator: (v) => v == null ? 'اختر العقار' : null,
+                ),
+              const SizedBox(height: 20),
+              const EjariSectionHeader(title: 'نوع المشكلة'),
+              const SizedBox(height: 10),
               Wrap(
                 spacing: 10,
                 runSpacing: 10,
-                children: [
-                  _QuickIssueChip(
-                    label: 'تسريب مياه',
-                    onTap: () {
-                      setState(() {
-                        _selectedCategory = 'plumbing';
-                        _selectedPriority = 'urgent';
-                        _titleController.text = 'تسريب مياه';
-                        _descriptionController.text =
-                            'يوجد تسريب مياه ويحتاج فحص سريع وإصلاح.';
-                      });
-                    },
-                  ),
-                  _QuickIssueChip(
-                    label: 'عطل كهرباء',
-                    onTap: () {
-                      setState(() {
-                        _selectedCategory = 'electrical';
-                        _selectedPriority = 'urgent';
-                        _titleController.text = 'عطل في الكهرباء';
-                        _descriptionController.text =
-                            'هناك مشكلة كهربائية متكررة وتحتاج تدخل سريع.';
-                      });
-                    },
-                  ),
-                  _QuickIssueChip(
-                    label: 'صيانة تكييف',
-                    onTap: () {
-                      setState(() {
-                        _selectedCategory = 'ac';
-                        _selectedPriority = 'medium';
-                        _titleController.text = 'صيانة التكييف';
-                        _descriptionController.text =
-                            'أحتاج تنظيف وفحص وصيانة للتكييف.';
-                      });
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Category Selection
-              const Text(
-                'نوع المشكلة',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
                 children: MaintenanceService.categories.map((category) {
                   final isSelected = _selectedCategory == category['id'];
                   return GestureDetector(
@@ -126,30 +142,31 @@ class _CreateMaintenanceRequestScreenState
                         setState(() => _selectedCategory = category['id']),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
+                          horizontal: 14, vertical: 10),
                       decoration: BoxDecoration(
-                        color:
-                            isSelected ? AppTheme.primaryColor : Colors.white,
+                        color: isSelected
+                            ? AppTheme.primaryColor
+                            : AppTheme.surfaceColor,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected
                               ? AppTheme.primaryColor
-                              : AppTheme.primaryColor,
+                              : AppTheme.primaryColor.withOpacity(0.25),
                         ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(category['icon'],
-                              style: const TextStyle(fontSize: 20)),
-                          const SizedBox(width: 8),
+                              style: const TextStyle(fontSize: 18)),
+                          const SizedBox(width: 6),
                           Text(
                             category['name'],
                             style: TextStyle(
                               color: isSelected
                                   ? Colors.white
                                   : AppTheme.primaryColor,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ],
@@ -158,29 +175,23 @@ class _CreateMaintenanceRequestScreenState
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 28),
-
-              // Priority Selection
-              const Text(
-                'الأولوية',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
+              const EjariSectionHeader(title: 'الأولوية'),
+              const SizedBox(height: 10),
               ...MaintenanceService.priorities.entries.map((entry) {
                 final isSelected = _selectedPriority == entry.key;
                 return GestureDetector(
                   onTap: () => setState(() => _selectedPriority = entry.key),
                   child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).cardTheme.color ??
-                          Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppTheme.surfaceColor,
+                      borderRadius: BorderRadius.circular(14),
                       border: Border.all(
                         color: isSelected
-                            ? Color(entry.value['color'])
-                            : AppTheme.primaryColor,
+                            ? AppTheme.accentColor
+                            : AppTheme.borderColor,
                         width: isSelected ? 2 : 1,
                       ),
                     ),
@@ -189,19 +200,17 @@ class _CreateMaintenanceRequestScreenState
                         Radio<String>(
                           value: entry.key,
                           groupValue: _selectedPriority,
-                          onChanged: (value) =>
-                              setState(() => _selectedPriority = value!),
-                          activeColor: Color(entry.value['color']),
+                          onChanged: (v) =>
+                              setState(() => _selectedPriority = v!),
+                          activeColor: AppTheme.primaryColor,
                         ),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                entry.value['name'],
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16),
-                              ),
+                              Text(entry.value['name'],
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w800)),
                               Text(
                                 'وقت الاستجابة: ${entry.value['responseTime']}',
                                 style: const TextStyle(
@@ -211,61 +220,114 @@ class _CreateMaintenanceRequestScreenState
                             ],
                           ),
                         ),
-                        Container(
-                          width: 12,
-                          height: 12,
-                          decoration: BoxDecoration(
-                            color: Color(entry.value['color']),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
                       ],
                     ),
                   ),
                 );
               }),
-              const SizedBox(height: 32),
-
-              // Title
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(
                   labelText: 'عنوان المشكلة',
-                  hintText: 'مثال: تسريب في الحمام',
                   prefixIcon: Icon(Icons.title),
                 ),
                 validator: (v) => v!.isEmpty ? 'مطلوب' : null,
               ),
-              const SizedBox(height: 16),
-
-              // Description
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(
                   labelText: 'وصف المشكلة',
-                  hintText: 'اشرح المشكلة بالتفصيل...',
                   prefixIcon: Icon(Icons.description),
                   alignLabelWithHint: true,
                 ),
-                maxLines: 5,
+                maxLines: 4,
                 validator: (v) => v!.isEmpty ? 'مطلوب' : null,
               ),
-              const SizedBox(height: 32),
-
-              // Submit Button
+              const SizedBox(height: 12),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.schedule_rounded,
+                    color: AppTheme.primaryColor),
+                title: const Text('الوقت المفضل'),
+                subtitle: Text(_preferredTime == null
+                    ? 'اختياري'
+                    : _preferredTime!.toLocal().toString().substring(0, 16)),
+                trailing: const Icon(Icons.chevron_left),
+                onTap: () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now().add(const Duration(days: 1)),
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 30)),
+                  );
+                  if (date == null || !mounted) return;
+                  final time = await showTimePicker(
+                    context: context,
+                    initialTime: const TimeOfDay(hour: 10, minute: 0),
+                  );
+                  if (time != null) {
+                    setState(() {
+                      _preferredTime = DateTime(
+                        date.year,
+                        date.month,
+                        date.day,
+                        time.hour,
+                        time.minute,
+                      );
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
+              EjariSurfaceCard(
+                elevated: false,
+                child: Row(
+                  children: [
+                    Icon(Icons.photo_camera_outlined,
+                        color: AppTheme.accentColor.withOpacity(0.8)),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'إرفاق صور (قريباً)',
+                        style: TextStyle(color: AppTheme.textSecondary),
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text('تجريبي',
+                          style: TextStyle(
+                              fontSize: 11,
+                              color: AppTheme.accentColor,
+                              fontWeight: FontWeight.w800)),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _submitRequest,
+                  onPressed: _submitting ? null : _submitRequest,
                   style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text(
-                    'إرسال الطلب',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
+                  child: _submitting
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                              color: Colors.white, strokeWidth: 2))
+                      : const Text('إرسال الطلب',
+                          style: TextStyle(
+                              fontSize: 17, fontWeight: FontWeight.w800)),
                 ),
               ),
             ],
@@ -280,8 +342,9 @@ class _CreateMaintenanceRequestScreenState
     if (_selectedCategory == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('الرجاء اختيار نوع المشكلة'),
-            backgroundColor: AppTheme.errorColor),
+          content: Text('الرجاء اختيار نوع المشكلة'),
+          backgroundColor: AppTheme.errorColor,
+        ),
       );
       return;
     }
@@ -289,28 +352,30 @@ class _CreateMaintenanceRequestScreenState
     final user = await AuthService.getCurrentUser();
     if (user == null) return;
 
-    // Simulate some location within Cairo/New Cairo area for demo purposes
-    final lat = 30.0 + (DateTime.now().millisecond % 500) / 1000;
-    final lng = 31.2 + (DateTime.now().microsecond % 500) / 1000;
+    setState(() => _submitting = true);
 
     await MaintenanceService.createRequest(
       userId: user['email'],
-      propertyId: 'PROP001', // Should be from actual property
+      propertyId: _selectedPropertyId ?? 'none',
+      propertyTitle: _selectedPropertyTitle,
       category: _selectedCategory!,
       priority: _selectedPriority,
       title: _titleController.text,
       description: _descriptionController.text,
-      lat: lat,
-      lng: lng,
+      scheduledAt: _preferredTime?.toIso8601String(),
+      lat: 30.0444 + (DateTime.now().millisecond % 100) / 10000,
+      lng: 31.2357 + (DateTime.now().microsecond % 100) / 10000,
     );
 
     if (mounted) {
+      setState(() => _submitting = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('تم إرسال الطلب بنجاح! ✅'),
-            backgroundColor: AppTheme.primaryColor),
+          content: Text('تم إرسال الطلب — بانتظار التعيين ✅'),
+          backgroundColor: AppTheme.primaryColor,
+        ),
       );
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     }
   }
 
@@ -319,39 +384,5 @@ class _CreateMaintenanceRequestScreenState
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();
-  }
-}
-
-class _QuickIssueChip extends StatelessWidget {
-  const _QuickIssueChip({
-    required this.label,
-    required this.onTap,
-  });
-
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(999),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: AppTheme.borderColor.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: AppTheme.borderColor.withOpacity(0.15)),
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            color: AppTheme.borderColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-          ),
-        ),
-      ),
-    );
   }
 }

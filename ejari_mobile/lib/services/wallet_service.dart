@@ -86,6 +86,7 @@ class WalletService {
   static double _defaultBalanceFor(String userId) {
     if (userId == 'user@ejari.app') return 15000;
     if (userId == 'owner@ejari.app') return 8500;
+    if (userId == 'tech@ejari.app') return 2500;
     if (userId == 'admin@ejari.app') return 0;
     return 5000;
   }
@@ -174,6 +175,7 @@ class WalletService {
     required String method,
     required String bookingId,
     String? userId,
+    String category = 'rent',
   }) async {
     await init(userId: userId);
     _transactions.insert(0, {
@@ -183,7 +185,7 @@ class WalletService {
       'date': DateTime.now().toIso8601String(),
       'type': 'expense',
       'method': method,
-      'category': 'rent',
+      'category': category,
       'bookingId': bookingId,
       'status': 'completed',
     });
@@ -399,5 +401,70 @@ class WalletService {
       return dateB.compareTo(dateA);
     });
     return all;
+  }
+
+  /// خصم مستأجر وتوزيع مبلغ الصيانة: فني + عمولة منصة.
+  static Future<bool> processServicePayment({
+    required String tenantId,
+    required String technicianId,
+    required double amount,
+    required String requestId,
+    required String title,
+    required double technicianShare,
+    required double platformFee,
+    bool useWallet = true,
+    String method = 'wallet',
+  }) async {
+    if (useWallet) {
+      final ok = await payFromWallet(
+        title: title,
+        amount: amount,
+        category: 'maintenance',
+        bookingId: requestId,
+        userId: tenantId,
+      );
+      if (!ok) return false;
+    } else {
+      await recordExternalPayment(
+        title: title,
+        amount: amount,
+        method: method,
+        bookingId: requestId,
+        userId: tenantId,
+        category: 'maintenance',
+      );
+    }
+
+    await init(userId: technicianId);
+    _balance += technicianShare;
+    _transactions.insert(0, {
+      'id': 'SVC-${DateTime.now().millisecondsSinceEpoch}',
+      'title': 'أجر صيانة — $title',
+      'amount': technicianShare,
+      'date': DateTime.now().toIso8601String(),
+      'type': 'income',
+      'method': 'system',
+      'category': 'maintenance',
+      'bookingId': requestId,
+      'status': 'completed',
+    });
+    await _persistUserState();
+
+    await init(userId: 'admin@ejari.app');
+    _balance += platformFee;
+    _transactions.insert(0, {
+      'id': 'ADM-SVC-${DateTime.now().millisecondsSinceEpoch}',
+      'title': 'عمولة صيانة — $title',
+      'amount': platformFee,
+      'date': DateTime.now().toIso8601String(),
+      'type': 'commission',
+      'method': 'system',
+      'category': 'maintenance',
+      'bookingId': requestId,
+      'status': 'completed',
+    });
+    await _persistUserState();
+
+    return true;
   }
 }

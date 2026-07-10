@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import '../services/data_service.dart';
+import '../widgets/ejari_section.dart';
+import '../services/maintenance_service.dart';
 import '../services/auth_service.dart';
+import 'tech_job_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ProviderJobsScreen extends StatefulWidget {
@@ -14,7 +16,8 @@ class ProviderJobsScreen extends StatefulWidget {
 class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
   List<Map<String, dynamic>> _jobs = [];
   bool _isLoading = true;
-  String _selectedFilter = 'all'; // all, pending, in_progress, completed
+  String _selectedFilter = 'all';
+  String _techId = '';
 
   @override
   void initState() {
@@ -24,70 +27,61 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
 
   Future<void> _loadJobs() async {
     final user = await AuthService.getCurrentUser();
-    final jobs = await DataService.getProviderRequests(user?['email'] ?? '');
+    _techId = user?['email']?.toString() ?? 'tech@ejari.app';
+    final raw = await MaintenanceService.getTechnicianRequests(_techId);
     setState(() {
-      _jobs = jobs;
+      _jobs = raw;
       _isLoading = false;
     });
   }
 
-  Future<void> _updateStatus(String jobId, String status) async {
-    await AuthService.getCurrentUser();
-    await DataService.updateProviderRequestStatus(jobId, status);
-    _loadJobs();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(switch (status) {
-          'accepted' => 'تم قبول المهمة بنجاح ✅',
-          'cancelled' => 'تم رفض المهمة',
-          _ => 'تم تحديث حالة المهمة',
-        })),
-      );
-    }
+  List<Map<String, dynamic>> get _filtered {
+    if (_selectedFilter == 'all') return _jobs;
+    return _jobs
+        .where((j) =>
+            MaintenanceStatus.normalize(j['status']) == _selectedFilter)
+        .toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final filteredJobs = _selectedFilter == 'all'
-        ? _jobs
-        : _jobs.where((j) => j['status'] == _selectedFilter).toList();
-
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('إدارة المهام'),
+        title: const Text('مهام الصيانة'),
+        backgroundColor: AppTheme.surfaceColor,
+        actions: [
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadJobs),
+        ],
       ),
       body: Column(
         children: [
-          // Filter Chips
-          Container(
+          Padding(
             padding: const EdgeInsets.all(16),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _buildFilterChip('الكل', 'all'),
-                  _buildFilterChip('طلبات جديدة', 'pending'),
-                  _buildFilterChip('جاري العمل',
-                      'accepted'), // accepted covers in_progress for now
-                  _buildFilterChip('مكتملة', 'completed'),
+                  _chip('الكل', 'all'),
+                  _chip('جديد', MaintenanceStatus.assigned),
+                  _chip('تنفيذ', MaintenanceStatus.inProgress),
+                  _chip('تأكيد', MaintenanceStatus.pendingClientConfirm),
+                  _chip('مكتمل', MaintenanceStatus.paid),
                 ],
               ),
             ),
           ),
-
-          // Jobs List
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : filteredJobs.isEmpty
-                    ? _buildEmptyState()
+                ? const Center(
+                    child: CircularProgressIndicator(
+                        color: AppTheme.primaryColor))
+                : _filtered.isEmpty
+                    ? _empty()
                     : ListView.builder(
                         padding: const EdgeInsets.all(16),
-                        itemCount: filteredJobs.length,
-                        itemBuilder: (context, index) =>
-                            _buildJobCard(filteredJobs[index]),
+                        itemCount: _filtered.length,
+                        itemBuilder: (_, i) => _jobCard(_filtered[i]),
                       ),
           ),
         ],
@@ -95,203 +89,264 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
     );
   }
 
-  Widget _buildFilterChip(String label, String value) {
-    bool isSelected = _selectedFilter == value;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedFilter = value),
-      child: Container(
-        margin: const EdgeInsets.only(left: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryColor : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-              color:
-                  isSelected ? AppTheme.primaryColor : AppTheme.primaryColor),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : AppTheme.textSecondary,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
+  Widget _chip(String label, String value) {
+    final sel = _selectedFilter == value;
+    return Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: FilterChip(
+        selected: sel,
+        label: Text(label),
+        onSelected: (_) => setState(() => _selectedFilter = value),
+        selectedColor: AppTheme.primaryColor,
+        checkmarkColor: Colors.white,
+        labelStyle: TextStyle(
+          color: sel ? Colors.white : AppTheme.textPrimary,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );
   }
 
-  Widget _buildJobCard(Map<String, dynamic> job) {
-    final status = job['status'];
-    Color statusColor;
-    String statusText;
+  Widget _jobCard(Map<String, dynamic> job) {
+    final status = MaintenanceStatus.normalize(job['status']?.toString());
+    final color = switch (status) {
+      MaintenanceStatus.assigned => AppTheme.accentColor,
+      MaintenanceStatus.enRoute || MaintenanceStatus.inProgress =>
+        AppTheme.primaryColor,
+      MaintenanceStatus.pendingClientConfirm => AppTheme.accentColor,
+      MaintenanceStatus.paid => AppTheme.successColor,
+      _ => AppTheme.textSecondary,
+    };
 
-    switch (status) {
-      case 'pending':
-        statusColor = AppTheme.borderColor;
-        statusText = 'طلب جديد';
-        break;
-      case 'accepted':
-      case 'in_progress':
-        statusColor = AppTheme.primaryColor;
-        statusText = 'جاري العمل';
-        break;
-      case 'completed':
-        statusColor = AppTheme.primaryColor;
-        statusText = 'مكتملة';
-        break;
-      default:
-        statusColor = AppTheme.primaryColor;
-        statusText = 'غير معروف';
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [],
-      ),
+    return EjariSurfaceCard(
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Expanded(
+                child: Text(job['title'] ?? '',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w900, fontSize: 17)),
+              ),
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8)),
-                child: Text(statusText,
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(MaintenanceStatus.labelAr(status),
                     style: TextStyle(
-                        color: statusColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold)),
+                        color: color,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800)),
               ),
-              Text(job['id'],
-                  style: const TextStyle(
-                      color: AppTheme.textSecondary, fontSize: 12)),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(job['service'],
-              style:
-                  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          _buildInfoRow(Icons.person_outline, job['customer'],
-              action: () async {
-            final Uri telLaunchUri =
-                Uri(scheme: 'tel', path: job['customerPhone'] ?? job['phone']);
-            if (await canLaunchUrl(telLaunchUri)) {
-              await launchUrl(telLaunchUri);
-            } else {
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                  content: Text('لا يمكن إجراء الاتصال حالياً')));
-            }
-          }, actionIcon: Icons.phone_android),
-          _buildInfoRow(Icons.location_on_outlined, job['address'],
-              action: () async {
-            final lat = job['lat'];
-            final lng = job['lng'];
-            final url = (lat != null && lng != null)
-                ? 'https://www.google.com/maps/search/?api=1&query=$lat,$lng'
-                : 'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(job['address'])}';
-
-            final uri = Uri.parse(url);
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            } else {
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('لا يمكن فتح الخرائط حالياً')));
-            }
-          }, actionIcon: Icons.map_outlined),
-          _buildInfoRow(Icons.payments_outlined, '${job['price']} ج.م'),
-          if (job['notes'] != null) ...[
-            const SizedBox(height: 8),
-            Text(job['notes'],
-                style: const TextStyle(
-                    color: AppTheme.textSecondary, fontSize: 13)),
-          ],
-          const SizedBox(height: 20),
-          _buildActions(job),
+          const SizedBox(height: 8),
+          _info(Icons.person_outline, job['tenantId']?.toString() ?? ''),
+          _info(Icons.location_on_outlined,
+              job['propertyTitle']?.toString().isNotEmpty == true
+                  ? job['propertyTitle']
+                  : job['propertyId']?.toString() ?? ''),
+          _info(Icons.payments_outlined,
+              '${job['estimatedCost'] ?? 0} ج.م تقديري'),
+          if (job['description'] != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(job['description'],
+                  style: const TextStyle(
+                      color: AppTheme.textSecondary, fontSize: 13)),
+            ),
+          const SizedBox(height: 14),
+          _actions(job, status),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String text,
-      {VoidCallback? action, IconData? actionIcon}) {
+  Widget _info(IconData icon, String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 4),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: AppTheme.textSecondary),
-          const SizedBox(width: 8),
+          Icon(icon, size: 15, color: AppTheme.textSecondary),
+          const SizedBox(width: 6),
           Expanded(
-            child: Text(text,
-                style: const TextStyle(
-                    color: AppTheme.textSecondary, fontSize: 14)),
-          ),
-          if (action != null)
-            IconButton(
-              icon: Icon(actionIcon ?? Icons.open_in_new,
-                  size: 18, color: AppTheme.primaryColor),
-              onPressed: action,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(),
-            ),
+              child: Text(text,
+                  style: const TextStyle(
+                      color: AppTheme.textSecondary, fontSize: 13))),
         ],
       ),
     );
   }
 
-  Widget _buildActions(Map<String, dynamic> job) {
-    if (job['status'] == 'pending') {
+  Widget _actions(Map<String, dynamic> job, String status) {
+    final id = job['id']?.toString() ?? '';
+
+    if (status == MaintenanceStatus.assigned && job['techAccepted'] != true) {
       return Row(
         children: [
           Expanded(
             child: OutlinedButton(
-              onPressed: () => _updateStatus(job['id'], 'cancelled'),
+              onPressed: () => _reject(id),
               style: OutlinedButton.styleFrom(
                   foregroundColor: AppTheme.errorColor),
               child: const Text('رفض'),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 10),
           Expanded(
             child: ElevatedButton(
-              onPressed: () => _updateStatus(job['id'], 'accepted'),
-              child: const Text('قبول المهمة'),
+              onPressed: () async {
+                await MaintenanceService.acceptJob(id, _techId);
+                await _loadJobs();
+              },
+              child: const Text('قبول'),
             ),
           ),
         ],
       );
-    } else if (job['status'] == 'accepted') {
-      return SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () => _updateStatus(job['id'], 'completed'),
-          style:
-              ElevatedButton.styleFrom(backgroundColor: AppTheme.primaryColor),
-          child: const Text('إتمام المهمة'),
-        ),
+    }
+
+    if (status == MaintenanceStatus.assigned ||
+        status == MaintenanceStatus.enRoute ||
+        status == MaintenanceStatus.inProgress ||
+        status == MaintenanceStatus.pendingClientConfirm) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (status == MaintenanceStatus.assigned && job['techAccepted'] == true)
+            ElevatedButton(
+              onPressed: () async {
+                await MaintenanceService.markEnRoute(id, _techId);
+                await _loadJobs();
+              },
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentColor),
+              child: const Text('في الطريق'),
+            ),
+          if (status == MaintenanceStatus.enRoute)
+            ElevatedButton(
+              onPressed: () async {
+                await MaintenanceService.startJob(id, _techId);
+                await _loadJobs();
+              },
+              child: const Text('بدء العمل'),
+            ),
+          if (status == MaintenanceStatus.inProgress)
+            ElevatedButton(
+              onPressed: () => _complete(id, job),
+              child: const Text('إنهاء وطلب تأكيد'),
+            ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => TechJobScreen(requestId: id),
+              ),
+            ).then((_) => _loadJobs()),
+            icon: const Icon(Icons.open_in_new, size: 16),
+            label: const Text('تفاصيل المهمة'),
+          ),
+        ],
       );
     }
-    return const SizedBox.shrink();
+
+    return OutlinedButton.icon(
+      onPressed: () async {
+        final lat = job['lat'];
+        final lng = job['lng'];
+        if (lat != null && lng != null) {
+          final uri = Uri.parse(
+              'https://www.google.com/maps/search/?api=1&query=$lat,$lng');
+          if (await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          }
+        }
+      },
+      icon: const Icon(Icons.map_outlined, size: 16),
+      label: const Text('الخريطة'),
+    );
   }
 
-  Widget _buildEmptyState() {
+  Future<void> _reject(String id) async {
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        final c = TextEditingController();
+        return AlertDialog(
+          title: const Text('سبب الرفض'),
+          content: TextField(
+              controller: c, decoration: const InputDecoration(hintText: 'السبب')),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('تراجع')),
+            ElevatedButton(
+                onPressed: () => Navigator.pop(ctx, c.text),
+                child: const Text('رفض')),
+          ],
+        );
+      },
+    );
+    if (reason == null) return;
+    await MaintenanceService.rejectJob(
+        id, _techId, reason.isEmpty ? 'غير متاح' : reason);
+    await _loadJobs();
+  }
+
+  Future<void> _complete(String id, Map<String, dynamic> job) async {
+    final controller = TextEditingController(
+      text: (job['estimatedCost'] ?? 150).toString(),
+    );
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('التكلفة النهائية'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(suffixText: 'ج.م'),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('تراجع')),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('إرسال للعميل')),
+        ],
+      ),
+    );
+    if (ok != true) {
+      controller.dispose();
+      return;
+    }
+    final cost = double.tryParse(controller.text) ?? 150;
+    controller.dispose();
+    await MaintenanceService.completeJob(id, _techId, cost);
+    await _loadJobs();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('بانتظار تأكيد العميل للدفع'),
+            backgroundColor: AppTheme.primaryColor),
+      );
+    }
+  }
+
+  Widget _empty() {
     return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.assignment_turned_in_outlined,
-              size: 80, color: AppTheme.primaryColor),
-          SizedBox(height: 16),
+          Icon(Icons.handyman_outlined,
+              size: 72, color: AppTheme.primaryColor),
+          SizedBox(height: 12),
           Text('لا توجد مهام حالياً',
               style: TextStyle(color: AppTheme.textSecondary)),
         ],

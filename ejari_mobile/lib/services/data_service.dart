@@ -8,6 +8,8 @@ import '../utils/rental_rules.dart';
 import 'activity_log_service.dart';
 import 'mock_data_seeder.dart';
 import 'wallet_service.dart';
+import 'financial_service.dart';
+import 'maintenance_service.dart';
 
 class DataService {
   static const String _bookingsKey = 'bookings'; // For tenants
@@ -16,7 +18,6 @@ class DataService {
   static const int _currentDemoBookingsVersion = 2;
   static const String _favoritesKey = 'favorites';
   static const String _propertiesKey = 'properties';
-  static const String _providerRequestsKey = 'provider_requests';
   static const String _manualPaymentsKey = 'manual_payments';
   static const String _appFeedbackKey = 'app_feedback';
   static const String _currentUserKey = 'current_user_email';
@@ -2244,123 +2245,107 @@ class DataService {
     return true;
   }
 
-  // --- Provider / Technician Logic ---
+  // --- Provider / Technician Logic (موحّد مع MaintenanceService) ---
+
+  static Future<Map<String, dynamic>> payForMaintenanceService(
+    String requestId, {
+    required double amount,
+    required String tenantId,
+    required String technicianId,
+    String? ownerId,
+    required String title,
+    bool useWallet = true,
+    String method = 'wallet',
+  }) async {
+    final breakdown = FinancialService.calculateServiceBreakdown(amount);
+
+    final ok = await WalletService.processServicePayment(
+      tenantId: tenantId,
+      technicianId: technicianId,
+      amount: amount,
+      requestId: requestId,
+      title: title,
+      technicianShare: breakdown.providerAmount,
+      platformFee: breakdown.appCommission,
+      useWallet: useWallet,
+      method: method,
+    );
+
+    if (!ok) {
+      return {
+        'success': false,
+        'message': 'رصيد المحفظة غير كافٍ — يرجى شحن الرصيد أولاً',
+      };
+    }
+
+    final receipt = await createPaymentReceipt(
+      amount: amount,
+      bookingRef: requestId,
+      payer: tenantId,
+      payee: technicianId,
+      method: method,
+      title: 'صيانة — $title',
+    );
+
+    await addNotificationToUser(
+      technicianId,
+      'تم استلام أجر الصيانة 💰',
+      '${breakdown.providerAmount.toStringAsFixed(0)} ج.م أُضيفت لمحفظتك',
+      type: 'maintenance',
+      refId: requestId,
+    );
+    await addNotificationToUser(
+      tenantId,
+      'تم دفع الصيانة بنجاح 🧾',
+      'إيصال الدفع متاح في محفظتك',
+      type: 'maintenance',
+      refId: requestId,
+    );
+    if (ownerId != null && ownerId.isNotEmpty && ownerId != tenantId) {
+      await addNotificationToUser(
+        ownerId,
+        'اكتملت صيانة العقار',
+        '$title — تم الدفع والإغلاق',
+        type: 'maintenance',
+        refId: requestId,
+      );
+    }
+
+    return {'success': true, 'receipt': receipt};
+  }
 
   static Future<List<Map<String, dynamic>>> getProviderRequests(
       String providerId) async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> list = prefs.getStringList(_providerRequestsKey) ?? [];
-
-    if (list.isEmpty) {
-      // Demo requests for the technician
-      final demo = [
-        {
-          'id': 'PR001',
-          'service': 'صيانة تكييف',
-          'customer': 'محمود عبد القوي',
-          'phone': '01012345678',
-          'date': DateTime.now().toIso8601String(),
-          'address': 'المعادي، شقة 12',
-          'status': 'pending',
-          'price': 250.0,
-          'notes': 'التكييف لا يبرد بشكل جيد والشحنة تحتاج فحص',
-          'customerPhone': '+201012345678',
-          'lat': 29.9602,
-          'lng': 31.2569,
-        },
-        {
-          'id': 'PR002',
-          'service': 'إصلاح كهرباء طوارئ',
-          'customer': 'أستاذ ياسر غنيم',
-          'phone': '01122334455',
-          'date': DateTime.now()
-              .subtract(const Duration(days: 1))
-              .toIso8601String(),
-          'address': 'التجمع الخامس، فيلا 5، شارع التسعين',
-          'status': 'completed',
-          'price': 150.0,
-          'notes': 'عطل في لوحة الكهرباء الرئيسية أدى لانقطاع التيار',
-          'customerPhone': '+201122334455',
-          'lat': 30.0131,
-          'lng': 31.4360,
-        },
-      ];
-      await prefs.setStringList(
-          _providerRequestsKey, demo.map((e) => jsonEncode(e)).toList());
-      return demo;
-    }
-
-    return list
-        .map((e) => jsonDecode(e) as Map<String, dynamic>)
-        .toList()
-        .reversed
-        .toList();
+    final requests = await MaintenanceService.getTechnicianRequests(providerId);
+    return requests.map(MaintenanceService.toProviderView).toList().reversed.toList();
   }
 
   static Future<void> updateProviderRequestStatus(
       String requestId, String newStatus) async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String> list = prefs.getStringList(_providerRequestsKey) ?? [];
-    List<Map<String, dynamic>> requests =
-        list.map((e) => jsonDecode(e) as Map<String, dynamic>).toList();
-
-    int index = requests.indexWhere((r) => r['id'] == requestId);
-    if (index != -1) {
-      requests[index]['status'] = newStatus;
-      if (newStatus == 'completed') {
-        requests[index]['completedAt'] = DateTime.now().toIso8601String();
-      }
-      await prefs.setStringList(
-          _providerRequestsKey, requests.map((e) => jsonEncode(e)).toList());
-
-      // Notify customer if status changes
-      if (newStatus == 'accepted') {
-        await addNotification('تم قبول طلب الخدمة ✅',
-            'وافق الفني على طلب الصيانة وهو في الطريق إليك.');
-      } else if (newStatus == 'completed') {
-        await addNotification(
-            'اكتملت الخدمة ✨', 'تم إنهاء طلب الصيانة بنجاح. يرجى تقييم الفني.');
-      } else if (newStatus == 'cancelled') {
-        await addNotification(
-            'تم رفض طلب الخدمة', 'اعتذر الفني عن تنفيذ الطلب. يمكنك طلب فني آخر.');
-      }
-    }
+    await MaintenanceService.updateProviderJobStatus(requestId, newStatus);
   }
 
   static Future<Map<String, dynamic>> getProviderStats(
       String providerId) async {
-    final requests = await getProviderRequests(providerId);
-    double totalEarnings = 0.0;
-    int completedJobs = 0;
-
-    for (var r in requests) {
-      if (r['status'] == 'completed') {
-        totalEarnings += (r['price'] as num).toDouble();
-        completedJobs++;
-      }
-    }
-
-    return {
-      'earnings': totalEarnings,
-      'completedCount': completedJobs,
-      'rating': 4.8, // Demo rating
-      'activeJobs': requests
-          .where(
-              (r) => r['status'] == 'accepted' || r['status'] == 'in_progress')
-          .length,
-    };
+    return MaintenanceService.getTechnicianStats(providerId);
   }
 
   static Future<Map<String, dynamic>?> getActiveProviderJob(
       String providerId) async {
-    final requests = await getProviderRequests(providerId);
+    final requests = await MaintenanceService.getTechnicianRequests(providerId);
     try {
-      return requests.firstWhere(
-          (r) => r['status'] == 'accepted' || r['status'] == 'in_progress');
+      final active = requests.firstWhere((r) {
+        final st = MaintenanceStatus.normalize(r['status']);
+        return st == MaintenanceStatus.inProgress ||
+            st == MaintenanceStatus.enRoute ||
+            st == MaintenanceStatus.assigned;
+      });
+      return MaintenanceService.toProviderView(active);
     } catch (_) {
-      // If no accepted job, show the latest pending one as a "Potential" job
       try {
-        return requests.firstWhere((r) => r['status'] == 'pending');
+        final pending = requests.firstWhere((r) =>
+            MaintenanceStatus.normalize(r['status']) == MaintenanceStatus.assigned);
+        return MaintenanceService.toProviderView(pending);
       } catch (_) {
         return null;
       }

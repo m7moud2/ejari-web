@@ -2,12 +2,87 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/api_client.dart';
-import '../services/data_service.dart';
+import 'data_service.dart';
+import 'financial_service.dart';
+import 'wallet_service.dart';
+
+/// حالات دورة حياة طلب الصيانة الموحّدة.
+class MaintenanceStatus {
+  static const submitted = 'submitted';
+  static const assigned = 'assigned';
+  static const enRoute = 'en_route';
+  static const inProgress = 'in_progress';
+  static const pendingClientConfirm = 'pending_client_confirm';
+  static const completed = 'completed';
+  static const paid = 'paid';
+  static const cancelled = 'cancelled';
+  static const rejected = 'rejected';
+  static const disputed = 'disputed';
+
+  static const ordered = [
+    submitted,
+    assigned,
+    enRoute,
+    inProgress,
+    pendingClientConfirm,
+    completed,
+    paid,
+  ];
+
+  static String normalize(String? raw) {
+    final s = (raw ?? submitted).toString().trim().toLowerCase();
+    const map = {
+      'pending': submitted,
+      'معلق': submitted,
+      'quote_received': submitted,
+      'accepted': assigned,
+      'assigned': assigned,
+      'en_route': enRoute,
+      'في_الطريق': enRoute,
+      'in_progress': inProgress,
+      'قيد_المعالجة': inProgress,
+      'pending_client_confirm': pendingClientConfirm,
+      'waiting_for_confirmation': pendingClientConfirm,
+      'completed': completed,
+      'مكتمل': completed,
+      'paid': paid,
+      'مدفوع': paid,
+      'cancelled': cancelled,
+      'ملغي': cancelled,
+      'rejected': rejected,
+      'مرفوض': rejected,
+      'disputed': disputed,
+      'نزاع': disputed,
+    };
+    return map[s] ?? s;
+  }
+
+  static String labelAr(String status) {
+    return switch (normalize(status)) {
+      submitted => 'مُرسَل',
+      assigned => 'مُعيَّن',
+      enRoute => 'في الطريق',
+      inProgress => 'قيد التنفيذ',
+      pendingClientConfirm => 'بانتظار تأكيدك',
+      completed => 'مكتمل',
+      paid => 'مدفوع',
+      cancelled => 'ملغي',
+      rejected => 'مرفوض',
+      disputed => 'نزاع',
+      _ => status,
+    };
+  }
+
+  static int stepIndex(String status) {
+    final n = normalize(status);
+    final idx = ordered.indexOf(n);
+    return idx < 0 ? 0 : idx;
+  }
+}
 
 class MaintenanceService {
   static const String _requestsKey = 'maintenance_requests';
 
-  // Maintenance Categories
   static const List<Map<String, dynamic>> categories = [
     {'id': 'plumbing', 'name': 'سباكة', 'icon': '🚰'},
     {'id': 'electrical', 'name': 'كهرباء', 'icon': '⚡'},
@@ -18,63 +93,181 @@ class MaintenanceService {
     {'id': 'other', 'name': 'أخرى', 'icon': '🔧'},
   ];
 
-  // Priority Levels
   static const Map<String, Map<String, dynamic>> priorities = {
     'urgent': {'name': 'عاجل', 'color': 0xFFA65F57, 'responseTime': '2 ساعة'},
-    'high': {'name': 'مرتفع', 'color': 0xFFD8C3A5, 'responseTime': '24 ساعة'},
-    'medium': {'name': 'متوسط', 'color': 0xFFD8C3A5, 'responseTime': '3 أيام'},
-    'low': {'name': 'منخفض', 'color': 0xFF47736E, 'responseTime': '7 أيام'},
+    'high': {'name': 'مرتفع', 'color': 0xFFB58D3D, 'responseTime': '24 ساعة'},
+    'medium': {'name': 'متوسط', 'color': 0xFF47736E, 'responseTime': '3 أيام'},
+    'low': {'name': 'منخفض', 'color': 0xFF0F3A30, 'responseTime': '7 أيام'},
   };
 
-  // Helper to normalize maintenance request maps
   static Map<String, dynamic> _normalizeRequest(Map<String, dynamic> r) {
-    String status = r['status']?.toString() ?? 'pending';
-    if (status == 'معلق') {
-      status = 'pending';
-    } else if (status == 'قيد_المعالجة' || status == 'in_progress') {
-      status = 'in_progress';
-    } else if (status == 'مكتمل' || status == 'completed') {
-      status = 'completed';
-    } else if (status == 'ملغي' || status == 'cancelled') {
-      status = 'cancelled';
-    }
+    final status = MaintenanceStatus.normalize(r['status']?.toString());
+    String priority = r['priority']?.toString() ?? r['urgency']?.toString() ?? 'medium';
+    if (priority == 'عاجل') priority = 'urgent';
+    if (priority == 'مرتفع') priority = 'high';
+    if (priority == 'متوسط') priority = 'medium';
+    if (priority == 'منخفض') priority = 'low';
 
-    String priority = r['priority']?.toString() ?? 'medium';
-    if (priority == 'عاجل') {
-      priority = 'urgent';
-    } else if (priority == 'مرتفع') {
-      priority = 'high';
-    } else if (priority == 'متوسط') {
-      priority = 'medium';
-    } else if (priority == 'منخفض') {
-      priority = 'low';
+    final timeline = r['timeline'];
+    List<Map<String, dynamic>> events = [];
+    if (timeline is List) {
+      events = timeline.map((e) => Map<String, dynamic>.from(e as Map)).toList();
     }
 
     return {
       'id': r['_id']?.toString() ?? r['id']?.toString() ?? '',
-      'userId': r['user']?.toString() ?? r['userId']?.toString() ?? '',
-      'propertyId':
-          r['property']?.toString() ?? r['propertyId']?.toString() ?? '',
+      'userId': r['user']?.toString() ?? r['userId']?.toString() ?? r['tenantId']?.toString() ?? '',
+      'tenantId': r['tenantId']?.toString() ?? r['userId']?.toString() ?? r['user']?.toString() ?? '',
+      'ownerId': r['ownerId']?.toString() ?? '',
+      'propertyId': r['property']?.toString() ?? r['propertyId']?.toString() ?? '',
+      'technicianId': r['technicianId']?.toString() ?? r['assignedTo']?.toString() ?? '',
+      'assignedTo': r['assignedTo']?.toString() ?? r['technicianId']?.toString(),
       'category': r['type'] ?? r['category'] ?? 'other',
       'priority': priority,
-      'title': r['title'] ??
-          r['description']?.toString().split('\n').first ??
-          'طلب صيانة',
+      'urgency': priority,
+      'title': r['title'] ?? r['description']?.toString().split('\n').first ?? 'طلب صيانة',
       'description': r['description'] ?? '',
       'status': status,
       'createdAt': r['createdAt'] ?? DateTime.now().toIso8601String(),
       'updatedAt': r['updatedAt'] ?? DateTime.now().toIso8601String(),
-      'assignedTo': r['assignedTo'],
-      'estimatedCost':
-          double.tryParse(r['estimatedCost']?.toString() ?? '0') ?? 0.0,
-      'actualCost': double.tryParse(r['actualCost']?.toString() ?? '0') ?? 0.0,
+      'scheduledAt': r['scheduledAt'],
+      'completedAt': r['completedAt'],
+      'estimatedCost': double.tryParse((r['estimatedCost'] ?? r['quotePrice'] ?? '0').toString()) ?? 0.0,
+      'finalCost': double.tryParse((r['finalCost'] ?? r['actualCost'] ?? '0').toString()) ?? 0.0,
+      'actualCost': double.tryParse((r['actualCost'] ?? r['finalCost'] ?? '0').toString()) ?? 0.0,
+      'budgetCap': double.tryParse((r['budgetCap'] ?? '0').toString()) ?? 0.0,
+      'clientConfirmed': r['clientConfirmed'] == true,
+      'paymentStatus': r['paymentStatus']?.toString() ?? 'unpaid',
+      'rejectReason': r['rejectReason']?.toString(),
+      'disputeReason': r['disputeReason']?.toString(),
+      'images': r['images'] is List ? List<String>.from(r['images']) : <String>[],
+      'lat': r['lat'],
+      'lng': r['lng'],
+      'rating': r['rating'],
+      'feedback': r['feedback'],
+      'timeline': events,
+      'propertyTitle': r['propertyTitle']?.toString() ?? '',
+      'tenantName': r['tenantName']?.toString() ?? '',
+      'tenantPhone': r['tenantPhone']?.toString() ?? '',
+      'techAccepted': r['techAccepted'] == true,
     };
   }
 
-  /// Seed demo maintenance requests for tenant demo account.
+  static Future<void> _persist(List<Map<String, dynamic>> requests) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_requestsKey, jsonEncode(requests));
+  }
+
+  static Future<String?> _resolveOwnerId(String propertyId) async {
+    if (propertyId.isEmpty) return 'owner@ejari.app';
+    try {
+      final bookings = await DataService.getBookings();
+      for (final b in bookings) {
+        if (b['propertyId']?.toString() == propertyId ||
+            b['id']?.toString() == propertyId) {
+          return b['ownerEmail']?.toString() ?? b['ownerId']?.toString();
+        }
+      }
+      final props = await DataService.getAllProperties();
+      for (final p in props) {
+        if (p['id']?.toString() == propertyId) {
+          return p['ownerId']?.toString() ?? p['ownerEmail']?.toString() ?? 'owner@ejari.app';
+        }
+      }
+    } catch (_) {}
+    return 'owner@ejari.app';
+  }
+
+  static Future<void> _notifyParties(
+    Map<String, dynamic> request, {
+    required String title,
+    required String body,
+    String? actorEmail,
+  }) async {
+    final tenantId = request['tenantId']?.toString() ?? '';
+    final ownerId = request['ownerId']?.toString() ?? '';
+    final techId = request['technicianId']?.toString() ?? '';
+    final refId = request['id']?.toString() ?? '';
+
+    if (tenantId.isNotEmpty && tenantId != actorEmail) {
+      await DataService.addNotificationToUser(
+        tenantId, title, body,
+        type: 'maintenance', refId: refId,
+      );
+    }
+    if (ownerId.isNotEmpty && ownerId != actorEmail && ownerId != tenantId) {
+      await DataService.addNotificationToUser(
+        ownerId, title, body,
+        type: 'maintenance', refId: refId,
+      );
+    }
+    if (techId.isNotEmpty && techId != actorEmail) {
+      await DataService.addNotificationToUser(
+        techId, title, body,
+        type: 'maintenance', refId: refId,
+      );
+    }
+  }
+
+  static Future<void> _addTimelineEvent(
+    List<Map<String, dynamic>> requests,
+    int index,
+    String status, {
+    String? note,
+    String? actor,
+  }) async {
+    final events = List<Map<String, dynamic>>.from(
+      (requests[index]['timeline'] as List?)?.map((e) => Map<String, dynamic>.from(e as Map)) ?? [],
+    );
+    events.add({
+      'status': MaintenanceStatus.normalize(status),
+      'label': MaintenanceStatus.labelAr(status),
+      'note': note ?? '',
+      'actor': actor ?? '',
+      'at': DateTime.now().toIso8601String(),
+    });
+    requests[index]['timeline'] = events;
+  }
+
+  static Future<bool> _transition(
+    String requestId,
+    String newStatus, {
+    Map<String, dynamic> extra = const {},
+    String? note,
+    String? actor,
+    bool notify = true,
+  }) async {
+    final requests = await getAllRequests();
+    final index = requests.indexWhere((r) => r['id'] == requestId);
+    if (index == -1) return false;
+
+    final normalized = MaintenanceStatus.normalize(newStatus);
+    requests[index]['status'] = normalized;
+    requests[index]['updatedAt'] = DateTime.now().toIso8601String();
+    requests[index].addAll(extra);
+
+    if (normalized == MaintenanceStatus.completed ||
+        normalized == MaintenanceStatus.paid) {
+      requests[index]['completedAt'] ??= DateTime.now().toIso8601String();
+    }
+
+    await _addTimelineEvent(requests, index, normalized, note: note, actor: actor);
+    await _persist(requests);
+
+    if (notify) {
+      await _notifyParties(
+        requests[index],
+        title: 'تحديث طلب صيانة',
+        body: '${MaintenanceStatus.labelAr(normalized)} — ${requests[index]['title']}',
+        actorEmail: actor,
+      );
+    }
+    return true;
+  }
+
   static Future<void> initDemoRequests() async {
     final prefs = await SharedPreferences.getInstance();
-    const seedKey = 'demo_maintenance_seeded';
+    const seedKey = 'demo_maintenance_seeded_v2';
     if (prefs.getBool(seedKey) == true) return;
 
     final existing = await getAllRequests();
@@ -87,59 +280,84 @@ class MaintenanceService {
     final demo = [
       {
         'id': 'MNT-DEMO-001',
+        'tenantId': 'user@ejari.app',
         'userId': 'user@ejari.app',
+        'ownerId': 'owner@ejari.app',
         'propertyId': 'egy1',
+        'propertyTitle': 'شقة المعادي الفاخرة',
         'category': 'ac',
         'priority': 'high',
         'title': 'صيانة تكييف',
         'description': 'التكييف لا يبرد بشكل جيد والشحنة تحتاج فحص',
-        'status': 'in_progress',
+        'status': MaintenanceStatus.inProgress,
         'createdAt': now.subtract(const Duration(days: 1)).toIso8601String(),
         'updatedAt': now.toIso8601String(),
+        'technicianId': 'tech@ejari.app',
         'assignedTo': 'tech@ejari.app',
         'estimatedCost': 250.0,
-        'actualCost': 0.0,
+        'finalCost': 0.0,
+        'paymentStatus': 'unpaid',
+        'timeline': [
+          {'status': MaintenanceStatus.submitted, 'label': 'مُرسَل', 'at': now.subtract(const Duration(days: 1)).toIso8601String()},
+          {'status': MaintenanceStatus.assigned, 'label': 'مُعيَّن', 'at': now.subtract(const Duration(hours: 20)).toIso8601String()},
+          {'status': MaintenanceStatus.inProgress, 'label': 'قيد التنفيذ', 'at': now.subtract(const Duration(hours: 4)).toIso8601String()},
+        ],
       },
       {
         'id': 'MNT-DEMO-002',
+        'tenantId': 'user@ejari.app',
         'userId': 'user@ejari.app',
+        'ownerId': 'owner@ejari.app',
         'propertyId': 'egy2',
+        'propertyTitle': 'فيلا التجمع الخامس',
         'category': 'plumbing',
         'priority': 'medium',
         'title': 'تسريب مياه',
         'description': 'تسريب بسيط في الحمام الرئيسي',
-        'status': 'pending',
+        'status': MaintenanceStatus.submitted,
         'createdAt': now.subtract(const Duration(hours: 3)).toIso8601String(),
         'updatedAt': now.toIso8601String(),
-        'assignedTo': null,
         'estimatedCost': 150.0,
-        'actualCost': 0.0,
+        'paymentStatus': 'unpaid',
+        'timeline': [
+          {'status': MaintenanceStatus.submitted, 'label': 'مُرسَل', 'at': now.subtract(const Duration(hours: 3)).toIso8601String()},
+        ],
       },
       {
         'id': 'MNT-DEMO-003',
+        'tenantId': 'user@ejari.app',
         'userId': 'user@ejari.app',
+        'ownerId': 'owner@ejari.app',
         'propertyId': 'egy1',
+        'propertyTitle': 'شقة المعادي الفاخرة',
         'category': 'cleaning',
         'priority': 'low',
         'title': 'تنظيف شامل',
         'description': 'تنظيف شامل بعد الانتقال',
-        'status': 'completed',
+        'status': MaintenanceStatus.paid,
         'createdAt': now.subtract(const Duration(days: 5)).toIso8601String(),
         'updatedAt': now.subtract(const Duration(days: 2)).toIso8601String(),
+        'technicianId': 'tech@ejari.app',
         'assignedTo': 'tech@ejari.app',
         'estimatedCost': 300.0,
+        'finalCost': 300.0,
         'actualCost': 300.0,
         'completedAt': now.subtract(const Duration(days: 2)).toIso8601String(),
+        'clientConfirmed': true,
+        'paymentStatus': 'paid',
         'rating': 5,
         'feedback': 'خدمة ممتازة',
+        'timeline': [
+          {'status': MaintenanceStatus.submitted, 'label': 'مُرسَل', 'at': now.subtract(const Duration(days: 5)).toIso8601String()},
+          {'status': MaintenanceStatus.paid, 'label': 'مدفوع', 'at': now.subtract(const Duration(days: 2)).toIso8601String()},
+        ],
       },
     ];
 
-    await prefs.setString(_requestsKey, jsonEncode(demo));
+    await _persist(demo.map(_normalizeRequest).toList());
     await prefs.setBool(seedKey, true);
   }
 
-  // Create maintenance request
   static Future<String> createRequest({
     required String userId,
     required String propertyId,
@@ -147,49 +365,41 @@ class MaintenanceService {
     required String priority,
     required String title,
     required String description,
+    String? propertyTitle,
+    String? scheduledAt,
     double? lat,
     double? lng,
     List<String>? images,
   }) async {
     final requestId = 'MNT${DateTime.now().millisecondsSinceEpoch}';
+    final ownerId = await _resolveOwnerId(propertyId);
+    final now = DateTime.now().toIso8601String();
 
-    // 1. Try to post to backend API
     try {
-      // Find a real seeded property if propertyId is not found
       String realPropertyId = propertyId;
       if (propertyId == 'none' || propertyId.isEmpty) {
         final props = await DataService.getAllProperties();
-        if (props.isNotEmpty) {
-          realPropertyId = props.first['id'] ?? 'none';
-        }
+        if (props.isNotEmpty) realPropertyId = props.first['id'] ?? 'none';
       }
 
-      // Map priority to Arabic for backend
       String backendPriority = 'متوسط';
       if (priority == 'urgent') backendPriority = 'عاجل';
       if (priority == 'high') backendPriority = 'مرتفع';
       if (priority == 'low') backendPriority = 'منخفض';
 
-      final body = {
+      final response = await ApiClient.post('/maintenance', {
         'property': realPropertyId,
         'type': category,
         'priority': backendPriority,
         'description': '$title\n$description',
-      };
-
-      final response = await ApiClient.post('/maintenance', body);
+      });
       if (response.statusCode == 200 || response.statusCode == 201) {
         final decoded = jsonDecode(utf8.decode(response.bodyBytes));
         if (decoded['success'] == true) {
-          final serverData = decoded['data'] as Map<String, dynamic>;
-          final normalized = _normalizeRequest(serverData);
-
-          // Save locally
-          final prefs = await SharedPreferences.getInstance();
-          final localRequests = await getAllRequests();
-          localRequests.add(normalized);
-          await prefs.setString(_requestsKey, jsonEncode(localRequests));
-
+          final normalized = _normalizeRequest(decoded['data'] as Map<String, dynamic>);
+          final requests = await getAllRequests();
+          requests.add(normalized);
+          await _persist(requests);
           return normalized['id'];
         }
       }
@@ -197,39 +407,65 @@ class MaintenanceService {
       debugPrint('CreateRequest API Error: $e. Falling back to local storage.');
     }
 
-    // 2. Local fallback
-    final prefs = await SharedPreferences.getInstance();
-    final requests = await getAllRequests();
-
-    final request = {
+    final request = _normalizeRequest({
       'id': requestId,
+      'tenantId': userId,
       'userId': userId,
+      'ownerId': ownerId,
       'propertyId': propertyId,
+      'propertyTitle': propertyTitle ?? '',
       'category': category,
       'priority': priority,
       'title': title,
       'description': description,
       'images': images ?? [],
-      'lat': lat ?? 30.0444, // Default to Cairo if not provided
+      'lat': lat ?? 30.0444,
       'lng': lng ?? 31.2357,
-      'status': 'pending', // pending, in_progress, completed, cancelled
-      'createdAt': DateTime.now().toIso8601String(),
-      'updatedAt': DateTime.now().toIso8601String(),
-      'assignedTo': null,
-      'estimatedCost': 0.0,
-      'actualCost': 0.0,
-      'completedAt': null,
-      'rating': null,
-      'feedback': null,
-    };
+      'status': MaintenanceStatus.submitted,
+      'createdAt': now,
+      'updatedAt': now,
+      'scheduledAt': scheduledAt,
+      'estimatedCost': FinancialService.generateTechnicianQuote(
+        categories.firstWhere((c) => c['id'] == category, orElse: () => {'name': 'أخرى'})['name'] as String,
+      ),
+      'paymentStatus': 'unpaid',
+      'timeline': [
+        {'status': MaintenanceStatus.submitted, 'label': 'مُرسَل', 'note': 'تم إرسال الطلب', 'at': now},
+      ],
+    });
 
+    final requests = await getAllRequests();
     requests.add(request);
-    await prefs.setString(_requestsKey, jsonEncode(requests));
+    await _persist(requests);
+
+    await DataService.addNotificationToUser(
+      'admin@ejari.app',
+      'طلب صيانة جديد 🔧',
+      '$title — أولوية ${priorities[priority]?['name'] ?? priority}',
+      type: 'maintenance',
+      refId: requestId,
+      adminFeed: true,
+    );
+    if (ownerId != null && ownerId.isNotEmpty) {
+      await DataService.addNotificationToUser(
+        ownerId,
+        'طلب صيانة على عقارك',
+        '$title — بانتظار الموافقة والتعيين',
+        type: 'maintenance',
+        refId: requestId,
+      );
+    }
+    await DataService.addNotificationToUser(
+      userId,
+      'تم إرسال طلب الصيانة ✅',
+      'سيتم مراجعته وتعيين فني قريباً',
+      type: 'maintenance',
+      refId: requestId,
+    );
 
     return requestId;
   }
 
-  // Wrapper for registration
   static Future<void> submitRequest(Map<String, dynamic> application) async {
     await createRequest(
       userId: application['email'] ?? 'unknown',
@@ -237,27 +473,21 @@ class MaintenanceService {
       category: application['service'] ?? 'other',
       priority: 'medium',
       title: application['service'] ?? 'Registration',
-      description:
-          'Experience: ${application['experience']}\nNotes: ${application['notes']}',
+      description: 'Experience: ${application['experience']}\nNotes: ${application['notes']}',
     );
   }
 
-  // Get all requests
   static Future<List<Map<String, dynamic>>> getAllRequests() async {
-    // 1. Try to fetch from API
     try {
       final response = await ApiClient.get('/maintenance');
       if (response.statusCode == 200) {
         final decoded = jsonDecode(utf8.decode(response.bodyBytes));
         if (decoded['success'] == true) {
-          final List<dynamic> rawList = decoded['data'] ?? [];
-          final List<Map<String, dynamic>> requests = rawList
+          final rawList = decoded['data'] as List? ?? [];
+          final requests = rawList
               .map((r) => _normalizeRequest(r as Map<String, dynamic>))
               .toList();
-
-          // Cache locally
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString(_requestsKey, jsonEncode(requests));
+          await _persist(requests);
           return requests;
         }
       }
@@ -265,126 +495,426 @@ class MaintenanceService {
       debugPrint('GetAllRequests API Error: $e. Using local cache.');
     }
 
-    // 2. Local fallback
     final prefs = await SharedPreferences.getInstance();
-    final String? requestsJson = prefs.getString(_requestsKey);
-
-    if (requestsJson != null) {
-      final List<dynamic> decoded = jsonDecode(requestsJson);
-      return decoded
+    final raw = prefs.getString(_requestsKey);
+    if (raw != null) {
+      return (jsonDecode(raw) as List)
           .map((r) => _normalizeRequest(r as Map<String, dynamic>))
           .toList();
     }
     return [];
   }
 
-  // Get user requests
-  static Future<List<Map<String, dynamic>>> getUserRequests(
-      String userId) async {
-    final allRequests = await getAllRequests();
-    return allRequests
-        .where((req) =>
-            req['userId'] == userId || req['userId'].toString().isEmpty)
+  static Future<List<Map<String, dynamic>>> getUserRequests(String userId) async {
+    final all = await getAllRequests();
+    return all.where((r) => r['tenantId'] == userId || r['userId'] == userId).toList();
+  }
+
+  static Future<List<Map<String, dynamic>>> getOwnerRequests(String ownerId) async {
+    final all = await getAllRequests();
+    return all.where((r) => r['ownerId'] == ownerId).toList();
+  }
+
+  static Future<List<Map<String, dynamic>>> getTechnicianRequests(String techId) async {
+    final all = await getAllRequests();
+    return all
+        .where((r) =>
+            r['technicianId'] == techId ||
+            r['assignedTo'] == techId ||
+            (MaintenanceStatus.normalize(r['status']) == MaintenanceStatus.assigned &&
+                (r['technicianId'] == null || r['technicianId'].toString().isEmpty)))
         .toList();
   }
 
-  // Update request status
-  static Future<bool> updateStatus(String requestId, String status,
-      {String? assignedTo, double? estimatedCost}) async {
-    // 1. Try backend API
-    String backendStatus = status;
-    if (status == 'pending') backendStatus = 'معلق';
-    if (status == 'in_progress') backendStatus = 'قيد_المعالجة';
-    if (status == 'completed') backendStatus = 'مكتمل';
-
-    try {
-      final response = await ApiClient.put('/maintenance/$requestId', {
-        'status': backendStatus,
-      });
-      if (response.statusCode == 200) {
-        debugPrint('Maintenance status updated on backend.');
-      }
-    } catch (e) {
-      debugPrint('UpdateStatus API Error: $e. Syncing locally.');
-    }
-
-    // 2. Local sync
-    final prefs = await SharedPreferences.getInstance();
-    final requests = await getAllRequests();
-
-    final index = requests.indexWhere((req) => req['id'] == requestId);
-    if (index == -1) return false;
-
-    requests[index]['status'] = status;
-    requests[index]['updatedAt'] = DateTime.now().toIso8601String();
-
-    if (assignedTo != null) {
-      requests[index]['assignedTo'] = assignedTo;
-    }
-
-    if (estimatedCost != null) {
-      requests[index]['estimatedCost'] = estimatedCost;
-    }
-
-    if (status == 'completed') {
-      requests[index]['completedAt'] = DateTime.now().toIso8601String();
-    }
-
-    await prefs.setString(_requestsKey, jsonEncode(requests));
-    return true;
+  static Future<List<Map<String, dynamic>>> getPendingForTechnician(String techId) async {
+    final all = await getAllRequests();
+    return all
+        .where((r) =>
+            MaintenanceStatus.normalize(r['status']) == MaintenanceStatus.assigned &&
+            (r['technicianId'] == techId || r['assignedTo'] == techId))
+        .toList();
   }
 
-  // Add rating and feedback
-  static Future<bool> addFeedback(
-      String requestId, int rating, String feedback) async {
-    // 1. Try backend API
+  static Future<Map<String, dynamic>?> getRequest(String requestId) async {
+    final requests = await getAllRequests();
     try {
-      final response = await ApiClient.post('/maintenance/$requestId/rating', {
+      return requests.firstWhere((r) => r['id'] == requestId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<bool> updateStatus(
+    String requestId,
+    String status, {
+    String? assignedTo,
+    double? estimatedCost,
+    String? actor,
+  }) async {
+    final extra = <String, dynamic>{};
+    if (assignedTo != null) {
+      extra['assignedTo'] = assignedTo;
+      extra['technicianId'] = assignedTo;
+    }
+    if (estimatedCost != null) extra['estimatedCost'] = estimatedCost;
+    return _transition(requestId, status, extra: extra, actor: actor);
+  }
+
+  static Future<bool> assignTechnician(
+    String requestId,
+    String technicianId, {
+    String? actor,
+    double? estimatedCost,
+  }) async {
+    final ok = await _transition(
+      requestId,
+      MaintenanceStatus.assigned,
+      extra: {
+        'technicianId': technicianId,
+        'assignedTo': technicianId,
+        if (estimatedCost != null) 'estimatedCost': estimatedCost,
+      },
+      note: 'تم تعيين الفني',
+      actor: actor,
+    );
+    if (ok) {
+      final req = await getRequest(requestId);
+      await DataService.addNotificationToUser(
+        technicianId,
+        'مهمة صيانة جديدة 🔧',
+        '${req?['title'] ?? 'طلب صيانة'} — بانتظار قبولك',
+        type: 'maintenance',
+        refId: requestId,
+      );
+    }
+    return ok;
+  }
+
+  static Future<bool> approveBudget(
+    String requestId, {
+    required String ownerId,
+    required double budgetCap,
+  }) async {
+    return _transition(
+      requestId,
+      MaintenanceStatus.submitted,
+      extra: {'budgetCap': budgetCap, 'ownerApproved': true},
+      note: 'وافق المالك على ميزانية بحد $budgetCap ج.م',
+      actor: ownerId,
+    );
+  }
+
+  static Future<bool> acceptJob(String requestId, String techId) async {
+    return _transition(
+      requestId,
+      MaintenanceStatus.assigned,
+      extra: {'technicianId': techId, 'assignedTo': techId, 'techAccepted': true},
+      note: 'قبل الفني المهمة',
+      actor: techId,
+    );
+  }
+
+  static Future<bool> rejectJob(String requestId, String techId, String reason) async {
+    return _transition(
+      requestId,
+      MaintenanceStatus.rejected,
+      extra: {'rejectReason': reason, 'technicianId': null, 'assignedTo': null},
+      note: reason,
+      actor: techId,
+    );
+  }
+
+  static Future<bool> markEnRoute(String requestId, String techId) async {
+    final ok = await _transition(
+      requestId,
+      MaintenanceStatus.enRoute,
+      note: 'الفني في الطريق',
+      actor: techId,
+    );
+    if (ok) {
+      final req = await getRequest(requestId);
+      final tenantId = req?['tenantId']?.toString() ?? '';
+      if (tenantId.isNotEmpty) {
+        await DataService.addNotificationToUser(
+          tenantId,
+          'الفني في الطريق 🚗',
+          'فني الصيانة متجه إلى موقعك الآن',
+          type: 'maintenance',
+          refId: requestId,
+        );
+      }
+    }
+    return ok;
+  }
+
+  static Future<bool> startJob(String requestId, String techId) async {
+    return _transition(
+      requestId,
+      MaintenanceStatus.inProgress,
+      note: 'بدأ الفني العمل',
+      actor: techId,
+    );
+  }
+
+  static Future<bool> completeJob(
+    String requestId,
+    String techId,
+    double finalCost,
+  ) async {
+    final ok = await _transition(
+      requestId,
+      MaintenanceStatus.pendingClientConfirm,
+      extra: {'finalCost': finalCost, 'actualCost': finalCost},
+      note: 'أنهى الفني العمل — التكلفة النهائية $finalCost ج.م',
+      actor: techId,
+    );
+    if (ok) {
+      final req = await getRequest(requestId);
+      final tenantId = req?['tenantId']?.toString() ?? '';
+      if (tenantId.isNotEmpty) {
+        await DataService.addNotificationToUser(
+          tenantId,
+          'أكد إتمام الصيانة ✋',
+          'يرجى تأكيد إتمام العمل أو فتح نزاع',
+          type: 'maintenance',
+          refId: requestId,
+        );
+      }
+    }
+    return ok;
+  }
+
+  static Future<Map<String, dynamic>> confirmAndPay({
+    required String requestId,
+    required String tenantId,
+    bool useWallet = true,
+    String method = 'wallet',
+  }) async {
+    final req = await getRequest(requestId);
+    if (req == null) return {'success': false, 'message': 'الطلب غير موجود'};
+
+    if (MaintenanceStatus.normalize(req['status']) !=
+        MaintenanceStatus.pendingClientConfirm) {
+      return {'success': false, 'message': 'الطلب ليس بانتظار التأكيد'};
+    }
+
+    final amount = (req['finalCost'] as num?)?.toDouble() ??
+        (req['estimatedCost'] as num?)?.toDouble() ??
+        0.0;
+    if (amount <= 0) {
+      return {'success': false, 'message': 'التكلفة غير محددة'};
+    }
+
+    final result = await DataService.payForMaintenanceService(
+      requestId,
+      amount: amount,
+      tenantId: tenantId,
+      technicianId: req['technicianId']?.toString() ?? 'tech@ejari.app',
+      ownerId: req['ownerId']?.toString(),
+      title: req['title']?.toString() ?? 'صيانة',
+      useWallet: useWallet,
+      method: method,
+    );
+
+    if (result['success'] != true) return result;
+
+    await _transition(
+      requestId,
+      MaintenanceStatus.completed,
+      extra: {'clientConfirmed': true},
+      note: 'أكد العميل إتمام العمل',
+      actor: tenantId,
+      notify: false,
+    );
+    await _transition(
+      requestId,
+      MaintenanceStatus.paid,
+      extra: {'paymentStatus': 'paid'},
+      note: 'تم الدفع',
+      actor: tenantId,
+    );
+
+    return result;
+  }
+
+  static Future<bool> disputeCompletion(
+    String requestId,
+    String tenantId,
+    String reason,
+  ) async {
+    final ok = await _transition(
+      requestId,
+      MaintenanceStatus.disputed,
+      extra: {'disputeReason': reason},
+      note: reason,
+      actor: tenantId,
+    );
+    if (ok) {
+      await DataService.addNotificationToUser(
+        'admin@ejari.app',
+        'نزاع صيانة ⚠️',
+        reason,
+        type: 'maintenance',
+        refId: requestId,
+        adminFeed: true,
+      );
+    }
+    return ok;
+  }
+
+  static Future<bool> cancelRequest(
+    String requestId, {
+    String? reason,
+    String? actor,
+  }) async {
+    return _transition(
+      requestId,
+      MaintenanceStatus.cancelled,
+      note: reason ?? 'تم الإلغاء',
+      actor: actor,
+    );
+  }
+
+  static Future<bool> addFeedback(String requestId, int rating, String feedback) async {
+    try {
+      await ApiClient.post('/maintenance/$requestId/rating', {
         'rating': rating,
         'comment': feedback,
       });
-      if (response.statusCode == 200) {
-        debugPrint('Maintenance rating sent to backend.');
-      }
     } catch (e) {
-      debugPrint('AddFeedback API Error: $e. Syncing locally.');
+      debugPrint('AddFeedback API Error: $e');
     }
 
-    // 2. Local sync
-    final prefs = await SharedPreferences.getInstance();
     final requests = await getAllRequests();
-
-    final index = requests.indexWhere((req) => req['id'] == requestId);
+    final index = requests.indexWhere((r) => r['id'] == requestId);
     if (index == -1) return false;
 
     requests[index]['rating'] = rating;
     requests[index]['feedback'] = feedback;
     requests[index]['updatedAt'] = DateTime.now().toIso8601String();
-
-    await prefs.setString(_requestsKey, jsonEncode(requests));
+    await _persist(requests);
     return true;
   }
 
-  // Get request by ID
-  static Future<Map<String, dynamic>?> getRequest(String requestId) async {
-    final requests = await getAllRequests();
-    try {
-      return requests.firstWhere((req) => req['id'] == requestId);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  // Get statistics
   static Future<Map<String, int>> getStatistics(String userId) async {
     final userRequests = await getUserRequests(userId);
+    int count(String s) =>
+        userRequests.where((r) => MaintenanceStatus.normalize(r['status']) == s).length;
 
     return {
       'total': userRequests.length,
-      'pending': userRequests.where((r) => r['status'] == 'pending').length,
-      'in_progress':
-          userRequests.where((r) => r['status'] == 'in_progress').length,
-      'completed': userRequests.where((r) => r['status'] == 'completed').length,
+      'submitted': count(MaintenanceStatus.submitted),
+      'pending': count(MaintenanceStatus.submitted) + count(MaintenanceStatus.assigned),
+      'in_progress': count(MaintenanceStatus.inProgress) +
+          count(MaintenanceStatus.enRoute) +
+          count(MaintenanceStatus.assigned),
+      'completed': count(MaintenanceStatus.completed) + count(MaintenanceStatus.paid),
+      'pending_confirm': count(MaintenanceStatus.pendingClientConfirm),
+    };
+  }
+
+  static Future<Map<String, dynamic>> getTechnicianStats(String techId) async {
+    final jobs = await getTechnicianRequests(techId);
+    double earnings = 0;
+    int completed = 0;
+    int active = 0;
+    int urgent = 0;
+    int newRequests = 0;
+
+    for (final j in jobs) {
+      final st = MaintenanceStatus.normalize(j['status']);
+      if (st == MaintenanceStatus.paid) {
+        earnings += (j['finalCost'] as num?)?.toDouble() ?? 0;
+        completed++;
+      }
+      if ([MaintenanceStatus.assigned, MaintenanceStatus.enRoute, MaintenanceStatus.inProgress]
+          .contains(st)) {
+        active++;
+      }
+      if (st == MaintenanceStatus.assigned) newRequests++;
+      if (j['priority'] == 'urgent' &&
+          ![MaintenanceStatus.paid, MaintenanceStatus.cancelled, MaintenanceStatus.rejected]
+              .contains(st)) {
+        urgent++;
+      }
+    }
+
+    final balance = await WalletService.getBalance(userId: techId);
+
+    return {
+      'earnings': earnings,
+      'completedCount': completed,
+      'completedJobs': completed,
+      'activeJobs': active,
+      'newRequests': newRequests,
+      'urgentRequests': urgent,
+      'rating': 4.8,
+      'todayEarnings': earnings > 0 ? (earnings * 0.1).round() : 0,
+      'monthlyEarnings': earnings,
+      'availableBalance': balance,
+    };
+  }
+
+  /// تحويل طلب صيانة لعرض الفني (توافق مع الشاشات القديمة).
+  static Map<String, dynamic> toProviderView(Map<String, dynamic> r) {
+    final cat = categories.firstWhere(
+      (c) => c['id'] == r['category'],
+      orElse: () => {'name': r['category'] ?? 'صيانة'},
+    );
+    return {
+      'id': r['id'],
+      'service': r['title'] ?? cat['name'],
+      'customer': r['tenantName']?.toString().isNotEmpty == true
+          ? r['tenantName']
+          : r['tenantId'] ?? 'عميل',
+      'phone': r['tenantPhone'] ?? '',
+      'customerPhone': r['tenantPhone'] ?? '',
+      'date': r['scheduledAt'] ?? r['createdAt'],
+      'address': r['propertyTitle']?.toString().isNotEmpty == true
+          ? r['propertyTitle']
+          : r['propertyId'] ?? 'موقع العميل',
+      'status': _providerStatusMap(r['status']),
+      'price': (r['finalCost'] as num?)?.toDouble() ??
+          (r['estimatedCost'] as num?)?.toDouble() ??
+          0.0,
+      'notes': r['description'] ?? '',
+      'lat': r['lat'],
+      'lng': r['lng'],
+      'raw': r,
+    };
+  }
+
+  static String _providerStatusMap(dynamic status) {
+    final n = MaintenanceStatus.normalize(status?.toString());
+    if (n == MaintenanceStatus.assigned) return 'pending';
+    if (n == MaintenanceStatus.enRoute || n == MaintenanceStatus.inProgress) {
+      return 'in_progress';
+    }
+    if (n == MaintenanceStatus.pendingClientConfirm) return 'in_progress';
+    if (n == MaintenanceStatus.paid || n == MaintenanceStatus.completed) {
+      return 'completed';
+    }
+    if (n == MaintenanceStatus.rejected || n == MaintenanceStatus.cancelled) {
+      return 'cancelled';
+    }
+    return n;
+  }
+
+  static Future<bool> updateProviderJobStatus(String jobId, String legacyStatus) async {
+    final req = await getRequest(jobId);
+    if (req == null) return false;
+    final techId = req['technicianId']?.toString() ?? 'tech@ejari.app';
+
+    return switch (legacyStatus) {
+      'accepted' => acceptJob(jobId, techId),
+      'cancelled' => rejectJob(jobId, techId, 'رفض من الفني'),
+      'in_progress' => startJob(jobId, techId),
+      'completed' => completeJob(
+          jobId,
+          techId,
+          (req['estimatedCost'] as num?)?.toDouble() ?? 150,
+        ),
+      _ => updateStatus(jobId, legacyStatus, actor: techId),
     };
   }
 }

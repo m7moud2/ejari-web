@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ejari_section.dart';
 import '../services/maintenance_service.dart';
 import '../services/auth_service.dart';
 import 'package:intl/intl.dart';
-import '../utils/date_utils.dart';
-
-import 'map_search_screen.dart';
 
 class ProviderTimelineScreen extends StatefulWidget {
   const ProviderTimelineScreen({super.key});
@@ -15,7 +13,7 @@ class ProviderTimelineScreen extends StatefulWidget {
 }
 
 class _ProviderTimelineScreenState extends State<ProviderTimelineScreen> {
-  List<Map<String, dynamic>> _timelineJobs = [];
+  List<Map<String, dynamic>> _jobs = [];
   bool _isLoading = true;
 
   @override
@@ -25,15 +23,17 @@ class _ProviderTimelineScreenState extends State<ProviderTimelineScreen> {
   }
 
   Future<void> _loadTimeline() async {
-    await AuthService.getCurrentUser();
-    final allRequests = await MaintenanceService.getAllRequests();
+    final user = await AuthService.getCurrentUser();
+    final techId = user?['email']?.toString() ?? 'tech@ejari.app';
+    final requests = await MaintenanceService.getTechnicianRequests(techId);
+    requests.sort((a, b) =>
+        (b['scheduledAt'] ?? b['createdAt'])
+            .toString()
+            .compareTo((a['scheduledAt'] ?? a['createdAt']).toString()));
 
-    // In a real app, filter by assignedTo or provider compatibility
-    // For demo, we show all pending/in_progress as a queue
     if (mounted) {
       setState(() {
-        _timelineJobs = allRequests;
-        _timelineJobs.sort((a, b) => b['createdAt'].compareTo(a['createdAt']));
+        _jobs = requests;
         _isLoading = false;
       });
     }
@@ -44,151 +44,98 @@ class _ProviderTimelineScreenState extends State<ProviderTimelineScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('الجدول الزمني للخدمات'),
-        centerTitle: true,
-        elevation: 0,
+        title: const Text('جدول المهام'),
+        backgroundColor: AppTheme.surfaceColor,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _timelineJobs.isEmpty
-              ? _buildEmptyState()
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryColor))
+          : _jobs.isEmpty
+              ? _empty()
               : ListView.builder(
                   padding: const EdgeInsets.all(20),
-                  itemCount: _timelineJobs.length,
-                  itemBuilder: (context, index) {
-                    return _buildTimelineItem(
-                      _timelineJobs[index],
-                      isLast: index == _timelineJobs.length - 1,
-                    );
-                  },
+                  itemCount: _jobs.length,
+                  itemBuilder: (context, index) =>
+                      _item(_jobs[index], isLast: index == _jobs.length - 1),
                 ),
     );
   }
 
-  Widget _buildTimelineItem(Map<String, dynamic> job, {bool isLast = false}) {
-    final DateTime date = DateParsing.parse(job['createdAt']) ?? DateTime.now();
-    final bool isCompleted = job['status'] == 'completed';
-    final bool isInProgress = job['status'] == 'in_progress';
-
-    Color statusColor = AppTheme.borderColor;
-    if (isCompleted) statusColor = AppTheme.primaryColor;
-    if (isInProgress) statusColor = AppTheme.primaryColor;
+  Widget _item(Map<String, dynamic> job, {bool isLast = false}) {
+    final status = MaintenanceStatus.normalize(job['status']?.toString());
+    final color = switch (status) {
+      MaintenanceStatus.paid || MaintenanceStatus.completed =>
+        AppTheme.successColor,
+      MaintenanceStatus.inProgress ||
+      MaintenanceStatus.enRoute =>
+        AppTheme.primaryColor,
+      MaintenanceStatus.assigned => AppTheme.accentColor,
+      _ => AppTheme.textSecondary,
+    };
+    final dateStr = job['scheduledAt'] ?? job['createdAt'];
+    final date = DateTime.tryParse(dateStr?.toString() ?? '') ?? DateTime.now();
+    final events = (job['timeline'] as List?) ?? [];
 
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Timeline indicator
           Column(
             children: [
               Container(
-                width: 16,
-                height: 16,
+                width: 14,
+                height: 14,
                 decoration: BoxDecoration(
-                  color: statusColor,
+                  color: color,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                      color: Theme.of(context).cardTheme.color ??
-                          Theme.of(context).cardColor,
-                      width: 3),
-                  boxShadow: const [],
+                  border: Border.all(color: AppTheme.surfaceColor, width: 2),
                 ),
               ),
               if (!isLast)
                 Expanded(
                   child: Container(
                     width: 2,
-                    color: AppTheme.primaryColor,
+                    color: AppTheme.primaryColor.withOpacity(0.2),
                   ),
                 ),
             ],
           ),
-          const SizedBox(width: 16),
-          // Content
+          const SizedBox(width: 14),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  DateFormat('hh:mm a').format(date),
-                  style: TextStyle(
-                      color: statusColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  margin: const EdgeInsets.only(bottom: 24),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardTheme.color ??
-                        Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: const [],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            child: EjariSurfaceCard(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'الجدول الزمني للخدمة',
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 15),
-                          ),
-                          _buildStatusBadge(job['status']),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          const Icon(Icons.location_on_outlined,
-                              size: 14, color: AppTheme.textSecondary),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              job['title'] ?? 'موقع العميل (إيجاري)',
-                              style: const TextStyle(
-                                  color: AppTheme.textSecondary, fontSize: 13),
-                            ),
-                          ),
-                          TextButton.icon(
-                            onPressed: () {
-                              // Link to the Map Search Screen
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const MapSearchScreen()));
-                            },
-                            icon:
-                                const Icon(Icons.directions_outlined, size: 16),
-                            label: const Text('الخريطة',
-                                style: TextStyle(fontSize: 12)),
-                          ),
-                        ],
-                      ),
-                      const Divider(height: 24),
-                      Row(
-                        children: [
-                          const Icon(Icons.person_outline,
-                              size: 14, color: AppTheme.textSecondary),
-                          const SizedBox(width: 4),
-                          Text(job['userName'] ?? 'عميل إيجاري',
-                              style: const TextStyle(fontSize: 12)),
-                          const Spacer(),
-                          Text(
-                            DateFormat('dd MMM').format(date),
+                      Expanded(
+                        child: Text(job['title'] ?? '',
                             style: const TextStyle(
-                                color: AppTheme.primaryColor, fontSize: 11),
-                          ),
-                        ],
+                                fontWeight: FontWeight.w900)),
                       ),
+                      Text(MaintenanceStatus.labelAr(status),
+                          style: TextStyle(
+                              color: color,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800)),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  Text(
+                    DateFormat('EEEE dd/MM — hh:mm a').format(date),
+                    style: const TextStyle(
+                        color: AppTheme.textSecondary, fontSize: 12),
+                  ),
+                  if (events.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    ...events.take(3).map((e) => Text(
+                          '• ${e['label'] ?? e['status']}',
+                          style: const TextStyle(fontSize: 11),
+                        )),
+                  ],
+                ],
+              ),
             ),
           ),
         ],
@@ -196,44 +143,10 @@ class _ProviderTimelineScreenState extends State<ProviderTimelineScreen> {
     );
   }
 
-  Widget _buildStatusBadge(String status) {
-    Color color = AppTheme.borderColor;
-    String text = 'قيد الانتظار';
-
-    if (status == 'completed') {
-      color = AppTheme.primaryColor;
-      text = 'مكتمل';
-    } else if (status == 'in_progress') {
-      color = AppTheme.primaryColor;
-      text = 'جاري العمل';
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        text,
-        style:
-            TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
+  Widget _empty() {
     return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.calendar_month_outlined,
-              size: 80, color: AppTheme.primaryColor),
-          SizedBox(height: 16),
-          Text('لا توجد مهام مجدولة حالياً',
-              style: TextStyle(color: AppTheme.textSecondary)),
-        ],
-      ),
+      child: Text('لا مهام مجدولة',
+          style: TextStyle(color: AppTheme.textSecondary)),
     );
   }
 }

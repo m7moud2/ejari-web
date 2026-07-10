@@ -18,6 +18,9 @@ import '../main.dart';
 import 'rental_statement_screen.dart';
 import '../services/chat_service.dart';
 import 'maintenance_requests_screen.dart';
+import 'provider_jobs_screen.dart';
+import 'provider_timeline_screen.dart';
+import 'provider_wallet_screen.dart';
 import 'admin_dashboard_screen.dart';
 import 'admin_users_screen.dart';
 import 'admin_properties_screen.dart';
@@ -55,7 +58,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool get _isAdmin =>
       _currentRole == 'admin' || _userData?['type'] == 'admin';
   bool get _isOwner => _currentRole == 'owner';
-  bool get _isTenant => !_isAdmin && !_isOwner;
+  bool get _isTechnician => _currentRole == 'technician';
+  bool get _isTenant => !_isAdmin && !_isOwner && !_isTechnician;
 
   @override
   Widget build(BuildContext context) {
@@ -166,12 +170,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   const SizedBox(height: AppTheme.spaceXl),
 
-                  // العقارات والحجوزات
+                  // العقارات والحجوزات / مهام الفني
                   EjariSectionHeader(
-                    title: 'العقارات والحجوزات',
-                    subtitle: _isTenant
-                        ? 'حجوزاتك وعقودك'
-                        : 'عقاراتك وطلبات الحجز',
+                    title: _isTechnician ? 'المهام' : 'العقارات والحجوزات',
+                    subtitle: _isTechnician
+                        ? 'مهامك وجدولك'
+                        : _isTenant
+                            ? 'حجوزاتك وعقودك'
+                            : 'عقاراتك وطلبات الحجز',
                   ),
                   const SizedBox(height: AppTheme.spaceSm),
                   _buildMenuCard(_propertyMenuItems()),
@@ -179,9 +185,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: AppTheme.spaceXl),
 
                   // المالية
-                  const EjariSectionHeader(
+                  EjariSectionHeader(
                     title: 'المالية',
-                    subtitle: 'المحفظة والكشوف والتحصيل',
+                    subtitle: _isTechnician
+                        ? 'محفظة الأرباح'
+                        : 'المحفظة والكشوف والتحصيل',
                   ),
                   const SizedBox(height: AppTheme.spaceSm),
                   _buildMenuCard(_financeMenuItems()),
@@ -283,6 +291,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   List<Widget> _propertyMenuItems() {
+    if (_isTechnician) {
+      return [
+        _buildEjariMenuItem('مهام الصيانة', Icons.handyman_rounded,
+            AppTheme.primaryColor, () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const ProviderJobsScreen()));
+        }),
+        _buildEjariMenuItem('جدول المهام', Icons.calendar_month_rounded,
+            AppTheme.accentColor, () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const ProviderTimelineScreen()));
+        }, isLast: true),
+      ];
+    }
     if (_isAdmin) {
       return [
         _buildEjariMenuItem('مراجعة العقارات', Icons.home_work_rounded,
@@ -338,6 +362,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   List<Widget> _financeMenuItems() {
+    if (_isTechnician) {
+      return [
+        _buildEjariMenuItem('محفظة الأرباح', Icons.account_balance_wallet_rounded,
+            AppTheme.accentColor, () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const ProviderWalletScreen()));
+        }, isLast: true),
+      ];
+    }
     if (_isOwner) {
       return [
         _buildEjariMenuItem('محفظة الأرباح', Icons.account_balance_rounded,
@@ -371,8 +406,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildAccountSnapshot() {
-    final roleLabel =
-        _isAdmin ? 'مدير' : _isOwner ? 'مالك' : 'مستأجر';
+    final roleLabel = _isAdmin
+        ? 'مدير'
+        : _isOwner
+            ? 'مالك'
+            : _isTechnician
+                ? 'فني'
+                : 'مستأجر';
 
     return EjariSurfaceCard(
       child: Row(

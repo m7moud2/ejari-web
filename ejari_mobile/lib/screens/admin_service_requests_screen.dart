@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/maintenance_service.dart';
+import '../services/auth_service.dart';
 
 class AdminServiceRequestsScreen extends StatefulWidget {
   const AdminServiceRequestsScreen({super.key});
@@ -65,23 +66,51 @@ class _AdminServiceRequestsScreenState
   @override
   Widget build(BuildContext context) {
     final filteredRequests = _allRequests.where((r) {
+      final title = (r['title'] ?? r['service'] ?? '').toString().toLowerCase();
+      final customer =
+          (r['userName'] ?? r['tenantId'] ?? r['customer'] ?? '').toString().toLowerCase();
+      final provider =
+          (r['assignedTo'] ?? r['technicianId'] ?? r['provider'] ?? '').toString().toLowerCase();
+      final st = MaintenanceStatus.normalize(r['status']?.toString());
+      final legacyFilter = _selectedFilter == 'pending'
+          ? st == MaintenanceStatus.submitted
+          : _selectedFilter == 'in_progress'
+              ? [
+                  MaintenanceStatus.assigned,
+                  MaintenanceStatus.enRoute,
+                  MaintenanceStatus.inProgress,
+                ].contains(st)
+              : r['status'] == _selectedFilter;
       final matchesFilter =
-          _selectedFilter == 'all' || r['status'] == _selectedFilter;
+          _selectedFilter == 'all' || legacyFilter;
       final matchesSearch = _searchQuery.isEmpty ||
-          (r['service'] as String).toLowerCase().contains(_searchQuery) ||
-          (r['customer'] as String).toLowerCase().contains(_searchQuery) ||
-          (r['provider'] as String).toLowerCase().contains(_searchQuery);
+          title.contains(_searchQuery) ||
+          customer.contains(_searchQuery) ||
+          provider.contains(_searchQuery);
       return matchesFilter && matchesSearch;
     }).toList();
 
     // Statistics
     final totalRequests = _allRequests.length;
-    final pendingCount =
-        _allRequests.where((r) => r['status'] == 'pending').length;
-    final inProgressCount =
-        _allRequests.where((r) => r['status'] == 'in_progress').length;
-    final completedCount =
-        _allRequests.where((r) => r['status'] == 'completed').length;
+    final pendingCount = _allRequests.where((r) {
+      final st = MaintenanceStatus.normalize(r['status']?.toString());
+      return st == MaintenanceStatus.submitted || r['status'] == 'pending';
+    }).length;
+    final inProgressCount = _allRequests.where((r) {
+      final st = MaintenanceStatus.normalize(r['status']?.toString());
+      return [
+        MaintenanceStatus.assigned,
+        MaintenanceStatus.enRoute,
+        MaintenanceStatus.inProgress,
+        MaintenanceStatus.pendingClientConfirm,
+      ].contains(st) || r['status'] == 'in_progress';
+    }).length;
+    final completedCount = _allRequests.where((r) {
+      final st = MaintenanceStatus.normalize(r['status']?.toString());
+      return st == MaintenanceStatus.paid ||
+          st == MaintenanceStatus.completed ||
+          r['status'] == 'completed';
+    }).length;
 
     return Scaffold(
       appBar: AppBar(
@@ -262,30 +291,36 @@ class _AdminServiceRequestsScreenState
   }
 
   Widget _buildRequestCard(Map<String, dynamic> request) {
-    final status = request['status'];
+    final status = MaintenanceStatus.normalize(request['status']?.toString());
     Color statusColor;
     String statusText;
     IconData statusIcon;
 
     switch (status) {
-      case 'pending':
-        statusColor = AppTheme.borderColor;
-        statusText = 'قيد الانتظار';
+      case MaintenanceStatus.submitted:
+        statusColor = AppTheme.accentColor;
+        statusText = 'مُرسَل';
         statusIcon = Icons.access_time;
         break;
-      case 'in_progress':
+      case MaintenanceStatus.assigned:
+      case MaintenanceStatus.enRoute:
+      case MaintenanceStatus.inProgress:
+      case MaintenanceStatus.pendingClientConfirm:
         statusColor = AppTheme.primaryColor;
-        statusText = 'جاري التنفيذ';
+        statusText = MaintenanceStatus.labelAr(status);
         statusIcon = Icons.engineering;
         break;
-      case 'completed':
-        statusColor = AppTheme.primaryColor;
+      case MaintenanceStatus.paid:
+      case MaintenanceStatus.completed:
+        statusColor = AppTheme.successColor;
         statusText = 'مكتمل';
         statusIcon = Icons.check_circle;
         break;
-      case 'cancelled':
+      case MaintenanceStatus.cancelled:
+      case MaintenanceStatus.rejected:
+      case MaintenanceStatus.disputed:
         statusColor = AppTheme.errorColor;
-        statusText = 'ملغي';
+        statusText = MaintenanceStatus.labelAr(status);
         statusIcon = Icons.cancel;
         break;
       default:
@@ -293,6 +328,11 @@ class _AdminServiceRequestsScreenState
         statusText = 'غير معروف';
         statusIcon = Icons.help_outline;
     }
+
+    final displayTitle =
+        request['title'] ?? request['service'] ?? 'طلب صيانة';
+    final isMaintenance = request['id']?.toString().startsWith('MNT') == true ||
+        request['id']?.toString().startsWith('JR') != true;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -349,7 +389,7 @@ class _AdminServiceRequestsScreenState
                   children: [
                     Expanded(
                       child: Text(
-                        request['service'],
+                        displayTitle,
                         style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
@@ -372,15 +412,16 @@ class _AdminServiceRequestsScreenState
                   ],
                 ),
                 const SizedBox(height: 12),
+                _buildInfoRow(Icons.person,
+                    'العميل: ${request['userName'] ?? request['tenantId'] ?? 'عميل'}'),
                 _buildInfoRow(
-                    Icons.person, 'العميل: ${request['userName'] ?? 'عميل'}'),
-                _buildInfoRow(
-                    Icons.phone, request['customerPhone'] ?? '01000000000'),
-                _buildInfoRow(Icons.business,
-                    'مقدم الخدمة: ${request['assignedTo'] ?? 'غير معين'}'),
+                    Icons.phone, request['customerPhone'] ?? request['tenantPhone'] ?? '—'),
+                _buildInfoRow(Icons.engineering,
+                    'الفني: ${request['assignedTo'] ?? request['technicianId'] ?? 'غير معين'}'),
                 _buildInfoRow(Icons.calendar_today, '${request['createdAt']}'),
-                _buildInfoRow(Icons.location_on, request['title']),
-                if (request['notes'] != null) ...[
+                _buildInfoRow(Icons.location_on,
+                    request['propertyTitle'] ?? request['title'] ?? '—'),
+                if (request['description'] != null || request['notes'] != null) ...[
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -388,25 +429,15 @@ class _AdminServiceRequestsScreenState
                       color: AppTheme.backgroundColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.note,
-                            size: 16, color: AppTheme.textSecondary),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            request['notes'],
-                            style: const TextStyle(
-                                color: AppTheme.textSecondary, fontSize: 13),
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      request['description'] ?? request['notes'] ?? '',
+                      style: const TextStyle(
+                          color: AppTheme.textSecondary, fontSize: 13),
                     ),
                   ),
                 ],
                 const SizedBox(height: 16),
-                _buildAdminActions(request),
+                _buildAdminActions(request, isMaintenance),
               ],
             ),
           ),
@@ -433,39 +464,59 @@ class _AdminServiceRequestsScreenState
     );
   }
 
-  Widget _buildAdminActions(Map<String, dynamic> request) {
-    final status = request['status'];
+  Widget _buildAdminActions(Map<String, dynamic> request, bool isMaintenance) {
+    final status = MaintenanceStatus.normalize(request['status']?.toString());
+    final isJoin = request['id']?.toString().startsWith('JR') == true;
 
-    return Row(
-      children: [
-        if (status == 'pending') ...[
+    if (isJoin) {
+      return Row(
+        children: [
           Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () => _updateStatus(request, 'cancelled'),
-              icon: const Icon(Icons.cancel, size: 18),
-              label: const Text('إلغاء'),
-              style: OutlinedButton.styleFrom(
-                  foregroundColor: AppTheme.errorColor),
+            child: OutlinedButton(
+              onPressed: () => _updateStatus(request, MaintenanceStatus.cancelled),
+              child: const Text('رفض'),
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
+            child: ElevatedButton(
+              onPressed: () => _updateStatus(request, MaintenanceStatus.completed),
+              child: const Text('قبول'),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        if (status == MaintenanceStatus.submitted ||
+            (request['status'] == 'pending' && isMaintenance)) ...[
+          Expanded(
             child: ElevatedButton.icon(
-              onPressed: () => _updateStatus(request, 'in_progress'),
-              icon: const Icon(Icons.check, size: 18),
-              label: const Text('قبول'),
+              onPressed: () => _assignTechnician(request),
+              icon: const Icon(Icons.person_add, size: 18),
+              label: const Text('تعيين فني'),
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor),
             ),
           ),
-        ] else if (status == 'in_progress') ...[
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: () =>
+                _updateStatus(request, MaintenanceStatus.cancelled),
+            icon: const Icon(Icons.cancel, color: AppTheme.errorColor),
+          ),
+        ] else if ([
+          MaintenanceStatus.assigned,
+          MaintenanceStatus.enRoute,
+          MaintenanceStatus.inProgress,
+        ].contains(status)) ...[
           Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () => _updateStatus(request, 'completed'),
-              icon: const Icon(Icons.check_circle, size: 18),
-              label: const Text('تم الإنجاز'),
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor),
+            child: OutlinedButton.icon(
+              onPressed: () => _viewDetails(request),
+              icon: const Icon(Icons.visibility, size: 18),
+              label: const Text('التفاصيل'),
             ),
           ),
         ] else ...[
@@ -473,22 +524,38 @@ class _AdminServiceRequestsScreenState
             child: OutlinedButton.icon(
               onPressed: () => _viewDetails(request),
               icon: const Icon(Icons.visibility, size: 18),
-              label: const Text('عرض التفاصيل'),
+              label: const Text('عرض'),
             ),
           ),
         ],
-        const SizedBox(width: 8),
-        IconButton(
-          onPressed: () => _deleteRequest(request),
-          icon: const Icon(Icons.delete, color: AppTheme.errorColor),
-          tooltip: 'حذف',
-        ),
       ],
     );
   }
 
+  Future<void> _assignTechnician(Map<String, dynamic> request) async {
+    const techEmail = 'tech@ejari.app';
+    final cost = (request['estimatedCost'] as num?)?.toDouble() ?? 200;
+    final user = await AuthService.getCurrentUser();
+    await MaintenanceService.assignTechnician(
+      request['id'].toString(),
+      techEmail,
+      actor: user?['email']?.toString(),
+      estimatedCost: cost,
+    );
+    _loadRequests();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('تم تعيين tech@ejari.app للمهمة'),
+        backgroundColor: AppTheme.primaryColor,
+      ),
+    );
+  }
+
   void _updateStatus(Map<String, dynamic> request, String newStatus) async {
-    await MaintenanceService.updateStatus(request['id'], newStatus);
+    if (request['id']?.toString().startsWith('JR') != true) {
+      await MaintenanceService.updateStatus(request['id'], newStatus);
+    }
     _loadRequests();
 
     String message;

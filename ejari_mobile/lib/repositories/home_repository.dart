@@ -3,6 +3,7 @@ import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import '../services/firestore_property_service.dart';
 import '../utils/rental_schedule_utils.dart';
+import '../services/maintenance_service.dart';
 import '../models/home_stats_model.dart';
 
 class HomeRepository {
@@ -156,22 +157,7 @@ class HomeRepository {
 
     final baseOwner = await _loadOwnerStats();
 
-    final baseTech = {
-      'userName': 'مصطفى حسن',
-      'verificationStatus': 'موثق',
-      'availability': 'متاح',
-      'newRequests': 4,
-      'nearbyRequests': 2,
-      'activeJobs': 2,
-      'completedJobs': 18,
-      'todayEarnings': 450,
-      'monthlyEarnings': 8500,
-      'availableBalance': 3200,
-      'rating': 4.9,
-      'reviewsCount': 45,
-      'urgentRequests': 1,
-      'banner': 'أكمل تخصصك أو حسّن بياناتك لزيادة فرص ظهورك',
-    };
+    final baseTech = await _loadTechStats();
 
     final baseAdmin = {
       'userName': 'الأدمن',
@@ -247,6 +233,28 @@ class HomeRepository {
       'canFeature': sub['can_feature'],
       'banner':
           'باقتك: ${sub['plan_name']} — ${sub['properties_used']}/${sub['properties_limit'] == -1 ? '∞' : sub['properties_limit']} عقار',
+    };
+  }
+
+  Future<Map<String, dynamic>> _loadTechStats() async {
+    final user = await AuthService.getCurrentUser();
+    final techId = user?['email']?.toString() ?? 'tech@ejari.app';
+    final stats = await MaintenanceService.getTechnicianStats(techId);
+    return {
+      'userName': user?['name'] ?? 'فني إيجاري',
+      'verificationStatus': 'موثق',
+      'availability': 'متاح',
+      'newRequests': stats['newRequests'] ?? 0,
+      'nearbyRequests': stats['activeJobs'] ?? 0,
+      'activeJobs': stats['activeJobs'] ?? 0,
+      'completedJobs': stats['completedJobs'] ?? 0,
+      'todayEarnings': stats['todayEarnings'] ?? 0,
+      'monthlyEarnings': stats['monthlyEarnings'] ?? 0,
+      'availableBalance': stats['availableBalance'] ?? 0,
+      'rating': stats['rating'] ?? 4.8,
+      'reviewsCount': stats['completedCount'] ?? 0,
+      'urgentRequests': stats['urgentRequests'] ?? 0,
+      'banner': 'تابع مهامك من لوحة الفني',
     };
   }
 }

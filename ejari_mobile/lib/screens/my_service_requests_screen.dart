@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ejari_section.dart';
 import '../services/auth_service.dart';
 import '../services/maintenance_service.dart';
+import 'payment_screen.dart';
 
 class MyServiceRequestsScreen extends StatefulWidget {
   const MyServiceRequestsScreen({super.key});
@@ -29,35 +31,54 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
     final requests = await MaintenanceService.getUserRequests(email);
     if (mounted) {
       setState(() {
-        _requests = requests;
+        _requests = requests.reversed.toList();
         _loading = false;
       });
     }
+  }
+
+  Color _statusColor(String status) {
+    return switch (MaintenanceStatus.normalize(status)) {
+      MaintenanceStatus.submitted => AppTheme.accentColor,
+      MaintenanceStatus.assigned => AppTheme.primaryLight,
+      MaintenanceStatus.enRoute => AppTheme.primaryColor,
+      MaintenanceStatus.inProgress => AppTheme.primaryColor,
+      MaintenanceStatus.pendingClientConfirm => AppTheme.accentColor,
+      MaintenanceStatus.completed || MaintenanceStatus.paid =>
+        AppTheme.successColor,
+      MaintenanceStatus.cancelled ||
+      MaintenanceStatus.rejected ||
+      MaintenanceStatus.disputed =>
+        AppTheme.errorColor,
+      _ => AppTheme.textSecondary,
+    };
   }
 
   @override
   Widget build(BuildContext context) {
     final filtered = _selectedFilter == 'all'
         ? _requests
-        : _requests.where((r) => r['status'] == _selectedFilter).toList();
+        : _requests
+            .where((r) =>
+                MaintenanceStatus.normalize(r['status']) == _selectedFilter)
+            .toList();
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: AppTheme.backgroundColor,
-        surfaceTintColor: Colors.transparent,
-        title: const Text('طلبات الصيانة والخدمات'),
-        titleTextStyle: const TextStyle(
-            color: AppTheme.textPrimary,
-            fontSize: 22,
-            fontWeight: FontWeight.w900),
+        backgroundColor: AppTheme.surfaceColor,
+        title: const Text('تتبع طلبات الصيانة'),
+        actions: [
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
+        ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryColor))
           : Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
                   child: _filters(),
                 ),
                 Expanded(
@@ -78,12 +99,13 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
   Widget _filters() {
     const options = [
       ('all', 'الكل'),
-      ('pending', 'قيد الانتظار'),
-      ('in_progress', 'جاري التنفيذ'),
-      ('completed', 'مكتمل'),
+      (MaintenanceStatus.submitted, 'مُرسَل'),
+      (MaintenanceStatus.inProgress, 'جاري'),
+      (MaintenanceStatus.pendingClientConfirm, 'تأكيد'),
+      (MaintenanceStatus.paid, 'مدفوع'),
     ];
     return SizedBox(
-      height: 42,
+      height: 40,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: options.length,
@@ -91,19 +113,191 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
         itemBuilder: (context, index) {
           final item = options[index];
           final selected = _selectedFilter == item.$1;
-          return ChoiceChip(
+          return FilterChip(
             selected: selected,
             label: Text(item.$2),
             onSelected: (_) => setState(() => _selectedFilter = item.$1),
             selectedColor: AppTheme.primaryColor,
+            checkmarkColor: Colors.white,
             labelStyle: TextStyle(
-                color: selected ? Colors.white : AppTheme.textPrimary,
-                fontWeight: FontWeight.w800),
-            backgroundColor: AppTheme.surfaceColor,
+              color: selected ? Colors.white : AppTheme.textPrimary,
+              fontWeight: FontWeight.w800,
+              fontSize: 12,
+            ),
           );
         },
       ),
     );
+  }
+
+  Widget _card(Map<String, dynamic> request) {
+    final status = MaintenanceStatus.normalize(request['status']?.toString());
+    final color = _statusColor(status);
+    final createdAt =
+        DateTime.tryParse(request['createdAt']?.toString() ?? '');
+
+    return EjariSurfaceCard(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(Icons.build_circle_rounded, color: color),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(request['title'] ?? '',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w900, fontSize: 16)),
+                    Text(_categoryLabel(request['category']),
+                        style: const TextStyle(
+                            color: AppTheme.textSecondary, fontSize: 12)),
+                  ],
+                ),
+              ),
+              _statusChip(status, color),
+            ],
+          ),
+          const SizedBox(height: 12),
+          EjariStepIndicator(
+            labels: const [
+              'إرسال',
+              'تعيين',
+              'تنفيذ',
+              'تأكيد',
+              'دفع',
+            ],
+            activeIndex: MaintenanceStatus.stepIndex(status).clamp(0, 4),
+          ),
+          const SizedBox(height: 12),
+          _timeline(request),
+          if (createdAt != null)
+            Text(
+              'أُنشئ: ${DateFormat('yyyy/MM/dd hh:mm a').format(createdAt)}',
+              style: const TextStyle(
+                  color: AppTheme.textSecondary, fontSize: 11),
+            ),
+          const SizedBox(height: 12),
+          _actions(request, status),
+        ],
+      ),
+    );
+  }
+
+  Widget _statusChip(String status, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        MaintenanceStatus.labelAr(status),
+        style: TextStyle(
+            color: color, fontSize: 11, fontWeight: FontWeight.w800),
+      ),
+    );
+  }
+
+  Widget _timeline(Map<String, dynamic> request) {
+    final events = (request['timeline'] as List?) ?? [];
+    if (events.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('الجدول الزمني',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+        const SizedBox(height: 8),
+        ...events.take(5).map((e) {
+          final at = DateTime.tryParse(e['at']?.toString() ?? '');
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              children: [
+                const Icon(Icons.circle, size: 8, color: AppTheme.accentColor),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${e['label'] ?? e['status']}${e['note']?.toString().isNotEmpty == true ? ' — ${e['note']}' : ''}',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+                if (at != null)
+                  Text(DateFormat('MM/dd HH:mm').format(at),
+                      style: const TextStyle(
+                          fontSize: 10, color: AppTheme.textSecondary)),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _actions(Map<String, dynamic> request, String status) {
+    if (status == MaintenanceStatus.pendingClientConfirm) {
+      final cost = (request['finalCost'] as num?)?.toDouble() ??
+          (request['estimatedCost'] as num?)?.toDouble() ??
+          0;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('التكلفة النهائية: $cost ج.م',
+              style: const TextStyle(
+                  fontWeight: FontWeight.w800, color: AppTheme.primaryColor)),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _dispute(request),
+                  style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.errorColor),
+                  child: const Text('نزاع'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _confirmAndPay(request, cost),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor),
+                  child: const Text('تأكيد ودفع'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+    if (status == MaintenanceStatus.submitted ||
+        status == MaintenanceStatus.assigned) {
+      return OutlinedButton(
+        onPressed: () => _cancelRequest(request),
+        child: const Text('إلغاء الطلب'),
+      );
+    }
+    if ((status == MaintenanceStatus.paid ||
+            status == MaintenanceStatus.completed) &&
+        request['rating'] == null) {
+      return ElevatedButton.icon(
+        onPressed: () => _rateService(request),
+        icon: const Icon(Icons.star_rounded),
+        label: const Text('تقييم الخدمة'),
+      );
+    }
+    return const SizedBox.shrink();
   }
 
   String _categoryLabel(String? id) {
@@ -113,200 +307,73 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
     return id ?? 'خدمة';
   }
 
-  Widget _card(Map<String, dynamic> request) {
-    final status = request['status'] as String;
-    final (text, color) = switch (status) {
-      'pending' => ('قيد الانتظار', AppTheme.borderColor),
-      'accepted' => ('مقبول', AppTheme.primaryColor),
-      'in_progress' => ('جاري التنفيذ', Colors.blue),
-      'completed' => ('مكتمل', AppTheme.primaryColor),
-      'cancelled' => ('ملغي', AppTheme.errorColor),
-      _ => ('غير معروف', AppTheme.textSecondary),
-    };
-    final createdAt = DateTime.tryParse(request['createdAt']?.toString() ?? '');
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: color.withOpacity(0.18)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                    color: color.withOpacity(0.10),
-                    borderRadius: BorderRadius.circular(14)),
-                child: Icon(Icons.build_circle_rounded, color: color),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(request['title'] ?? _categoryLabel(request['category']),
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w900, fontSize: 16)),
-                    const SizedBox(height: 4),
-                    Text(_categoryLabel(request['category']),
-                        style: const TextStyle(
-                            color: AppTheme.textSecondary, fontSize: 12)),
-                  ],
-                ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                    color: color.withOpacity(0.10),
-                    borderRadius: BorderRadius.circular(999)),
-                child: Text(text,
-                    style: TextStyle(
-                        color: color,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (createdAt != null)
-            _row(Icons.calendar_today_outlined,
-                DateFormat('yyyy/MM/dd - hh:mm a').format(createdAt)),
-          if (request['estimatedCost'] != null &&
-              (request['estimatedCost'] as num) > 0)
-            _row(Icons.attach_money_rounded,
-                '${request['estimatedCost']} ج.م'),
-          if (request['description'] != null &&
-              request['description'].toString().isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                  color: AppTheme.backgroundColor,
-                  borderRadius: BorderRadius.circular(18)),
-              child: Text(request['description'],
-                  style: const TextStyle(
-                      color: AppTheme.textSecondary, height: 1.5)),
-            ),
-          ],
-          const SizedBox(height: 12),
-          _actions(request),
-        ],
-      ),
-    );
-  }
-
-  Widget _row(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Icon(icon, size: 16, color: AppTheme.textSecondary),
-          const SizedBox(width: 8),
-          Expanded(
-              child: Text(text,
-                  style: const TextStyle(color: AppTheme.textSecondary))),
-        ],
-      ),
-    );
-  }
-
-  Widget _actions(Map<String, dynamic> request) {
-    final status = request['status'];
-    if (status == 'pending') {
-      return Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => _cancelRequest(request),
-              child: const Text('إلغاء'),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () => _trackService(request),
-              child: const Text('تتبع الطلب'),
-            ),
-          ),
-        ],
-      );
-    }
-    if (status == 'in_progress') {
-      return SizedBox(
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: () => _trackService(request),
-          icon: const Icon(Icons.location_searching),
-          label: const Text('تتبع الخدمة'),
-        ),
-      );
-    }
-    if (status == 'completed' && request['rating'] == null) {
-      return SizedBox(
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: () => _rateService(request),
-          icon: const Icon(Icons.star_rounded),
-          label: const Text('تقييم الخدمة'),
-        ),
-      );
-    }
-    return const SizedBox.shrink();
-  }
-
   Widget _empty() {
-    return const Center(
-      child: Text('لا توجد طلبات'),
-    );
+    return const Center(child: Text('لا توجد طلبات صيانة'));
   }
 
   Future<void> _cancelRequest(Map<String, dynamic> request) async {
-    final confirmed = await showDialog<bool>(
+    final user = await AuthService.getCurrentUser();
+    await MaintenanceService.cancelRequest(
+      request['id'].toString(),
+      actor: user?['email']?.toString(),
+    );
+    await _load();
+  }
+
+  Future<void> _confirmAndPay(Map<String, dynamic> request, double cost) async {
+    final paid = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentScreen(
+          itemType: 'service',
+          itemData: {
+            'id': request['id'],
+            'title': request['title'],
+            'price': cost,
+            'finalCost': cost,
+          },
+          amount: cost,
+        ),
+      ),
+    );
+    if (paid == true) await _load();
+  }
+
+  Future<void> _dispute(Map<String, dynamic> request) async {
+    final controller = TextEditingController();
+    final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('إلغاء الطلب'),
-        content: const Text('هل أنت متأكد من إلغاء طلب الصيانة؟'),
+        title: const Text('فتح نزاع'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(hintText: 'سبب النزاع'),
+          maxLines: 3,
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('تراجع'),
-          ),
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('تراجع')),
           ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('إلغاء الطلب'),
-          ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('إرسال')),
         ],
       ),
     );
-    if (confirmed != true) return;
-
-    await MaintenanceService.updateStatus(
+    if (ok != true) {
+      controller.dispose();
+      return;
+    }
+    final user = await AuthService.getCurrentUser();
+    await MaintenanceService.disputeCompletion(
       request['id'].toString(),
-      'cancelled',
+      user?['email']?.toString() ?? '',
+      controller.text.trim().isEmpty
+          ? 'العميل لم يوافق على جودة العمل'
+          : controller.text.trim(),
     );
+    controller.dispose();
     await _load();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('تم إلغاء طلب الصيانة')),
-    );
-  }
-
-  void _trackService(Map<String, dynamic> request) {
-    final status = request['status'];
-    final message = status == 'pending'
-        ? 'طلبك قيد المراجعة وسيتم تعيين فني قريباً.'
-        : 'الفني في الطريق إليك.';
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
   }
 
   Future<void> _rateService(Map<String, dynamic> request) async {
@@ -327,29 +394,25 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
                     onPressed: () => setDialogState(() => rating = i + 1),
                     icon: Icon(
                       i < rating ? Icons.star : Icons.star_border,
-                      color: Colors.amber,
+                      color: AppTheme.accentColor,
                     ),
                   );
                 }),
               ),
               TextField(
                 controller: feedbackController,
-                decoration: const InputDecoration(
-                  hintText: 'ملاحظاتك (اختياري)',
-                ),
+                decoration: const InputDecoration(hintText: 'ملاحظاتك'),
                 maxLines: 2,
               ),
             ],
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('إلغاء'),
-            ),
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('إلغاء')),
             ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('إرسال التقييم'),
-            ),
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('إرسال')),
           ],
         ),
       ),
@@ -358,19 +421,12 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
       feedbackController.dispose();
       return;
     }
-
-    final feedback = feedbackController.text.trim();
-    feedbackController.dispose();
-
     await MaintenanceService.addFeedback(
       request['id'].toString(),
       rating,
-      feedback,
+      feedbackController.text.trim(),
     );
+    feedbackController.dispose();
     await _load();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('شكراً! تم إرسال تقييمك')),
-    );
   }
 }
