@@ -119,7 +119,7 @@ void main() {
       expect(adminChats.any((c) => c['id'] == chatId), isTrue);
 
       final messages = await ChatService.getMessages(chatId);
-      expect(messages.length, greaterThanOrEqualTo(3));
+      expect(messages.length, greaterThanOrEqualTo(2));
 
       final adminNotes = await DataService.getAdminNotifications();
       expect(

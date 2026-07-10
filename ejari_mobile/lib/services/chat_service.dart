@@ -65,7 +65,13 @@ class ChatService {
   }
 
   static Future<void> sendMessage(
-      String chatId, String senderId, String text) async {
+    String chatId,
+    String senderId,
+    String text, {
+    bool isShortcut = false,
+    String? shortcutId,
+    bool isSystem = false,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
 
     final message = {
@@ -73,12 +79,49 @@ class ChatService {
       'senderId': senderId,
       'text': text,
       'timestamp': DateTime.now().toIso8601String(),
+      if (isShortcut) 'isShortcut': true,
+      if (shortcutId != null) 'shortcutId': shortcutId,
+      if (isSystem) 'isSystem': true,
     };
 
     final messages = prefs.getStringList('messages_$chatId') ?? [];
     messages.add(jsonEncode(message));
     await prefs.setStringList('messages_$chatId', messages);
 
+    await _updateChatLastMessage(chatId, text);
+  }
+
+  static Future<void> sendBotMessage(
+    String chatId,
+    String text, {
+    bool showShortcuts = false,
+    bool showFeedback = false,
+    bool suggestEscalation = false,
+    String? actionRoute,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final message = {
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      'senderId': 'support_bot',
+      'text': text,
+      'isBot': true,
+      'timestamp': DateTime.now().toIso8601String(),
+      if (showShortcuts) 'showShortcuts': true,
+      if (showFeedback) 'showFeedback': true,
+      if (suggestEscalation) 'suggestEscalation': true,
+      if (actionRoute != null) 'actionRoute': actionRoute,
+    };
+
+    final messages = prefs.getStringList('messages_$chatId') ?? [];
+    messages.add(jsonEncode(message));
+    await prefs.setStringList('messages_$chatId', messages);
+
+    await _updateChatLastMessage(chatId, text);
+  }
+
+  static Future<void> _updateChatLastMessage(String chatId, String text) async {
+    final prefs = await SharedPreferences.getInstance();
     final chatsJson = prefs.getStringList(_chatsKey) ?? [];
     final allChats =
         chatsJson.map((c) => jsonDecode(c) as Map<String, dynamic>).toList();
@@ -90,6 +133,31 @@ class ChatService {
       await prefs.setStringList(
           _chatsKey, allChats.map((c) => jsonEncode(c)).toList());
     }
+  }
+
+  static Future<void> setSupportMode(String chatId, String mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    final chatsJson = prefs.getStringList(_chatsKey) ?? [];
+    final allChats =
+        chatsJson.map((c) => jsonDecode(c) as Map<String, dynamic>).toList();
+
+    final index = allChats.indexWhere((c) => c['id']?.toString() == chatId);
+    if (index == -1) return;
+
+    allChats[index]['supportMode'] = mode;
+    allChats[index]['chatType'] = 'support';
+    await prefs.setStringList(
+        _chatsKey, allChats.map((c) => jsonEncode(c)).toList());
+  }
+
+  static Future<String?> getSupportMode(String chatId) async {
+    final chat = await getChatById(chatId);
+    return chat?['supportMode']?.toString();
+  }
+
+  static bool isSupportChat(Map<String, dynamic> chat) {
+    return chat['chatType']?.toString() == 'support' ||
+        (chat['participants'] as List?)?.contains(adminEmail) == true;
   }
 
   static Future<String> startChat(
@@ -132,11 +200,11 @@ class ChatService {
         _chatsKey, allChats.map((c) => jsonEncode(c)).toList());
 
     if (user2Id == adminEmail || user2Id == 'support' || user2Id == 'admin') {
-      await sendMessage(
-        chatId,
-        adminEmail,
-        'أهلاً بك في دعم إيجاري. سيتم الرد عليك من خلال ممثل خدمة العملاء في أقرب وقت. يمكنك كتابة استفسارك هنا وسنوافيك بالرد.',
-      );
+      allChats[allChats.length - 1]['chatType'] = 'support';
+      allChats[allChats.length - 1]['supportMode'] = 'bot';
+      await prefs.setStringList(
+          _chatsKey, allChats.map((c) => jsonEncode(c)).toList());
+
       await DataService.addNotificationToUser(
         adminEmail,
         'محادثة دعم جديدة 💬',
@@ -148,6 +216,39 @@ class ChatService {
     }
 
     return chatId;
+  }
+
+  /// Reuse existing support chat or create a new bot-mode support session.
+  static Future<String> getOrCreateSupportChat(
+    String userId,
+    String userName, {
+    String subtitle = 'دعم إيجاري الذكي',
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final chatsJson = prefs.getStringList(_chatsKey) ?? [];
+    final allChats =
+        chatsJson.map((c) => jsonDecode(c) as Map<String, dynamic>).toList();
+
+    final existing = allChats.cast<Map<String, dynamic>?>().firstWhere(
+      (c) =>
+          c!['participants']?.contains(userId) == true &&
+          c['participants']?.contains(adminEmail) == true &&
+          (c['chatType']?.toString() == 'support' ||
+              c['subtitle']?.toString().contains('دعم') == true),
+      orElse: () => null,
+    );
+
+    if (existing != null) {
+      return existing['id']?.toString() ?? '';
+    }
+
+    return startChat(
+      userId,
+      adminEmail,
+      'دعم إيجاري',
+      subtitle,
+      user1Name: userName,
+    );
   }
 
   static Future<void> sendSmartResponse(

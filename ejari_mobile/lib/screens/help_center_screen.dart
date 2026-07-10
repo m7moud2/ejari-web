@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'chat_screen.dart';
+import 'support_chat_screen.dart';
 import '../services/auth_service.dart';
-import '../services/chat_service.dart';
 import '../services/support_service.dart';
 
 class HelpCenterScreen extends StatefulWidget {
@@ -100,32 +99,11 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     final email = user['email'].toString();
     final name = user['name']?.toString() ?? 'مستخدم';
 
-    final chatId = await ChatService.startChat(
-      email,
-      SupportService.adminEmail,
-      'دعم إيجاري',
-      'استفسار دعم فني',
-      user1Name: name,
-    );
-
-    await SupportService.createTicket(
+    if (!mounted) return;
+    await openSupportChat(
+      context,
       userEmail: email,
       userName: name,
-      subject: 'استفسار دعم فني',
-      message: 'بدء محادثة دعم من مركز المساعدة',
-      chatId: chatId,
-    );
-
-    if (!mounted) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChatScreen(
-          chatId: chatId,
-          otherUserName: 'دعم إيجاري',
-          currentUserId: email,
-        ),
-      ),
     );
   }
 

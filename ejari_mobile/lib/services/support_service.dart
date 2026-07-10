@@ -14,6 +14,8 @@ class SupportService {
     required String message,
     String category = 'support',
     String? chatId,
+    bool botCouldntResolve = false,
+    List<Map<String, dynamic>>? botHistory,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final list = prefs.getStringList(_ticketsKey) ?? [];
@@ -28,6 +30,8 @@ class SupportService {
       'category': category,
       'status': 'open',
       'chatId': chatId,
+      'botCouldntResolve': botCouldntResolve,
+      if (botHistory != null) 'botHistory': botHistory,
       'replies': <Map<String, dynamic>>[],
       'createdAt': DateTime.now().toIso8601String(),
       'updatedAt': DateTime.now().toIso8601String(),
@@ -36,9 +40,12 @@ class SupportService {
     list.add(jsonEncode(ticket));
     await prefs.setStringList(_ticketsKey, list);
 
+    final notifTitle = botCouldntResolve
+        ? 'تصعيد دعم — البوت لم يحل 🎫'
+        : 'تذكرة دعم جديدة 🎫';
     await DataService.addNotificationToUser(
       adminEmail,
-      'تذكرة دعم جديدة 🎫',
+      notifTitle,
       '$userName: $subject',
       type: 'support',
       refId: id,

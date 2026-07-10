@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
-import 'chat_screen.dart';
+import 'support_chat_screen.dart';
 import 'login_screen.dart';
 import '../services/auth_service.dart';
 import 'my_bookings_screen.dart';
@@ -18,7 +18,6 @@ import 'notification_center_screen.dart';
 import '../main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'rental_statement_screen.dart';
-import '../services/chat_service.dart';
 import '../services/support_service.dart';
 import '../services/data_service.dart';
 import 'request_verification_screen.dart';
@@ -759,28 +758,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (_userData == null || _userData!['email'] == null) return;
     final email = _userData!['email'].toString();
     final name = _userData!['name']?.toString() ?? 'مستخدم';
-    final chatId = await ChatService.startChat(
-      email,
-      SupportService.adminEmail,
-      'دعم إيجاري',
-      'استفسار دعم فني',
-      user1Name: name,
-    );
-    await SupportService.createTicket(
+    if (!mounted) return;
+    await openSupportChat(
+      context,
       userEmail: email,
       userName: name,
-      subject: 'استفسار من الملف الشخصي',
-      message: 'بدء محادثة دعم',
-      chatId: chatId,
     );
-    if (!mounted) return;
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (_) => ChatScreen(
-                chatId: chatId,
-                otherUserName: 'دعم إيجاري',
-                currentUserId: email)));
   }
 
   Future<void> _logout() async {

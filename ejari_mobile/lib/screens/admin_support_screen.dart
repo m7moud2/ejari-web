@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../widgets/ejari_section.dart';
 import '../services/support_service.dart';
 import '../services/auth_service.dart';
 import 'chat_screen.dart';
@@ -33,6 +34,11 @@ class _AdminSupportScreenState extends State<AdminSupportScreen> {
 
   List<Map<String, dynamic>> get _filtered {
     if (_filter == 'all') return _tickets;
+    if (_filter == 'escalated') {
+      return _tickets
+          .where((t) => t['botCouldntResolve'] == true)
+          .toList();
+    }
     return _tickets.where((t) => t['status'] == _filter).toList();
   }
 
@@ -57,6 +63,7 @@ class _AdminSupportScreenState extends State<AdminSupportScreen> {
                   child: Row(
                     children: [
                       _chip('الكل', 'all'),
+                      _chip('تصعيد البوت', 'escalated'),
                       _chip('مفتوحة', 'open'),
                       _chip('قيد المعالجة', 'in_progress'),
                       _chip('تم الحل', 'resolved'),
@@ -100,11 +107,14 @@ class _AdminSupportScreenState extends State<AdminSupportScreen> {
 
   Widget _buildTicketCard(Map<String, dynamic> ticket) {
     final status = ticket['status']?.toString() ?? 'open';
+    final botEscalated = ticket['botCouldntResolve'] == true;
     final color = status == 'resolved'
         ? AppTheme.successColor
         : status == 'in_progress'
             ? AppTheme.primaryColor
-            : AppTheme.accentColor;
+            : botEscalated
+                ? AppTheme.accentColor
+                : AppTheme.accentColor;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -130,6 +140,24 @@ class _AdminSupportScreenState extends State<AdminSupportScreen> {
                       ),
                     ),
                   ),
+                  if (botEscalated)
+                    Container(
+                      margin: const EdgeInsets.only(left: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accentColor.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Text(
+                        'البوت لم يحل',
+                        style: TextStyle(
+                          color: AppTheme.accentColor,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -229,6 +257,53 @@ class _AdminSupportScreenState extends State<AdminSupportScreen> {
                 ),
                 const SizedBox(height: 12),
                 Text(ticket['message']?.toString() ?? ''),
+                if ((ticket['botHistory'] as List?)?.isNotEmpty == true) ...[
+                  const SizedBox(height: 12),
+                  const Divider(),
+                  const Row(
+                    children: [
+                      Icon(Icons.smart_toy_outlined,
+                          size: 16, color: AppTheme.primaryColor),
+                      SizedBox(width: 6),
+                      Text(
+                        'سجل محادثة البوت',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  EjariSurfaceCard(
+                    elevated: false,
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: (ticket['botHistory'] as List).map((raw) {
+                        final m = raw as Map<String, dynamic>;
+                        final isBot = m['isBot'] == true ||
+                            m['senderId']?.toString() == 'support_bot';
+                        final sender = isBot
+                            ? '🤖 البوت'
+                            : m['senderId']?.toString() ?? 'مستخدم';
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Text(
+                            '$sender: ${m['text']}',
+                            style: TextStyle(
+                              fontSize: 12,
+                              height: 1.4,
+                              color: isBot
+                                  ? AppTheme.primaryColor
+                                  : AppTheme.textPrimary,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 if ((ticket['replies'] as List?)?.isNotEmpty == true) ...[
                   const Divider(),
