@@ -5,6 +5,9 @@ import '../../theme/app_theme.dart';
 import '../../widgets/ejari_section.dart';
 import '../add_property_screen.dart';
 import '../owner_collection_screen.dart';
+import '../owner_bulk_pricing_screen.dart';
+import '../owner_discount_scheduler_screen.dart';
+import '../owner_tenant_lists_screen.dart';
 import '../owner_occupancy_screen.dart';
 import '../my_contracts_screen.dart';
 import '../maintenance_requests_screen.dart';
@@ -625,6 +628,21 @@ class OwnerHomeView extends StatelessWidget {
 
   Widget _buildQuickActions(BuildContext context) {
     final actions = [
+      (
+        'تسعير جماعي',
+        Icons.price_change_outlined,
+        const OwnerBulkPricingScreen(),
+      ),
+      (
+        'جدولة تخفيض',
+        Icons.schedule_rounded,
+        const OwnerDiscountSchedulerScreen(),
+      ),
+      (
+        'قوائم المستأجرين',
+        Icons.people_alt_outlined,
+        const OwnerTenantListsScreen(),
+      ),
       (
         'شجرة الأسرّة',
         Icons.account_tree_rounded,

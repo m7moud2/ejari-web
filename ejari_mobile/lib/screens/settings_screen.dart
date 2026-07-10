@@ -21,6 +21,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _notificationsEnabled = true;
   bool _biometricsEnabled = true;
+  bool _darkMode = false;
   String _language = 'ar';
 
   final LocalAuthentication auth = LocalAuthentication();
@@ -29,6 +30,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _language = localeNotifier.value.languageCode;
+    _darkMode = themeNotifier.value == ThemeMode.dark;
     _loadBiometricState();
     _loadNotificationState();
   }
@@ -117,9 +119,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
+          _buildSwitchTile(
+            title: 'الوضع الداكن',
+            subtitle: _darkMode ? 'مفعّل — مريح للعين ليلاً' : 'الوضع الفاتح الافتراضي',
+            icon: Icons.dark_mode_outlined,
+            value: _darkMode,
+            onChanged: (val) async {
+              setState(() => _darkMode = val);
+              themeNotifier.value = val ? ThemeMode.dark : ThemeMode.light;
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setBool('dark_mode', val);
+            },
+          ),
           _buildListTile(
             title: 'المظهر',
-            subtitle: 'ألوان إيجاري الهادئة مفعّلة على التطبيق كله',
+            subtitle: _darkMode ? 'الوضع الداكن مفعّل' : 'ألوان إيجاري الهادئة مفعّلة',
             icon: Icons.palette_outlined,
           ),
           const Divider(height: 32),
@@ -433,7 +447,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: _buildSummaryTile('النسخة', 'جاهزة'),
+                child: _buildSummaryTile(
+                  'المظهر',
+                  _darkMode ? 'داكن' : 'فاتح',
+                ),
               ),
             ],
           ),

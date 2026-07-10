@@ -322,5 +322,66 @@ class AppTheme {
   }
 
   static ThemeData get lightTheme => _buildLightTheme();
-  static ThemeData get darkTheme => lightTheme;
+
+  static ThemeData get darkTheme {
+    const darkBg = Color(0xFF0F1419);
+    const darkSurface = Color(0xFF1A2332);
+    const darkText = Color(0xFFE2E8F0);
+    const darkInput = Color(0xFF243044);
+    const darkBorder = Color(0xFF334155);
+
+    const scheme = ColorScheme.dark(
+      primary: primaryLight,
+      onPrimary: Colors.white,
+      secondary: accentColor,
+      onSecondary: Colors.white,
+      error: errorColor,
+      onError: Colors.white,
+      surface: darkSurface,
+      onSurface: darkText,
+    );
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      fontFamily: 'Tajawal',
+      colorScheme: scheme,
+      primaryColor: primaryLight,
+      scaffoldBackgroundColor: darkBg,
+      canvasColor: darkBg,
+      dividerColor: darkBorder,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: darkSurface,
+        foregroundColor: darkText,
+        elevation: 0,
+        centerTitle: true,
+        surfaceTintColor: Colors.transparent,
+      ),
+      cardTheme: CardTheme(
+        color: darkSurface,
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryLight,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: darkInput,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: primaryLight,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+    );
+  }
 }

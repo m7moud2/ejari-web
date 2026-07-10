@@ -3,6 +3,7 @@ import 'dart:math';
 import '../theme/app_theme.dart';
 import 'search_results_screen.dart';
 import '../services/firestore_property_service.dart';
+import '../services/search_filters_service.dart';
 
 class AdvancedFiltersScreen extends StatefulWidget {
   const AdvancedFiltersScreen({super.key});
@@ -49,6 +50,31 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
     super.initState();
     _generateHistogram();
     _loadProperties();
+    _loadSavedFilters();
+  }
+
+  Future<void> _loadSavedFilters() async {
+    final last = await SearchFiltersService.loadLast();
+    if (last == null || !mounted) return;
+    setState(() {
+      _priceRange = RangeValues(
+        (last['minPrice'] as num?)?.toDouble() ?? _priceRange.start,
+        (last['maxPrice'] as num?)?.toDouble() ?? _priceRange.end,
+      );
+      _selectedBeds = last['beds'] as int? ?? 0;
+      _selectedBaths = last['baths'] as int? ?? 0;
+      _selectedType = last['type']?.toString() ?? 'الكل';
+      _isFurnished = last['furnished'] as bool?;
+      _listingFilter = last['listingMode']?.toString() ?? 'all';
+      _selectedGovernorate = last['governorate']?.toString() ?? 'الكل';
+      final amenities = last['amenities'];
+      if (amenities is List) {
+        _selectedAmenities
+          ..clear()
+          ..addAll(amenities.map((e) => e.toString()));
+      }
+      _updateFiltersCount();
+    });
   }
 
   void _generateHistogram() {
@@ -125,6 +151,8 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
           _selectedGovernorate != 'الكل' ? _selectedGovernorate : null,
     };
 
+    SearchFiltersService.saveLast(filters);
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -134,6 +162,84 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _savePreset() async {
+    final nameCtrl = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('حفظ البحث'),
+        content: TextField(
+          controller: nameCtrl,
+          decoration: const InputDecoration(labelText: 'اسم البحث المحفوظ'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('حفظ')),
+        ],
+      ),
+    );
+    if (ok == true && nameCtrl.text.trim().isNotEmpty) {
+      await SearchFiltersService.savePreset(nameCtrl.text.trim(), {
+        'minPrice': _priceRange.start,
+        'maxPrice': _priceRange.end,
+        'beds': _selectedBeds > 0 ? _selectedBeds : null,
+        'baths': _selectedBaths > 0 ? _selectedBaths : null,
+        'type': _selectedType != 'الكل' ? _selectedType : null,
+        'furnished': _isFurnished,
+        'amenities': _selectedAmenities.isNotEmpty ? _selectedAmenities : null,
+        'listingMode': _listingFilter == 'all' ? null : _listingFilter,
+        'governorate': _selectedGovernorate != 'الكل' ? _selectedGovernorate : null,
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تم حفظ البحث ✅')),
+        );
+      }
+    }
+    nameCtrl.dispose();
+  }
+
+  Future<void> _loadPreset() async {
+    final presets = await SearchFiltersService.getPresets();
+    if (!mounted) return;
+    if (presets.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لا توجد عمليات بحث محفوظة')),
+      );
+      return;
+    }
+    final picked = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      builder: (ctx) => ListView(
+        children: presets
+            .map((p) => ListTile(
+                  title: Text(p['name']?.toString() ?? ''),
+                  subtitle: Text(p['savedAt']?.toString().split('T').first ?? ''),
+                  onTap: () => Navigator.pop(ctx, p),
+                ))
+            .toList(),
+      ),
+    );
+    if (picked == null) return;
+    final f = Map<String, dynamic>.from(picked['filters'] as Map? ?? {});
+    setState(() {
+      _priceRange = RangeValues(
+        (f['minPrice'] as num?)?.toDouble() ?? _priceRange.start,
+        (f['maxPrice'] as num?)?.toDouble() ?? _priceRange.end,
+      );
+      _selectedBeds = f['beds'] as int? ?? 0;
+      _selectedType = f['type']?.toString() ?? 'الكل';
+      _selectedGovernorate = f['governorate']?.toString() ?? 'الكل';
+      final amenities = f['amenities'];
+      if (amenities is List) {
+        _selectedAmenities
+          ..clear()
+          ..addAll(amenities.map((e) => e.toString()));
+      }
+      _updateFiltersCount();
+    });
   }
 
   @override
@@ -154,6 +260,16 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.bookmark_outline),
+            tooltip: 'تحميل بحث محفوظ',
+            onPressed: _loadPreset,
+          ),
+          IconButton(
+            icon: const Icon(Icons.bookmark_add_outlined),
+            tooltip: 'حفظ البحث',
+            onPressed: _savePreset,
+          ),
           TextButton(
             onPressed: () {
               setState(() {

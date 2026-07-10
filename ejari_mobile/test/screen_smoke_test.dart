@@ -18,6 +18,7 @@ import 'package:ejari_mobile/screens/admin_financials_screen.dart';
 import 'package:ejari_mobile/screens/admin_properties_screen.dart';
 import 'package:ejari_mobile/screens/admin_support_screen.dart';
 import 'package:ejari_mobile/screens/admin_users_screen.dart';
+import 'package:ejari_mobile/screens/admin_audit_log_screen.dart';
 import 'package:ejari_mobile/screens/my_contracts_screen.dart';
 import 'package:ejari_mobile/screens/tenant_wallet_screen.dart';
 import 'package:ejari_mobile/screens/wallet_screen.dart';
@@ -29,6 +30,7 @@ import 'package:ejari_mobile/screens/corporate_command_center_screen.dart';
 import 'package:ejari_mobile/screens/payment_methods_screen.dart';
 import 'package:ejari_mobile/screens/subscriptions_screen.dart';
 import 'package:ejari_mobile/screens/my_bookings_screen.dart';
+import 'package:ejari_mobile/screens/refund_tracker_screen.dart';
 import 'package:ejari_mobile/screens/my_service_requests_screen.dart';
 import 'package:ejari_mobile/screens/verification_screen.dart';
 import 'package:ejari_mobile/screens/unified_home_screen.dart';
@@ -37,6 +39,9 @@ import 'package:ejari_mobile/screens/owner_collection_screen.dart';
 import 'package:ejari_mobile/screens/owner_qr_verify_screen.dart';
 import 'package:ejari_mobile/screens/owner_booking_requests_screen.dart';
 import 'package:ejari_mobile/screens/manage_properties_screen.dart';
+import 'package:ejari_mobile/screens/owner_bulk_pricing_screen.dart';
+import 'package:ejari_mobile/screens/owner_discount_scheduler_screen.dart';
+import 'package:ejari_mobile/screens/owner_tenant_lists_screen.dart';
 import 'package:ejari_mobile/screens/add_property_screen.dart';
 import 'package:ejari_mobile/screens/profile_screen.dart';
 import 'package:ejari_mobile/widgets/bed_hierarchy_tree.dart';
@@ -94,6 +99,7 @@ void main() {
         const AdminUsersScreen(),
         const AdminServiceRequestsScreen(),
         const AdminFinancialsScreen(),
+        const AdminAuditLogScreen(),
         const AdminPropertiesScreen(),
         const VerificationScreen(),
       ];
@@ -111,6 +117,7 @@ void main() {
       final tenantScreens = <Widget>[
         const UnifiedHomeScreen(),
         const MyBookingsScreen(),
+        const RefundTrackerScreen(),
         const MyContractsScreen(),
         const TenantWalletScreen(),
         const MyServiceRequestsScreen(),
@@ -139,6 +146,9 @@ void main() {
         const OwnerQrVerifyScreen(),
         const OwnerBookingRequestsScreen(),
         const ManagePropertiesScreen(),
+        const OwnerBulkPricingScreen(),
+        const OwnerDiscountSchedulerScreen(),
+        const OwnerTenantListsScreen(),
         const AddPropertyScreen(),
         const ProfileScreen(),
         const BedHierarchyScreen(),

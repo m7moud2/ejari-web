@@ -38,4 +38,39 @@ class ActivityLogService {
         .reversed
         .toList();
   }
+
+  /// Aggregate all user logs for admin audit screen.
+  static Future<List<Map<String, dynamic>>> getAllLogs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final all = <Map<String, dynamic>>[];
+    for (final key in prefs.getKeys()) {
+      if (!key.startsWith(_prefix)) continue;
+      final userId = key.substring(_prefix.length);
+      final list = prefs.getStringList(key) ?? [];
+      for (final raw in list) {
+        try {
+          final entry = Map<String, dynamic>.from(jsonDecode(raw) as Map);
+          entry['userId'] = userId;
+          all.add(entry);
+        } catch (_) {}
+      }
+    }
+    all.sort((a, b) =>
+        (b['date']?.toString() ?? '').compareTo(a['date']?.toString() ?? ''));
+    return all;
+  }
+
+  static Future<void> logSystemAction({
+    required String userId,
+    required String action,
+    required String detail,
+    String category = 'admin',
+  }) async {
+    await append(
+      userId: userId,
+      action: action,
+      detail: detail,
+      category: category,
+    );
+  }
 }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'data_service.dart';
 import 'bed_hierarchy_service.dart';
 
@@ -120,6 +122,39 @@ class SmartPricingService {
       seasonalLabel: 'تخفيض تلقائي — شاغر',
     );
     return true;
+  }
+
+  static const String _schedulerKey = 'discount_scheduler_';
+
+  static Future<Map<String, dynamic>> getDiscountScheduler(String ownerId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString('$_schedulerKey$ownerId');
+    if (raw == null) {
+      return {'vacantDays': 3, 'discountPercent': 10.0, 'enabled': false};
+    }
+    try {
+      return Map<String, dynamic>.from(jsonDecode(raw) as Map);
+    } catch (_) {
+      return {'vacantDays': 3, 'discountPercent': 10.0, 'enabled': false};
+    }
+  }
+
+  static Future<void> saveDiscountScheduler({
+    required String ownerId,
+    required int vacantDays,
+    required double discountPercent,
+    required bool enabled,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      '$_schedulerKey$ownerId',
+      jsonEncode({
+        'vacantDays': vacantDays,
+        'discountPercent': discountPercent,
+        'enabled': enabled,
+        'updatedAt': DateTime.now().toIso8601String(),
+      }),
+    );
   }
 
   /// اقتراح AI rule-based للمالك.

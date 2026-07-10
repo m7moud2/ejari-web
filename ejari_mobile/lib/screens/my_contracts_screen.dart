@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
 import '../services/auth_service.dart';
@@ -188,6 +189,23 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
           fontWeight: FontWeight.w900,
         ),
         actions: [
+          if (_contracts.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.download_outlined),
+              tooltip: 'تصدير سجل العقود',
+              onPressed: () async {
+                final buffer = StringBuffer('سجل عقود إيجاري\n\n');
+                for (final c in _contracts) {
+                  buffer.writeln('— ${c['id']} — ${c['propertyTitle']}');
+                  buffer.writeln('  المستأجر: ${c['tenantName']}');
+                  buffer.writeln('  المالك: ${c['ownerName']}');
+                  buffer.writeln('  السعر: ${c['price']} ج.م');
+                  buffer.writeln('  من ${c['startDate']} إلى ${c['endDate']}');
+                  buffer.writeln();
+                }
+                await Share.share(buffer.toString(), subject: 'سجل العقود');
+              },
+            ),
           IconButton(
             icon: const Icon(Icons.filter_list),
             onPressed: _showFilterDialog,

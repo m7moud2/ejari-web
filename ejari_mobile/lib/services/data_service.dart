@@ -4376,4 +4376,94 @@ class DataService {
     await initDemoBookings();
     // Import deferred to avoid circular deps — called from main.dart
   }
+
+  /// Bulk price update for all shared properties owned by user.
+  static Future<Map<String, dynamic>> bulkUpdateBedPrices({
+    required String ownerId,
+    required double percentChange,
+  }) async {
+    final props = await getOwnerProperties(ownerId);
+    int updated = 0;
+    final factor = 1 + (percentChange / 100);
+    for (final prop in props) {
+      if (!isSharedAccommodation(prop)) continue;
+      final id = prop['id']?.toString() ?? '';
+      if (id.isEmpty) continue;
+      final pricing = prop['dynamicPricing'] as Map<String, dynamic>? ??
+          prop['perBedPricing'] as Map<String, dynamic>? ??
+          {};
+      final daily = (pricing['daily'] as num?)?.toDouble() ?? 150;
+      final weekly = (pricing['weekly'] as num?)?.toDouble() ?? daily * 6;
+      final monthly = (pricing['monthly'] as num?)?.toDouble() ?? daily * 25;
+      await setDynamicPricing(
+        id,
+        daily: (daily * factor).roundToDouble(),
+        weekly: (weekly * factor).roundToDouble(),
+        monthly: (monthly * factor).roundToDouble(),
+        seasonalLabel: 'تحديث جماعي ${percentChange >= 0 ? '+' : ''}${percentChange.toStringAsFixed(0)}%',
+      );
+      updated++;
+    }
+    return {'updated': updated, 'percentChange': percentChange};
+  }
+
+  /// Refund tracker timeline for tenant bookings.
+  static Future<List<Map<String, dynamic>>> getRefundTrackers(
+      String userId) async {
+    final bookings = await getBookings();
+    final trackers = <Map<String, dynamic>>[];
+    for (final b in bookings) {
+      final status = b['status']?.toString() ?? '';
+      if (status != 'deposit_refunded' &&
+          status != 'cancelled' &&
+          b['refundRequested'] != true) {
+        continue;
+      }
+      final refunded = status == 'deposit_refunded';
+      trackers.add({
+        'bookingId': b['id'],
+        'title': b['title'] ?? 'حجز',
+        'amount': b['refundAmount'] ?? b['depositAmount'] ?? 0,
+        'statusLabel': refunded ? 'مكتمل' : 'قيد المعالجة',
+        'timeline': [
+          {'label': 'طلب الإلغاء', 'done': true},
+          {'label': 'مراجعة السياسة', 'done': true},
+          {
+            'label': refunded ? 'تم التحويل للمحفظة' : 'بانتظار التحويل',
+            'done': refunded,
+          },
+        ],
+      });
+    }
+    if (trackers.isEmpty) {
+      trackers.add({
+        'bookingId': 'demo_refund',
+        'title': 'عربون شقة المعادي (تجريبي)',
+        'amount': 500,
+        'statusLabel': 'قيد المعالجة',
+        'timeline': [
+          {'label': 'طلب الإلغاء', 'done': true},
+          {'label': 'مراجعة السياسة', 'done': true},
+          {'label': 'بانتظار التحويل (3-5 أيام عمل)', 'done': false},
+        ],
+      });
+    }
+    return trackers;
+  }
+
+  /// Platform fee report for admin export.
+  static Future<Map<String, dynamic>> getPlatformFeeReport() async {
+    final stats = await getAdminGlobalStats();
+    final totalRevenue = (stats['totalRevenue'] as num?)?.toDouble() ?? 0;
+    const feePct = 0.05;
+    final platformFee = totalRevenue * feePct;
+    return {
+      'totalVolume': totalRevenue,
+      'platformFeePercent': feePct * 100,
+      'platformFee': platformFee,
+      'transactionCount': stats['totalBookings'] ?? 0,
+      'generatedAt': DateTime.now().toIso8601String(),
+      'period': 'الشهر الحالي',
+    };
+  }
 }

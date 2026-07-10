@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/payment_receipt.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
@@ -95,6 +96,27 @@ class ReceiptScreen extends StatelessWidget {
           _row('وسيلة الدفع', receipt.methodLabelAr),
           if (receipt.title != null) _row('الوصف', receipt.title!),
           _row('الحالة', receipt.status == 'completed' ? 'مكتمل ✅' : receipt.status),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () {
+                final text = '''
+إيصال دفع إيجاري
+رقم: ${receipt.id}
+المبلغ: ${receipt.amount.toStringAsFixed(0)} ج.م
+التاريخ: ${DateFormat('yyyy/MM/dd').format(receipt.date)}
+مرجع الحجز: ${receipt.bookingRef}
+الدافع: ${receipt.payer}
+المستلم: ${receipt.payee}
+وسيلة الدفع: ${receipt.methodLabelAr}
+''';
+                Share.share(text, subject: 'إيصال ${receipt.id}');
+              },
+              icon: const Icon(Icons.share_outlined),
+              label: const Text('مشاركة / تصدير الإيصال'),
+            ),
+          ),
           const SizedBox(height: 16),
           Container(
             width: double.infinity,

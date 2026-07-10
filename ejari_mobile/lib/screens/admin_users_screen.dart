@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
+import '../services/activity_log_service.dart';
 
 class AdminUsersScreen extends StatefulWidget {
   const AdminUsersScreen({super.key});
@@ -95,20 +96,80 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
     }
   }
 
-  Future<void> _toggleBlock(String uid, bool isCurrentlyBlocked) async {
-    await AuthService.toggleUserBlock(uid);
+  Future<void> _moderateUser(String uid, bool isBlocked, bool isSuspended) async {
+    final reasonCtrl = TextEditingController();
+    final action = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('إجراء إداري'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!isBlocked && !isSuspended) ...[
+              ListTile(
+                leading: const Icon(Icons.block, color: AppTheme.errorColor),
+                title: const Text('حظر دائم'),
+                onTap: () => Navigator.pop(ctx, 'block'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.pause_circle, color: Colors.orange),
+                title: const Text('تعليق مؤقت (7 أيام)'),
+                onTap: () => Navigator.pop(ctx, 'suspend'),
+              ),
+            ] else
+              ListTile(
+                leading: const Icon(Icons.check_circle, color: AppTheme.successColor),
+                title: const Text('رفع الحظر / التعليق'),
+                onTap: () => Navigator.pop(ctx, 'unblock'),
+              ),
+            TextField(
+              controller: reasonCtrl,
+              decoration: const InputDecoration(labelText: 'السبب (اختياري)'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+        ],
+      ),
+    );
+    if (action == null) {
+      reasonCtrl.dispose();
+      return;
+    }
+    await AuthService.moderateUser(
+      uid: uid,
+      action: action,
+      reason: reasonCtrl.text.trim().isEmpty ? null : reasonCtrl.text.trim(),
+      suspendUntil: action == 'suspend'
+          ? DateTime.now().add(const Duration(days: 7))
+          : null,
+    );
+    await ActivityLogService.logSystemAction(
+      userId: 'admin@ejari.app',
+      action: 'moderate_user',
+      detail: '$action — $uid — ${reasonCtrl.text}',
+      category: 'admin',
+    );
+    reasonCtrl.dispose();
     _loadUsers();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(isCurrentlyBlocked
-              ? 'تم فك حظر المستخدم'
-              : 'تم حظر المستخدم بنجاح'),
-          backgroundColor:
-              isCurrentlyBlocked ? AppTheme.primaryColor : AppTheme.errorColor,
-        ),
+        SnackBar(content: Text('تم تنفيذ الإجراء: $action')),
       );
     }
+  }
+
+  Future<void> _toggleBlock(String uid, bool isCurrentlyBlocked) async {
+    final user = _users.firstWhere(
+      (u) => (u['uid'] ?? u['email'] ?? u['id']) == uid,
+      orElse: () => {},
+    );
+    await _moderateUser(
+      uid,
+      user['isBlocked'] == true,
+      user['isSuspended'] == true,
+    );
   }
 
   @override
@@ -147,6 +208,21 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold)),
                             ),
+                            if (user['isSuspended'] == true) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                    color: Colors.orange,
+                                    borderRadius: BorderRadius.circular(4)),
+                                child: const Text('معلّق',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold)),
+                              ),
+                            ],
                             if (user['isBlocked'] == true) ...[
                               const SizedBox(width: 8),
                               Container(

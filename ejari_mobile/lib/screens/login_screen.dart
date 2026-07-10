@@ -448,6 +448,86 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ],
                               ),
                             ),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'دخول سريع للتجربة',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: AuthService.demoAccounts.map((account) {
+                                final role = account['role'] ?? 'tenant';
+                                final labels = {
+                                  'tenant': 'مستأجر',
+                                  'owner': 'مالك',
+                                  'provider': 'فني',
+                                  'admin': 'مدير',
+                                };
+                                return ActionChip(
+                                  avatar: Icon(
+                                    role == 'owner'
+                                        ? Icons.domain
+                                        : role == 'admin'
+                                            ? Icons.admin_panel_settings
+                                            : role == 'provider'
+                                                ? Icons.build
+                                                : Icons.person,
+                                    size: 16,
+                                  ),
+                                  label: Text(labels[role] ?? role),
+                                  onPressed: _isLoading
+                                      ? null
+                                      : () async {
+                                          setState(() {
+                                            _emailController.text =
+                                                account['email'] ?? '';
+                                            _passwordController.text =
+                                                account['password'] ?? '';
+                                          });
+                                          HapticFeedback.selectionClick();
+                                          final navigator =
+                                              Navigator.of(context);
+                                          final messenger =
+                                              ScaffoldMessenger.of(context);
+                                          setState(() => _isLoading = true);
+                                          try {
+                                            final user =
+                                                await AuthService.login(
+                                              account['email']!,
+                                              account['password']!,
+                                            );
+                                            if (!mounted) return;
+                                            setState(() => _isLoading = false);
+                                            if (user != null) {
+                                              if (widget.returnResult) {
+                                                navigator.pop(true);
+                                                return;
+                                              }
+                                              navigator.pushReplacement(
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const HomeScreen(),
+                                                ),
+                                              );
+                                            }
+                                          } catch (e) {
+                                            if (!mounted) return;
+                                            setState(() => _isLoading = false);
+                                            messenger.showSnackBar(
+                                              SnackBar(
+                                                  content: Text(e.toString())),
+                                            );
+                                          }
+                                        },
+                                );
+                              }).toList(),
+                            ),
                           ],
                         ],
                       ),

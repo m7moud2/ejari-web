@@ -20,6 +20,11 @@ import '../models/listing_type.dart';
 import '../widgets/occupancy_calendar_widget.dart';
 import '../widgets/rental_booking_widgets.dart';
 import 'map_search_screen.dart';
+import 'virtual_tour_screen.dart';
+import 'comparison_screen.dart';
+import '../services/compare_list_service.dart';
+import '../utils/first_run_tooltips.dart';
+import '../utils/haptic_utils.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> property;
@@ -34,6 +39,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   double _averageRating = 4.8;
   int _reviewsCount = 24;
   bool _isFavorite = false;
+  bool _inCompare = false;
   List<Map<String, dynamic>> _marketTrends = [];
   Map<String, dynamic> _occupancyCalendar = {};
   String? _selectedBedId;
@@ -57,6 +63,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       final stats = await DataService.getReviewStats(id);
       final favoriteStatus =
           await DataService.isFavorite(widget.property['title'] ?? '');
+      final compareIds = await CompareListService.getIds();
+      final propId = widget.property['id']?.toString() ?? '';
       final trends =
           await DataService.getMarketTrends(widget.property['location'] ?? '');
       Map<String, dynamic> calendar = {};
@@ -70,6 +78,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         _averageRating = stats['average'] as double? ?? 0.0;
         _reviewsCount = stats['count'] as int? ?? 0;
         _isFavorite = favoriteStatus;
+        _inCompare = compareIds.contains(propId);
         _marketTrends = trends;
         _occupancyCalendar = calendar;
       });
@@ -108,6 +117,66 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       }
     }
   }
+
+  Future<void> _toggleCompare() async {
+    final id = widget.property['id']?.toString() ?? '';
+    if (id.isEmpty) return;
+    final result = await CompareListService.toggle(id);
+    HapticUtils.selection();
+    if (result['full'] == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('يمكن مقارنة عقارين فقط — أزل أحدهما أولاً'),
+        ),
+      );
+      return;
+    }
+    setState(() => _inCompare = result['added'] == true);
+    if (result['count'] == 2 && mounted) {
+      final props = await CompareListService.getProperties();
+      if (!mounted || props.length < 2) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ComparisonScreen(
+            items: props,
+            type: 'property',
+          ),
+        ),
+      );
+    }
+  }
+
+  void _openVirtualTour() {
+    HapticUtils.light();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => VirtualTourScreen(property: widget.property),
+      ),
+    );
+  }
+
+  List<String> get _amenities {
+    final raw = widget.property['amenities'];
+    if (raw is List && raw.isNotEmpty) {
+      return raw.map((e) => e.toString()).toList();
+    }
+    return const [
+      'مسبح',
+      'جيم',
+      'موقف سيارات',
+      'أمن 24/7',
+      'إنترنت فايبر',
+    ];
+  }
+
+  static const List<Map<String, String>> _nearbyAmenities = [
+    {'name': 'مول سيتي ستارز', 'distance': '800 م'},
+    {'name': 'مترو أنفاق', 'distance': '1.2 كم'},
+    {'name': 'مستشفى', 'distance': '600 م'},
+    {'name': 'مدرسة دولية', 'distance': '1.5 كم'},
+  ];
 
   Future<void> _toggleFavorite() async {
     await DataService.toggleFavorite(widget.property);
@@ -262,6 +331,16 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   onPressed: () => Navigator.pop(context),
                 ),
                 actions: [
+                  IconButton(
+                    icon: Icon(
+                      _inCompare ? Icons.compare : Icons.compare_arrows,
+                      color: _inCompare
+                          ? AppTheme.accentColor
+                          : AppTheme.textPrimary,
+                    ),
+                    tooltip: 'أضف للمقارنة',
+                    onPressed: _toggleCompare,
+                  ),
                   IconButton(
                     icon: Icon(
                         _isFavorite ? Icons.favorite : Icons.favorite_border,
@@ -625,43 +704,139 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               ),
                             ),
                             const SizedBox(height: AppTheme.spaceMd),
-                            InkWell(
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const MapSearchScreen(),
-                                ),
-                              ),
-                              borderRadius:
-                                  BorderRadius.circular(AppTheme.cardRadius - 4),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: AppTheme.spaceMd,
-                                  vertical: AppTheme.spaceSm,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primaryColor.withOpacity(0.08),
-                                  borderRadius: BorderRadius.circular(
-                                      AppTheme.cardRadius - 4),
-                                  border: Border.all(
-                                    color:
-                                        AppTheme.primaryColor.withOpacity(0.15),
-                                  ),
-                                ),
-                                child: const Row(
-                                  children: [
-                                    Icon(Icons.map_outlined,
-                                        color: AppTheme.primaryColor, size: 18),
-                                    SizedBox(width: AppTheme.spaceXs),
-                                    Text(
-                                      'عرض الموقع على الخريطة',
-                                      style: TextStyle(
-                                        color: AppTheme.primaryColor,
-                                        fontWeight: FontWeight.w800,
+                            const FirstRunTooltipBanner(
+                              screenKey: 'property_details',
+                              message:
+                                  'جرّب الجولة الافتراضية والمقارنة بين عقارين من هنا.',
+                            ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: _openVirtualTour,
+                                    borderRadius: BorderRadius.circular(
+                                        AppTheme.cardRadius - 4),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: AppTheme.spaceMd,
+                                        vertical: AppTheme.spaceSm,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.accentColor
+                                            .withOpacity(0.12),
+                                        borderRadius: BorderRadius.circular(
+                                            AppTheme.cardRadius - 4),
+                                        border: Border.all(
+                                          color: AppTheme.accentColor
+                                              .withOpacity(0.25),
+                                        ),
+                                      ),
+                                      child: const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.threed_rotation,
+                                              color: AppTheme.accentColor,
+                                              size: 18),
+                                          SizedBox(width: AppTheme.spaceXs),
+                                          Text(
+                                            'جولة افتراضية 360°',
+                                            style: TextStyle(
+                                              color: AppTheme.accentColor,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const MapSearchScreen(),
+                                      ),
+                                    ),
+                                    borderRadius: BorderRadius.circular(
+                                        AppTheme.cardRadius - 4),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: AppTheme.spaceMd,
+                                        vertical: AppTheme.spaceSm,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.primaryColor
+                                            .withOpacity(0.08),
+                                        borderRadius: BorderRadius.circular(
+                                            AppTheme.cardRadius - 4),
+                                        border: Border.all(
+                                          color: AppTheme.primaryColor
+                                              .withOpacity(0.15),
+                                        ),
+                                      ),
+                                      child: const Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(Icons.map_outlined,
+                                              color: AppTheme.primaryColor,
+                                              size: 18),
+                                          SizedBox(width: AppTheme.spaceXs),
+                                          Text(
+                                            'الموقع على الخريطة',
+                                            style: TextStyle(
+                                              color: AppTheme.primaryColor,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppTheme.spaceMd),
+                            const EjariSectionHeader(
+                              title: 'المرافق',
+                              subtitle: 'ما يوفره العقار',
+                            ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: _amenities
+                                  .map((a) => Chip(
+                                        label: Text(a),
+                                        backgroundColor: AppTheme.primaryColor
+                                            .withOpacity(0.08),
+                                      ))
+                                  .toList(),
+                            ),
+                            const SizedBox(height: AppTheme.spaceMd),
+                            const EjariSectionHeader(
+                              title: 'قريب منك',
+                              subtitle: 'خدمات ومرافق بالجوار',
+                            ),
+                            const SizedBox(height: 8),
+                            ..._nearbyAmenities.map(
+                              (n) => ListTile(
+                                dense: true,
+                                contentPadding: EdgeInsets.zero,
+                                leading: const Icon(Icons.place_outlined,
+                                    color: AppTheme.primaryColor, size: 18),
+                                title: Text(n['name']!,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 13)),
+                                trailing: Text(n['distance']!,
+                                    style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppTheme.textSecondary)),
                               ),
                             ),
                           ],

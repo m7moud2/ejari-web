@@ -136,6 +136,21 @@ class _SignupScreenState extends State<SignupScreen> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center),
             const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.accentColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                _userType == 'owner'
+                    ? '💡 نصيحة: كمالك يمكنك إضافة عقاراتك ومتابعة الحجوزات من لوحة التحكم.'
+                    : '💡 نصيحة: كمستأجر ابحث عن عقار، احجز، وادفع بأمان من التطبيق.',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 12, height: 1.5),
+              ),
+            ),
+            const SizedBox(height: 12),
             const Text(
               'أهلاً بك في إيجاري. يتم الآن مراجعة بياناتك لضمان الأمان والموثوقية قبل تفعيل الحساب.',
               textAlign: TextAlign.center,

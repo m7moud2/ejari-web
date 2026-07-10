@@ -48,6 +48,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   bool _isProcessing = false;
   String? _receiptPath;
   bool _acceptedPaymentSummary = false;
+  bool _splitDepositNow = false;
 
   bool get _showInstallments {
     if (widget.itemData['showInstallments'] == true) return true;
@@ -219,15 +220,20 @@ class _PaymentScreenState extends State<PaymentScreen> {
     if (widget.paymentStage == 'remaining') {
       return widget.remainingAmount ?? widget.amount;
     }
-    if (widget.paymentStage == 'deposit') {
-      return widget.depositAmount ?? widget.amount;
+    if (widget.paymentStage == 'deposit' ||
+        (widget.paymentStage == 'full' && _splitDepositNow)) {
+      return widget.depositAmount ??
+          (widget.amount * 0.10).roundToDouble().clamp(100, widget.amount);
     }
     return widget.amount;
   }
 
   String get _purposeTitle {
     if (widget.paymentStage == 'remaining') return 'استكمال دفعة الشهر الأول';
-    if (widget.paymentStage == 'deposit') return 'عربون معاينة قابل للاسترداد';
+    if (widget.paymentStage == 'deposit' ||
+        (widget.paymentStage == 'full' && _splitDepositNow)) {
+      return 'عربون الآن — الباقي عند تسجيل الدخول';
+    }
     return 'دفع آمن وموثق';
   }
 
@@ -410,6 +416,17 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                   child: _buildHeroSummary(),
                 ),
+                if (widget.paymentStage == 'full') ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppTheme.screenPadding,
+                      AppTheme.spaceSm,
+                      AppTheme.screenPadding,
+                      0,
+                    ),
+                    child: _buildSplitPaymentOption(),
+                  ),
+                ],
                 if (widget.paymentStage != 'full' && _showInstallments)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
@@ -681,6 +698,38 @@ class _PaymentScreenState extends State<PaymentScreen> {
               fontSize: 12,
               fontWeight: FontWeight.bold,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSplitPaymentOption() {
+    final deposit = widget.depositAmount ??
+        (widget.amount * 0.10).roundToDouble().clamp(100, widget.amount);
+    final remaining = widget.amount - deposit;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppTheme.accentColor.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.accentColor.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('دفع مقسّم: عربون الآن والباقي عند الدخول',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+            subtitle: Text(
+              _splitDepositNow
+                  ? 'ادفع ${deposit.toStringAsFixed(0)} ج.م الآن — ${remaining.toStringAsFixed(0)} ج.م عند تسجيل الدخول'
+                  : 'ادفع المبلغ كاملاً الآن',
+              style: const TextStyle(fontSize: 11),
+            ),
+            value: _splitDepositNow,
+            onChanged: (v) => setState(() => _splitDepositNow = v),
           ),
         ],
       ),
@@ -1186,7 +1235,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget _buildBottomPayBar() {
     final buttonText = widget.paymentStage == 'remaining'
         ? 'تأكيد استكمال دفعة الشهر الأول (${_displayAmount.toStringAsFixed(0)} ج.م)'
-        : widget.paymentStage == 'deposit'
+        : widget.paymentStage == 'deposit' ||
+                (widget.paymentStage == 'full' && _splitDepositNow)
             ? 'تأكيد العربون (${_displayAmount.toStringAsFixed(0)} ج.م)'
             : 'تأكيد الدفع (${_displayAmount.toStringAsFixed(0)} ج.م)';
     return Positioned(

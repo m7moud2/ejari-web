@@ -14,6 +14,7 @@ import '../models/tenant_type.dart';
 import '../widgets/booking_status_timeline.dart';
 import '../widgets/rental_booking_widgets.dart';
 import '../widgets/refund_calculator_dialog.dart';
+import 'refund_tracker_screen.dart';
 import '../widgets/corporate_bookings_strip.dart';
 import '../widgets/escrow_transparency_widget.dart';
 import '../utils/safe_parse.dart';
@@ -59,6 +60,16 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           fontSize: 22,
           fontWeight: FontWeight.w900,
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.undo_rounded),
+            tooltip: 'متابعة الاسترداد',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const RefundTrackerScreen()),
+            ),
+          ),
+        ],
       ),
       body: _isLoading
           ? const ColoredBox(

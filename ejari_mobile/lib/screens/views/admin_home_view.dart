@@ -11,6 +11,7 @@ import '../admin_support_screen.dart';
 import '../admin_reviews_screen.dart';
 import '../admin_search_screen.dart';
 import '../admin_feedback_screen.dart';
+import '../admin_audit_log_screen.dart';
 import '../settings_screen.dart';
 import '../verification_screen.dart';
 import '../../widgets/admin_operations_feed.dart';
@@ -286,6 +287,8 @@ class AdminHomeView extends StatelessWidget {
             mainAxisSpacing: 10,
             childAspectRatio: 1.15,
             children: [
+              _action(context, 'سجل النشاط', Icons.history_rounded,
+                  const AdminAuditLogScreen()),
               _action(context, 'توثيق الهوية', Icons.verified_user_rounded,
                   const VerificationScreen()),
               _action(context, 'بحث شامل', Icons.manage_search_rounded,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import '../theme/app_theme.dart';
 import '../services/contract_service.dart';
 import '../utils/date_utils.dart';
@@ -109,14 +110,7 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
                       widget.bookingDetails['id']?.toString() ??
                       'CTR',
                 );
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'نسخة قابلة للطباعة جاهزة (${html.length} حرف) ✅',
-                    ),
-                    backgroundColor: AppTheme.primaryColor,
-                  ),
-                );
+                await Share.share(html, subject: 'عقد إيجاري');
               },
             ),
         ],
@@ -248,7 +242,7 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
                                   borderRadius: BorderRadius.circular(12)),
                             ),
                             child: Text(
-                              _isSigned ? 'إتمام وتأكيد' : 'توقيع العقد',
+                              _isSigned ? 'إتمام وتأكيد' : 'اضغط للتوقيع (تجريبي)',
                               style: const TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold),
                             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../services/wallet_service.dart';
@@ -79,6 +80,25 @@ class _AdminFinancialsScreenState extends State<AdminFinancialsScreen>
         title: const Text('الإدارة المالية والقانونية ⚖️',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.summarize_outlined),
+            tooltip: 'تقرير رسوم المنصة',
+            onPressed: () async {
+              final report = await DataService.getPlatformFeeReport();
+              final text = '''
+تقرير رسوم منصة إيجاري
+الفترة: ${report['period']}
+إجمالي التداول: ${(report['totalVolume'] as num).toStringAsFixed(0)} ج.م
+نسبة الرسوم: ${report['platformFeePercent']}%
+أرباح المنصة: ${(report['platformFee'] as num).toStringAsFixed(0)} ج.م
+عدد المعاملات: ${report['transactionCount']}
+تاريخ التوليد: ${report['generatedAt']}
+''';
+              await Share.share(text, subject: 'تقرير رسوم المنصة');
+            },
+          ),
+        ],
         bottom: TabBar(
           controller: _tabController,
           tabs: const [

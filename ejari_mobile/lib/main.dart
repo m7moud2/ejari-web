@@ -82,6 +82,8 @@ void main() async {
       final countryCode = savedLang == 'ar' ? 'SA' : 'US';
       localeNotifier.value = Locale(savedLang, countryCode);
     }
+    final darkMode = prefs.getBool('dark_mode') ?? false;
+    themeNotifier.value = darkMode ? ThemeMode.dark : ThemeMode.light;
   } catch (e) {
     debugPrint('Error loading language: $e');
   }

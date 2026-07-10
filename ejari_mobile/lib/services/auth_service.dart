@@ -62,6 +62,9 @@ class AuthService {
     },
   ];
 
+  static List<Map<String, String>> get demoAccounts =>
+      List.unmodifiable(_demoAccounts);
+
   static bool get _useLocalAuth => kDebugMode && AppConfig.demoMode;
   static bool get _useFirebaseAuth =>
       !AppConfig.demoMode &&
@@ -450,6 +453,18 @@ class AuthService {
       final localAccount = await _findLocalAccount(email, password);
       if (localAccount == null) {
         throw 'بيانات الدخول غير صحيحة';
+      }
+      if (localAccount['isBlocked'] == true) {
+        final reason = localAccount['blockReason']?.toString();
+        throw reason != null && reason.isNotEmpty
+            ? 'تم حظر الحساب: $reason'
+            : 'تم حظر هذا الحساب من قبل الإدارة';
+      }
+      if (localAccount['isSuspended'] == true) {
+        final until = localAccount['suspendUntil']?.toString();
+        throw until != null
+            ? 'الحساب معلّق حتى $until'
+            : 'الحساب معلّق مؤقتاً';
       }
 
       final role = localAccount['role'] ?? localAccount['type'] ?? 'tenant';
@@ -851,6 +866,49 @@ class AuthService {
     } catch (e) {
       return false;
     }
+  }
+
+  // ─────────────────────────────────────────────
+  // ADMIN: MODERATE USER (block / suspend with reason)
+  // ─────────────────────────────────────────────
+  static Future<bool> moderateUser({
+    required String uid,
+    required String action,
+    String? reason,
+    DateTime? suspendUntil,
+  }) async {
+    if (_useLocalAuth) {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString('user_$uid');
+      if (raw == null || raw.isEmpty) return false;
+      try {
+        final user = jsonDecode(raw) as Map<String, dynamic>;
+        if (action == 'unblock') {
+          user['isBlocked'] = false;
+          user.remove('blockReason');
+          user.remove('suspendUntil');
+          user['isSuspended'] = false;
+        } else if (action == 'block') {
+          user['isBlocked'] = true;
+          user['blockReason'] = reason ?? 'مخالفة سياسة المنصة';
+          user['isSuspended'] = false;
+          user.remove('suspendUntil');
+        } else if (action == 'suspend') {
+          user['isSuspended'] = true;
+          user['isBlocked'] = false;
+          user['blockReason'] = reason ?? 'تعليق مؤقت';
+          user['suspendUntil'] =
+              (suspendUntil ?? DateTime.now().add(const Duration(days: 7)))
+                  .toIso8601String();
+        }
+        user['moderatedAt'] = DateTime.now().toIso8601String();
+        await prefs.setString('user_$uid', jsonEncode(user));
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+    return toggleUserBlock(uid);
   }
 
   // ─────────────────────────────────────────────
