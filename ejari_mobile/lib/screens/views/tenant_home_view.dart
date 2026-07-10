@@ -4,9 +4,11 @@ import '../../providers/home_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/ejari_section.dart';
 import '../my_contracts_screen.dart';
+import '../my_bookings_screen.dart';
 import '../tenant_installments_screen.dart';
 import '../search_results_screen.dart';
 import '../payment_screen.dart';
+import '../notifications_screen.dart';
 
 class TenantHomeView extends StatelessWidget {
   const TenantHomeView({super.key});
@@ -160,6 +162,16 @@ class TenantHomeView extends StatelessWidget {
                 ),
               ),
               const Spacer(),
+              IconButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const NotificationsScreen(),
+                  ),
+                ),
+                icon: const Icon(Icons.notifications_rounded,
+                    color: Colors.white),
+              ),
               if (stats['activeBooking'] == true)
                 Container(
                   padding:
@@ -381,15 +393,13 @@ class TenantHomeView extends StatelessWidget {
             ),
       ),
       (
-        title: 'احجز',
-        subtitle: 'معاينة سريعة',
-        icon: Icons.event_available_rounded,
+        title: 'حجوزاتي',
+        subtitle: 'متابعة الطلبات',
+        icon: Icons.calendar_month_rounded,
         color: const Color(0xFF1B594B),
         onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const SearchResultsScreen(query: 'حجز'),
-              ),
+              MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
             ),
       ),
       (

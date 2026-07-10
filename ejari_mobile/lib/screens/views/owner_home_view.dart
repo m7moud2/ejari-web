@@ -8,10 +8,9 @@ import '../owner_collection_screen.dart';
 import '../my_contracts_screen.dart';
 import '../maintenance_requests_screen.dart';
 import '../wallet_screen.dart';
-import '../notification_center_screen.dart';
+import '../notifications_screen.dart';
 import '../listing_plans_screen.dart';
 import '../../widgets/owner_booking_requests_panel.dart';
-import '../../services/subscription_service.dart';
 
 class OwnerHomeView extends StatelessWidget {
   const OwnerHomeView({super.key});
@@ -140,7 +139,7 @@ class OwnerHomeView extends StatelessWidget {
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const NotificationCenterScreen(),
+                    builder: (_) => const NotificationsScreen(),
                   ),
                 ),
                 icon: const Icon(Icons.notifications_rounded,

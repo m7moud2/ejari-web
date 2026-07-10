@@ -83,8 +83,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 fit: StackFit.expand,
                 children: [
                   Image.asset(
-                    'assets/images/promo/hero_building.jpg',
+                    'assets/images/home1.jpg',
                     fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: AppTheme.primaryColor,
+                    ),
                   ),
                   Container(
                     decoration: BoxDecoration(

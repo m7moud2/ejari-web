@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/api_client.dart';
 import '../utils/date_utils.dart';
+import '../utils/rental_rules.dart';
+import 'mock_data_seeder.dart';
 
 class DataService {
   static const String _bookingsKey = 'bookings'; // For tenants
@@ -65,7 +67,7 @@ class DataService {
 
   static const String _propsVersionKey = 'properties_version';
   static const int _currentPropsVersion =
-      6; // bumped — expanded categories & content
+      7; // bumped — merge Egyptian governorate demo catalog
 
   static Future<void> initProperties() async {
     final prefs = await SharedPreferences.getInstance();
@@ -554,8 +556,25 @@ class DataService {
       },
     ];
 
+    final merged = _mergePropertyCatalog(
+      defaults,
+      MockDataSeeder.getEgyptianProperties(),
+    );
     await prefs.setStringList(
-        _propertiesKey, defaults.map((e) => jsonEncode(e)).toList());
+        _propertiesKey, merged.map((e) => jsonEncode(e)).toList());
+  }
+
+  static List<Map<String, dynamic>> _mergePropertyCatalog(
+    List<Map<String, dynamic>> primary,
+    List<Map<String, dynamic>> supplemental,
+  ) {
+    final byId = <String, Map<String, dynamic>>{};
+    for (final property in [...primary, ...supplemental]) {
+      final id = property['id']?.toString() ?? '';
+      if (id.isEmpty) continue;
+      byId[id] = {...byId[id] ?? {}, ...property};
+    }
+    return byId.values.toList();
   }
 
   static Map<String, dynamic> _normalizeProperty(Map<String, dynamic> p) {
@@ -578,6 +597,7 @@ class DataService {
     }
 
     return {
+      ...p,
       'id': id,
       'title': p['title'] ?? '',
       'price': (p['price'] ?? '0').toString(),
@@ -596,6 +616,12 @@ class DataService {
       'isFeatured': p['isFeatured'] ?? false,
       'phone': p['phone']?.toString() ?? '',
       'financialAccount': p['financialAccount']?.toString() ?? '',
+      'governorate': p['governorate'] ?? '',
+      'ownerId': p['ownerId']?.toString() ?? p['ownerEmail']?.toString() ?? '',
+      'supportedDurations': p['supportedDurations'] ?? [],
+      'corporateEligible': p['corporateEligible'] ?? false,
+      'lat': p['lat'],
+      'lng': p['lng'],
     };
   }
 
@@ -642,13 +668,17 @@ class DataService {
     var list = props
         .map((item) =>
             _normalizeProperty(jsonDecode(item) as Map<String, dynamic>))
-        .toList()
+        .toList();
+    list = _mergePropertyCatalog(list, MockDataSeeder.getEgyptianProperties())
         .reversed
         .toList();
 
     if (approvedOnly) {
       return list
-          .where((p) => p['status'] == 'approved' || p['status'] == 'متاح')
+          .where((p) =>
+              p['status'] == 'approved' ||
+              p['status'] == 'متاح' ||
+              p['isDemo'] == true)
           .toList();
     }
     return list;
@@ -897,8 +927,12 @@ class DataService {
     }
 
     return {
+      ...b,
       'id': b['_id']?.toString() ?? b['id']?.toString() ?? '',
-      'propertyId': prop['_id']?.toString() ?? b['property']?.toString() ?? '',
+      'propertyId': prop['_id']?.toString() ??
+          b['propertyId']?.toString() ??
+          b['property']?.toString() ??
+          '',
       'title': title,
       'price': price,
       'image': imageStr,
@@ -921,6 +955,58 @@ class DataService {
       'tenantEmail': user['email'] ?? b['tenantEmail'] ?? '',
       'tenantName': user['name'] ?? b['tenantName'] ?? '',
       'contractNumber': b['contractNumber'] ?? '',
+    };
+  }
+
+  static const String _corporateStateKey = 'corporate_booking_state';
+
+  static Future<List<Map<String, dynamic>>> getCorporateEmployees() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_corporateStateKey);
+    if (raw == null) return [];
+    try {
+      final list = jsonDecode(raw) as List<dynamic>;
+      return list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  static Future<void> saveCorporateEmployees(
+      List<Map<String, dynamic>> employees) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_corporateStateKey, jsonEncode(employees));
+  }
+
+  /// إلغاء حجز مع تطبيق قاعدة الاسترداد (٤٨ ساعة).
+  static Future<Map<String, dynamic>> cancelBookingWithRefund({
+    required String bookingId,
+    required DateTime checkInDate,
+    required double depositAmount,
+    DateTime? cancelDate,
+  }) async {
+    final effectiveCancel = cancelDate ?? DateTime.now();
+    final refundable = RentalRules.isRefundable(
+      checkInDate: checkInDate,
+      cancelDate: effectiveCancel,
+    );
+    final refundAmount = refundable ? depositAmount : 0.0;
+
+    if (refundable) {
+      await refundBookingDeposit(bookingId);
+    } else {
+      await updateRequestStatus(bookingId, 'rejected');
+      await addNotification(
+        'إلغاء بدون استرداد ❌',
+        'تم إلغاء الحجز وفق السياسة: لا استرداد خلال ٤٨ ساعة من الاستلام.',
+      );
+    }
+
+    return {
+      'refundable': refundable,
+      'refundAmount': refundAmount,
+      'daysBeforeCheckIn': checkInDate.difference(effectiveCancel).inDays,
+      'status': refundable ? 'deposit_refunded' : 'rejected',
     };
   }
 

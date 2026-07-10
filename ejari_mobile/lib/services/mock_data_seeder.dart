@@ -60,7 +60,7 @@ class MockDataSeeder {
         'beds': '1',
         'baths': '1',
         'area': '65',
-        'ownerId': 'owner_3',
+        'ownerId': 'owner@ejari.app',
         'type': 'استوديو',
         'amenities': ['مفروش بالكامل', 'واي فاي', 'بالقرب من سيتي ستارز'],
         'furnished': true,

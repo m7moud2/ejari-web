@@ -121,6 +121,12 @@ class _RefundCalculatorDialogState extends State<RefundCalculatorDialog> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text('تأكيد الاسترداد (${widget.depositAmount.toStringAsFixed(0)} ج.م)'),
+          )
+        else
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorColor),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('تأكيد الإلغاء (بدون استرداد)'),
           ),
       ],
     );

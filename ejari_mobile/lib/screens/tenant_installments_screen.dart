@@ -63,7 +63,17 @@ class _TenantInstallmentsScreenState extends State<TenantInstallmentsScreen> {
   List<Map<String, dynamic>> _buildInstallmentsFromBookings(
     List<Map<String, dynamic>> bookings,
   ) {
-    if (bookings.isEmpty) {
+    final eligible = bookings.where((b) {
+      if (b['showInstallments'] == false) return false;
+      final tier = b['rentalTier']?.toString() ?? '';
+      if (tier == 'daily' || tier == 'weekly' || tier == 'shortTerm') {
+        return false;
+      }
+      final months = int.tryParse((b['leaseMonths'] ?? '0').toString()) ?? 0;
+      return months >= 6 || b['showInstallments'] == true;
+    }).toList();
+
+    if (eligible.isEmpty) {
       return [
         {
           'id': 'DEMO-001',
@@ -93,7 +103,7 @@ class _TenantInstallmentsScreenState extends State<TenantInstallmentsScreen> {
     }
 
     final installments = <Map<String, dynamic>>[];
-    for (final booking in bookings) {
+    for (final booking in eligible) {
       final snapshot = RentalScheduleUtils.buildLeaseSnapshot(booking);
       final leaseMonths = (snapshot['leaseMonths'] as num?)?.toInt() ?? 1;
       final monthlyRent = (snapshot['monthlyRent'] as num?)?.toDouble() ?? 0.0;

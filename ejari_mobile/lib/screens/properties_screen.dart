@@ -3,6 +3,7 @@ import '../widgets/property_card.dart';
 import '../theme/app_theme.dart';
 import 'property_details_screen.dart';
 import 'booking_screen.dart';
+import 'map_search_screen.dart';
 import '../services/firestore_property_service.dart';
 
 class PropertiesScreen extends StatefulWidget {
@@ -39,9 +40,7 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
     final properties = await FirestorePropertyService.getAllProperties();
     if (mounted) {
       setState(() {
-        // Filter out for_sale properties since they have their own screen
-        _allProperties =
-            properties.where((p) => p['listingMode'] != 'for_sale').toList();
+        _allProperties = properties;
         _isLoading = false;
       });
     }
@@ -83,6 +82,16 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
         title: const Text('العقارات المتاحة'),
         centerTitle: true,
         elevation: 0,
+        actions: [
+          IconButton(
+            tooltip: 'الخريطة',
+            icon: const Icon(Icons.map_rounded),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MapSearchScreen()),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [

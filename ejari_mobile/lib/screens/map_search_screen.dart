@@ -83,8 +83,10 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
 
     for (int i = 0; i < allProps.length; i++) {
       final prop = allProps[i];
-      final lat = centerLat + (i % 2 == 0 ? 0.005 * (i + 1) : -0.005 * (i + 1));
-      final lng = centerLng + (i % 3 == 0 ? 0.005 * (i + 1) : -0.005 * (i + 1));
+      final lat = (prop['lat'] as num?)?.toDouble() ??
+          centerLat + (i % 2 == 0 ? 0.005 * (i + 1) : -0.005 * (i + 1));
+      final lng = (prop['lng'] as num?)?.toDouble() ??
+          centerLng + (i % 3 == 0 ? 0.005 * (i + 1) : -0.005 * (i + 1));
 
       double distance = 0;
       if (_currentLocation != null) {

@@ -624,21 +624,32 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             );
                             if (confirmed != true || !mounted) return;
 
-                            await WalletService.refundBookingDeposit(
-                              title:
-                                  'استرداد عربون ${booking['title'] ?? 'الحجز'}',
-                              amount: deposit,
+                            final result = await DataService.cancelBookingWithRefund(
                               bookingId: booking['id'].toString(),
+                              checkInDate: checkIn,
+                              depositAmount: deposit,
                             );
-                            await DataService.refundBookingDeposit(
-                                booking['id'].toString());
+
+                            if (result['refundable'] == true) {
+                              await WalletService.refundBookingDeposit(
+                                title:
+                                    'استرداد عربون ${booking['title'] ?? 'الحجز'}',
+                                amount: deposit,
+                                bookingId: booking['id'].toString(),
+                              );
+                            }
                             if (!mounted) return;
                             _loadBookings();
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                    'تم طلب استرداد عربون بقيمة ${deposit.toStringAsFixed(0)} ج.م بنجاح'),
-                                backgroundColor: AppTheme.primaryColor,
+                                  result['refundable'] == true
+                                      ? 'تم استرداد عربون بقيمة ${deposit.toStringAsFixed(0)} ج.م بنجاح'
+                                      : 'تم الإلغاء بدون استرداد — أقل من ٤٨ ساعة قبل الاستلام',
+                                ),
+                                backgroundColor: result['refundable'] == true
+                                    ? AppTheme.primaryColor
+                                    : AppTheme.errorColor,
                               ),
                             );
                           },

@@ -1,6 +1,7 @@
 import '../services/subscription_service.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
+import '../services/firestore_property_service.dart';
 import '../utils/rental_schedule_utils.dart';
 import '../models/home_stats_model.dart';
 
@@ -16,8 +17,8 @@ class HomeRepository {
       'nextInstallmentDays': 0,
       'nextInstallmentAmount': 0,
       'savedCount': 0,
-      'recommendedProperties': [],
-      'featuredProperties': [],
+      'recommendedProperties': <Map<String, dynamic>>[],
+      'featuredProperties': <Map<String, dynamic>>[],
       'quickActions': [
         {'title': 'احجز عقار', 'icon': 'home'},
         {'title': 'ادفع الإيجار', 'icon': 'pay'},
@@ -32,6 +33,40 @@ class HomeRepository {
     };
 
     try {
+      final user = await AuthService.getCurrentUser();
+      if (user?['name'] != null) {
+        tenantStats['userName'] = user!['name'];
+      }
+
+      final catalog = await FirestorePropertyService.getAllProperties();
+      final rentProps = catalog
+          .where((p) => p['listingMode'] != 'for_sale')
+          .take(6)
+          .map((p) => {
+                'id': p['id'],
+                'title': p['title'],
+                'location': p['location'] ?? p['governorate'] ?? '',
+                'price': p['price'],
+                'image': p['image'],
+                'governorate': p['governorate'],
+              })
+          .toList();
+      final featured = catalog
+          .where((p) => p['isFeatured'] == true || p['listingMode'] == 'for_sale')
+          .take(4)
+          .map((p) => {
+                'id': p['id'],
+                'title': p['title'],
+                'location': p['location'] ?? p['governorate'] ?? '',
+                'price': p['price'],
+                'image': p['image'],
+                'listingMode': p['listingMode'],
+              })
+          .toList();
+      tenantStats['recommendedProperties'] = rentProps;
+      tenantStats['featuredProperties'] =
+          featured.isNotEmpty ? featured : rentProps.take(3).toList();
+
       final bookings = await DataService.getBookings();
       final activeBookings = bookings
           .where((b) =>
@@ -70,29 +105,13 @@ class HomeRepository {
               (snapshot['remainingMonths'] as num?)?.toInt() ?? 0,
           'nextDueDate': nextDueDate?.toIso8601String() ?? '',
           'tenantBookingsCount': activeBookings.length,
-          'savedCount': 8,
-          'recommendedProperties': [
-            {
-              'title': 'شقة فاخرة - التجمع الخامس',
-              'location': 'القاهرة الجديدة',
-              'price': '12,000',
-              'image': 'assets/images/home1.jpg',
-            },
-            {
-              'title': 'فيلا هادئة - الشيخ زايد',
-              'location': 'الشيخ زايد',
-              'price': '25,000',
-              'image': 'assets/images/home2.jpg',
-            },
-          ],
-          'featuredProperties': [
-            {
-              'title': 'شاليه بواجهة بحرية',
-              'location': 'الساحل الشمالي',
-              'price': '8,500',
-              'image': 'assets/images/home3.jpg',
-            },
-          ],
+          'savedCount': (await DataService.getFavorites()).length,
+          'recommendedProperties': rentProps.isNotEmpty
+              ? rentProps
+              : tenantStats['recommendedProperties'],
+          'featuredProperties': featured.isNotEmpty
+              ? featured
+              : tenantStats['featuredProperties'],
           'offers': 'عندك حجز قائم: راجع القسط التالي أو استكمل الدفع من هنا',
           'recentActivities': [
             {

@@ -123,6 +123,28 @@ class _BookingScreenState extends State<BookingScreen> {
           ? 'عربون الحجز'
           : RentalRules.advanceDepositLabel(_rentalTier);
 
+  List<String> get _stepLabels {
+    if (isSale) return ['التملك', 'الأمان', 'التوثيق', 'التأكيد'];
+    if (_isCar) return ['المدة', 'التحقق', 'العقد', 'الدفع'];
+    switch (_rentalTier) {
+      case RentalDurationTier.daily:
+        return ['إيجار يومي', 'دفع مقدم', 'العقد', 'الدفع'];
+      case RentalDurationTier.weekly:
+        return ['إيجار أسبوعي', 'دفع مقدم', 'العقد', 'الدفع'];
+      case RentalDurationTier.shortTerm:
+        return ['قصير المدى', 'دفع مقدم', 'العقد', 'الدفع'];
+      case RentalDurationTier.medium:
+        return ['٦+ شهور', 'المستندات', 'العقد', 'الأقساط'];
+      case RentalDurationTier.longTerm:
+        return ['سنة فأكثر', 'المستندات', 'العقد', 'الأقساط'];
+    }
+  }
+
+  String _stepTitle(int index) {
+    if (index < 0 || index >= _stepLabels.length) return '';
+    return _stepLabels[index];
+  }
+
   @override
   void initState() {
     super.initState();
@@ -367,10 +389,12 @@ class _BookingScreenState extends State<BookingScreen> {
     // Save to backend
     await DataService.sendBookingRequest({
       'itemType': widget.itemType,
+      'propertyId': widget.itemData['id'],
       'title': widget.itemData['title'],
       'image': widget.itemData['image'],
       'price': _monthlyRent.toStringAsFixed(0),
       'monthlyRent': _monthlyRent.toStringAsFixed(0),
+      'tenantName': _currentUser?['name'] ?? 'مستأجر',
       'leaseMonths': leaseMonths,
       'leaseStartDate': leaseStartDate.toIso8601String(),
       'leaseEndDate': leaseEndDate.toIso8601String(),
@@ -516,7 +540,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 AppTheme.spaceSm,
               ),
               child: EjariStepIndicator(
-                labels: const ['المدة', 'التحقق', 'العقد', 'الدفع'],
+                labels: _stepLabels,
                 activeIndex: _currentStep,
                 light: false,
               ),
@@ -716,7 +740,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   steps: [
                     // Step 1: Details / Purchase Options
                     Step(
-                      title: Text(isSale ? 'التملك' : 'التفاصيل',
+                      title: Text(_stepTitle(0),
                           overflow: TextOverflow.ellipsis, maxLines: 1),
                       content: SingleChildScrollView(
                         child: Column(
@@ -1012,7 +1036,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
                     // Step 2: Security & Verification
                     Step(
-                      title: Text(isSale ? 'الأمان' : 'الهوية',
+                      title: Text(_stepTitle(1),
                           overflow: TextOverflow.ellipsis, maxLines: 1),
                       content: SingleChildScrollView(
                         child: Column(
@@ -1325,7 +1349,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
                     // Step 3: Contract / Documentation
                     Step(
-                      title: Text(isSale ? 'التوثيق' : 'العقد',
+                      title: Text(_stepTitle(2),
                           overflow: TextOverflow.ellipsis, maxLines: 1),
                       content: SingleChildScrollView(
                         child: Column(
@@ -1394,7 +1418,7 @@ class _BookingScreenState extends State<BookingScreen> {
 
                     // Step 4: Final Review
                     Step(
-                      title: Text(isSale ? 'التأكيد' : 'المراجعة',
+                      title: Text(_stepTitle(3),
                           overflow: TextOverflow.ellipsis, maxLines: 1),
                       content: SingleChildScrollView(
                         child: Column(

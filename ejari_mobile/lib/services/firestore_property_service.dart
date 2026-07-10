@@ -13,11 +13,17 @@ class FirestorePropertyService {
       {bool approvedOnly = true}) async {
     if (AppConfig.demoMode) {
       final local = await DataService.getAllProperties(approvedOnly: approvedOnly);
-      if (local.isNotEmpty) return local;
       final demo = MockDataSeeder.getEgyptianProperties();
-      return approvedOnly
-          ? demo.where((p) => p['status'] == 'approved').toList()
-          : demo;
+      final merged = _mergePropertyCatalog(local, demo);
+      if (approvedOnly) {
+        return merged
+            .where((p) =>
+                p['status'] == 'approved' ||
+                p['status'] == 'متاح' ||
+                p['isDemo'] == true)
+            .toList();
+      }
+      return merged;
     }
     try {
       QuerySnapshot query;
@@ -176,6 +182,19 @@ class FirestorePropertyService {
   }
 
   /// دالة مساعدة لتنظيف البيانات (مثل DataService)
+  static List<Map<String, dynamic>> _mergePropertyCatalog(
+    List<Map<String, dynamic>> primary,
+    List<Map<String, dynamic>> supplemental,
+  ) {
+    final byId = <String, Map<String, dynamic>>{};
+    for (final property in [...primary, ...supplemental]) {
+      final id = property['id']?.toString() ?? '';
+      if (id.isEmpty) continue;
+      byId[id] = {...byId[id] ?? {}, ...property};
+    }
+    return byId.values.toList();
+  }
+
   static Map<String, dynamic> _normalizeProperty(Map<String, dynamic> p) {
     final features = p['features'] as Map<String, dynamic>? ?? {};
     final locationData = p['location'];
@@ -195,6 +214,7 @@ class FirestorePropertyService {
     }
 
     return {
+      ...p,
       'id': p['id'] ?? '',
       'title': p['title'] ?? '',
       'price': (p['price'] ?? '0').toString(),
@@ -213,6 +233,11 @@ class FirestorePropertyService {
       'isFeatured': p['isFeatured'] ?? false,
       'phone': p['phone']?.toString() ?? '',
       'ownerId': p['ownerId']?.toString() ?? 'admin',
+      'governorate': p['governorate'] ?? '',
+      'supportedDurations': p['supportedDurations'] ?? [],
+      'corporateEligible': p['corporateEligible'] ?? false,
+      'lat': p['lat'],
+      'lng': p['lng'],
     };
   }
 }

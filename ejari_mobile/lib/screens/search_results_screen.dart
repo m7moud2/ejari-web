@@ -35,13 +35,23 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
 
     final allProperties = await FirestorePropertyService.getAllProperties();
 
+    final query = widget.query.trim().toLowerCase();
+    final isFeaturedQuery = query == 'مميز' || query.contains('featured');
+
     final results = allProperties.where((property) {
-      // 1. Search by Query (Title or Location)
+      if (isFeaturedQuery) {
+        return property['isFeatured'] == true;
+      }
+
+      // Empty query → show all rent/sale listings
       final title = property['title']?.toString().toLowerCase() ?? '';
       final location = property['location']?.toString().toLowerCase() ?? '';
-      final query = widget.query.toLowerCase();
+      final governorate = property['governorate']?.toString().toLowerCase() ?? '';
 
-      bool matchesQuery = title.contains(query) || location.contains(query);
+      final matchesQuery = query.isEmpty ||
+          title.contains(query) ||
+          location.contains(query) ||
+          governorate.contains(query);
 
       if (!matchesQuery) return false;
 

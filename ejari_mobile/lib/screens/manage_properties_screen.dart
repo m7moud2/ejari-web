@@ -23,8 +23,10 @@ class _ManagePropertiesScreenState extends State<ManagePropertiesScreen> {
 
   Future<void> _loadProperties() async {
     final user = await AuthService.getCurrentUser();
-    final properties =
-        await DataService.getOwnerProperties(user?['email'] ?? 'admin');
+    final ownerId = user?['email']?.toString() ??
+        user?['uid']?.toString() ??
+        'owner@ejari.app';
+    final properties = await DataService.getOwnerProperties(ownerId);
     setState(() {
       _properties = properties;
       _isLoading = false;
@@ -67,6 +69,10 @@ class _ManagePropertiesScreenState extends State<ManagePropertiesScreen> {
     );
 
     if (confirmed == true) {
+      final id = _properties[index]['id']?.toString();
+      if (id != null && id.isNotEmpty) {
+        await DataService.deleteProperty(id);
+      }
       setState(() => _properties.removeAt(index));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

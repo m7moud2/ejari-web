@@ -93,7 +93,7 @@ class _OwnerBookingRequestsPanelState extends State<OwnerBookingRequestsPanel> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        r['tenantTypeLabel'] ?? r['employeeName'] ?? 'مستأجر',
+                        r['tenantName'] ?? r['tenantTypeLabel'] ?? r['employeeName'] ?? 'مستأجر',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),

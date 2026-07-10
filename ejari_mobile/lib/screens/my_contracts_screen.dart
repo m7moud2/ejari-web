@@ -27,18 +27,30 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
 
   Future<void> _loadContracts() async {
     final user = await AuthService.getCurrentUser();
+    final role = await AuthService.getUserRole();
     setState(() {
-      _userType = user?['type'] ?? 'tenant';
+      _userType = role == 'owner' ? 'owner' : (user?['type'] ?? 'tenant');
     });
 
     try {
-      final bookings = await DataService.getBookings();
-      final paidBookings = bookings
+      List<Map<String, dynamic>> sourceBookings;
+      if (role == 'owner') {
+        final ownerId = user?['email']?.toString() ??
+            user?['uid']?.toString() ??
+            'owner@ejari.app';
+        sourceBookings = await DataService.getOwnerRequests(ownerId);
+      } else {
+        sourceBookings = await DataService.getBookings();
+      }
+
+      final paidBookings = sourceBookings
           .where((b) =>
               b['status'] == 'paid' ||
               b['status'] == 'active' ||
               b['status'] == 'completed' ||
-              b['status'] == 'deposit_paid')
+              b['status'] == 'deposit_paid' ||
+              b['status'] == 'approved' ||
+              b['status'] == 'viewing_scheduled')
           .toList();
       if (paidBookings.isNotEmpty) {
         final List<Map<String, dynamic>> realContracts = paidBookings.map((b) {

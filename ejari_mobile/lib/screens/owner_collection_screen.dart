@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
+import '../services/data_service.dart';
 
 class OwnerCollectionScreen extends StatefulWidget {
   const OwnerCollectionScreen({super.key});
@@ -10,36 +12,84 @@ class OwnerCollectionScreen extends StatefulWidget {
 }
 
 class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
-  final double expectedThisMonth = 35000.0;
-  final double collectedThisMonth = 25000.0;
-  final double lateAmount = 10000.0;
+  bool _loading = true;
+  double expectedThisMonth = 0;
+  double collectedThisMonth = 0;
+  double lateAmount = 0;
+  List<Map<String, dynamic>> _tenants = [];
 
-  final List<Map<String, dynamic>> _tenants = [
-    {
-      'name': 'أحمد محمود',
-      'property': 'شقة 102 - مجمع الرحاب',
-      'status': 'Late',
-      'lateAmount': 10000.0,
-      'nextDueDate': DateTime.now().subtract(const Duration(days: 5)),
-      'lastPayment': DateTime.now().subtract(const Duration(days: 35))
-    },
-    {
-      'name': 'محمد عبدالله',
-      'property': 'فيلا 5 - التجمع',
-      'status': 'Paid',
-      'lateAmount': 0.0,
-      'nextDueDate': DateTime.now().add(const Duration(days: 20)),
-      'lastPayment': DateTime.now().subtract(const Duration(days: 10))
-    },
-    {
-      'name': 'سارة أحمد',
-      'property': 'مكتب 4 - مول العرب',
-      'status': 'Upcoming',
-      'lateAmount': 0.0,
-      'nextDueDate': DateTime.now().add(const Duration(days: 10)),
-      'lastPayment': DateTime.now().subtract(const Duration(days: 28))
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final user = await AuthService.getCurrentUser();
+    final ownerId = user?['email']?.toString() ??
+        user?['uid']?.toString() ??
+        'owner@ejari.app';
+    final requests = await DataService.getOwnerRequests(ownerId);
+    final active = requests
+        .where((r) =>
+            r['status'] == 'approved' ||
+            r['status'] == 'paid' ||
+            r['status'] == 'deposit_paid' ||
+            r['status'] == 'completed')
+        .toList();
+
+    final tenants = <Map<String, dynamic>>[];
+    double expected = 0;
+    double collected = 0;
+    double late = 0;
+
+    for (final r in active) {
+      final rent = double.tryParse(
+              (r['monthlyRent'] ?? r['price'] ?? '0')
+                  .toString()
+                  .replaceAll(RegExp(r'[^0-9.]'), '')) ??
+          0;
+      expected += rent;
+      final paidMonths =
+          int.tryParse((r['paidMonths'] ?? '0').toString()) ?? 0;
+      final collectedPart = rent * paidMonths;
+      collected += collectedPart > 0 ? collectedPart : rent * 0.2;
+      final isLate = r['status'] == 'deposit_paid' && paidMonths == 0;
+      if (isLate) late += rent * 0.8;
+
+      tenants.add({
+        'name': r['tenantName'] ?? r['employeeName'] ?? 'مستأجر',
+        'property': r['title'] ?? 'عقار',
+        'status': isLate ? 'Late' : (paidMonths > 0 ? 'Paid' : 'Upcoming'),
+        'lateAmount': isLate ? rent * 0.8 : 0.0,
+        'nextDueDate': DateTime.now().add(Duration(days: isLate ? -3 : 15)),
+        'lastPayment': DateTime.now().subtract(const Duration(days: 10)),
+        'rent': rent,
+      });
+    }
+
+    if (tenants.isEmpty) {
+      tenants.addAll([
+        {
+          'name': 'لا يوجد مستأجرون بعد',
+          'property': 'أضف عقاراً واقبل حجزاً لبدء التحصيل',
+          'status': 'Upcoming',
+          'lateAmount': 0.0,
+          'nextDueDate': DateTime.now().add(const Duration(days: 30)),
+          'lastPayment': DateTime.now(),
+          'rent': 0.0,
+        },
+      ]);
+    }
+
+    setState(() {
+      _tenants = tenants;
+      expectedThisMonth = expected;
+      collectedThisMonth = collected;
+      lateAmount = late;
+      _loading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +104,13 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
             fontSize: 22,
             fontWeight: FontWeight.w900),
       ),
-      body: ListView(
+      body: _loading
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primaryColor))
+          : RefreshIndicator(
+              onRefresh: _load,
+              color: AppTheme.primaryColor,
+              child: ListView(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         children: [
           _summary(),
@@ -66,7 +122,8 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
           const SizedBox(height: 10),
           ..._tenants.map(_tenantCard),
         ],
-      ),
+              ),
+            ),
     );
   }
 

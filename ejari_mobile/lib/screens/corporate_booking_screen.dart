@@ -89,8 +89,22 @@ class _CorporateBookingScreenState extends State<CorporateBookingScreen> {
   @override
   void initState() {
     super.initState();
-    _employees = _demoEmployees.map((e) => Map<String, dynamic>.from(e)).toList();
+    _loadEmployees();
     _loadProperties();
+  }
+
+  Future<void> _loadEmployees() async {
+    final saved = await DataService.getCorporateEmployees();
+    if (saved.isNotEmpty) {
+      setState(() => _employees = saved);
+      return;
+    }
+    setState(() => _employees =
+        _demoEmployees.map((e) => Map<String, dynamic>.from(e)).toList());
+  }
+
+  Future<void> _persistEmployees() async {
+    await DataService.saveCorporateEmployees(_employees);
   }
 
   Future<void> _loadProperties() async {
@@ -126,10 +140,12 @@ class _CorporateBookingScreenState extends State<CorporateBookingScreen> {
       if (idx >= 0) {
         _employees[idx]['propertyTitle'] = property['title'];
         _employees[idx]['propertyId'] = property['id'];
+        _employees[idx]['ownerId'] = property['ownerId'] ?? 'owner@ejari.app';
         _employees[idx]['monthlyRent'] = price;
         _employees[idx]['status'] = 'assigned';
       }
     });
+    _persistEmployees();
   }
 
   double get _totalCorporateAmount {
@@ -161,9 +177,11 @@ class _CorporateBookingScreenState extends State<CorporateBookingScreen> {
     for (final emp in assigned) {
       await DataService.sendBookingRequest({
         'itemType': 'property',
+        'propertyId': emp['propertyId'],
         'title': emp['propertyTitle'],
         'price': emp['monthlyRent'].toString(),
         'monthlyRent': emp['monthlyRent'].toString(),
+        'ownerId': emp['ownerId'] ?? 'owner@ejari.app',
         'status': 'corporate_pending',
         'bookingMode': 'corporate',
         'employeeName': emp['name'],
@@ -182,7 +200,12 @@ class _CorporateBookingScreenState extends State<CorporateBookingScreen> {
         'showInstallments': true,
         'requiresIncomeProof': true,
       });
+      final idx = _employees.indexWhere((e) => e['id'] == emp['id']);
+      if (idx >= 0) {
+        _employees[idx]['status'] = 'submitted';
+      }
     }
+    await _persistEmployees();
 
     setState(() => _isProcessing = false);
     if (!mounted) return;
