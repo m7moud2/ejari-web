@@ -256,6 +256,8 @@ class _AdminSearchScreenState extends State<AdminSearchScreen> {
         return Icons.build_circle_outlined;
       case 'user':
         return Icons.person_rounded;
+      case 'subscription':
+        return Icons.workspace_premium_rounded;
       default:
         return Icons.search_rounded;
     }
@@ -273,6 +275,8 @@ class _AdminSearchScreenState extends State<AdminSearchScreen> {
         return Colors.orange;
       case 'user':
         return AppTheme.borderColor;
+      case 'subscription':
+        return Colors.amber.shade800;
       default:
         return AppTheme.primaryColor;
     }
@@ -296,6 +300,9 @@ class _AdminSearchScreenState extends State<AdminSearchScreen> {
         page = const AdminSupportScreen();
         break;
       case 'user':
+        page = const AdminUsersScreen();
+        break;
+      case 'subscription':
         page = const AdminUsersScreen();
         break;
     }

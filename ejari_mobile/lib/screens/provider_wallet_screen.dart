@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../services/auth_service.dart';
 import '../services/wallet_service.dart';
+import '../utils/wallet_category_labels.dart';
 import '../utils/safe_parse.dart';
 
 class ProviderWalletScreen extends StatefulWidget {
@@ -15,6 +16,7 @@ class ProviderWalletScreen extends StatefulWidget {
 class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
   Map<String, dynamic>? _stats;
   List<Map<String, dynamic>> _jobs = [];
+  List<Map<String, dynamic>> _walletTx = [];
   bool _isLoading = true;
 
   @override
@@ -25,11 +27,20 @@ class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
 
   Future<void> _loadData() async {
     final user = await AuthService.getCurrentUser();
-    final stats = await DataService.getProviderStats(user?['email'] ?? '');
-    final jobs = await DataService.getProviderRequests(user?['email'] ?? '');
+    final techId = user?['email']?.toString() ?? 'tech@ejari.app';
+    final stats = await DataService.getProviderStats(techId);
+    final jobs = await DataService.getProviderRequests(techId);
+    await WalletService.init(userId: techId);
+    final tx = await WalletService.getTransactions(userId: techId);
     setState(() {
       _stats = stats;
       _jobs = jobs.where((j) => j['status'] == 'completed').toList();
+      _walletTx = tx
+          .where((t) =>
+              t['category'] == 'maintenance' ||
+              t['type'] == 'income' ||
+              t['type'] == 'commission')
+          .toList();
       _isLoading = false;
     });
   }
@@ -43,33 +54,49 @@ class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Balance Card
-                  _buildBalanceCard(),
-                  const SizedBox(height: 32),
-
-                  const Text('سجل الدخل',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-
-                  if (_jobs.isEmpty)
-                    const Center(
-                        child: Text('لا توجد عمليات سابقة',
-                            style: TextStyle(color: AppTheme.textSecondary)))
-                  else
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: _jobs.length,
-                      itemBuilder: (context, index) =>
-                          _buildTransactionItem(_jobs[index]),
-                    ),
-                ],
+          : RefreshIndicator(
+              onRefresh: _loadData,
+              color: AppTheme.primaryColor,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildBalanceCard(),
+                    const SizedBox(height: 32),
+                    const Text('سجل الدخل من المهام',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 16),
+                    if (_walletTx.isEmpty && _jobs.isEmpty)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 40),
+                          child: Column(
+                            children: [
+                              Icon(Icons.handyman_outlined,
+                                  size: 56, color: AppTheme.primaryColor),
+                              SizedBox(height: 12),
+                              Text('لا توجد أرباح بعد',
+                                  style: TextStyle(
+                                      color: AppTheme.textSecondary,
+                                      fontWeight: FontWeight.w700)),
+                              SizedBox(height: 6),
+                              Text('أكمل مهمة صيانة لتظهر أرباحك هنا',
+                                  style: TextStyle(
+                                      color: AppTheme.textSecondary,
+                                      fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                      )
+                    else ...[
+                      ..._walletTx.map(_buildWalletTxItem),
+                      ..._jobs.map(_buildTransactionItem),
+                    ],
+                  ],
+                ),
               ),
             ),
     );
@@ -129,6 +156,51 @@ class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
                   borderRadius: BorderRadius.circular(12)),
             ),
             child: const Text('سحب الأرباح الآن'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWalletTxItem(Map<String, dynamic> tx) {
+    final amount = safeDouble(tx['amount']).abs();
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.backgroundColor),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.1),
+                shape: BoxShape.circle),
+            child: const Icon(Icons.payments_rounded,
+                color: AppTheme.primaryColor, size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(tx['title']?.toString() ?? 'دخل صيانة',
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(WalletCategoryLabels.labelFor(tx),
+                    style: const TextStyle(
+                        color: AppTheme.textSecondary, fontSize: 11)),
+              ],
+            ),
+          ),
+          Text(
+            '+${amount.toStringAsFixed(0)} ج.م',
+            style: const TextStyle(
+                color: AppTheme.primaryColor,
+                fontWeight: FontWeight.bold,
+                fontSize: 16),
           ),
         ],
       ),

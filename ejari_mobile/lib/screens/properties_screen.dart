@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import 'property_details_screen.dart';
 import 'booking_screen.dart';
 import 'map_search_screen.dart';
+import '../models/accommodation_type.dart';
 import '../services/firestore_property_service.dart';
 
 class PropertiesScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class PropertiesScreen extends StatefulWidget {
 
 class _PropertiesScreenState extends State<PropertiesScreen> {
   String _selectedType = 'الكل';
+  String? _accommodationFilter;
   String _selectedGovernorate = 'الكل';
   String _listingFilter = 'rent';
   List<Map<String, dynamic>> _allProperties = [];
@@ -63,17 +65,24 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
                   .contains(_selectedGovernorate))
           .toList();
     }
-    if (_selectedType == 'الكل') {
-      return list;
+    if (_selectedType != 'الكل') {
+      const typeMapping = {
+        'شقة': 'شقق',
+        'فيلا': 'فلل',
+        'استوديو': 'استوديو',
+        'دوبلكس': 'دوبلكس',
+      };
+      final targetType = typeMapping[_selectedType] ?? _selectedType;
+      list = list.where((prop) => prop['type'] == targetType).toList();
     }
-    const typeMapping = {
-      'شقة': 'شقق',
-      'فيلا': 'فلل',
-      'استوديو': 'استوديو',
-      'دوبلكس': 'دوبلكس',
-    };
-    final targetType = typeMapping[_selectedType] ?? _selectedType;
-    return list.where((prop) => prop['type'] == targetType).toList();
+    if (_accommodationFilter != null) {
+      list = list
+          .where((p) =>
+              (p['accommodationType']?.toString() ?? 'full_unit') ==
+              _accommodationFilter)
+          .toList();
+    }
+    return list;
   }
 
   @override
@@ -119,6 +128,25 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
                   _buildFilterChip('دوبلكس', _selectedType == 'دوبلكس', () {
                     setState(() => _selectedType = 'دوبلكس');
                   }),
+                ],
+              ),
+            ),
+          ),
+
+          // Accommodation type: شقق / غرف / أسرّة
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _accChip(null, 'الكل'),
+                  _accChip(AccommodationType.fullUnit.value,
+                      AccommodationType.fullUnit.filterLabel),
+                  _accChip(AccommodationType.sharedRoom.value,
+                      AccommodationType.sharedRoom.filterLabel),
+                  _accChip(AccommodationType.bed.value,
+                      AccommodationType.bed.filterLabel),
                 ],
               ),
             ),
@@ -281,6 +309,25 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
           ),
         ),
         showCheckmark: false,
+      ),
+    );
+  }
+
+  Widget _accChip(String? value, String label) {
+    final selected = _accommodationFilter == value;
+    return Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: FilterChip(
+        label: Text(label),
+        selected: selected,
+        onSelected: (_) => setState(() => _accommodationFilter = value),
+        selectedColor: AppTheme.primaryColor,
+        checkmarkColor: Colors.white,
+        labelStyle: TextStyle(
+          color: selected ? Colors.white : AppTheme.textPrimary,
+          fontWeight: FontWeight.w800,
+          fontSize: 12,
+        ),
       ),
     );
   }

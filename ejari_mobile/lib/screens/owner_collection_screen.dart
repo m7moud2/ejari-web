@@ -478,10 +478,13 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
   }
 
   Future<void> _sendReminder(Map<String, dynamic> tenant) async {
+    final user = await AuthService.getCurrentUser();
+    final ownerEmail = user?['email']?.toString() ?? 'owner@ejari.app';
     final tenantEmail = tenant['email']?.toString() ?? 'user@ejari.app';
     await DataService.sendPaymentReminder(
       tenantEmail: tenantEmail,
       bookingId: tenant['id']?.toString() ?? '',
+      ownerEmail: ownerEmail,
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

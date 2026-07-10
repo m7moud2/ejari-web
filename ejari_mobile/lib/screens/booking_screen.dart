@@ -12,6 +12,7 @@ import '../utils/date_utils.dart';
 import '../utils/rental_schedule_utils.dart';
 import '../utils/rental_pricing.dart';
 import '../utils/rental_rules.dart';
+import '../models/accommodation_type.dart';
 import '../models/rental_duration_tier.dart';
 import '../models/booking_status.dart';
 import '../models/tenant_type.dart';
@@ -75,6 +76,22 @@ class _BookingScreenState extends State<BookingScreen> {
 
   final _paymentDetailController = TextEditingController();
   final _otpController = TextEditingController();
+
+  String? _selectedBedId;
+  String? _selectedBedLabel;
+
+  bool get _isSharedAccommodation {
+    final acc = widget.itemData['accommodationType']?.toString() ?? 'full_unit';
+    return acc == AccommodationType.bed.value ||
+        acc == AccommodationType.sharedRoom.value;
+  }
+
+  List<Map<String, dynamic>> get _bedUnits {
+    return (widget.itemData['bedUnits'] as List? ?? [])
+        .map((e) => Map<String, dynamic>.from(e as Map))
+        .where((b) => b['available'] != false)
+        .toList();
+  }
 
   bool get isSale => widget.itemData['listingMode'] == 'for_sale';
   bool get _isCar => widget.itemType == 'car';
@@ -163,6 +180,9 @@ class _BookingScreenState extends State<BookingScreen> {
   void initState() {
     super.initState();
     _loadUser();
+
+    _selectedBedId = widget.itemData['selectedBedId']?.toString();
+    _selectedBedLabel = widget.itemData['bedLabel']?.toString();
 
     try {
       // Remove any non-numeric characters (except dot) to handle "2,500 ج.م" or similar
@@ -447,9 +467,12 @@ class _BookingScreenState extends State<BookingScreen> {
       'preEntryPaid': true,
       'preEntryStatus': 'paid',
       'preEntryAmount': _preEntryTotalAmount.toStringAsFixed(0),
-      if (widget.itemData['selectedBedId'] != null)
+      if (_selectedBedId != null) 'bedId': _selectedBedId,
+      if (_selectedBedLabel != null) 'bedLabel': _selectedBedLabel,
+      if (widget.itemData['selectedBedId'] != null &&
+          _selectedBedId == null)
         'bedId': widget.itemData['selectedBedId'],
-      if (widget.itemData['bedLabel'] != null)
+      if (widget.itemData['bedLabel'] != null && _selectedBedLabel == null)
         'bedLabel': widget.itemData['bedLabel'],
       'transactionId': transactionId,
       'paymentMethod': _selectedPaymentMethod,
@@ -862,6 +885,8 @@ class _BookingScreenState extends State<BookingScreen> {
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold)),
                               const SizedBox(height: 12),
+                              _buildDurationTierStrip(),
+                              const SizedBox(height: 12),
                               SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
                                 child: Row(
@@ -891,6 +916,10 @@ class _BookingScreenState extends State<BookingScreen> {
                                   ],
                                 ),
                               ),
+                              if (_isSharedAccommodation && _bedUnits.isNotEmpty) ...[
+                                const SizedBox(height: 20),
+                                _buildBedPicker(),
+                              ],
                               const SizedBox(height: 16),
                               DurationCostHint(
                                 tier: _rentalTier,
@@ -1912,6 +1941,117 @@ class _BookingScreenState extends State<BookingScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDurationTierStrip() {
+    const tiers = RentalDurationTier.values;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'فئات مدة الإيجار',
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: tiers.map((tier) {
+              final selected = _rentalTier == tier;
+              return Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: ChoiceChip(
+                  label: Text(tier.arabicLabel,
+                      style: const TextStyle(fontSize: 11)),
+                  selected: selected,
+                  onSelected: (_) => _applyTierPreset(tier),
+                  selectedColor: AppTheme.primaryColor,
+                  labelStyle: TextStyle(
+                    color: selected ? Colors.white : AppTheme.textPrimary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _applyTierPreset(RentalDurationTier tier) {
+    setState(() {
+      switch (tier) {
+        case RentalDurationTier.daily:
+          _selectedDurationType = 'يوم';
+          _duration = 3;
+        case RentalDurationTier.weekly:
+          _selectedDurationType = 'أسبوع';
+          _duration = 2;
+        case RentalDurationTier.shortTerm:
+          _selectedDurationType = 'شهر';
+          _duration = 3;
+        case RentalDurationTier.medium:
+          _selectedDurationType = 'شهر';
+          _duration = 8;
+        case RentalDurationTier.longTerm:
+          _selectedDurationType = 'سنة';
+          _duration = 1;
+      }
+      _calculatePrice();
+    });
+  }
+
+  Widget _buildBedPicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'اختر السرير أو الغرفة',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _bedUnits.map((bed) {
+            final id = bed['id']?.toString() ?? '';
+            final label = bed['label']?.toString() ?? 'سرير';
+            final selected = _selectedBedId == id;
+            return ChoiceChip(
+              avatar: Icon(
+                Icons.bed_rounded,
+                size: 16,
+                color: selected ? Colors.white : AppTheme.primaryColor,
+              ),
+              label: Text(label),
+              selected: selected,
+              onSelected: (_) => setState(() {
+                _selectedBedId = id;
+                _selectedBedLabel = label;
+              }),
+              selectedColor: AppTheme.primaryColor,
+              labelStyle: TextStyle(
+                color: selected ? Colors.white : AppTheme.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            );
+          }).toList(),
+        ),
+        if (_selectedBedId == null)
+          const Padding(
+            padding: EdgeInsets.only(top: 6),
+            child: Text(
+              'يجب اختيار سرير قبل المتابعة',
+              style: TextStyle(
+                color: AppTheme.errorColor,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+      ],
     );
   }
 

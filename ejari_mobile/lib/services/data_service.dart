@@ -1239,6 +1239,19 @@ class DataService {
 
   // --- Notifications ---
 
+  static Future<List<Map<String, dynamic>>> getNotificationsForUser(
+    String email,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_notificationsKey) ?? [];
+    return list
+        .map((e) => jsonDecode(e) as Map<String, dynamic>)
+        .where((n) => n['userEmail']?.toString() == email)
+        .toList()
+        .reversed
+        .toList();
+  }
+
   static Future<List<Map<String, dynamic>>> getNotifications() async {
     final prefs = await SharedPreferences.getInstance();
     final currentEmail = await _getCurrentUserEmail();
@@ -2680,6 +2693,9 @@ class DataService {
           'tenantName',
           'ownerEmail',
           'ownerId',
+          'bedLabel',
+          'bedId',
+          'selectedBedId',
         ])) {
           final contract = data['contractNumber']?.toString();
           addUnique({
@@ -2736,22 +2752,54 @@ class DataService {
     final users = prefs.getStringList('users_list') ?? [];
     for (final email in users) {
       final userRaw = prefs.getString('user_$email');
-      if (userRaw == null) continue;
-      final user = jsonDecode(userRaw) as Map<String, dynamic>;
-      if (email.toLowerCase().contains(q) ||
-          (user['name']?.toString().toLowerCase().contains(q) ?? false) ||
-          (user['phone']?.toString().toLowerCase().contains(q) ?? false) ||
-          (user['accountId']?.toString().toLowerCase().contains(q) ?? false)) {
-        addUnique({
-          'type': 'user',
-          'typeLabel': 'مستخدم',
-          'id': email,
-          'title': user['name']?.toString() ?? email,
-          'subtitle':
-              '${user['accountId'] ?? ''} — ${user['role'] ?? user['type'] ?? 'tenant'}',
-          'data': user,
-        });
+      if (userRaw != null) {
+        final user = jsonDecode(userRaw) as Map<String, dynamic>;
+        if (email.toLowerCase().contains(q) ||
+            (user['name']?.toString().toLowerCase().contains(q) ?? false) ||
+            (user['phone']?.toString().toLowerCase().contains(q) ?? false) ||
+            (user['accountId']?.toString().toLowerCase().contains(q) ?? false)) {
+          addUnique({
+            'type': 'user',
+            'typeLabel': 'مستخدم',
+            'id': email,
+            'title': user['name']?.toString() ?? email,
+            'subtitle':
+                '${user['accountId'] ?? ''} — ${user['role'] ?? user['type'] ?? 'tenant'}',
+            'data': user,
+          });
+        }
       }
+
+      final subRaw = prefs.getString('owner_subscription_$email') ??
+          prefs.getString('user_subscription_$email');
+      if (subRaw == null) continue;
+      try {
+        final sub = jsonDecode(subRaw) as Map<String, dynamic>;
+        final planId = sub['plan']?.toString() ?? 'free';
+        const planNames = {
+          'free': 'مجاني',
+          'bronze': 'برونزي',
+          'silver': 'فضي',
+          'gold': 'ذهبي',
+          'commission': 'عمولة',
+          'plus': 'بلس',
+          'premium': 'بريميوم',
+        };
+        final planName = planNames[planId] ?? planId;
+        if (planId.toLowerCase().contains(q) ||
+            planName.contains(q) ||
+            email.toLowerCase().contains(q)) {
+          addUnique({
+            'type': 'subscription',
+            'typeLabel': 'اشتراك',
+            'id': email,
+            'title': '$planName — $email',
+            'subtitle':
+                'الباقة: $planId • ينتهي ${sub['end_date']?.toString().substring(0, 10) ?? '—'}',
+            'data': sub,
+          });
+        }
+      } catch (_) {}
     }
 
     final tickets = prefs.getStringList('support_tickets_v1') ?? [];
@@ -3095,11 +3143,19 @@ class DataService {
       final propBookings = bookings
           .where((b) => b['propertyId']?.toString() == pid)
           .toList();
-      final views = safeInt(p['views'], propBookings.length * 8 + 12);
-      final revenue = propBookings.fold<double>(0, (sum, b) {
+      var views = safeInt(p['views'], 0);
+      if (views <= 0) {
+        views = propBookings.isNotEmpty
+            ? propBookings.length * 8 + 12
+            : 18 + (pid.hashCode.abs() % 72);
+      }
+      var revenue = propBookings.fold<double>(0, (sum, b) {
         final rent = safeDouble(b['monthlyRent'] ?? b['price'], 0);
         return sum + rent;
       });
+      if (revenue <= 0) {
+        revenue = safeDouble(p['price'], 2500) * 0.6;
+      }
       final occupied = propRequests
           .where((r) =>
               r['status'] == 'active' ||

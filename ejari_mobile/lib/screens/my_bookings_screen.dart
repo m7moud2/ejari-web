@@ -554,6 +554,34 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                     status == BookingStatus.confirmed ||
                     status == BookingStatus.active) ...[
                   const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withOpacity(0.06),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                          color: AppTheme.primaryColor.withOpacity(0.15)),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.qr_code_scanner_rounded,
+                            color: AppTheme.primaryColor, size: 22),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'اعرض QR للدخول عند الوصول — المالك يمسحه للتحقق',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                   _buildCheckInOutRow(booking),
                 ],
 
@@ -602,7 +630,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                     const SizedBox(height: 8),
                     SizedBox(
                       width: double.infinity,
-                      child: OutlinedButton.icon(
+                      height: AppTheme.ctaHeight,
+                      child: ElevatedButton.icon(
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -617,8 +646,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.star_outline, size: 18),
-                        label: const Text('قيّم المالك'),
+                        icon: const Icon(Icons.star_rounded, size: 20),
+                        label: const Text('قيّم المالك بعد الإقامة'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.accentColor,
+                        ),
                       ),
                     ),
                   ],
@@ -710,14 +742,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         const SizedBox(height: 8),
         SizedBox(
           width: double.infinity,
-          child: OutlinedButton.icon(
+          height: AppTheme.ctaHeight,
+          child: ElevatedButton.icon(
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (_) => BookingQrScreen(booking: booking),
               ),
             ),
-            icon: const Icon(Icons.qr_code_2_rounded, size: 18),
+            icon: const Icon(Icons.qr_code_2_rounded, size: 20),
             label: const Text('عرض QR للدخول'),
           ),
         ),

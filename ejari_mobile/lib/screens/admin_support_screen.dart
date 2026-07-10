@@ -202,11 +202,74 @@ class _AdminSupportScreenState extends State<AdminSupportScreen> {
                   fontWeight: FontWeight.w700,
                 ),
               ),
+              if (botEscalated && status != 'resolved') ...[
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _quickReply(ticket),
+                    icon: const Icon(Icons.reply_rounded, size: 16),
+                    label: const Text('رد سريع'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.accentColor,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _quickReply(Map<String, dynamic> ticket) async {
+    final controller = TextEditingController(
+      text: 'مرحباً، تم استلام طلبك وسنعالجه خلال 24 ساعة.',
+    );
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('رد سريع'),
+        content: TextField(
+          controller: controller,
+          maxLines: 3,
+          decoration: const InputDecoration(hintText: 'اكتب ردك...'),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('تراجع')),
+          ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('إرسال')),
+        ],
+      ),
+    );
+    if (ok != true) {
+      controller.dispose();
+      return;
+    }
+    final admin = await AuthService.getCurrentUser();
+    await SupportService.addReply(
+      ticketId: ticket['id']?.toString() ?? '',
+      senderEmail: admin?['email']?.toString() ?? SupportService.adminEmail,
+      senderName: admin?['name']?.toString() ?? 'دعم إيجاري',
+      text: controller.text,
+      isAdmin: true,
+    );
+    controller.dispose();
+    await SupportService.updateStatus(
+      ticket['id']?.toString() ?? '',
+      'in_progress',
+    );
+    await _load();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم إرسال الرد وإشعار المستخدم')),
+      );
+    }
   }
 
   Future<void> _openTicket(Map<String, dynamic> ticket) async {

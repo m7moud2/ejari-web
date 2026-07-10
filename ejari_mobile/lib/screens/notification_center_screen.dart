@@ -5,6 +5,7 @@ import '../services/data_service.dart';
 import '../utils/date_utils.dart';
 import 'receipt_screen.dart';
 import 'my_service_requests_screen.dart';
+import 'my_bookings_screen.dart';
 import 'tech_job_screen.dart';
 import '../services/auth_service.dart';
 
@@ -67,7 +68,10 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         title.contains('سرير')) {
       return 'Vacant';
     }
-    if (title.contains('قسط') || title.contains('دفع') || title.contains('عربون')) {
+    if (type == 'payment_reminder' ||
+        title.contains('قسط') ||
+        title.contains('دفع') ||
+        title.contains('عربون')) {
       return 'Payment';
     }
     if (title.contains('صيانة') || title.contains('فني')) return 'Maintenance';
@@ -76,6 +80,14 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     }
     if (title.contains('تذكير') || title.contains('موعد')) return 'Reminder';
     return 'General';
+  }
+
+  Future<void> _openBooking(Map<String, dynamic> note) async {
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+    );
   }
 
   Future<void> _openMaintenance(Map<String, dynamic> note) async {
@@ -237,6 +249,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           }
           if (type == 'Payment') {
             await _openReceiptIfPayment(notif);
+          } else if (type == 'Booking' || type == 'Reminder') {
+            await _openBooking(notif);
           } else if (type == 'Maintenance') {
             await _openMaintenance(notif);
           }

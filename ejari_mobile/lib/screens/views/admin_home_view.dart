@@ -207,7 +207,19 @@ class AdminHomeView extends StatelessWidget {
         const SizedBox(height: 10),
         _alert(
           context,
-          'يوجد ${stats['pendingVerifications'] ?? 0} حسابات في انتظار التوثيق',
+          'يوجد ${stats['openDisputes'] ?? 0} نزاعات مفتوحة تحتاج مراجعة',
+          AppTheme.errorColor,
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const AdminServiceRequestsScreen(),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        _alert(
+          context,
+          'يوجد ${stats['pendingVerifications'] ?? 0} حسابات في انتظار التوثيق (KYC)',
           AppTheme.borderColor,
           () => Navigator.push(
             context,

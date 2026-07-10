@@ -9,6 +9,7 @@ import '../utils/safe_parse.dart';
 import 'payment_methods_screen.dart';
 import 'rewards_screen.dart';
 import 'rental_statement_screen.dart';
+import '../utils/wallet_category_labels.dart';
 
 class TenantWalletScreen extends StatefulWidget {
   const TenantWalletScreen({super.key});
@@ -22,7 +23,7 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
   List<Map<String, dynamic>> _transactions = [];
   Map<String, dynamic>? _rentSummary;
   List<Map<String, dynamic>> _relatedBookings = [];
-  String _selectedFilter = 'الكل'; // 'الكل', 'إيداع', 'سحب'
+  String _selectedFilter = 'الكل'; // الكل، إيجار، عربون، استرداد، إيداع، سحب
   bool _isLoading = true;
 
   @override
@@ -655,10 +656,7 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
 
   Widget _buildTransactionHistory() {
     final filteredTransactions = _transactions.where((t) {
-      if (_selectedFilter == 'الكل') return true;
-      if (_selectedFilter == 'إيداع') return t['type'] == 'credit';
-      if (_selectedFilter == 'سحب') return t['type'] == 'expense';
-      return true;
+      return WalletCategoryLabels.matchesFilter(t, _selectedFilter);
     }).toList();
 
     return Container(
@@ -689,7 +687,8 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: ['الكل', 'إيداع', 'سحب'].map((filter) {
+              children: ['الكل', 'إيجار', 'عربون', 'استرداد', 'إيداع', 'سحب']
+                  .map((filter) {
                 final isSelected = _selectedFilter == filter;
                 return Padding(
                   padding: const EdgeInsets.only(left: 8),
@@ -750,7 +749,10 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
               itemCount: filteredTransactions.length,
               itemBuilder: (context, index) {
                 final transaction = filteredTransactions[index];
-                final isExpense = transaction['type'] == 'expense';
+                final isExpense = transaction['type'] == 'expense' ||
+                    transaction['type'] == 'escrow';
+                final categoryLabel =
+                    WalletCategoryLabels.labelFor(transaction);
                 final DateTime date =
                     DateTime.tryParse(transaction['date']) ?? DateTime.now();
 
@@ -789,6 +791,23 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
                                   style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14)),
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withOpacity(0.08),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  categoryLabel,
+                                  style: const TextStyle(
+                                    color: AppTheme.primaryColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
                               const SizedBox(height: 4),
                               Text(
                                   DateFormat('dd MMM yyyy, hh:mm a')
@@ -856,6 +875,8 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
             Text(tx['title'] ?? '',
                 style: const TextStyle(color: AppTheme.primaryColor)),
             const Divider(height: 40),
+            _buildDetailRow('التصنيف',
+                WalletCategoryLabels.labelFor(tx)),
             _buildDetailRow('الحالة', 'مكتملة الموثوقية ✅'),
             _buildDetailRow('الرقم المرجعي',
                 'TXN-${DateTime.now().millisecondsSinceEpoch}'),

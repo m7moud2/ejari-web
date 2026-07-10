@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../widgets/property_card.dart';
 import '../widgets/empty_state_view.dart';
 import '../utils/property_image_resolver.dart';
+import '../models/accommodation_type.dart';
 import '../services/firestore_property_service.dart';
 import 'property_details_screen.dart';
 import 'booking_screen.dart';
@@ -24,10 +25,12 @@ class SearchResultsScreen extends StatefulWidget {
 class _SearchResultsScreenState extends State<SearchResultsScreen> {
   List<Map<String, dynamic>> _results = [];
   bool _isLoading = true;
+  String? _accommodationFilter;
 
   @override
   void initState() {
     super.initState();
+    _accommodationFilter = widget.filters?['accommodationType']?.toString();
     _performSearch();
   }
 
@@ -57,9 +60,9 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
 
       if (!matchesQuery) return false;
 
-      // 2. Apply Filters (if any)
-      if (widget.filters != null) {
-        final filters = widget.filters!;
+      // Apply filters
+      final filters = widget.filters ?? {};
+      if (filters.isNotEmpty || _accommodationFilter != null) {
 
         // Price Range
         final priceStr =
@@ -98,9 +101,15 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
         }
 
         // Accommodation type filter
-        if (filters['accommodationType'] != null) {
-          final acc = property['accommodationType']?.toString() ?? 'full_unit';
-          if (acc != filters['accommodationType'].toString()) return false;
+        if (filters['accommodationType'] != null ||
+            _accommodationFilter != null) {
+          final acc = filters['accommodationType']?.toString() ??
+              _accommodationFilter ??
+              'full_unit';
+          if ((property['accommodationType']?.toString() ?? 'full_unit') !=
+              acc) {
+            return false;
+          }
         }
 
         // Listing mode (rent / sale)
@@ -159,75 +168,127 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: Text('نتائج البحث: ${widget.query}'),
+        title: Text(widget.query.isEmpty
+            ? 'نتائج البحث'
+            : 'نتائج البحث: ${widget.query}'),
       ),
-      body: _isLoading
-          ? const ColoredBox(
-              color: AppTheme.backgroundColor,
-              child: Center(
-                child: CircularProgressIndicator(
-                  color: AppTheme.primaryColor,
-                ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _accChip(null, 'الكل'),
+                  _accChip(AccommodationType.fullUnit.value,
+                      AccommodationType.fullUnit.filterLabel),
+                  _accChip(AccommodationType.sharedRoom.value,
+                      AccommodationType.sharedRoom.filterLabel),
+                  _accChip(AccommodationType.bed.value,
+                      AccommodationType.bed.filterLabel),
+                ],
               ),
-            )
-          : RefreshIndicator(
-              color: AppTheme.primaryColor,
-              onRefresh: _performSearch,
-              child: _results.isEmpty
-                  ? ListView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      children: [
-                        EmptyStateView(
-                          icon: Icons.search_off_rounded,
-                          title: 'لا توجد نتائج مطابقة لبحثك',
-                          subtitle:
-                              'حاول استخدام كلمات مفتاحية مختلفة أو افتح الفلتر المتقدم.',
-                          actionLabel: 'تعديل البحث',
-                          onAction: () => Navigator.pop(context),
-                        ),
-                      ],
-                    )
-                  : ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _results.length,
-                      itemBuilder: (context, index) {
-                        final property = _results[index];
-                        final image = PropertyImageResolver.resolve(property);
-                        return PropertyCard(
-                          id: property['id'] ?? '0',
-                          title: property['title'] ?? '',
-                          price: property['price'] ?? '0',
-                          location: property['location'] ?? '',
-                          image: image,
-                      beds: property['beds'] ?? '0',
-                      baths: property['baths'] ?? '0',
-                      area: property['area'] ?? '0',
-                      isVerified: property['isVerified'] == true,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                PropertyDetailsScreen(property: property),
-                          ),
-                        );
-                      },
-                      onBook: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => BookingScreen(
-                              itemType: 'property',
-                              itemData: property,
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
             ),
+          ),
+          Expanded(
+            child: _isLoading
+                ? const ColoredBox(
+                    color: AppTheme.backgroundColor,
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                  )
+                : RefreshIndicator(
+                    color: AppTheme.primaryColor,
+                    onRefresh: _performSearch,
+                    child: _results.isEmpty
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              EmptyStateView(
+                                icon: Icons.search_off_rounded,
+                                title: 'لا توجد نتائج مطابقة لبحثك',
+                                subtitle:
+                                    'حاول استخدام كلمات مفتاحية مختلفة أو افتح الفلتر المتقدم.',
+                                actionLabel: 'تعديل البحث',
+                                onAction: () => Navigator.pop(context),
+                              ),
+                            ],
+                          )
+                        : ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.all(16),
+                            itemCount: _results.length,
+                            itemBuilder: (context, index) {
+                              final property = _results[index];
+                              final image =
+                                  PropertyImageResolver.resolve(property);
+                              return PropertyCard(
+                                id: property['id'] ?? '0',
+                                title: property['title'] ?? '',
+                                price: property['price'] ?? '0',
+                                location: property['location'] ?? '',
+                                image: image,
+                                beds: property['beds'] ?? '0',
+                                baths: property['baths'] ?? '0',
+                                area: property['area'] ?? '0',
+                                isVerified: property['isVerified'] == true,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          PropertyDetailsScreen(
+                                              property: property),
+                                    ),
+                                  );
+                                },
+                                onBook: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => BookingScreen(
+                                        itemType: 'property',
+                                        itemData: property,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _accChip(String? value, String label) {
+    final selected = _accommodationFilter == value;
+    return Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: FilterChip(
+        label: Text(label),
+        selected: selected,
+        onSelected: (_) {
+          setState(() {
+            _accommodationFilter = value;
+            _isLoading = true;
+          });
+          _performSearch();
+        },
+        selectedColor: AppTheme.primaryColor,
+        checkmarkColor: Colors.white,
+        labelStyle: TextStyle(
+          color: selected ? Colors.white : AppTheme.textPrimary,
+          fontWeight: FontWeight.w800,
+          fontSize: 12,
+        ),
+      ),
     );
   }
 }
