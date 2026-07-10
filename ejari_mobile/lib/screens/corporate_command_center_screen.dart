@@ -18,6 +18,8 @@ class CorporateCommandCenterScreen extends StatefulWidget {
 class _CorporateCommandCenterScreenState
     extends State<CorporateCommandCenterScreen> {
   Map<String, dynamic> _summary = {};
+  Map<String, dynamic> _bulkInvoice = {};
+  Map<String, dynamic> _wallet = {};
   List<Map<String, dynamic>> _employees = [];
   bool _loading = true;
   String _filterGov = 'الكل';
@@ -39,10 +41,14 @@ class _CorporateCommandCenterScreenState
 
   Future<void> _load() async {
     final summary = await DataService.getCorporateCommandSummary();
+    final bulk = await DataService.getCorporateBulkInvoiceSummary();
+    final wallet = await DataService.getCorporateWalletSummary();
     final employees = await DataService.getCorporateEmployees();
     if (mounted) {
       setState(() {
         _summary = summary;
+        _bulkInvoice = bulk;
+        _wallet = wallet;
         _employees = employees.isNotEmpty
             ? employees
             : List<Map<String, dynamic>>.from(
@@ -96,6 +102,10 @@ class _CorporateCommandCenterScreenState
                 children: [
                   _buildHero(),
                   const SizedBox(height: AppTheme.spaceMd),
+                  _buildWalletCard(),
+                  const SizedBox(height: AppTheme.spaceSm),
+                  _buildBulkInvoiceCard(),
+                  const SizedBox(height: AppTheme.spaceMd),
                   _buildStats(),
                   const SizedBox(height: AppTheme.spaceLg),
                   const EjariSectionHeader(
@@ -117,6 +127,15 @@ class _CorporateCommandCenterScreenState
                       ),
                     ),
                   const SizedBox(height: AppTheme.spaceLg),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _assignBedBooking,
+                      icon: const Icon(Icons.single_bed_rounded),
+                      label: const Text('تعيين موظف لسرير — تدفق واحد'),
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceSm),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -401,8 +420,137 @@ class _CorporateCommandCenterScreenState
         return 'عربون مدفوع';
       case BookingStatus.corporatePending:
         return 'بانتظار الإدارة';
+      case 'assigned':
+        return 'مُعيَّن';
       default:
         return 'بانتظار الحجز';
     }
+  }
+
+  Widget _buildWalletCard() {
+    return EjariSurfaceCard(
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.accentColor.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.account_balance_wallet_rounded,
+                color: AppTheme.primaryColor),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'محفظة الشركة',
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+                ),
+                Text(
+                  'الرصيد: ${_wallet['balance'] ?? 0} ج.م',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.primaryColor,
+                  ),
+                ),
+                Text(
+                  'إجمالي الإنفاق: ${_wallet['totalSpend'] ?? _summary['totalSpend'] ?? 0} ج.م',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppTheme.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBulkInvoiceCard() {
+    return EjariSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'ملخص الفواتير الجماعية',
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'الفترة: ${_bulkInvoice['period'] ?? ''}',
+            style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _invoiceStat('فواتير', '${_bulkInvoice['invoiceCount'] ?? 0}'),
+              _invoiceStat('إيجار', '${_bulkInvoice['totalRent'] ?? 0} ج.م'),
+              _invoiceStat('عربون', '${_bulkInvoice['depositTotal'] ?? 0} ج.م'),
+            ],
+          ),
+          const Divider(height: 16),
+          Text(
+            'الإجمالي: ${_bulkInvoice['grandTotal'] ?? 0} ج.م',
+            style: const TextStyle(
+              fontWeight: FontWeight.w900,
+              color: AppTheme.accentColor,
+              fontSize: 15,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _invoiceStat(String label, String value) {
+    return Expanded(
+      child: Column(
+        children: [
+          Text(value,
+              style: const TextStyle(
+                  fontWeight: FontWeight.w900, fontSize: 13)),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 10, color: AppTheme.textSecondary)),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _assignBedBooking() async {
+    final pending = _employees
+        .where((e) => e['status'] == 'pending' || e['status'] == 'available')
+        .toList();
+    if (pending.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('لا يوجد موظفون متاحون للتعيين')),
+      );
+      return;
+    }
+    final emp = pending.first;
+    final result = await DataService.assignEmployeeToBedBooking(
+      employeeId: emp['id']?.toString() ?? '',
+      employeeName: emp['name']?.toString() ?? '',
+      propertyId: 'shared_egy1',
+      bedId: 'bed_${DateTime.now().millisecond % 8 + 1}',
+      bedLabel: 'سرير — ${emp['name']}',
+      monthlyRent: (emp['monthlyRent'] as num?)?.toDouble() ?? 2500,
+      governorate: emp['governorate']?.toString() ?? 'القاهرة',
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result['message']?.toString() ??
+            (result['success'] == true
+                ? 'تم تعيين الموظف لسرير بنجاح'
+                : 'فشل التعيين')),
+      ),
+    );
+    _load();
   }
 }

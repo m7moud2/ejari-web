@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../screens/advanced_filters_screen.dart';
 import '../theme/app_theme.dart';
+import 'notification_badge.dart';
 
 /// A predictable, accessible bottom navigation bar.
 ///
@@ -12,17 +13,31 @@ class EjariNavigationBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
   final String role;
+  final int profileBadgeCount;
 
   const EjariNavigationBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
     this.role = 'tenant',
+    this.profileBadgeCount = 0,
   });
 
   bool get _isOwner => role == 'owner';
   bool get _isAdmin => role == 'admin';
   bool get _isTechnician => role == 'technician';
+
+  NavigationDestination get _profileDestination => NavigationDestination(
+        icon: NotificationBadge(
+          count: profileBadgeCount,
+          child: const Icon(Icons.person_outline_rounded),
+        ),
+        selectedIcon: NotificationBadge(
+          count: profileBadgeCount,
+          child: const Icon(Icons.person_rounded),
+        ),
+        label: 'حسابي',
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -196,11 +211,7 @@ class EjariNavigationBar extends StatelessWidget {
                         ),
                         label: _isOwner ? 'تحصيل' : 'مميز',
                       ),
-                      const NavigationDestination(
-                        icon: Icon(Icons.person_outline_rounded),
-                        selectedIcon: Icon(Icons.person_rounded),
-                        label: 'حسابي',
-                      ),
+                      _profileDestination,
                     ],
             ),
           ),

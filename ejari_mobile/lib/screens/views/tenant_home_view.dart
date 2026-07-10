@@ -8,16 +8,47 @@ import '../my_bookings_screen.dart';
 import '../tenant_installments_screen.dart';
 import '../search_results_screen.dart';
 import '../payment_screen.dart';
-import '../notifications_screen.dart';
 import '../my_service_requests_screen.dart';
 import '../property_details_screen.dart';
 import '../corporate_command_center_screen.dart';
 import '../request_verification_screen.dart';
 import '../../models/accommodation_type.dart';
 import '../../widgets/trust_score_badge.dart';
+import '../../widgets/notification_badge.dart';
+import '../../widgets/overdue_payment_banner.dart';
+import '../demo_flow_guide_screen.dart';
+import '../notification_center_screen.dart';
+import '../../services/demo_flow_service.dart';
+import '../../services/data_service.dart';
 
-class TenantHomeView extends StatelessWidget {
+class TenantHomeView extends StatefulWidget {
   const TenantHomeView({super.key});
+
+  @override
+  State<TenantHomeView> createState() => _TenantHomeViewState();
+}
+
+class _TenantHomeViewState extends State<TenantHomeView> {
+  bool _showDemoBanner = false;
+  int _unreadNotifications = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadExtras();
+  }
+
+  Future<void> _loadExtras() async {
+    final dismissed = await DemoFlowService.isBannerDismissed();
+    final complete = await DemoFlowService.isFlowComplete();
+    final unread = await DataService.getUnreadNotificationCount();
+    if (mounted) {
+      setState(() {
+        _showDemoBanner = !dismissed && !complete;
+        _unreadNotifications = unread;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,12 +62,17 @@ class TenantHomeView extends StatelessWidget {
 
     return RefreshIndicator(
       color: AppTheme.accentColor,
-      onRefresh: () => context.read<HomeProvider>().loadHomeData('tenant'),
+      onRefresh: () async {
+        await context.read<HomeProvider>().loadHomeData('tenant');
+        await _loadExtras();
+      },
       child: ListView(
         padding: EdgeInsets.zero,
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           _buildBrandedHeader(context, stats),
+          const OverduePaymentBanner(),
+          if (_showDemoBanner) _buildDemoFlowBanner(context),
           Transform.translate(
             offset: const Offset(0, -32),
             child: Padding(
@@ -175,14 +211,20 @@ class TenantHomeView extends StatelessWidget {
               ),
               const Spacer(),
               IconButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const NotificationsScreen(),
-                  ),
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationCenterScreen(),
+                    ),
+                  );
+                  _loadExtras();
+                },
+                icon: NotificationBadge(
+                  count: _unreadNotifications,
+                  child: const Icon(Icons.notifications_rounded,
+                      color: Colors.white),
                 ),
-                icon: const Icon(Icons.notifications_rounded,
-                    color: Colors.white),
               ),
               if (stats['activeBooking'] == true)
                 Container(
@@ -304,6 +346,80 @@ class TenantHomeView extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDemoFlowBanner(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppTheme.spaceMd,
+        AppTheme.spaceSm,
+        AppTheme.spaceMd,
+        0,
+      ),
+      child: Material(
+        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+        color: AppTheme.primaryColor.withOpacity(0.08),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+          onTap: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const DemoFlowGuideScreen(),
+              ),
+            );
+            _loadExtras();
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.play_circle_fill_rounded,
+                      color: AppTheme.primaryColor),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'جرب التدفق الكامل',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        'حجز سرير → دفع → QR → دخول → خروج → عربون → تقييم',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'إخفاء',
+                  onPressed: () async {
+                    await DemoFlowService.dismissBanner();
+                    setState(() => _showDemoBanner = false);
+                  },
+                  icon: const Icon(Icons.close_rounded, size: 18),
+                ),
+              ],
+            ),
           ),
         ),
       ),

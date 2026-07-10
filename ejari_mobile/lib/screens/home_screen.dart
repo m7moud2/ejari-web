@@ -10,6 +10,7 @@ import '../widgets/property_card.dart';
 import 'booking_screen.dart';
 import 'property_details_screen.dart';
 import '../services/auth_service.dart';
+import '../services/data_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/property_provider.dart';
 import 'notifications_screen.dart';
@@ -44,6 +45,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   String _currentRole = 'tenant';
+  int _unreadNotifications = 0;
 
   @override
   void initState() {
@@ -53,7 +55,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadRole() async {
     final role = await AuthService.getUserRole();
-    setState(() => _currentRole = role);
+    final unread = await DataService.getUnreadNotificationCount();
+    setState(() {
+      _currentRole = role;
+      _unreadNotifications = unread;
+    });
   }
 
   void _handleAdminNav(BuildContext context, int index) {
@@ -126,6 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: EjariNavigationBar(
         currentIndex: _currentIndex,
         role: _currentRole,
+        profileBadgeCount: _unreadNotifications,
         onTap: (index) {
           if (_currentRole == 'admin') {
             _handleAdminNav(context, index);

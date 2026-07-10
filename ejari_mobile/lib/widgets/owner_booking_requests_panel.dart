@@ -108,7 +108,9 @@ class _OwnerBookingRequestsPanelState extends State<OwnerBookingRequestsPanel> {
       );
     }
 
-    return Column(
+    return ListView(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       children: _requests.take(5).map((r) {
         final id = (r['id'] ?? r['_id'] ?? '').toString();
         final prePaid = DataService.isPreEntryPaid(r);

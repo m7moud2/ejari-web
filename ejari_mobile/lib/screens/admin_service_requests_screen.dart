@@ -317,14 +317,28 @@ class _AdminServiceRequestsScreenState
     );
     final isMaintenance = request['id']?.toString().startsWith('MNT') == true ||
         request['id']?.toString().startsWith('JR') != true;
+    final slaOverdue =
+        isMaintenance && MaintenanceStatus.isSlaOverdue(request);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: statusColor.withOpacity(0.3)),
-        boxShadow: const [],
+        border: Border.all(
+          color: slaOverdue
+              ? AppTheme.errorColor
+              : statusColor.withOpacity(0.3),
+          width: slaOverdue ? 2 : 1,
+        ),
+        boxShadow: slaOverdue
+            ? [
+                BoxShadow(
+                  color: AppTheme.errorColor.withOpacity(0.15),
+                  blurRadius: 8,
+                ),
+              ]
+            : const [],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -407,6 +421,11 @@ class _AdminServiceRequestsScreenState
                     'الفني: ${safeStr(request['assignedTo'] ?? request['technicianId'], 'غير معين')}'),
                 _buildInfoRow(Icons.calendar_today,
                     safeStr(request['createdAt'], '—')),
+                if (slaOverdue)
+                  _buildInfoRow(
+                    Icons.timer_off_rounded,
+                    '⚠️ تجاوز SLA — ${MaintenanceStatus.slaRemainingLabelAr(request)}',
+                  ),
                 _buildInfoRow(Icons.location_on,
                     safeStr(request['propertyTitle'] ?? request['title'], '—')),
                 if (request['description'] != null || request['notes'] != null) ...[

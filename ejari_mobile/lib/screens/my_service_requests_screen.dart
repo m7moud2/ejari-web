@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
 import '../services/auth_service.dart';
 import '../services/maintenance_service.dart';
+import '../widgets/sla_timer_chip.dart';
 import '../utils/safe_parse.dart';
 import 'payment_screen.dart';
 
@@ -169,6 +170,8 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
               _statusChip(status, color),
             ],
           ),
+          const SizedBox(height: 8),
+          SlaTimerChip(request: request),
           const SizedBox(height: 12),
           EjariStepIndicator(
             labels: const [
@@ -422,10 +425,10 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
       feedbackController.dispose();
       return;
     }
-    await MaintenanceService.addFeedback(
+    await MaintenanceService.rateTechnician(
       request['id'].toString(),
       rating,
-      feedbackController.text.trim(),
+      feedback: feedbackController.text.trim(),
     );
     feedbackController.dispose();
     await _load();

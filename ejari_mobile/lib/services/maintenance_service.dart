@@ -79,6 +79,49 @@ class MaintenanceStatus {
     final idx = ordered.indexOf(n);
     return idx < 0 ? 0 : idx;
   }
+
+  /// مدة SLA حسب الأولوية (24h/48h للعاجل/مرتفع).
+  static Duration slaDuration(String priority) {
+    return switch (priority) {
+      'urgent' => const Duration(hours: 2),
+      'high' => const Duration(hours: 24),
+      'medium' => const Duration(hours: 48),
+      _ => const Duration(days: 7),
+    };
+  }
+
+  static DateTime slaDeadlineFor(Map<String, dynamic> request) {
+    final created = DateTime.tryParse(request['createdAt']?.toString() ?? '') ??
+        DateTime.now();
+    final stored = request['slaDeadline']?.toString();
+    if (stored != null) {
+      final parsed = DateTime.tryParse(stored);
+      if (parsed != null) return parsed;
+    }
+    final priority = request['priority']?.toString() ?? 'medium';
+    return created.add(slaDuration(priority));
+  }
+
+  static bool isSlaOverdue(Map<String, dynamic> request) {
+    final status = normalize(request['status']?.toString());
+    if ([completed, paid, cancelled, rejected].contains(status)) {
+      return false;
+    }
+    return DateTime.now().isAfter(slaDeadlineFor(request));
+  }
+
+  static String slaRemainingLabelAr(Map<String, dynamic> request) {
+    if (isSlaOverdue(request)) return 'تجاوز SLA ⚠️';
+    final deadline = slaDeadlineFor(request);
+    final remaining = deadline.difference(DateTime.now());
+    if (remaining.inHours >= 24) {
+      return 'متبقي ${remaining.inHours ~/ 24} يوم';
+    }
+    if (remaining.inHours >= 1) {
+      return 'متبقي ${remaining.inHours} ساعة';
+    }
+    return 'متبقي ${remaining.inMinutes} دقيقة';
+  }
 }
 
 class MaintenanceService {
@@ -281,7 +324,7 @@ class MaintenanceService {
 
   static Future<void> initDemoRequests() async {
     final prefs = await SharedPreferences.getInstance();
-    const seedKey = 'demo_maintenance_seeded_v2';
+    const seedKey = 'demo_maintenance_seeded_v3';
     if (prefs.getBool(seedKey) == true) return;
 
     final existing = await getAllRequests();
@@ -301,6 +344,7 @@ class MaintenanceService {
         'propertyTitle': 'شقة المعادي الفاخرة',
         'category': 'ac',
         'priority': 'high',
+        'slaDeadline': now.add(const Duration(hours: 8)).toIso8601String(),
         'title': 'صيانة تكييف',
         'description': 'التكييف لا يبرد بشكل جيد والشحنة تحتاج فحص',
         'status': MaintenanceStatus.inProgress,
@@ -326,15 +370,37 @@ class MaintenanceService {
         'propertyTitle': 'فيلا التجمع الخامس',
         'category': 'plumbing',
         'priority': 'medium',
+        'slaDeadline': now.subtract(const Duration(hours: 6)).toIso8601String(),
         'title': 'تسريب مياه',
         'description': 'تسريب بسيط في الحمام الرئيسي',
         'status': MaintenanceStatus.submitted,
-        'createdAt': now.subtract(const Duration(hours: 3)).toIso8601String(),
-        'updatedAt': now.toIso8601String(),
+        'createdAt': now.subtract(const Duration(hours: 52)).toIso8601String(),
+        'updatedAt': now.subtract(const Duration(hours: 52)).toIso8601String(),
         'estimatedCost': 150.0,
         'paymentStatus': 'unpaid',
         'timeline': [
-          {'status': MaintenanceStatus.submitted, 'label': 'مُرسَل', 'at': now.subtract(const Duration(hours: 3)).toIso8601String()},
+          {'status': MaintenanceStatus.submitted, 'label': 'مُرسَل', 'at': now.subtract(const Duration(hours: 52)).toIso8601String()},
+        ],
+      },
+      {
+        'id': 'MNT-DEMO-OVERDUE',
+        'tenantId': 'user@ejari.app',
+        'userId': 'user@ejari.app',
+        'ownerId': 'owner@ejari.app',
+        'propertyId': 'shared_egy1',
+        'propertyTitle': 'إقامة مشتركة — المعادي',
+        'category': 'electrical',
+        'priority': 'high',
+        'slaDeadline': now.subtract(const Duration(hours: 12)).toIso8601String(),
+        'title': 'عطل كهربائي — متأخر SLA',
+        'description': 'انقطاع التيار في الغرفة المشتركة',
+        'status': MaintenanceStatus.submitted,
+        'createdAt': now.subtract(const Duration(hours: 30)).toIso8601String(),
+        'updatedAt': now.subtract(const Duration(hours: 30)).toIso8601String(),
+        'estimatedCost': 200.0,
+        'paymentStatus': 'unpaid',
+        'timeline': [
+          {'status': MaintenanceStatus.submitted, 'label': 'مُرسَل', 'at': now.subtract(const Duration(hours: 30)).toIso8601String()},
         ],
       },
       {
@@ -360,6 +426,7 @@ class MaintenanceService {
         'clientConfirmed': true,
         'paymentStatus': 'paid',
         'rating': 5,
+        'technicianRating': 5,
         'feedback': 'خدمة ممتازة',
         'timeline': [
           {'status': MaintenanceStatus.submitted, 'label': 'مُرسَل', 'at': now.subtract(const Duration(days: 5)).toIso8601String()},
@@ -862,10 +929,24 @@ class MaintenanceService {
     if (index == -1) return false;
 
     requests[index]['rating'] = rating;
+    requests[index]['technicianRating'] = rating;
     requests[index]['feedback'] = feedback;
     requests[index]['updatedAt'] = DateTime.now().toIso8601String();
     await _persist(requests);
     return true;
+  }
+
+  /// تقييم الفني بعد إتمام العمل.
+  static Future<bool> rateTechnician(
+    String requestId,
+    int rating, {
+    String feedback = '',
+  }) =>
+      addFeedback(requestId, rating, feedback);
+
+  static Future<List<Map<String, dynamic>>> getOverdueSlaRequests() async {
+    final all = await getAllRequests();
+    return all.where(MaintenanceStatus.isSlaOverdue).toList();
   }
 
   static Future<Map<String, int>> getStatistics(String userId) async {

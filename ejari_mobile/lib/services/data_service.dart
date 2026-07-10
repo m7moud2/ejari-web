@@ -21,7 +21,7 @@ class DataService {
   static const String _bookingsKey = 'bookings'; // For tenants
   static const String _requestsKey = 'requests'; // For owners (incoming)
   static const String _demoBookingsVersionKey = 'demo_bookings_version';
-  static const int _currentDemoBookingsVersion = 6;
+  static const int _currentDemoBookingsVersion = 7;
   static const String _demoReceiptsVersionKey = 'demo_receipts_version';
   static const int _currentDemoReceiptsVersion = 1;
   static const String _favoritesKey = 'favorites';
@@ -248,6 +248,35 @@ class DataService {
         'durationLabel': '2 أسبوع',
         'durationType': 'أسبوع',
         'durationCount': 2,
+      },
+      {
+        'id': 'demo_flow_bed_1',
+        'contractNumber': 'CTR-FLOW-001',
+        'propertyId': 'shared_egy1',
+        'title': 'إقامة مشتركة — المعادي (تدفق تجريبي)',
+        'image': 'assets/images/home3.jpg',
+        'price': '2500',
+        'monthlyRent': '2500',
+        'tenantName': 'مستأجر تجريبي',
+        'tenantEmail': 'user@ejari.app',
+        'ownerId': 'owner@ejari.app',
+        'ownerEmail': 'owner@ejari.app',
+        'status': BookingStatus.submitted,
+        'selectedBedId': 'bed_2',
+        'bedLabel': 'سرير 2 — غرفة A',
+        'accommodationType': 'bed',
+        'requestDate': DateTime.now().toIso8601String(),
+        'checkInDate': DateTime.now().add(const Duration(days: 3)).toIso8601String(),
+        'startDate': DateTime.now().add(const Duration(days: 3)).toIso8601String(),
+        'leaseStartDate': DateTime.now().add(const Duration(days: 3)).toIso8601String(),
+        'durationLabel': '1 شهر',
+        'duration': '1 شهر',
+        'durationType': 'شهر',
+        'durationCount': 1,
+        'depositAmount': '500',
+        'securityDeposit': 500,
+        'rentAmount': 2500,
+        'demoFlow': true,
       },
     ];
 
@@ -1368,6 +1397,72 @@ class DataService {
     await prefs.setStringList(_notificationsKey, updated);
   }
 
+  static Future<int> getUnreadNotificationCount() async {
+    final notes = await getNotifications();
+    return notes.where((n) => n['read'] != true).length;
+  }
+
+  static Future<Map<String, int>> getUnreadCountByCategory() async {
+    final notes = await getNotifications();
+    final counts = <String, int>{
+      'all': 0,
+      'Booking': 0,
+      'Payment': 0,
+      'Maintenance': 0,
+      'Alert': 0,
+    };
+    for (final n in notes) {
+      if (n['read'] == true) continue;
+      counts['all'] = (counts['all'] ?? 0) + 1;
+      final type = n['type']?.toString() ?? '';
+      final title = n['title']?.toString() ?? '';
+      if (type == 'booking' || title.contains('حجز')) {
+        counts['Booking'] = (counts['Booking'] ?? 0) + 1;
+      } else if (type == 'payment_reminder' ||
+          type == 'payment' ||
+          type == 'payment_overdue' ||
+          title.contains('دفع') ||
+          title.contains('قسط')) {
+        counts['Payment'] = (counts['Payment'] ?? 0) + 1;
+      } else if (title.contains('صيانة') || type == 'maintenance') {
+        counts['Maintenance'] = (counts['Maintenance'] ?? 0) + 1;
+      } else if (title.contains('تأخير') || title.contains('⚠️')) {
+        counts['Alert'] = (counts['Alert'] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }
+
+  static Future<Map<String, dynamic>?> getLatestOverduePaymentNotification() async {
+    final notes = await getNotifications();
+    for (final n in notes) {
+      final type = n['type']?.toString() ?? '';
+      final title = n['title']?.toString() ?? '';
+      if (type == 'payment_overdue' ||
+          (type == 'payment_reminder' && n['read'] != true) ||
+          title.contains('تأخر')) {
+        return n;
+      }
+    }
+    return null;
+  }
+
+  static Future<void> simulateOverduePaymentNotification({
+    String tenantEmail = 'user@ejari.app',
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    const key = 'overdue_notification_seeded';
+    if (prefs.getBool(key) == true) return;
+    await addNotificationToUser(
+      tenantEmail,
+      'تأخر في الدفع ⚠️',
+      'قسط الإيجار متأخر — ادفع الآن لتجنب الغرامات',
+      type: 'payment_overdue',
+      refId: 'demo_req_1',
+    );
+    await prefs.setBool(key, true);
+  }
+
   // --- Bookings & Requests Flow ---
 
   static Map<String, dynamic> _normalizeBooking(Map<String, dynamic> b) {
@@ -1625,6 +1720,139 @@ class DataService {
       'totalSpend': totalSpend.round(),
       'governorates': governorates.toList(),
     };
+  }
+
+  /// ملخص فواتير جماعية للشركات.
+  static Future<Map<String, dynamic>> getCorporateBulkInvoiceSummary() async {
+    final summary = await getCorporateCommandSummary();
+    final employees =
+        List<Map<String, dynamic>>.from(summary['employees'] ?? const []);
+    final booked = employees
+        .where((e) =>
+            e['status'] == 'booked' ||
+            e['status'] == 'assigned' ||
+            e['status'] == 'approved' ||
+            e['status'] == 'active')
+        .toList();
+    final totalRent = booked.fold<double>(
+      0,
+      (s, e) => s + safeDouble(e['monthlyRent'], 0),
+    );
+    final depositTotal = booked.length * 500.0;
+    return {
+      'invoiceCount': booked.length,
+      'totalRent': totalRent.round(),
+      'depositTotal': depositTotal.round(),
+      'grandTotal': (totalRent + depositTotal).round(),
+      'period': 'شهر ${DateTime.now().month}/${DateTime.now().year}',
+      'employees': booked,
+    };
+  }
+
+  /// محفظة الشركة — رصيد وإنفاق تراكمي.
+  static Future<Map<String, dynamic>> getCorporateWalletSummary() async {
+    final prefs = await SharedPreferences.getInstance();
+    const key = 'corporate_wallet_balance';
+    var balance = prefs.getDouble(key) ?? 500000.0;
+    final summary = await getCorporateCommandSummary();
+    final totalSpend = safeDouble(summary['totalSpend'], 0);
+    return {
+      'balance': balance.round(),
+      'totalSpend': totalSpend,
+      'currency': 'ج.م',
+      'lastTopUp': prefs.getString('corporate_wallet_last_topup') ??
+          DateTime.now().subtract(const Duration(days: 7)).toIso8601String(),
+    };
+  }
+
+  /// تعيين موظف لحجز سرير في تدفق واحد.
+  static Future<Map<String, dynamic>> assignEmployeeToBedBooking({
+    required String employeeId,
+    required String employeeName,
+    required String propertyId,
+    required String bedId,
+    required String bedLabel,
+    double monthlyRent = 2500,
+    String governorate = 'القاهرة',
+  }) async {
+    final checkIn = DateTime.now().add(const Duration(days: 7));
+    final checkOut = checkIn.add(const Duration(days: 180));
+    final bookingId = 'corp_bed_${DateTime.now().millisecondsSinceEpoch}';
+    final request = {
+      'id': bookingId,
+      'propertyId': propertyId,
+      'title': 'إسكان موظف — $bedLabel',
+      'price': monthlyRent.toString(),
+      'monthlyRent': monthlyRent.toString(),
+      'tenantName': employeeName,
+      'tenantEmail': 'corporate@ejari.app',
+      'ownerId': 'owner@ejari.app',
+      'ownerEmail': 'owner@ejari.app',
+      'status': BookingStatus.corporatePending,
+      'bookingMode': 'corporate',
+      'employeeId': employeeId,
+      'employeeName': employeeName,
+      'governorate': governorate,
+      'selectedBedId': bedId,
+      'bedLabel': bedLabel,
+      'accommodationType': 'bed',
+      'checkInDate': checkIn.toIso8601String(),
+      'leaseStartDate': checkIn.toIso8601String(),
+      'leaseEndDate': checkOut.toIso8601String(),
+      'startDate': checkIn.toIso8601String(),
+      'endDate': checkOut.toIso8601String(),
+      'durationLabel': '6 شهر',
+      'duration': '6 شهر',
+      'durationType': 'شهر',
+      'durationCount': 6,
+      'depositAmount': '500',
+      'securityDeposit': 500,
+      'requestDate': DateTime.now().toIso8601String(),
+    };
+    final result = await sendBookingRequest(request);
+    if (result['success'] == true) {
+      final employees = await getCorporateEmployees();
+      for (final emp in employees) {
+        if (emp['id']?.toString() == employeeId) {
+          emp['status'] = 'assigned';
+          emp['propertyId'] = propertyId;
+          emp['bedId'] = bedId;
+          emp['bedLabel'] = bedLabel;
+          emp['monthlyRent'] = monthlyRent;
+          emp['bookingId'] = bookingId;
+        }
+      }
+      await saveCorporateEmployees(employees);
+      return result;
+    }
+
+    // Demo fallback — persist corporate bed assign without strict validation
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = jsonEncode(request);
+    final bookings = prefs.getStringList(_bookingsKey) ?? [];
+    final requests = prefs.getStringList(_requestsKey) ?? [];
+    bookings.add(encoded);
+    requests.add(encoded);
+    await prefs.setStringList(_bookingsKey, bookings);
+    await prefs.setStringList(_requestsKey, requests);
+
+    var employees = await getCorporateEmployees();
+    if (employees.isEmpty) {
+      employees = _generateCorporateEmployees(5);
+    }
+    for (final emp in employees) {
+      if (emp['id']?.toString() == employeeId) {
+        emp['status'] = 'assigned';
+        emp['propertyId'] = propertyId;
+        emp['bedId'] = bedId;
+        emp['bedLabel'] = bedLabel;
+        emp['monthlyRent'] = monthlyRent;
+        emp['bookingId'] = bookingId;
+      }
+    }
+    await saveCorporateEmployees(employees);
+
+    return {'success': true, 'id': bookingId, 'message': 'تم تعيين الموظف للسرير'};
   }
 
   /// إلغاء حجز مع تطبيق قاعدة الاسترداد (٤٨ ساعة).
@@ -3255,6 +3483,32 @@ class DataService {
       {'month': 'May', 'value': isUp ? 26000 : 16000},
       {'month': 'Jun', 'value': isUp ? 28500 : 16500},
     ];
+  }
+
+  /// متوسط سعر المنطقة للمقارنة السوقية.
+  static Future<Map<String, dynamic>> getAreaAveragePrice(String location) async {
+    final props = await getAllProperties();
+    final area = location.trim();
+    final matches = props.where((p) {
+      final loc = (p['location'] ?? p['governorate'] ?? '').toString();
+      return loc.contains(area) || area.contains(loc.split('،').first);
+    }).toList();
+    if (matches.isEmpty) {
+      return {'area': area, 'average': 8500, 'count': 0, 'currency': 'ج.م'};
+    }
+    final prices = matches
+        .map((p) => safeDouble(p['price'], 0))
+        .where((v) => v > 0)
+        .toList();
+    final avg = prices.isEmpty
+        ? 8500.0
+        : prices.reduce((a, b) => a + b) / prices.length;
+    return {
+      'area': area,
+      'average': avg.round(),
+      'count': matches.length,
+      'currency': 'ج.م',
+    };
   }
 
   // === Identity Verification (KYC) ===

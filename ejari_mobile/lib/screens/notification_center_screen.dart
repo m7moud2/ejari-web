@@ -19,6 +19,7 @@ class NotificationCenterScreen extends StatefulWidget {
 
 class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   List<Map<String, dynamic>> _notifications = [];
+  Map<String, int> _categoryCounts = {};
   bool _loading = true;
   String _filter = 'all';
 
@@ -32,9 +33,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
   Future<void> _load() async {
     final notes = await DataService.getNotifications();
+    final counts = await DataService.getUnreadCountByCategory();
     final role = await AuthService.getUserRole();
     setState(() {
       _notifications = notes;
+      _categoryCounts = counts;
       _userRole = role;
       _loading = false;
     });
@@ -199,9 +202,36 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         itemBuilder: (context, index) {
           final item = filters[index];
           final selected = _filter == item.$1;
+          final unread = item.$1 == 'all'
+              ? (_categoryCounts['all'] ?? 0)
+              : (_categoryCounts[item.$1] ?? 0);
           return ChoiceChip(
             selected: selected,
-            label: Text(item.$2),
+            label: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(item.$2),
+                if (unread > 0) ...[
+                  const SizedBox(width: 4),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: selected ? Colors.white : AppTheme.errorColor,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      '$unread',
+                      style: TextStyle(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: selected ? AppTheme.primaryColor : Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
             onSelected: (_) => setState(() => _filter = item.$1),
             selectedColor: AppTheme.primaryColor,
             labelStyle: TextStyle(

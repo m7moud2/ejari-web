@@ -16,6 +16,7 @@ import 'services/operations_feed_service.dart';
 import 'services/tenant_score_service.dart';
 import 'services/anti_fraud_service.dart';
 import 'services/ros_notification_service.dart';
+import 'services/demo_flow_service.dart';
 
 import 'screens/splash_screen.dart';
 import 'config/app_config.dart';
@@ -68,6 +69,8 @@ void main() async {
     await TenantScoreService.seedDemoScores();
     await AntiFraudService.seedDemoProfiles();
     await RosNotificationService.runSmartChecks('owner@ejari.app', 'owner');
+    await DataService.simulateOverduePaymentNotification();
+    await DemoFlowService.ensureFlowBooking();
     await RosNotificationService.runSmartChecks('user@ejari.app', 'tenant');
   }
 

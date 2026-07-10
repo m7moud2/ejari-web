@@ -57,6 +57,8 @@ class HomeRepository {
       tenantStats['accountId'] = user?['accountId']?.toString() ??
           AccountIdService.demoAccountIds[user?['email']?.toString() ?? ''] ??
           '';
+      tenantStats['unreadNotifications'] =
+          await DataService.getUnreadNotificationCount();
 
       final catalog = await FirestorePropertyService.getAllProperties();
       final rentProps = catalog
