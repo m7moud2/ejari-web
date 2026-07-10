@@ -17,6 +17,7 @@ import '../widgets/ejari_image.dart';
 import '../widgets/ejari_section.dart';
 import '../models/listing_type.dart';
 import '../widgets/rental_booking_widgets.dart';
+import '../utils/rental_pricing.dart';
 import 'map_search_screen.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
@@ -458,10 +459,48 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               ),
                             ] else ...[
                               const SizedBox(height: 6),
-                              const Text(
-                                'الأسعار اليومية/الأسبوعية تظهر عند الحجز حسب المدة المختارة',
-                                style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-                              ),
+                              Builder(builder: (context) {
+                                final monthly = double.tryParse(
+                                      price.replaceAll(RegExp(r'[^0-9.]'), ''),
+                                    ) ??
+                                    0;
+                                if (monthly <= 0) {
+                                  return const Text(
+                                    'الأسعار اليومية/الأسبوعية تظهر عند الحجز حسب المدة المختارة',
+                                    style: TextStyle(
+                                        fontSize: 12, color: AppTheme.textSecondary),
+                                  );
+                                }
+                                final daily =
+                                    RentalPricing.rentForShortPeriod(monthly, 1);
+                                final weekly =
+                                    RentalPricing.rentForShortPeriod(monthly, 7);
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'يومي مميز: من ${daily.toStringAsFixed(0)} ج.م/يوم',
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.textSecondary),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'باقة أسبوع: من ${weekly.toStringAsFixed(0)} ج.م',
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.textSecondary),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'شهري كامل: ${monthly.toStringAsFixed(0)} ج.م (من ٣٠ يوماً)',
+                                      style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppTheme.textSecondary),
+                                    ),
+                                  ],
+                                );
+                              }),
                             ],
                             const SizedBox(height: AppTheme.spaceXs),
                             const Text(

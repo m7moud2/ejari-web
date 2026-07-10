@@ -1,5 +1,7 @@
 import '../models/booking_status.dart';
 import '../models/rental_duration_tier.dart';
+import '../models/rental_pricing_tier.dart';
+import 'rental_pricing.dart';
 import 'rental_rules.dart';
 
 /// Server-side validation for booking requests in demo mode.
@@ -22,18 +24,12 @@ class BookingValidator {
     double profitRate = 0.10,
     double insurance = 0,
   }) {
-    double totalPrice;
-    if (durationType == 'يوم') {
-      totalPrice = (baseMonthlyRent / 30) * durationCount;
-    } else if (durationType == 'أسبوع') {
-      totalPrice = (baseMonthlyRent / 4) * durationCount;
-    } else if (durationType == 'شهر') {
-      totalPrice = baseMonthlyRent * durationCount;
-    } else if (durationType == 'سنة') {
-      totalPrice = (baseMonthlyRent * 12) * durationCount;
-    } else {
-      totalPrice = baseMonthlyRent;
-    }
+    final pricing = RentalPricing.calculate(
+      monthlyRent: baseMonthlyRent,
+      durationType: durationType,
+      durationCount: durationCount,
+    );
+    final totalPrice = pricing.totalRent;
 
     final adminFees = totalPrice * adminFeeRate;
     final profit = totalPrice * profitRate;
@@ -54,6 +50,12 @@ class BookingValidator {
       'leaseTotal': totalPrice,
       'rentalTier': tier.name,
       'rentalTierLabel': tier.arabicLabel,
+      'pricingTier': pricing.tier.name,
+      'pricingTierLabel': pricing.tier.arabicLabel,
+      'effectiveDailyRate': pricing.effectiveDailyRate,
+      'premiumDailyRate': pricing.premiumDailyRate,
+      'savingsVsPremiumDaily': pricing.savingsVsPremiumDaily,
+      'totalDays': pricing.totalDays,
       'requiresIncomeProof': RentalRules.requiresIncomeProof(tier),
       'requiresAdvanceDeposit': RentalRules.requiresAdvanceDeposit(tier),
       'showInstallments': RentalRules.showMonthlyInstallments(tier),

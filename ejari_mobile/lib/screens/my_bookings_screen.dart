@@ -657,6 +657,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
     final monthly = _parseAmount(booking['monthlyRent'] ?? booking['price']);
     final deposit = _parseAmount(booking['depositAmount']);
+    final leaseTotal = _parseAmount(
+      booking['leaseTotal'] ?? booking['totalAmount'] ?? monthly,
+    );
 
     final result = await Navigator.push(
       context,
@@ -666,7 +669,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           itemData: booking,
           amount: amount,
           paymentStage: stage,
-          totalAmount: monthly,
+          totalAmount: leaseTotal,
           depositAmount: deposit,
           remainingAmount: amount,
         ),

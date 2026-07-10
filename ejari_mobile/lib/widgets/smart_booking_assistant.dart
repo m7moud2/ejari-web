@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../utils/rental_pricing.dart';
+import '../models/rental_pricing_tier.dart';
 import '../theme/app_theme.dart';
 import '../utils/rental_rules.dart';
 import '../models/rental_duration_tier.dart';
@@ -17,6 +19,8 @@ class SmartBookingAssistant extends StatelessWidget {
   final bool hasIdBack;
   final bool hasIncomeProof;
   final VoidCallback? onApplySuggestion;
+  final RentalPricingResult? pricingResult;
+  final double? monthlyRent;
 
   const SmartBookingAssistant({
     super.key,
@@ -30,9 +34,29 @@ class SmartBookingAssistant extends StatelessWidget {
     this.hasIdBack = false,
     this.hasIncomeProof = false,
     this.onApplySuggestion,
+    this.pricingResult,
+    this.monthlyRent,
   });
 
   String? get _durationSuggestion {
+    if (pricingResult != null && monthlyRent != null && monthlyRent! > 0) {
+      if (pricingResult!.tier == RentalPricingTier.daily && duration >= 3) {
+        final weekly = RentalPricing.calculate(
+          monthlyRent: monthlyRent!,
+          durationType: 'أسبوع',
+          durationCount: 1,
+        );
+        final saving = pricingResult!.naivePremiumTotal - weekly.totalRent;
+        if (saving > 0) {
+          return 'باقة أسبوع واحد (${weekly.totalRent.toStringAsFixed(0)} ج.م) '
+              'أوفر من $duration أيام يومية — وفّر حتى ${saving.toStringAsFixed(0)} ج.م.';
+        }
+      }
+      if (pricingResult!.savingsVsPremiumDaily > 100) {
+        return 'وفّرت ${pricingResult!.savingsVsPremiumDaily.toStringAsFixed(0)} ج.م '
+            'مقارنة بالسعر اليومي المميز — ${pricingResult!.tier.arabicLabel}.';
+      }
+    }
     if (durationType == 'يوم' && duration > 3) {
       return 'لإقامة $duration أيام، جرّب «أسبوع» — قد يوفر عليك تكلفة يومية أعلى.';
     }

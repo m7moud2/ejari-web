@@ -1,5 +1,7 @@
 import 'package:intl/intl.dart';
 
+import '../utils/rental_pricing.dart';
+
 class ContractService {
   static String generateContract({
     required String tenantName,
@@ -31,11 +33,12 @@ class ContractService {
     double leaseTotal;
     double dueNow;
 
-    if (unit.contains('يوم')) {
-      leaseTotal = (monthlyValue / 30) * countValue;
-      dueNow = currentDueAmount ?? leaseTotal;
-    } else if (unit.contains('أسبوع')) {
-      leaseTotal = (monthlyValue / 4) * countValue;
+    if (unit.contains('يوم') || unit.contains('أسبوع')) {
+      leaseTotal = RentalPricing.calculate(
+        monthlyRent: monthlyValue,
+        durationType: unit.contains('أسبوع') ? 'أسبوع' : 'يوم',
+        durationCount: countValue,
+      ).totalRent;
       dueNow = currentDueAmount ?? leaseTotal;
     } else if (unit.contains('سنة')) {
       leaseTotal = monthlyValue * 12 * countValue;

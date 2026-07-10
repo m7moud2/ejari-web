@@ -10,6 +10,7 @@ import 'success_payment_screen.dart';
 import '../utils/auth_gate.dart';
 import '../utils/date_utils.dart';
 import '../utils/rental_schedule_utils.dart';
+import '../utils/rental_pricing.dart';
 import '../utils/rental_rules.dart';
 import '../models/rental_duration_tier.dart';
 import '../models/booking_status.dart';
@@ -52,6 +53,7 @@ class _BookingScreenState extends State<BookingScreen> {
   double _insurancePrice = 0;
   String? _selectedInsuranceType;
   double _finalTotal = 0;
+  RentalPricingResult? _pricingResult;
 
   // Verification
   String? _selfieImage;
@@ -215,17 +217,12 @@ class _BookingScreenState extends State<BookingScreen> {
       return;
     }
 
-    if (_selectedDurationType == 'يوم') {
-      _totalPrice = (_monthlyRent / 30) * _duration;
-    } else if (_selectedDurationType == 'أسبوع') {
-      _totalPrice = (_monthlyRent / 4) * _duration;
-    } else if (_selectedDurationType == 'شهر') {
-      _totalPrice = _monthlyRent * _duration;
-    } else if (_selectedDurationType == 'سنة') {
-      _totalPrice = (_monthlyRent * 12) * _duration;
-    } else {
-      _totalPrice = _monthlyRent;
-    }
+    _pricingResult = RentalPricing.calculate(
+      monthlyRent: _monthlyRent,
+      durationType: _selectedDurationType,
+      durationCount: _duration,
+    );
+    _totalPrice = _pricingResult!.totalRent;
     _adminFees = _totalPrice * 0.05;
     _profit = _totalPrice * 0.10;
     _finalTotal = _currentMonthTotal;
@@ -439,6 +436,7 @@ class _BookingScreenState extends State<BookingScreen> {
         durationType: _selectedDurationType,
         durationCount: _duration,
         checkInDate: leaseStartDate,
+        monthlyRent: _monthlyRent,
       ),
       'governorate': widget.itemData['governorate'] ?? '',
       'verification': {
@@ -785,6 +783,8 @@ class _BookingScreenState extends State<BookingScreen> {
                                 hasIdBack: _idBackImage != null,
                                 hasIncomeProof: _incomeLetterImage != null &&
                                     _bankStatementImage != null,
+                                pricingResult: _pricingResult,
+                                monthlyRent: _monthlyRent,
                                 onApplySuggestion: _selectedDurationType == 'يوم' &&
                                         _duration > 3
                                     ? () => setState(() {
@@ -872,6 +872,7 @@ class _BookingScreenState extends State<BookingScreen> {
                               const SizedBox(height: 16),
                               DurationCostHint(
                                 tier: _rentalTier,
+                                pricingResult: _pricingResult,
                                 totalPrice: _totalPrice,
                                 monthlyRent: _monthlyRent,
                                 duration: _duration,
@@ -1544,6 +1545,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                 totalPrice: _leaseTotalAmount,
                                 showInstallments: _showInstallments,
                                 checkInDate: _checkInDate,
+                                pricingResult: _pricingResult,
                               ),
                               const SizedBox(height: 8),
                               const EjariTrustBadges(showOwner: false),

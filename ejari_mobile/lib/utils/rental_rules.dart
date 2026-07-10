@@ -1,5 +1,7 @@
 import '../models/rental_duration_tier.dart';
+import '../models/rental_pricing_tier.dart';
 import '../models/tenant_type.dart';
+import 'rental_pricing.dart';
 
 /// قواعد الإيجار المركزية: المدة، المستندات، الاسترداد، والأقساط.
 class RentalRules {
@@ -113,10 +115,27 @@ class RentalRules {
     required String durationType,
     required int durationCount,
     DateTime? checkInDate,
+    double? monthlyRent,
   }) {
+    final pricing = monthlyRent != null && monthlyRent > 0
+        ? RentalPricing.calculate(
+            monthlyRent: monthlyRent,
+            durationType: durationType,
+            durationCount: durationCount,
+          )
+        : null;
+
     return {
       'rentalTier': tier.name,
       'rentalTierLabel': tier.arabicLabel,
+      if (pricing != null) ...{
+        'pricingTier': pricing.tier.name,
+        'pricingTierLabel': pricing.tier.arabicLabel,
+        'effectiveDailyRate': pricing.effectiveDailyRate,
+        'premiumDailyRate': pricing.premiumDailyRate,
+        'savingsVsPremiumDaily': pricing.savingsVsPremiumDaily,
+        'totalDays': pricing.totalDays,
+      },
       'tenantType': tenantType.value,
       'tenantTypeLabel': tenantType.arabicLabel,
       'durationType': durationType,

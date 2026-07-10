@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/rental_duration_tier.dart';
+import '../models/rental_pricing_tier.dart';
 import '../models/tenant_type.dart';
+import '../utils/rental_pricing.dart';
 import '../utils/rental_rules.dart';
 import 'ejari_section.dart';
 
@@ -117,9 +119,10 @@ class RefundRuleTooltip extends StatelessWidget {
   }
 }
 
-/// تلميح تكلفة المدة مقارنة باليومي.
+/// تلميح تكلفة المدة مع تفصيل الشرائح المتدرجة.
 class DurationCostHint extends StatelessWidget {
   final RentalDurationTier tier;
+  final RentalPricingResult? pricingResult;
   final double totalPrice;
   final double monthlyRent;
   final int duration;
@@ -128,6 +131,7 @@ class DurationCostHint extends StatelessWidget {
   const DurationCostHint({
     super.key,
     required this.tier,
+    this.pricingResult,
     required this.totalPrice,
     required this.monthlyRent,
     required this.duration,
@@ -136,16 +140,28 @@ class DurationCostHint extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dailyEquiv = monthlyRent / 30;
-    String hint;
-    if (tier == RentalDurationTier.daily) {
-      hint = 'الإجمالي: ${totalPrice.toStringAsFixed(0)} ج.م لـ $duration $durationType';
-    } else if (tier == RentalDurationTier.weekly) {
-      final perDay = totalPrice / (duration * 7);
-      hint = 'متوسط ${perDay.toStringAsFixed(0)} ج.م/يوم — مقابل ${dailyEquiv.toStringAsFixed(0)} ج.م يوميًا';
-    } else {
-      final perDay = totalPrice / (duration * 30);
-      hint = 'متوسط ${perDay.toStringAsFixed(0)} ج.م/يوم — مقابل ${dailyEquiv.toStringAsFixed(0)} ج.م يوميًا';
+    final pricing = pricingResult ??
+        RentalPricing.calculate(
+          monthlyRent: monthlyRent,
+          durationType: durationType,
+          durationCount: duration,
+        );
+    final fairDaily = RentalPricing.premiumDailyRate(monthlyRent);
+    final lines = <String>[
+      'فئة التسعير: ${pricing.tier.arabicLabel}',
+      'سعر اليوم الفعلي: ${pricing.effectiveDailyRate.toStringAsFixed(0)} ج.م/يوم',
+      'إجمالي الفترة: ${totalPrice.toStringAsFixed(0)} ج.م لـ ${pricing.totalDays} يوم',
+    ];
+    if (pricing.savingsVsPremiumDaily > 0) {
+      lines.add(
+        'توفير مقارنة باليومي: ${pricing.savingsVsPremiumDaily.toStringAsFixed(0)} ج.م '
+        '(بدلاً من ${pricing.naivePremiumTotal.toStringAsFixed(0)} ج.م)',
+      );
+    } else if (pricing.tier == RentalPricingTier.daily) {
+      lines.add(
+        'السعر اليومي المميز: ${pricing.premiumDailyRate.toStringAsFixed(0)} ج.م '
+        '(مقابل ${fairDaily.toStringAsFixed(0)} ج.م حصة عادلة)',
+      );
     }
 
     return Container(
@@ -157,10 +173,21 @@ class DurationCostHint extends StatelessWidget {
         border: Border.all(color: AppTheme.accentColor.withOpacity(0.15)),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(Icons.tips_and_updates_rounded, color: AppTheme.accentColor, size: 18),
           const SizedBox(width: 10),
-          Expanded(child: Text(hint, style: const TextStyle(fontSize: 12, height: 1.4))),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: lines
+                  .map((line) => Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(line, style: const TextStyle(fontSize: 12, height: 1.4)),
+                      ))
+                  .toList(),
+            ),
+          ),
         ],
       ),
     );
@@ -221,6 +248,7 @@ class BookingSummaryCard extends StatelessWidget {
   final double totalPrice;
   final bool showInstallments;
   final DateTime? checkInDate;
+  final RentalPricingResult? pricingResult;
 
   const BookingSummaryCard({
     super.key,
@@ -230,6 +258,7 @@ class BookingSummaryCard extends StatelessWidget {
     required this.totalPrice,
     required this.showInstallments,
     this.checkInDate,
+    this.pricingResult,
   });
 
   @override
@@ -247,6 +276,18 @@ class BookingSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _row('فئة المدة', tier.arabicLabel),
+          if (pricingResult != null) ...[
+            _row('فئة التسعير', pricingResult!.tier.arabicLabel),
+            _row(
+              'سعر اليوم الفعلي',
+              '${pricingResult!.effectiveDailyRate.toStringAsFixed(0)} ج.م',
+            ),
+            if (pricingResult!.savingsVsPremiumDaily > 0)
+              _row(
+                'توفير مقارنة باليومي',
+                '${pricingResult!.savingsVsPremiumDaily.toStringAsFixed(0)} ج.م',
+              ),
+          ],
           _row('نوع المستأجر', tenantType.arabicLabel),
           _row('نموذج الدفع', tier.paymentModelArabic),
           _row('المطلوب الآن', '${depositAmount.toStringAsFixed(0)} ج.م'),

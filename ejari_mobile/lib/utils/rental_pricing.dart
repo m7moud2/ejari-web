@@ -86,21 +86,22 @@ class RentalPricing {
   static double rentForShortPeriod(double monthlyRent, int days) {
     if (days <= 0) return 0;
     if (days <= 6) {
-      return monthlyRent * dailyRateFactor * days;
+      return (monthlyRent * dailyRateFactor * days).roundToDouble();
     }
     if (days <= 13) {
       final base = monthlyRent * weeklyRateFactor;
       final extraDays = days - 7;
-      if (extraDays <= 0) return base;
-      return base + extraDays * monthlyRent * weeklyExtraDayFactor;
+      if (extraDays <= 0) return base.roundToDouble();
+      return (base + extraDays * monthlyRent * weeklyExtraDayFactor)
+          .roundToDouble();
     }
     if (days <= 29) {
       final at13 = rentForShortPeriod(monthlyRent, 13);
       final at29 = monthlyRent * monthlyApproachFactor;
       final progress = (days - 13) / (29 - 13);
-      return at13 + (at29 - at13) * progress;
+      return (at13 + (at29 - at13) * progress).roundToDouble();
     }
-    return monthlyRent;
+    return monthlyRent.roundToDouble();
   }
 
   /// إجمالي الإيجار لأي عدد أيام — يجمع أشهر كاملة + باقي الأيام.
@@ -153,8 +154,7 @@ class RentalPricing {
         days > 0 ? totalRent / days : premiumDailyRate(monthlyRent);
     final premiumDaily = premiumDailyRate(monthlyRent);
     final naive = naivePremiumTotal(monthlyRent, days);
-    final savings =
-        ((naive - totalRent).clamp(0.0, double.infinity) as double);
+    final savings = (naive - totalRent).clamp(0.0, double.infinity).toDouble();
 
     return RentalPricingResult(
       monthlyRent: monthlyRent,
@@ -177,20 +177,20 @@ class RentalPricing {
         'tier': RentalPricingTier.daily,
         'range': '١–٦ أيام',
         'formula': '${(dailyRateFactor * 100).toStringAsFixed(0)}٪ × أيام',
-        'example': rentForShortPeriod(monthlyRent, 1),
+        'example': rentForShortPeriod(monthlyRent, 1).roundToDouble(),
       },
       {
         'tier': RentalPricingTier.weekly,
         'range': '٧–١٣ يوماً',
         'formula':
             '${(weeklyRateFactor * 100).toStringAsFixed(0)}٪ + ${(weeklyExtraDayFactor * 100).toStringAsFixed(0)}٪/يوم إضافي',
-        'example': rentForShortPeriod(monthlyRent, 7),
+        'example': rentForShortPeriod(monthlyRent, 7).roundToDouble(),
       },
       {
         'tier': RentalPricingTier.shortTerm,
         'range': '١٤–٢٩ يوماً',
         'formula': 'تخفيض تدريجي نحو الشهر',
-        'example': rentForShortPeriod(monthlyRent, 15),
+        'example': rentForShortPeriod(monthlyRent, 15).roundToDouble(),
       },
       {
         'tier': RentalPricingTier.monthly,

@@ -7,6 +7,7 @@ import '../widgets/ejari_image.dart';
 import '../widgets/ejari_section.dart';
 import '../services/subscription_service.dart';
 import '../utils/rental_rules.dart';
+import '../utils/booking_validator.dart';
 import '../models/booking_status.dart';
 import '../models/rental_duration_tier.dart';
 import '../widgets/rental_booking_widgets.dart';
@@ -60,6 +61,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
     return false;
   }
+
+  double get _leaseTotalAmount {
+    final raw = widget.itemData['leaseTotal'] ??
+        widget.itemData['totalAmount'] ??
+        widget.totalAmount;
+    return BookingValidator.parsePrice(raw ?? widget.amount);
+  }
+
+  String? get _pricingTierLabel =>
+      widget.itemData['pricingTierLabel']?.toString();
 
   RentalDurationTier? get _tier {
     final tierName = widget.itemData['rentalTier']?.toString();
@@ -750,10 +761,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ],
           ),
           const SizedBox(height: 14),
+          if (_pricingTierLabel != null) ...[
+            Text(
+              'فئة التسعير: $_pricingTierLabel',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primaryColor,
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
           Wrap(
             spacing: 10,
             runSpacing: 10,
             children: [
+              _buildPlanChip(
+                'إجمالي التعاقد',
+                '${_leaseTotalAmount.toStringAsFixed(0)} ج.م',
+                AppTheme.textSecondary,
+              ),
               _buildPlanChip(
                 'الآن',
                 '${_displayAmount.toStringAsFixed(0)} ج.م',
