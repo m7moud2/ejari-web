@@ -109,6 +109,7 @@ class _RequestVerificationScreenState extends State<RequestVerificationScreen> {
 
     await _loadStatus();
 
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

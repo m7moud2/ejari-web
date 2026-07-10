@@ -323,9 +323,9 @@ class _CorporateBookingScreenState extends State<CorporateBookingScreen> {
                       color: AppTheme.borderColor.withOpacity(0.08),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Text(
+                    child: const Text(
                       RentalRules.refundPolicyShortArabic,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         color: AppTheme.textSecondary,
                         height: 1.5,

@@ -40,6 +40,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
     if (ok) {
       await _loadRequests();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('تم توثيق الحساب ✅'),
@@ -61,6 +62,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
     if (ok) {
       await _loadRequests();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('تم رفض التوثيق ❌'),
@@ -216,8 +218,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 padding: const EdgeInsets.all(16),
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
-                  EjariSurfaceCard(
-                    child: const EjariSectionHeader(
+                  const EjariSurfaceCard(
+                    child: EjariSectionHeader(
                       title: 'طلبات توثيق الهوية',
                       subtitle:
                           'راجع صور البطاقة والسيلفي واتخذ قرار الموافقة أو الرفض مع توضيح السبب.',

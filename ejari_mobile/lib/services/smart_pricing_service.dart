@@ -81,7 +81,7 @@ class SmartPricingService {
     final basePrice = (property['perBedPricing']?['daily'] as num?)?.toDouble() ??
         (property['dynamicPricing']?['daily'] as num?)?.toDouble() ??
         150.0;
-    final discountPct = 15.0;
+    const discountPct = 15.0;
     final discounted = (basePrice * (1 - discountPct / 100)).roundToDouble();
 
     return {

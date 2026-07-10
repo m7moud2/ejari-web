@@ -640,51 +640,6 @@ class OwnerHomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildMiniList() {
-    return Column(
-      children: List.generate(
-        2,
-        (index) => Padding(
-          padding: const EdgeInsets.only(bottom: AppTheme.spaceXs),
-          child: EjariSurfaceCard(
-            padding: const EdgeInsets.all(AppTheme.spaceMd),
-            elevated: false,
-            child: Row(
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.10),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(Icons.home_work_rounded,
-                      color: AppTheme.primaryColor, size: 20),
-                ),
-                const SizedBox(width: AppTheme.spaceSm),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('طلب حجز جديد',
-                          style: TextStyle(fontWeight: FontWeight.w900)),
-                      SizedBox(height: 4),
-                      Text('المستأجر يطلب استكمال الخطوة التالية.',
-                          style: TextStyle(
-                              color: AppTheme.textSecondary, fontSize: 12)),
-                    ],
-                  ),
-                ),
-                const Icon(Icons.arrow_forward_ios_rounded,
-                    size: 14, color: AppTheme.textSecondary),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildVacantBedsSection(
     BuildContext context,
     Map<String, dynamic> stats,

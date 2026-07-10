@@ -113,8 +113,8 @@ class MaintenanceService {
     List<Map<String, dynamic>> events = [];
     if (timeline is List) {
       events = timeline
-          .where((e) => e is Map)
-          .map((e) => Map<String, dynamic>.from(e as Map))
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
           .toList();
     }
 

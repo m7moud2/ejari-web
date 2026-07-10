@@ -95,8 +95,8 @@ class _QrVisual extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = 180.0;
-    final cells = 12;
+    const size = 180.0;
+    const cells = 12;
     final hash = data.hashCode.abs();
 
     return Container(
@@ -110,7 +110,7 @@ class _QrVisual extends StatelessWidget {
       ),
       child: GridView.builder(
         physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: cells,
           crossAxisSpacing: 1,
           mainAxisSpacing: 1,

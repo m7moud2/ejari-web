@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:ejari_mobile/main.dart';
 import 'package:ejari_mobile/providers/home_provider.dart';
 import 'package:ejari_mobile/providers/property_provider.dart';
 import 'package:ejari_mobile/services/auth_service.dart';

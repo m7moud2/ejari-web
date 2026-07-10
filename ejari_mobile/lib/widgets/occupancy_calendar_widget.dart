@@ -27,9 +27,9 @@ class OccupancyCalendarWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        const Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: const [
+          children: [
             Text('ح', style: _wdStyle),
             Text('ن', style: _wdStyle),
             Text('ث', style: _wdStyle),

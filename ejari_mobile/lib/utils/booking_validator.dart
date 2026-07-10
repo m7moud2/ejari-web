@@ -212,7 +212,7 @@ class BookingValidator {
 
         final clientDeposit = parsePrice(request['depositAmount']);
         final clientMonthly = parsePrice(request['monthlyRent'] ?? request['price']);
-        final tolerance = 50.0;
+        const tolerance = 50.0;
 
         if ((clientMonthly - baseRent).abs() > tolerance) {
           return {

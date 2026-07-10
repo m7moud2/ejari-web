@@ -312,8 +312,8 @@ class BookingSummaryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 6),
-          Text(RentalRules.refundPolicyShortArabic,
-              style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary, height: 1.4)),
+          const Text(RentalRules.refundPolicyShortArabic,
+              style: TextStyle(fontSize: 10, color: AppTheme.textSecondary, height: 1.4)),
         ],
       ),
     );

@@ -152,7 +152,7 @@ class TenantScoreService {
       'cancellations': fraud['cancellations'] ?? 0,
       'legacyRating': legacy,
       'summary': hasEnough
-          ? 'درجة ${aggregate.toStringAsFixed(1)}/5 — ${level.$1} (${count} إقامة)'
+          ? 'درجة ${aggregate.toStringAsFixed(1)}/5 — ${level.$1} ($count إقامة)'
           : 'يحتاج ${minStaysForAggregate - count} إقامة إضافية لحساب الدرجة',
     };
   }

@@ -22,7 +22,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   List<Map<String, dynamic>> _properties = [];
   bool _isLoading = true;
   bool _showListOnly = false;
-  bool _mapTilesEnabled = true;
+  final bool _mapTilesEnabled = true;
   String? _loadNote;
 
   final LatLng _defaultCenter = const LatLng(30.0444, 31.2357);

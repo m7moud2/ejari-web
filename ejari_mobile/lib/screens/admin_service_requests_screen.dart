@@ -726,36 +726,6 @@ class _AdminServiceRequestsScreenState
     );
   }
 
-  void _deleteRequest(Map<String, dynamic> request) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تأكيد الحذف'),
-        content: const Text('هل أنت متأكد من حذف هذا الطلب؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _allRequests.remove(request);
-              });
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('تم حذف الطلب')),
-              );
-            },
-            style:
-                ElevatedButton.styleFrom(backgroundColor: AppTheme.errorColor),
-            child: const Text('حذف'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildEmptyState() {
     return const Center(
       child: Column(

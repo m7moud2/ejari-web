@@ -1272,7 +1272,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                                       const SizedBox(height: 8),
                                       Text(
-                                        'للمدة أقل من ٦ شهور: المطلوب هو ${_paymentStageLabel} '
+                                        'للمدة أقل من ٦ شهور: المطلوب هو $_paymentStageLabel '
                                         'بقيمة ${_bookingDepositAmount.toStringAsFixed(0)} ج.م فقط.',
                                         style: const TextStyle(fontSize: 12, height: 1.5),
                                       ),

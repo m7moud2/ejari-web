@@ -8,7 +8,6 @@ import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import '../services/subscription_service.dart';
 import '../models/accommodation_type.dart';
-import '../widgets/ejari_section.dart';
 import 'listing_plans_screen.dart';
 
 class AddPropertyScreen extends StatefulWidget {
@@ -203,9 +202,11 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       'depositAmount': (monthlyPrice * 0.2).toStringAsFixed(0),
     };
 
+    if (!mounted) return;
+    final propertyProvider = context.read<PropertyProvider>();
     try {
       await DataService.addProperty(newProperty);
-      await context.read<PropertyProvider>().fetchAllProperties();
+      await propertyProvider.fetchAllProperties();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

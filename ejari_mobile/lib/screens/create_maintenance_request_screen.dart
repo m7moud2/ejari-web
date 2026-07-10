@@ -26,7 +26,7 @@ class _CreateMaintenanceRequestScreenState
   String _selectedPropertyTitle = '';
   DateTime? _preferredTime;
   bool _submitting = false;
-  List<String> _attachedImages = [];
+  final List<String> _attachedImages = [];
   List<Map<String, dynamic>> _properties = [];
 
   @override
@@ -264,12 +264,13 @@ class _CreateMaintenanceRequestScreenState
                     firstDate: DateTime.now(),
                     lastDate: DateTime.now().add(const Duration(days: 30)),
                   );
-                  if (date == null || !mounted) return;
+                  if (date == null) return;
+                  if (!context.mounted) return;
                   final time = await showTimePicker(
                     context: context,
                     initialTime: const TimeOfDay(hour: 10, minute: 0),
                   );
-                  if (time != null) {
+                  if (time != null && context.mounted) {
                     setState(() {
                       _preferredTime = DateTime(
                         date.year,

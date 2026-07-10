@@ -234,7 +234,7 @@ class SubscriptionService {
         'used': used,
         'limit': limit,
         'message':
-            'وصلت حد الحجوزات (${used}/$limit) — ترقّ إلى باقة أعلى للمتابعة',
+            'وصلت حد الحجوزات ($used/$limit) — ترقّ إلى باقة أعلى للمتابعة',
       };
     }
 

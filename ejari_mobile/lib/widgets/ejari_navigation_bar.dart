@@ -141,8 +141,8 @@ class EjariNavigationBar extends StatelessWidget {
                         label: 'الرئيسية',
                       ),
                       NavigationDestination(
-                        icon: Icon(Icons.apartment_outlined),
-                        selectedIcon: Icon(Icons.apartment_rounded),
+                        icon: const Icon(Icons.apartment_outlined),
+                        selectedIcon: const Icon(Icons.apartment_rounded),
                         label: _isOwner ? 'عقاراتي' : 'العقارات',
                       ),
                       NavigationDestination(

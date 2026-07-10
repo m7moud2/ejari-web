@@ -349,13 +349,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
   }
 
-  String _getFriendlyMethodName() {
-    if (_selectedCategory == 'cards') return 'البطاقة البنكية';
-    if (_selectedCategory == 'wallets') return 'المحفظة الإلكترونية';
-    if (_selectedCategory == 'bnpl') return _selectedSubMethod.toUpperCase();
-    return 'بوابة الدفع';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -391,14 +384,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(
                     AppTheme.screenPadding,
                     72,
                     AppTheme.screenPadding,
                     0,
                   ),
-                  child: const EjariStepIndicator(
+                  child: EjariStepIndicator(
                     labels: ['الملخص', 'طريقة الدفع', 'التأكيد'],
                     activeIndex: 1,
                   ),
@@ -422,14 +415,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                     child: _buildPaymentPlanCard(),
                   ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(
                     AppTheme.screenPadding,
                     AppTheme.spaceLg,
                     AppTheme.screenPadding,
                     AppTheme.spaceSm,
                   ),
-                  child: const EjariSectionHeader(
+                  child: EjariSectionHeader(
                     title: 'اختر وسيلة الدفع',
                     subtitle: 'بطاقة، محفظة، تقسيط، أو تحويل بنكي',
                   ),
@@ -470,8 +463,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             ],
                           ),
                           const SizedBox(height: 6),
-                          Text(RentalRules.refundPolicyShortArabic,
-                              style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
+                          const Text(RentalRules.refundPolicyShortArabic,
+                              style: TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
                         ],
                       ),
                     ),

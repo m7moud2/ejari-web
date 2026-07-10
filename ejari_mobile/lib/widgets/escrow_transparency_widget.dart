@@ -154,7 +154,7 @@ class EscrowTransparencyWidget extends StatelessWidget {
       case BookingStatus.submitted:
       case BookingStatus.pending:
       case BookingStatus.corporatePending:
-        return _EscrowState(
+        return const _EscrowState(
           icon: Icons.hourglass_empty_rounded,
           color: AppTheme.textSecondary,
           tenantLabel: 'لم يُدفع العربون بعد',
@@ -195,7 +195,7 @@ class EscrowTransparencyWidget extends StatelessWidget {
           note: 'المنصة تحتفظ بـ ${(feePercent * 100).toInt()}% كعمولة خدمة.',
         );
       case BookingStatus.completed:
-        return _EscrowState(
+        return const _EscrowState(
           icon: Icons.verified_rounded,
           color: AppTheme.successColor,
           tenantLabel: 'اكتمل الحجز بنجاح',

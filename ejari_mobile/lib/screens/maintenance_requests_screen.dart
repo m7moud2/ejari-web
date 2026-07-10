@@ -103,11 +103,11 @@ class _MaintenanceRequestsScreenState extends State<MaintenanceRequestsScreen> {
           ? null
           : FloatingActionButton.extended(
               onPressed: () async {
+                final navigator = Navigator.of(context);
                 final ok = await AuthGate.requireLogin(context,
                     actionLabel: 'إنشاء طلب صيانة');
                 if (!ok || !mounted) return;
-                await Navigator.push(
-                  context,
+                await navigator.push(
                   MaterialPageRoute(
                     builder: (_) => const CreateMaintenanceRequestScreen(),
                   ),
