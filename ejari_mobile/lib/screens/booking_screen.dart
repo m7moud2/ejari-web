@@ -19,6 +19,7 @@ import 'corporate_booking_screen.dart';
 import '../widgets/image_upload_widget.dart';
 import '../widgets/ejari_image.dart';
 import '../widgets/ejari_section.dart';
+import '../widgets/smart_booking_assistant.dart';
 import '../l10n/app_localizations.dart';
 
 class BookingScreen extends StatefulWidget {
@@ -782,6 +783,27 @@ class _BookingScreenState extends State<BookingScreen> {
                               TenantTypeSelector(
                                 selected: _tenantType,
                                 onChanged: (t) => setState(() => _tenantType = t),
+                              ),
+                              const SizedBox(height: 12),
+                              SmartBookingAssistant(
+                                tier: _rentalTier,
+                                tenantType: _tenantType,
+                                durationType: _selectedDurationType,
+                                duration: _duration,
+                                checkInDate: _checkInDate,
+                                hasSelfie: _selfieImage != null,
+                                hasIdFront: _idFrontImage != null,
+                                hasIdBack: _idBackImage != null,
+                                hasIncomeProof: _incomeLetterImage != null &&
+                                    _bankStatementImage != null,
+                                onApplySuggestion: _selectedDurationType == 'يوم' &&
+                                        _duration > 3
+                                    ? () => setState(() {
+                                          _selectedDurationType = 'أسبوع';
+                                          _duration = 1;
+                                          _calculatePrice();
+                                        })
+                                    : null,
                               ),
                             ],
                             const SizedBox(height: 16),

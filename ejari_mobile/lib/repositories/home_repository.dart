@@ -2,9 +2,12 @@ import '../services/subscription_service.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import '../services/firestore_property_service.dart';
+import '../services/trust_score_service.dart';
 import '../utils/rental_schedule_utils.dart';
+import '../utils/account_id_service.dart';
 import '../services/maintenance_service.dart';
 import '../models/home_stats_model.dart';
+import '../models/booking_status.dart';
 
 class HomeRepository {
   Future<HomeStatsModel> fetchHomeStats(String role) async {
@@ -46,7 +49,14 @@ class HomeRepository {
         if (verification['reason'] != null) {
           tenantStats['verificationReason'] = verification['reason'];
         }
+        final trust = await TrustScoreService.computeForUser(userEmail);
+        tenantStats['trustScore'] = trust['score'];
+        tenantStats['trustLevel'] = trust['level'];
+        tenantStats['trustData'] = trust;
       }
+      tenantStats['accountId'] = user?['accountId']?.toString() ??
+          AccountIdService.demoAccountIds[user?['email']?.toString() ?? ''] ??
+          '';
 
       final catalog = await FirestorePropertyService.getAllProperties();
       final rentProps = catalog
@@ -149,6 +159,7 @@ class HomeRepository {
 
     final baseTenant = {
       ...tenantStats,
+      'contextualAction': _tenantContextualAction(tenantStats),
       'recentActivities': tenantStats['recentActivities'] ??
           [
             {
@@ -199,12 +210,42 @@ class HomeRepository {
         .length;
     final verification =
         await DataService.getIdentityVerificationStatus(ownerId);
+    final trust = await TrustScoreService.computeForUser(ownerId);
+
+    final occupiedCount = requests
+        .where((r) =>
+            r['status'] == BookingStatus.active ||
+            r['status'] == BookingStatus.approved ||
+            r['status'] == BookingStatus.depositPaid)
+        .length;
+    final occupancyRate = properties.isEmpty
+        ? 0.0
+        : (occupiedCount / properties.length * 100).clamp(0, 100);
+
+    final upcomingCheckIns = requests
+        .where((r) {
+          final checkIn = DateTime.tryParse(r['checkInDate']?.toString() ?? '');
+          if (checkIn == null) return false;
+          final diff = checkIn.difference(DateTime.now()).inDays;
+          return diff >= 0 && diff <= 7;
+        })
+        .length;
+
+    final subUsed = (sub['properties_used'] as num?)?.toInt() ?? 0;
+    final subLimit = (sub['properties_limit'] as num?)?.toInt() ?? -1;
+    final nearSubLimit = subLimit > 0 && subUsed >= subLimit - 1;
 
     return {
       'userName': user?['name'] ?? 'المالك',
+      'accountId': user?['accountId']?.toString() ??
+          AccountIdService.demoAccountIds[ownerId] ??
+          '',
       'verificationStatus': verification['label'] ?? 'غير موثق',
       if (verification['reason'] != null)
         'verificationReason': verification['reason'],
+      'trustScore': trust['score'],
+      'trustLevel': trust['level'],
+      'trustData': trust,
       'propertiesCount': properties.length,
       'approvedProperties':
           properties.where((p) => p['status'] == 'approved').length,
@@ -214,6 +255,10 @@ class HomeRepository {
       'monthlyRevenue': revenue,
       'escrowBalance': wallet['escrow'] ?? 0,
       'availableToWithdraw': wallet['available'] ?? 0,
+      'pendingPayouts': wallet['pending'] ?? 0,
+      'occupancyRate': occupancyRate.round(),
+      'upcomingCheckIns': upcomingCheckIns,
+      'nearSubscriptionLimit': nearSubLimit,
       'pendingInstallments': requests
           .where((r) =>
               r['status'] == 'approved' || r['status'] == 'deposit_paid')
@@ -229,9 +274,49 @@ class HomeRepository {
       'subscriptionLimit': sub['properties_limit'],
       'subscriptionUsed': sub['properties_used'],
       'canFeature': sub['can_feature'],
-      'banner':
-          'باقتك: ${sub['plan_name']} — ${sub['properties_used']}/${sub['properties_limit'] == -1 ? '∞' : sub['properties_limit']} عقار',
+      'contextualAction': _ownerContextualAction(pending, nearSubLimit),
+      'banner': nearSubLimit
+          ? 'تنبيه: اقتربت من حد الباقة — ${sub['properties_used']}/${sub['properties_limit'] == -1 ? '∞' : sub['properties_limit']} عقار'
+          : 'باقتك: ${sub['plan_name']} — ${sub['properties_used']}/${sub['properties_limit'] == -1 ? '∞' : sub['properties_limit']} عقار',
     };
+  }
+
+  Map<String, dynamic>? _tenantContextualAction(Map<String, dynamic> stats) {
+    if (stats['activeBooking'] == true) {
+      return {
+        'title': 'تابع حجزك',
+        'subtitle': stats['bookingTitle'] ?? 'حجز نشط',
+        'icon': 'booking',
+        'badge': stats['nextInstallmentDays'] ?? 0,
+      };
+    }
+    if ((stats['verificationStatus'] ?? '').toString().contains('غير موثق')) {
+      return {
+        'title': 'وثّق هويتك',
+        'subtitle': 'ارفع مستنداتك للحجز بثقة',
+        'icon': 'kyc',
+      };
+    }
+    return null;
+  }
+
+  Map<String, dynamic>? _ownerContextualAction(int pending, bool nearLimit) {
+    if (pending > 0) {
+      return {
+        'title': 'طلبات بانتظارك',
+        'subtitle': '$pending حجز يحتاج مراجعتك',
+        'icon': 'requests',
+        'badge': pending,
+      };
+    }
+    if (nearLimit) {
+      return {
+        'title': 'ترقية الباقة',
+        'subtitle': 'اقتربت من حد الإعلانات',
+        'icon': 'subscription',
+      };
+    }
+    return null;
   }
 
   Future<Map<String, dynamic>> _loadTechStats() async {

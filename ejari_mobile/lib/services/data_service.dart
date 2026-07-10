@@ -9,6 +9,7 @@ import '../utils/rental_rules.dart';
 import '../utils/booking_validator.dart';
 import '../models/booking_status.dart';
 import 'activity_log_service.dart';
+import 'auth_service.dart';
 import 'mock_data_seeder.dart';
 import 'wallet_service.dart';
 import 'financial_service.dart';
@@ -1404,6 +1405,112 @@ class DataService {
       List<Map<String, dynamic>> employees) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_corporateStateKey, jsonEncode(employees));
+  }
+
+  /// ملخص مركز قيادة الشركات — موظفون، إنفاق، محافظات.
+  static Future<Map<String, dynamic>> getCorporateCommandSummary() async {
+    final user = await AuthService.getCurrentUser();
+    final email = user?['email']?.toString() ?? '';
+    var employees = await getCorporateEmployees();
+
+    if (employees.isEmpty) {
+      employees = [
+        {
+          'id': 'emp1',
+          'name': 'أحمد سالم',
+          'role': 'مهندس ميداني',
+          'governorate': 'القاهرة',
+          'status': 'pending',
+          'monthlyRent': 0.0,
+        },
+        {
+          'id': 'emp2',
+          'name': 'محمد حسن',
+          'role': 'مشرف تشغيل',
+          'governorate': 'الجيزة',
+          'status': 'pending',
+          'monthlyRent': 0.0,
+        },
+        {
+          'id': 'emp3',
+          'name': 'سارة إبراهيم',
+          'role': 'محاسبة',
+          'governorate': 'الإسكندرية',
+          'status': 'pending',
+          'monthlyRent': 0.0,
+        },
+        {
+          'id': 'emp4',
+          'name': 'خالد عمر',
+          'role': 'فني صيانة',
+          'governorate': 'الشرقية',
+          'status': 'pending',
+          'monthlyRent': 0.0,
+        },
+        {
+          'id': 'emp5',
+          'name': 'نورا محمود',
+          'role': 'مديرة فرع',
+          'governorate': 'القليوبية',
+          'status': 'pending',
+          'monthlyRent': 0.0,
+        },
+      ];
+    }
+
+    final bookings = await getBookings();
+    final corporateBookings = bookings
+        .where((b) =>
+            b['bookingMode'] == 'corporate' ||
+            b['status'] == BookingStatus.corporatePending)
+        .toList();
+
+    for (final emp in employees) {
+      final match = corporateBookings.cast<Map<String, dynamic>?>().firstWhere(
+            (b) =>
+                b?['employeeId']?.toString() == emp['id']?.toString() ||
+                b?['employeeName']?.toString() == emp['name']?.toString(),
+            orElse: () => null,
+          );
+      if (match != null) {
+        emp['status'] = match['status'] ?? emp['status'];
+        emp['propertyTitle'] = match['title'];
+        emp['propertyId'] = match['propertyId'] ?? match['id'];
+        emp['monthlyRent'] = (match['monthlyRent'] as num?)?.toDouble() ??
+            double.tryParse(match['monthlyRent']?.toString() ?? '') ??
+            0;
+      }
+    }
+
+    final governorates =
+        employees.map((e) => e['governorate']?.toString()).toSet();
+    final totalSpend = employees.fold<double>(
+      0,
+      (sum, e) => sum + ((e['monthlyRent'] as num?)?.toDouble() ?? 0),
+    );
+    final active = employees
+        .where((e) =>
+            e['status'] == 'approved' ||
+            e['status'] == 'active' ||
+            e['status'] == BookingStatus.depositPaid)
+        .length;
+    final pending = employees
+        .where((e) =>
+            e['status'] == 'pending' ||
+            e['status'] == BookingStatus.corporatePending)
+        .length;
+
+    return {
+      'companyName': user?['companyName'] ?? user?['name'] ?? 'شركة تجريبية',
+      'tenantEmail': email,
+      'employees': employees,
+      'totalEmployees': employees.length,
+      'activeBookings': active,
+      'pendingBookings': pending,
+      'governorateCount': governorates.length,
+      'totalSpend': totalSpend.round(),
+      'governorates': governorates.toList(),
+    };
   }
 
   /// إلغاء حجز مع تطبيق قاعدة الاسترداد (٤٨ ساعة).

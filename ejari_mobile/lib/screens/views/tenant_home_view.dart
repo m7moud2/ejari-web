@@ -11,6 +11,9 @@ import '../payment_screen.dart';
 import '../notifications_screen.dart';
 import '../my_service_requests_screen.dart';
 import '../property_details_screen.dart';
+import '../corporate_command_center_screen.dart';
+import '../request_verification_screen.dart';
+import '../../widgets/trust_score_badge.dart';
 
 class TenantHomeView extends StatelessWidget {
   const TenantHomeView({super.key});
@@ -42,6 +45,10 @@ class TenantHomeView extends StatelessWidget {
                 children: [
                   _buildSearchCard(context),
                   const SizedBox(height: AppTheme.spaceMd),
+                  if (stats['contextualAction'] != null) ...[
+                    _buildContextualAction(context, stats),
+                    const SizedBox(height: AppTheme.spaceMd),
+                  ],
                   _buildOverviewSection(context, stats),
                   const SizedBox(height: AppTheme.spaceLg),
                   const EjariSectionHeader(
@@ -204,6 +211,18 @@ class TenantHomeView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
+          if ((stats['accountId'] ?? '').toString().isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                'رقم الحساب: ${stats['accountId']}',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.65),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           Text(
             stats['verificationStatus'] ?? 'ابحث عن وحدتك القادمة بثقة',
             style: TextStyle(
@@ -321,67 +340,211 @@ class TenantHomeView extends StatelessWidget {
       ),
     ];
 
-    return EjariSurfaceCard(
-      padding: const EdgeInsets.all(AppTheme.spaceSm),
-      child: Row(
-        children: tiles.map((tile) {
-          return Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Column(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: tile.color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(tile.icon, color: tile.color, size: 20),
+    return Column(
+      children: [
+        if (stats['trustData'] != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppTheme.spaceSm),
+            child: TrustScoreCard(
+              trustData: Map<String, dynamic>.from(stats['trustData'] as Map),
+            ),
+          ),
+        EjariSurfaceCard(
+          padding: const EdgeInsets.all(AppTheme.spaceSm),
+          child: Row(
+            children: tiles.map((tile) {
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: tile.color.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(tile.icon, color: tile.color, size: 20),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        tile.value,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        tile.label,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                      Text(
+                        tile.hint,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 9,
+                          color: tile.color.withOpacity(0.85),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    tile.value,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    tile.label,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.textSecondary,
-                    ),
-                  ),
-                  Text(
-                    tile.hint,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: tile.color.withOpacity(0.85),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: AppTheme.spaceSm),
+        EjariSurfaceCard(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppTheme.spaceMd,
+            vertical: AppTheme.spaceSm,
+          ),
+          child: EjariListTile(
+            icon: Icons.corporate_fare_rounded,
+            title: 'مركز قيادة الشركات',
+            subtitle: 'إدارة إسكان الموظفين عبر المحافظات',
+            iconColor: AppTheme.accentColor,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const CorporateCommandCenterScreen(),
               ),
             ),
-          );
-        }).toList(),
+            isLast: true,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContextualAction(
+    BuildContext context,
+    Map<String, dynamic> stats,
+  ) {
+    final action =
+        Map<String, dynamic>.from(stats['contextualAction'] as Map? ?? {});
+    final icon = action['icon']?.toString() ?? 'info';
+    final badge = action['badge'];
+
+    IconData iconData;
+    VoidCallback onTap;
+    switch (icon) {
+      case 'booking':
+        iconData = Icons.event_available_rounded;
+        onTap = () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+            );
+        break;
+      case 'kyc':
+        iconData = Icons.verified_user_rounded;
+        onTap = () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const RequestVerificationScreen(),
+              ),
+            );
+        break;
+      default:
+        iconData = Icons.touch_app_rounded;
+        onTap = () {};
+    }
+
+    return Material(
+      color: AppTheme.primaryColor,
+      borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spaceMd),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(iconData, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      action['title']?.toString() ?? '',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                      ),
+                    ),
+                    Text(
+                      action['subtitle']?.toString() ?? '',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (badge != null && (badge as num) > 0)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentColor,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '$badge',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              const SizedBox(width: 4),
+              const Icon(Icons.arrow_forward_ios_rounded,
+                  color: Colors.white70, size: 14),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildQuickActions(BuildContext context, Map<String, dynamic> stats) {
+    final hasActiveBooking = stats['activeBooking'] == true;
     final quickActions = [
+      if (hasActiveBooking)
+        (
+          title: 'تابع حجزك',
+          subtitle: stats['bookingTitle']?.toString() ?? 'حجز نشط',
+          icon: Icons.event_available_rounded,
+          color: AppTheme.accentColor,
+          onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+              ),
+        ),
       (
         title: 'ابحث',
         subtitle: 'وحدات جديدة',

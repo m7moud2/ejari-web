@@ -11,6 +11,7 @@ import '../wallet_screen.dart';
 import '../notifications_screen.dart';
 import '../listing_plans_screen.dart';
 import '../../widgets/owner_booking_requests_panel.dart';
+import '../../widgets/trust_score_badge.dart';
 
 class OwnerHomeView extends StatelessWidget {
   const OwnerHomeView({super.key});
@@ -35,7 +36,12 @@ class OwnerHomeView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildOverviewSection(stats),
+                  if (stats['contextualAction'] != null) ...[
+                    const SizedBox(height: AppTheme.spaceMd),
+                    _buildContextualBanner(context, stats),
+                  ],
                   const SizedBox(height: AppTheme.spaceLg),
+                  _buildRevenueIntelligence(stats),
                   const EjariSectionHeader(
                     title: 'إجراءات سريعة',
                     subtitle: 'إدارة العقارات والتحصيل والمتابعة',
@@ -158,6 +164,18 @@ class OwnerHomeView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
+          if ((stats['accountId'] ?? '').toString().isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                'رقم الحساب: ${stats['accountId']}',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.65),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           Text(
             stats['verificationStatus'] ?? 'قيد المراجعة',
             style: TextStyle(
@@ -265,7 +283,177 @@ class OwnerHomeView extends StatelessWidget {
               ),
             ],
           ),
+          if (stats['trustData'] != null) ...[
+            const SizedBox(height: AppTheme.spaceSm),
+            TrustScoreCard(
+              trustData: Map<String, dynamic>.from(stats['trustData'] as Map),
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildRevenueIntelligence(Map<String, dynamic> stats) {
+    return EjariSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const EjariSectionHeader(
+            title: 'ذكاء الإيرادات',
+            subtitle: 'إشغال، مدفوعات معلقة، واستلام قادم',
+          ),
+          const SizedBox(height: AppTheme.spaceMd),
+          GridView(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: AppTheme.spaceXs,
+              crossAxisSpacing: AppTheme.spaceXs,
+              mainAxisExtent: 88,
+            ),
+            children: [
+              EjariStatTile(
+                icon: Icons.pie_chart_rounded,
+                label: 'نسبة الإشغال',
+                value: '${stats['occupancyRate'] ?? 0}%',
+                accentColor: AppTheme.primaryColor,
+                compact: true,
+              ),
+              EjariStatTile(
+                icon: Icons.schedule_rounded,
+                label: 'استلام قادم (٧ أيام)',
+                value: '${stats['upcomingCheckIns'] ?? 0}',
+                accentColor: AppTheme.accentColor,
+                compact: true,
+              ),
+              EjariStatTile(
+                icon: Icons.pending_actions_rounded,
+                label: 'مدفوعات معلقة',
+                value: '${stats['pendingPayouts'] ?? 0} ج.م',
+                compact: true,
+              ),
+              EjariStatTile(
+                icon: Icons.lock_rounded,
+                label: 'في الضمان',
+                value: '${stats['escrowBalance'] ?? 0} ج.م',
+                accentColor: const Color(0xFF2D6A5A),
+                compact: true,
+              ),
+            ],
+          ),
+          if (stats['nearSubscriptionLimit'] == true) ...[
+            const SizedBox(height: AppTheme.spaceSm),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.errorColor.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.errorColor.withOpacity(0.2)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded,
+                      color: AppTheme.errorColor, size: 18),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'تنبيه: اقتربت من حد باقة الإعلانات — رقِّ باقتك لإضافة عقارات جديدة.',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.errorColor,
+                        fontWeight: FontWeight.w700,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContextualBanner(
+    BuildContext context,
+    Map<String, dynamic> stats,
+  ) {
+    final action =
+        Map<String, dynamic>.from(stats['contextualAction'] as Map? ?? {});
+    final badge = action['badge'];
+    final isRequests = action['icon'] == 'requests';
+
+    return Material(
+      color: AppTheme.accentColor.withOpacity(0.12),
+      borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+      child: InkWell(
+        onTap: () {
+          if (isRequests) {
+            // scroll to booking panel — panel is below on same page
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ListingPlansScreen()),
+            );
+          }
+        },
+        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spaceMd),
+          child: Row(
+            children: [
+              Icon(
+                isRequests
+                    ? Icons.inbox_rounded
+                    : Icons.workspace_premium_rounded,
+                color: AppTheme.primaryColor,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      action['title']?.toString() ?? '',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      action['subtitle']?.toString() ?? '',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (badge != null)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.errorColor,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '$badge',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }

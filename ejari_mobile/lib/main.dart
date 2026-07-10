@@ -11,6 +11,7 @@ import 'services/auth_service.dart';
 import 'services/data_service.dart';
 import 'services/maintenance_service.dart';
 import 'services/wallet_service.dart';
+import 'services/operations_feed_service.dart';
 
 import 'screens/splash_screen.dart';
 import 'config/app_config.dart';
@@ -56,6 +57,7 @@ void main() async {
     await WalletService.init(userId: 'owner@ejari.app');
     await WalletService.init(userId: 'tech@ejari.app');
     await DataService.initDemoJoinRequests();
+    await OperationsFeedService.initDemoFeed();
   }
 
   // Load Saved Language Preference

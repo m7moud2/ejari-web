@@ -15,6 +15,7 @@ import '../widgets/booking_status_timeline.dart';
 import '../widgets/rental_booking_widgets.dart';
 import '../widgets/refund_calculator_dialog.dart';
 import '../widgets/corporate_bookings_strip.dart';
+import '../widgets/escrow_transparency_widget.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -467,6 +468,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                   .contains('مرة واحدة')) ...[
                             const SizedBox(height: 12),
                             BookingStatusTimeline(booking: booking),
+                            const SizedBox(height: 12),
+                            EscrowTransparencyWidget(booking: booking),
                             const SizedBox(height: 12),
                             _buildRentalTransparencyCard(booking),
                           ],

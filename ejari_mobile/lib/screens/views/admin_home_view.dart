@@ -13,6 +13,7 @@ import '../admin_search_screen.dart';
 import '../admin_feedback_screen.dart';
 import '../settings_screen.dart';
 import '../verification_screen.dart';
+import '../../widgets/admin_operations_feed.dart';
 
 class AdminHomeView extends StatelessWidget {
   const AdminHomeView({super.key});
@@ -33,6 +34,8 @@ class AdminHomeView extends StatelessWidget {
           _buildMetrics(stats),
           const SizedBox(height: 14),
           _buildAlerts(context, stats),
+          const SizedBox(height: 14),
+          const AdminOperationsFeed(),
           const SizedBox(height: 14),
           _buildQuickActions(context),
         ],
