@@ -14,6 +14,20 @@ class ListingPlansScreen extends StatefulWidget {
 
 class _ListingPlansScreenState extends State<ListingPlansScreen> {
   bool _isAnnual = true;
+  String _currentPlan = 'free';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCurrent();
+  }
+
+  Future<void> _loadCurrent() async {
+    final sub = await SubscriptionService.getCurrentSubscription();
+    if (mounted) {
+      setState(() => _currentPlan = sub['plan']?.toString() ?? 'free');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +60,11 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
 
             // Toggle Switch
             _buildPeriodToggle(),
-            const SizedBox(height: 40),
+            const SizedBox(height: 24),
+            _buildFreeTierCard(),
+            const SizedBox(height: 20),
+            _buildFeatureTable(),
+            const SizedBox(height: 32),
 
             // Package Cards
             _buildPackageCard(
@@ -94,6 +112,91 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
             const SizedBox(height: 40),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFreeTierCard() {
+    final isCurrent = _currentPlan == 'free';
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isCurrent ? AppTheme.primaryColor : AppTheme.borderColor.withOpacity(0.2),
+          width: isCurrent ? 2 : 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.home_outlined, color: AppTheme.primaryColor),
+              SizedBox(width: 8),
+              Text('الباقة المجانية',
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text('عقار واحد • عمولة 10% • بدون تمييز',
+              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: isCurrent ? null : () => _handleSelection('free'),
+              child: Text(isCurrent ? 'الباقة الحالية' : 'اختيار مجاني'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeatureTable() {
+    const rows = [
+      ('مجاني', '1', '—', '—'),
+      ('برونزي', '5', '—', '—'),
+      ('فضي', '15', '✓', '—'),
+      ('ذهبي', '∞', '✓', '✓'),
+    ];
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.15)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('مقارنة خطط النشر',
+              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+          const SizedBox(height: 10),
+          const Row(
+            children: [
+              Expanded(child: Text('الخطة', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
+              Expanded(child: Text('إعلانات', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
+              Expanded(child: Text('تمييز', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
+              Expanded(child: Text('تحليلات', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800))),
+            ],
+          ),
+          const Divider(height: 14),
+          ...rows.map((r) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    Expanded(child: Text(r.$1, style: const TextStyle(fontSize: 11))),
+                    Expanded(child: Text(r.$2, style: const TextStyle(fontSize: 11))),
+                    Expanded(child: Text(r.$3, style: const TextStyle(fontSize: 11))),
+                    Expanded(child: Text(r.$4, style: const TextStyle(fontSize: 11))),
+                  ],
+                ),
+              )),
+        ],
       ),
     );
   }
@@ -310,13 +413,17 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
 
   void _handleSelection(String planId) async {
     final navigator = Navigator.of(context);
+    if (planId != 'free') {
       final allowed = await AuthGate.requireLogin(
         context,
         actionLabel: 'الاشتراك في الباقات المدفوعة',
       );
       if (!allowed || !mounted) return;
+    }
 
-    if (planId != 'commission') {
+    if (planId == 'free') {
+      await SubscriptionService.subscribe('free', 'owner');
+    } else if (planId != 'commission') {
       double amount = 0;
       if (planId == 'bronze') {
         amount = _isAnnual ? 2990 : 299;
@@ -342,10 +449,7 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
         ),
       );
 
-      if (result != true) return; // Payment cancelled or failed
-    }
-
-    if (planId != 'commission') {
+      if (result != true) return;
       await SubscriptionService.subscribe(planId, 'owner');
     }
 

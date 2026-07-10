@@ -948,6 +948,34 @@ class DataService {
         adminFeed: true);
   }
 
+  /// تحديث بيانات عقار موجود — يحافظ على id والحالة والبيانات غير المُمرّرة.
+  static Future<bool> updateProperty(
+    String id,
+    Map<String, dynamic> updates,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final props = prefs.getStringList(_propertiesKey) ?? [];
+    var found = false;
+
+    final updated = props.map((p) {
+      final data = Map<String, dynamic>.from(jsonDecode(p) as Map);
+      if (data['id'].toString() != id) return p;
+
+      found = true;
+      final merged = Map<String, dynamic>.from(data);
+      updates.forEach((key, value) {
+        if (key == 'id' || key == 'ownerId' || key == 'ownerEmail') return;
+        merged[key] = value;
+      });
+      merged['updatedAt'] = DateTime.now().toIso8601String();
+      return jsonEncode(merged);
+    }).toList();
+
+    if (!found) return false;
+    await prefs.setStringList(_propertiesKey, updated);
+    return true;
+  }
+
   static Future<void> updatePropertyStatus(String id, String status) async {
     final prefs = await SharedPreferences.getInstance();
     List<String> props = prefs.getStringList(_propertiesKey) ?? [];
@@ -3050,6 +3078,111 @@ class DataService {
   }
 
   // === Ejari Intelligence (Market Trends) ===
+
+  /// أداء كل عقار للمالك — مشاهدات، حجوزات، إيراد، إشغال.
+  static Future<List<Map<String, dynamic>>> getOwnerPropertyPerformance(
+    String ownerId,
+  ) async {
+    final properties = await getOwnerProperties(ownerId);
+    final requests = await getOwnerRequests(ownerId);
+    final bookings = await getOwnerBookings(ownerId);
+
+    return properties.map((p) {
+      final pid = p['id']?.toString() ?? '';
+      final propRequests = requests
+          .where((r) => r['propertyId']?.toString() == pid)
+          .toList();
+      final propBookings = bookings
+          .where((b) => b['propertyId']?.toString() == pid)
+          .toList();
+      final views = safeInt(p['views'], propBookings.length * 8 + 12);
+      final revenue = propBookings.fold<double>(0, (sum, b) {
+        final rent = safeDouble(b['monthlyRent'] ?? b['price'], 0);
+        return sum + rent;
+      });
+      final occupied = propRequests
+          .where((r) =>
+              r['status'] == 'active' ||
+              r['status'] == 'approved' ||
+              r['status'] == 'deposit_paid')
+          .length;
+      final totalBeds = safeInt(p['totalBeds'], 1);
+      final accType = p['accommodationType']?.toString() ?? 'full_unit';
+      final occupancy = accType == 'full_unit'
+          ? (occupied > 0 ? 100 : 0)
+          : ((occupied / totalBeds.clamp(1, 999)) * 100).clamp(0, 100);
+
+      return {
+        'id': pid,
+        'title': p['title'] ?? 'عقار',
+        'type': p['type'] ?? p['accommodationType'] ?? 'شقق',
+        'accommodationType': accType,
+        'views': views,
+        'bookings': propBookings.length,
+        'revenue': revenue.round(),
+        'occupancy': occupancy.round(),
+        'isActive': p['isActive'] ?? true,
+        'status': p['status'] ?? 'pending',
+        'price': safeDouble(p['price'], 0),
+      };
+    }).toList()
+      ..sort((a, b) => safeInt(b['views'], 0).compareTo(safeInt(a['views'], 0)));
+  }
+
+  /// حجوزات المالك خلال الشهر الحالي.
+  static Future<int> getOwnerBookingsThisMonth(String ownerId) async {
+    final bookings = await getOwnerBookings(ownerId);
+    final now = DateTime.now();
+    final monthStart = DateTime(now.year, now.month);
+    return bookings.where((b) {
+      final raw = b['requestDate']?.toString() ??
+          b['createdAt']?.toString() ??
+          b['checkInDate']?.toString() ??
+          '';
+      final dt = DateTime.tryParse(raw);
+      return dt != null && !dt.isBefore(monthStart);
+    }).length;
+  }
+
+  /// متوسط مدة الإقامة بالأيام.
+  static Future<int> getOwnerAvgStayDuration(String ownerId) async {
+    final bookings = await getOwnerBookings(ownerId);
+    if (bookings.isEmpty) return 0;
+    var totalDays = 0;
+    var count = 0;
+    for (final b in bookings) {
+      final start = DateTime.tryParse(b['checkInDate']?.toString() ?? '');
+      final end = DateTime.tryParse(b['checkOutDate']?.toString() ?? '');
+      if (start != null && end != null) {
+        totalDays += end.difference(start).inDays.abs();
+        count++;
+      } else {
+        totalDays += safeInt(b['durationDays'], 30);
+        count++;
+      }
+    }
+    return count == 0 ? 0 : (totalDays / count).round();
+  }
+
+  /// ملخص تحصيل قابل للتصدير (demo).
+  static Future<Map<String, dynamic>> exportCollectionSummary(
+    String ownerId,
+  ) async {
+    final overdue = await getOverduePayments(ownerId);
+    final revenue = await getOwnerRevenue(ownerId);
+    final tenants = await getOccupancyTenants(ownerId);
+    return {
+      'ownerId': ownerId,
+      'generatedAt': DateTime.now().toIso8601String(),
+      'monthlyRevenue': revenue,
+      'overdueCount': overdue.length,
+      'tenantCount': tenants.length,
+      'overdueTotal': overdue.fold<double>(
+        0,
+        (s, t) => s + safeDouble(t['monthlyRent'], 0),
+      ),
+    };
+  }
 
   static Future<List<Map<String, dynamic>>> getMarketTrends(
       String location) async {

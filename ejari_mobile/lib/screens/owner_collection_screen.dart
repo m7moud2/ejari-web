@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import '../utils/auth_gate.dart';
 import '../utils/safe_parse.dart';
+import '../widgets/ejari_section.dart';
 
 class OwnerCollectionScreen extends StatefulWidget {
   const OwnerCollectionScreen({super.key});
@@ -132,6 +133,37 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
     });
   }
 
+  Future<void> _exportSummary() async {
+    final user = await AuthService.getCurrentUser();
+    final ownerId = user?['email']?.toString() ?? 'owner@ejari.app';
+    final summary = await DataService.exportCollectionSummary(ownerId);
+    if (!mounted) return;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('ملخص التحصيل'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('إيراد الشهر: ${summary['monthlyRevenue']} ج.م'),
+            Text('متأخرات: ${summary['overdueCount']} مستأجر'),
+            Text('إجمالي المتأخر: ${summary['overdueTotal']} ج.م'),
+            Text('عدد المستأجرين: ${summary['tenantCount']}'),
+            const SizedBox(height: 8),
+            Text(
+              'تاريخ: ${summary['generatedAt']?.toString().substring(0, 10) ?? ''}',
+              style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إغلاق')),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,6 +176,13 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
             color: AppTheme.textPrimary,
             fontSize: 22,
             fontWeight: FontWeight.w900),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download_rounded),
+            tooltip: 'تصدير الملخص',
+            onPressed: _exportSummary,
+          ),
+        ],
       ),
       body: _loading
           ? const Center(
@@ -158,8 +197,10 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
           const SizedBox(height: 14),
           _overview(),
           const SizedBox(height: 14),
-          const Text('حالة المستأجرين',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          const EjariSectionHeader(
+            title: 'حالة المستأجرين',
+            subtitle: 'متأخرات مميزة — تذكير ودفع مسبق',
+          ),
           const SizedBox(height: 10),
           ..._tenants.map(_tenantCard),
         ],
@@ -261,9 +302,14 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: isLate
+            ? AppTheme.errorColor.withOpacity(0.04)
+            : AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: color.withOpacity(0.18)),
+        border: Border.all(
+          color: isLate ? AppTheme.errorColor.withOpacity(0.35) : color.withOpacity(0.18),
+          width: isLate ? 2 : 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

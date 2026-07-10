@@ -10,6 +10,7 @@ import '../my_contracts_screen.dart';
 import '../maintenance_requests_screen.dart';
 import '../wallet_screen.dart';
 import '../notifications_screen.dart';
+import '../owner_property_performance_screen.dart';
 import '../listing_plans_screen.dart';
 import '../../widgets/owner_booking_requests_panel.dart';
 import '../owner_booking_requests_screen.dart';
@@ -108,7 +109,7 @@ class OwnerHomeView extends StatelessWidget {
                   subtitle: 'أفضل الوحدات ومشاهداتها',
                 ),
                 const SizedBox(height: AppTheme.spaceSm),
-                _buildPerformanceCard(stats),
+                _buildPerformanceCard(context, stats),
               ],
             ),
           ),
@@ -296,24 +297,39 @@ class OwnerHomeView extends StatelessWidget {
                 compact: true,
               ),
               EjariStatTile(
-                icon: Icons.hourglass_bottom,
-                label: 'تحت المراجعة',
-                value: '${stats['pendingProperties'] ?? 0}',
-                accentColor: AppTheme.borderColor,
+                icon: Icons.pie_chart_rounded,
+                label: 'نسبة الإشغال',
+                value: '${stats['occupancyRate'] ?? 0}%',
+                accentColor: AppTheme.primaryColor,
                 compact: true,
               ),
               EjariStatTile(
-                icon: Icons.account_balance_wallet_rounded,
-                label: 'متاح للسحب',
-                value: '${stats['availableToWithdraw'] ?? 0} ج.م',
+                icon: Icons.event_available_rounded,
+                label: 'حجوزات الشهر',
+                value: '${stats['bookingsThisMonth'] ?? 0}',
                 accentColor: AppTheme.accentColor,
                 compact: true,
               ),
               EjariStatTile(
-                icon: Icons.warning_amber_rounded,
-                label: 'متأخرات',
-                value: '${stats['lateInstallments'] ?? 0}',
-                accentColor: AppTheme.errorColor,
+                icon: Icons.nights_stay_rounded,
+                label: 'متوسط الإقامة',
+                value: '${stats['avgStayDuration'] ?? 0} يوم',
+                compact: true,
+              ),
+              EjariStatTile(
+                icon: Icons.account_balance_wallet_rounded,
+                label: 'إيراد الشهر',
+                value: '${stats['monthlyRevenue'] ?? 0} ج.م',
+                accentColor: AppTheme.accentColor,
+                compact: true,
+              ),
+              EjariStatTile(
+                icon: Icons.star_rounded,
+                label: 'أفضل عقار',
+                value: (stats['topProperty'] ?? '—').toString().length > 14
+                    ? '${(stats['topProperty'] ?? '—').toString().substring(0, 14)}…'
+                    : '${stats['topProperty'] ?? '—'}',
+                accentColor: const Color(0xFF2D6A5A),
                 compact: true,
               ),
             ],
@@ -390,6 +406,38 @@ class OwnerHomeView extends StatelessWidget {
               ),
             ],
           ),
+          if (stats['revenueForecast'] != null) ...[
+            const SizedBox(height: AppTheme.spaceSm),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    stats['revenueTrend'] == 'up'
+                        ? Icons.trending_up_rounded
+                        : Icons.trending_flat_rounded,
+                    color: AppTheme.primaryColor,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'توقع إيراد الشهر القادم: ${stats['revenueForecast']} ج.م',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (stats['nearSubscriptionLimit'] == true) ...[
             const SizedBox(height: AppTheme.spaceSm),
             Container(
@@ -663,7 +711,12 @@ class OwnerHomeView extends StatelessWidget {
         List<Map<String, dynamic>>.from(stats['vacantBeds'] as List? ?? []);
     return EjariSurfaceCard(
       child: Column(
-        children: vacant.take(4).map((v) {
+        children: vacant.take(6).map((v) {
+          final price = double.tryParse(
+                v['price']?.toString().replaceAll(',', '') ?? '0',
+              ) ??
+              0;
+          final suggested = (price * 0.9).round();
           return ListTile(
             contentPadding: EdgeInsets.zero,
             leading: Container(
@@ -681,26 +734,46 @@ class OwnerHomeView extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
             ),
             subtitle: Text(
-              v['propertyTitle']?.toString() ?? '',
-              maxLines: 1,
+              '${v['propertyTitle'] ?? ''} — اقتراح: $suggested ج.م',
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 11),
+              style: const TextStyle(fontSize: 10),
             ),
-            trailing: TextButton(
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => OwnerOccupancyScreen(
-                    propertyId: v['propertyId']?.toString(),
+            trailing: Wrap(
+              spacing: 4,
+              children: [
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ListingPlansScreen(),
+                    ),
+                  ),
+                  child: const Text('ترويج', style: TextStyle(fontSize: 10)),
                 ),
-              ),
-              child: const Text('عرض', style: TextStyle(fontSize: 11)),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'اقتراح تخفيض 10% → $suggested ج.م/شهر',
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('تخفيض', style: TextStyle(fontSize: 10)),
+                ),
+              ],
             ),
           );
         }).toList(),
@@ -708,49 +781,68 @@ class OwnerHomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildPerformanceCard(Map<String, dynamic> stats) {
+  Widget _buildPerformanceCard(
+    BuildContext context,
+    Map<String, dynamic> stats,
+  ) {
+    final perfList = List<Map<String, dynamic>>.from(
+      stats['propertyPerformance'] as List? ?? [],
+    );
     return EjariSurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppTheme.accentColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(Icons.trending_up_rounded,
-                    color: AppTheme.primaryColor, size: 22),
+          EjariSectionHeader(
+            title: stats['topProperty'] ?? 'أفضل عقار',
+            subtitle:
+                'العقار الأكثر مشاهدة: ${stats['topPropertyViews'] ?? 0} مشاهدة',
+            actionLabel: 'عرض الكل',
+            onAction: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const OwnerPropertyPerformanceScreen(),
               ),
-              const SizedBox(width: AppTheme.spaceSm),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          ),
+          if (perfList.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            ...perfList.take(3).map((p) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
                   children: [
-                    Text(
-                      stats['topProperty'] ?? 'أفضل عقار هذا الأسبوع',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 16,
+                    Expanded(
+                      child: Text(
+                        p['title']?.toString() ?? 'عقار',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 4),
                     Text(
-                      'العقار الأكثر مشاهدة: ${stats['topPropertyViews'] ?? 0} مشاهدة',
+                      '${p['views'] ?? 0} 👁',
+                      style: const TextStyle(fontSize: 10),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${p['revenue'] ?? 0} ج.م',
                       style: const TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 12,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.primaryColor,
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
+              );
+            }),
+          ],
         ],
       ),
     );
   }
 }
+

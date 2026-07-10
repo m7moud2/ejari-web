@@ -40,6 +40,24 @@ void main() {
       );
     });
 
+    test('updateProperty persists edits', () async {
+      await DataService.initProperties();
+      final all = await DataService.getAllProperties(approvedOnly: false);
+      final original = all.first;
+      final id = original['id']?.toString() ?? '';
+      expect(id, isNotEmpty);
+
+      await DataService.updateProperty(id, {
+        'title': 'عقار معدّل للاختبار',
+        'price': '9999',
+      });
+      final updated = await DataService.getAllProperties(approvedOnly: false);
+      final match = updated.firstWhere((p) => p['id']?.toString() == id);
+      expect(match['title'], 'عقار معدّل للاختبار');
+      expect(match['price'], '9999');
+      expect(match['id'], id);
+    });
+
     test('updatePropertyActive persists toggle', () async {
       await DataService.initProperties();
       final all = await DataService.getAllProperties(approvedOnly: false);

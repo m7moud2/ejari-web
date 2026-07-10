@@ -14,8 +14,6 @@ import 'package:ejari_mobile/services/operations_feed_service.dart';
 import 'package:ejari_mobile/services/tenant_score_service.dart';
 import 'package:ejari_mobile/services/anti_fraud_service.dart';
 
-import 'package:ejari_mobile/screens/unified_home_screen.dart';
-import 'package:ejari_mobile/screens/views/owner_home_view.dart';
 import 'package:ejari_mobile/screens/owner_occupancy_screen.dart';
 import 'package:ejari_mobile/screens/owner_collection_screen.dart';
 import 'package:ejari_mobile/screens/owner_qr_verify_screen.dart';
@@ -25,6 +23,7 @@ import 'package:ejari_mobile/screens/subscriptions_screen.dart';
 import 'package:ejari_mobile/screens/manage_properties_screen.dart';
 import 'package:ejari_mobile/screens/add_property_screen.dart';
 import 'package:ejari_mobile/screens/profile_screen.dart';
+import 'package:ejari_mobile/screens/owner_property_performance_screen.dart';
 import 'package:ejari_mobile/screens/damage_claim_screen.dart';
 import 'package:ejari_mobile/widgets/bed_hierarchy_tree.dart';
 import 'package:ejari_mobile/widgets/owner_booking_requests_panel.dart';
@@ -102,6 +101,7 @@ void main() {
         SubscriptionsScreen(),
         ManagePropertiesScreen(),
         AddPropertyScreen(),
+        OwnerPropertyPerformanceScreen(),
         ProfileScreen(),
       ]) {
         await expectNoCrash(tester, screen);

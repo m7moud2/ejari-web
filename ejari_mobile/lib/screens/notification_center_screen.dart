@@ -21,6 +21,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   bool _loading = true;
   String _filter = 'all';
 
+  String _userRole = 'tenant';
+
   @override
   void initState() {
     super.initState();
@@ -29,8 +31,10 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
   Future<void> _load() async {
     final notes = await DataService.getNotifications();
+    final role = await AuthService.getUserRole();
     setState(() {
       _notifications = notes;
+      _userRole = role;
       _loading = false;
     });
   }
@@ -46,6 +50,23 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
   String _inferType(Map<String, dynamic> note) {
     final title = note['title']?.toString() ?? '';
+    final type = note['type']?.toString() ?? '';
+    if (type == 'booking' || title.contains('حجز') || title.contains('طلب')) {
+      return 'Booking';
+    }
+    if (type == 'subscription' ||
+        title.contains('باقة') ||
+        title.contains('اشتراك')) {
+      return 'Subscription';
+    }
+    if (type == 'kyc' || title.contains('توثيق') || title.contains('KYC')) {
+      return 'KYC';
+    }
+    if (title.contains('فاض') ||
+        title.contains('شاغر') ||
+        title.contains('سرير')) {
+      return 'Vacant';
+    }
     if (title.contains('قسط') || title.contains('دفع') || title.contains('عربون')) {
       return 'Payment';
     }
@@ -139,13 +160,24 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
   }
 
   Widget _filters() {
-    const filters = [
-      ('all', 'الكل'),
-      ('Reminder', 'تذكيرات'),
-      ('Payment', 'مدفوعات'),
-      ('Maintenance', 'صيانة'),
-      ('Alert', 'تنبيهات'),
-    ];
+    final isOwner = _userRole == 'owner';
+    final filters = isOwner
+        ? const [
+            ('all', 'الكل'),
+            ('Booking', 'حجوزات'),
+            ('Payment', 'مدفوعات'),
+            ('Vacant', 'أماكن فاضية'),
+            ('KYC', 'توثيق'),
+            ('Subscription', 'الباقة'),
+            ('Alert', 'تنبيهات'),
+          ]
+        : const [
+            ('all', 'الكل'),
+            ('Reminder', 'تذكيرات'),
+            ('Payment', 'مدفوعات'),
+            ('Maintenance', 'صيانة'),
+            ('Alert', 'تنبيهات'),
+          ];
     return SizedBox(
       height: 42,
       child: ListView.separated(

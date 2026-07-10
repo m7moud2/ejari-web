@@ -8,6 +8,7 @@ import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import '../services/subscription_service.dart';
 import '../models/accommodation_type.dart';
+import '../widgets/ejari_section.dart';
 import 'listing_plans_screen.dart';
 
 class AddPropertyScreen extends StatefulWidget {
@@ -34,6 +35,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   double _priceMonthly = 0;
   double _seasonalRate = 0;
   bool _useManualPricing = false;
+  int _currentStep = 0;
 
   File? _selectedImage;
   File? _selectedVideo;
@@ -41,6 +43,12 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
 
   bool _isLoading = false;
   Map<String, dynamic>? _subscriptionInfo;
+
+  bool get _isEditing =>
+      widget.initialData != null &&
+      (widget.initialData!['id']?.toString().isNotEmpty ?? false);
+
+  String? get _editPropertyId => widget.initialData?['id']?.toString();
 
   @override
   void initState() {
@@ -56,6 +64,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
           int.tryParse(widget.initialData!['beds']?.toString() ?? '2') ??
           2;
       _totalRooms = (widget.initialData!['totalRooms'] as num?)?.toInt() ?? 1;
+      _listingMode = widget.initialData!['listingMode']?.toString() ?? 'rent';
       final dp = widget.initialData!['dynamicPricing'] as Map<String, dynamic>?;
       if (dp != null) {
         _useManualPricing = dp['useManual'] == true;
@@ -103,61 +112,72 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     if (!_formKey.currentState!.validate()) return;
     _formKey.currentState!.save();
 
-    final canAdd = await SubscriptionService.canAddProperty();
-    if (!canAdd) {
-      if (!mounted) return;
-      final upgrade = await showDialog<bool>(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('وصلت لحد الباقة'),
-          content: Text(
-            'باقتك الحالية (${_subscriptionInfo?['current_plan']}) تسمح بـ '
-            '${_subscriptionInfo?['limit']} عقار فقط. ترقِّ باقتك للمتابعة.',
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('عرض الباقات'),
+    if (!_isEditing) {
+      final canAdd = await SubscriptionService.canAddProperty();
+      if (!canAdd) {
+        if (!mounted) return;
+        final upgrade = await showDialog<bool>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('وصلت لحد الباقة'),
+            content: Text(
+              'باقتك الحالية (${_subscriptionInfo?['current_plan']}) تسمح بـ '
+              '${_subscriptionInfo?['limit']} عقار فقط. ترقِّ باقتك للمتابعة.',
             ),
-          ],
-        ),
-      );
-      if (upgrade == true && mounted) {
-        await Navigator.push(context, MaterialPageRoute(builder: (_) => const ListingPlansScreen()));
-        await _loadSubscription();
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('إلغاء')),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('عرض الباقات'),
+              ),
+            ],
+          ),
+        );
+        if (upgrade == true && mounted) {
+          await Navigator.push(context, MaterialPageRoute(builder: (_) => const ListingPlansScreen()));
+          await _loadSubscription();
+        }
+        return;
       }
-      return;
     }
 
     setState(() => _isLoading = true);
 
     final user = await AuthService.getCurrentUser();
     final ownerId = user?['email']?.toString() ?? user?['uid']?.toString() ?? 'owner@ejari.app';
-    final autoFeature = await SubscriptionService.shouldAutoFeature();
+    final autoFeature = _isEditing
+        ? (widget.initialData!['isFeatured'] == true)
+        : await SubscriptionService.shouldAutoFeature();
 
-    final bedUnits = List.generate(_totalBeds, (i) {
-      final roomIndex = i ~/ (_totalBeds / _totalRooms).ceil().clamp(1, _totalBeds);
-      return {
-        'id': 'bed_${i + 1}',
-        'roomId': 'room_${String.fromCharCode(97 + roomIndex.clamp(0, 25))}',
-        'label': 'سرير ${i + 1}',
-        'status': 'vacant',
-      };
-    });
-    final roomUnits = List.generate(_totalRooms, (i) => {
-          'id': 'room_${String.fromCharCode(97 + i)}',
-          'label': 'غرفة ${String.fromCharCode(65 + i)}',
-          'bedCount': (_totalBeds / _totalRooms).ceil(),
-          'occupiedBeds': 0,
-          'status': 'vacant',
-        });
+    final bedUnits = _isEditing
+        ? List<Map<String, dynamic>>.from(
+            widget.initialData!['bedUnits'] as List? ?? [])
+        : List.generate(_totalBeds, (i) {
+            final roomIndex =
+                i ~/ (_totalBeds / _totalRooms).ceil().clamp(1, _totalBeds);
+            return {
+              'id': 'bed_${i + 1}',
+              'roomId': 'room_${String.fromCharCode(97 + roomIndex.clamp(0, 25))}',
+              'label': 'سرير ${i + 1}',
+              'status': 'vacant',
+            };
+          });
+    final roomUnits = _isEditing
+        ? List<Map<String, dynamic>>.from(
+            widget.initialData!['roomUnits'] as List? ?? [])
+        : List.generate(_totalRooms, (i) => {
+              'id': 'room_${String.fromCharCode(97 + i)}',
+              'label': 'غرفة ${String.fromCharCode(65 + i)}',
+              'bedCount': (_totalBeds / _totalRooms).ceil(),
+              'occupiedBeds': 0,
+              'status': 'vacant',
+            });
 
     final monthlyPrice = _useManualPricing && _priceMonthly > 0
         ? _priceMonthly
         : price;
 
-    final newProperty = {
+    final propertyData = {
       'title': title,
       'description': description,
       'price': monthlyPrice.toStringAsFixed(0),
@@ -168,18 +188,23 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       'accommodationType': _accommodationType.value,
       'location': city,
       'governorate': city.split('،').last.trim(),
-      'image': _selectedImage?.path ?? 'assets/images/home1.jpg',
+      'image': _selectedImage?.path ??
+          widget.initialData?['image'] ??
+          'assets/images/home1.jpg',
       'beds': _totalBeds.toString(),
-      'baths': '1',
-      'area': '120',
+      'baths': widget.initialData?['baths']?.toString() ?? '1',
+      'area': widget.initialData?['area']?.toString() ?? '120',
       'totalBeds': _totalBeds,
       'totalRooms': _totalRooms,
       'bedUnits': bedUnits,
       'roomUnits': roomUnits,
       'ownerId': ownerId,
       'ownerEmail': ownerId,
-      'features': {'bedrooms': _totalBeds, 'bathrooms': 1, 'area': 120},
-      'status': 'pending',
+      'features': {
+        'bedrooms': _totalBeds,
+        'bathrooms': int.tryParse(widget.initialData?['baths']?.toString() ?? '1') ?? 1,
+        'area': int.tryParse(widget.initialData?['area']?.toString() ?? '120') ?? 120,
+      },
       'isFeatured': autoFeature,
       'supportedDurations': _listingMode == 'for_sale'
           ? <String>[]
@@ -205,27 +230,40 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     if (!mounted) return;
     final propertyProvider = context.read<PropertyProvider>();
     try {
-      await DataService.addProperty(newProperty);
+      if (_isEditing) {
+        final ok = await DataService.updateProperty(_editPropertyId!, propertyData);
+        if (!ok) throw StateError('العقار غير موجود');
+      } else {
+        propertyData['status'] = 'pending';
+        await DataService.addProperty(propertyData);
+      }
       await propertyProvider.fetchAllProperties();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم حفظ الإعلان بنجاح وسيظهر بعد المراجعة!'),
+          SnackBar(
+            content: Text(_isEditing
+                ? 'تم حفظ التعديلات بنجاح!'
+                : 'تم حفظ الإعلان بنجاح وسيظهر بعد المراجعة!'),
             backgroundColor: AppTheme.primaryColor,
             behavior: SnackBarBehavior.floating,
           ),
         );
-        _formKey.currentState?.reset();
-        setState(() {
-          title = '';
-          description = '';
-          price = 0.0;
-          city = '';
-          _listingMode = 'rent';
-          _selectedImage = null;
-          _selectedVideo = null;
-        });
-        await _loadSubscription();
+        if (_isEditing) {
+          Navigator.pop(context, true);
+        } else {
+          _formKey.currentState?.reset();
+          setState(() {
+            title = '';
+            description = '';
+            price = 0.0;
+            city = '';
+            _listingMode = 'rent';
+            _currentStep = 0;
+            _selectedImage = null;
+            _selectedVideo = null;
+          });
+          await _loadSubscription();
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -248,8 +286,10 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('نشر إعلان عقاري جديد',
-            style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          _isEditing ? 'تعديل العقار' : 'نشر إعلان عقاري جديد',
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: AppTheme.surfaceColor,
         elevation: 0,
         centerTitle: true,
@@ -263,7 +303,14 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                 padding: const EdgeInsets.all(20),
                 physics: const BouncingScrollPhysics(),
                 children: [
-                  if (_subscriptionInfo != null)
+                  if (!_isEditing) ...[
+                    EjariStepIndicator(
+                      labels: const ['النوع', 'التفاصيل', 'الوسائط'],
+                      activeIndex: _currentStep,
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+                  if (_subscriptionInfo != null && !_isEditing)
                     Container(
                       margin: const EdgeInsets.only(bottom: 16),
                       padding: const EdgeInsets.all(12),
@@ -417,20 +464,52 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                   _buildSectionTitle('الوسائط والصور'),
                   _buildMediaPicker(),
                   const SizedBox(height: 40),
-                  ElevatedButton(
-                    onPressed: _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
-                      elevation: 0,
-                    ),
-                    child: const Text('تأكيد ونشر الإعلان',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold)),
+                  Row(
+                    children: [
+                      if (!_isEditing && _currentStep > 0)
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () =>
+                                setState(() => _currentStep = _currentStep - 1),
+                            child: const Text('السابق'),
+                          ),
+                        ),
+                      if (!_isEditing && _currentStep > 0)
+                        const SizedBox(width: 10),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (!_isEditing && _currentStep < 2) {
+                              if (_formKey.currentState!.validate()) {
+                                _formKey.currentState!.save();
+                                setState(() => _currentStep++);
+                              }
+                              return;
+                            }
+                            _submit();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryColor,
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            _isEditing
+                                ? 'حفظ التعديلات'
+                                : (_currentStep < 2
+                                    ? 'التالي'
+                                    : 'تأكيد ونشر الإعلان'),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 20),
                 ],

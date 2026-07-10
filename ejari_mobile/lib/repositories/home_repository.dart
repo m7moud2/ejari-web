@@ -238,7 +238,11 @@ class HomeRepository {
     final vacantBeds = await DataService.getVacantBeds(ownerId);
     final overdue = await DataService.getOverduePayments(ownerId);
     final todayIncome = await DataService.getOwnerTodayIncome(ownerId);
-    final firstProperty = properties.isNotEmpty ? properties.first : null;
+    final bookingsThisMonth = await DataService.getOwnerBookingsThisMonth(ownerId);
+    final avgStay = await DataService.getOwnerAvgStayDuration(ownerId);
+    final propertyPerformance =
+        await DataService.getOwnerPropertyPerformance(ownerId);
+    final topPerf = propertyPerformance.isNotEmpty ? propertyPerformance.first : null;
 
     return {
       'userName': user?['name'] ?? 'المالك',
@@ -259,21 +263,27 @@ class HomeRepository {
       'pendingBookings': pending,
       'monthlyRevenue': revenue,
       'todayIncome': todayIncome.round(),
-      'smartPricingHint': firstProperty != null
+      'smartPricingHint': properties.isNotEmpty
           ? {
-              'propertyId': firstProperty['id'],
+              'propertyId': properties.first['id'],
               'price': double.tryParse(
-                    firstProperty['price']?.toString().replaceAll(',', '') ??
+                    properties.first['price']?.toString().replaceAll(',', '') ??
                         '2500',
                   ) ??
                   2500,
-              'location': firstProperty['location'] ?? firstProperty['governorate'],
+              'location': properties.first['location'] ??
+                  properties.first['governorate'],
             }
           : null,
       'escrowBalance': wallet['escrow'] ?? 0,
       'availableToWithdraw': wallet['available'] ?? 0,
       'pendingPayouts': wallet['pending'] ?? 0,
       'occupancyRate': occupancyRate.round(),
+      'bookingsThisMonth': bookingsThisMonth,
+      'avgStayDuration': avgStay,
+      'propertyPerformance': propertyPerformance,
+      'revenueTrend': revenue > 0 ? 'up' : 'stable',
+      'revenueForecast': (revenue * 1.08).round(),
       'upcomingCheckIns': upcomingCheckIns,
       'nearSubscriptionLimit': nearSubLimit,
       'pendingInstallments': requests
@@ -286,10 +296,9 @@ class HomeRepository {
       'overdueTenants': overdue,
       'newRequests': pending,
       'activeMaintenance': 0,
-      'topProperty': properties.isNotEmpty
-          ? properties.first['title']
-          : 'لا توجد عقارات بعد',
-      'topPropertyViews': properties.length * 12,
+      'topProperty': topPerf?['title'] ??
+          (properties.isNotEmpty ? properties.first['title'] : 'لا توجد عقارات بعد'),
+      'topPropertyViews': topPerf?['views'] ?? (properties.length * 12),
       'subscriptionPlan': sub['plan_name'],
       'subscriptionLimit': sub['properties_limit'],
       'subscriptionUsed': sub['properties_used'],
