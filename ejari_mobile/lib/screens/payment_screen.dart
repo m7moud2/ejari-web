@@ -8,7 +8,6 @@ import '../widgets/ejari_section.dart';
 import '../services/subscription_service.dart';
 import '../utils/rental_rules.dart';
 import '../models/rental_duration_tier.dart';
-import '../models/tenant_type.dart';
 import '../widgets/rental_booking_widgets.dart';
 import 'package:image_picker/image_picker.dart';
 import 'rental_statement_screen.dart';

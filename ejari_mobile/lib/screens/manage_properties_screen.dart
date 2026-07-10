@@ -34,15 +34,18 @@ class _ManagePropertiesScreenState extends State<ManagePropertiesScreen> {
   }
 
   Future<void> _togglePropertyStatus(int index) async {
+    final id = _properties[index]['id']?.toString();
+    final newActive = !(_properties[index]['isActive'] ?? true);
     setState(() {
-      _properties[index]['isActive'] =
-          !(_properties[index]['isActive'] ?? true);
+      _properties[index]['isActive'] = newActive;
     });
+    if (id != null && id.isNotEmpty) {
+      await DataService.updatePropertyActive(id, newActive);
+    }
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(_properties[index]['isActive']
-            ? 'تم تفعيل العقار'
-            : 'تم إيقاف العقار'),
+        content: Text(newActive ? 'تم تفعيل العقار' : 'تم إيقاف العقار'),
       ),
     );
   }

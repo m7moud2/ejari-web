@@ -419,6 +419,8 @@ class _BookingScreenState extends State<BookingScreen> {
               : durationLabel,
       'startDate': DateTime.now().toIso8601String(),
       'ownerId': widget.itemData['ownerId'] ?? 'admin',
+      'ownerEmail':
+          widget.itemData['ownerEmail'] ?? widget.itemData['ownerId'] ?? 'admin',
       'status': 'viewing_scheduled',
       'paymentStatus': 'deposit_paid',
       'paymentPhase': 'deposit',

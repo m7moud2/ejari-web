@@ -221,6 +221,7 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
                               area: property['area'],
                               listingMode: property['listingMode'],
                               isDemo: property['isDemo'] ?? false,
+                              isVerified: property['isVerified'] == true,
                               supportedDurations: (property['supportedDurations'] as List?)
                                   ?.map((e) => e.toString())
                                   .toList(),

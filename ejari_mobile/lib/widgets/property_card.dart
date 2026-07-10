@@ -18,6 +18,7 @@ class PropertyCard extends StatefulWidget {
   final String? listingMode; // Added listingMode
   final List<String>? supportedDurations;
   final bool isDemo;
+  final bool isVerified;
   final VoidCallback onTap;
   final VoidCallback onBook;
 
@@ -34,6 +35,7 @@ class PropertyCard extends StatefulWidget {
     this.listingMode, // Optional
     this.supportedDurations,
     this.isDemo = false,
+    this.isVerified = false,
     required this.onTap,
     required this.onBook,
   });
@@ -230,7 +232,7 @@ class _PropertyCardState extends State<PropertyCard> {
                 ),
 
                 // Verified Badge
-                if (DataService.isPropertyVerified(widget.id))
+                if (widget.isVerified)
                   Positioned(
                     top: 15,
                     left: 65,

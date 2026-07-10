@@ -146,7 +146,17 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
             behavior: SnackBarBehavior.floating,
           ),
         );
-        Navigator.pop(context);
+        _formKey.currentState?.reset();
+        setState(() {
+          title = '';
+          description = '';
+          price = 0.0;
+          city = '';
+          _listingMode = 'rent';
+          _selectedImage = null;
+          _selectedVideo = null;
+        });
+        await _loadSubscription();
       }
     } catch (e) {
       if (mounted) {

@@ -8,6 +8,7 @@ import 'services/push_notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'services/auth_service.dart';
+import 'services/data_service.dart';
 
 import 'screens/splash_screen.dart';
 import 'config/app_config.dart';
@@ -45,6 +46,8 @@ void main() async {
 
   if (AppConfig.demoMode) {
     await AuthService.initDemoAccounts();
+    await DataService.initProperties();
+    await DataService.initDemoBookings();
   }
 
   // Load Saved Language Preference

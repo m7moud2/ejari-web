@@ -188,6 +188,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                       beds: property['beds'] ?? '0',
                       baths: property['baths'] ?? '0',
                       area: property['area'] ?? '0',
+                      isVerified: property['isVerified'] == true,
                       onTap: () {
                         Navigator.push(
                           context,

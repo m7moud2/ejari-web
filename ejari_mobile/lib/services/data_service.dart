@@ -9,6 +9,8 @@ import 'mock_data_seeder.dart';
 class DataService {
   static const String _bookingsKey = 'bookings'; // For tenants
   static const String _requestsKey = 'requests'; // For owners (incoming)
+  static const String _demoBookingsVersionKey = 'demo_bookings_version';
+  static const int _currentDemoBookingsVersion = 2;
   static const String _favoritesKey = 'favorites';
   static const String _propertiesKey = 'properties';
   static const String _providerRequestsKey = 'provider_requests';
@@ -68,6 +70,85 @@ class DataService {
   static const String _propsVersionKey = 'properties_version';
   static const int _currentPropsVersion =
       7; // bumped — merge Egyptian governorate demo catalog
+
+  /// Seed cross-role demo bookings so owner dashboard shows real pending requests.
+  static Future<void> initDemoBookings() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedVersion = prefs.getInt(_demoBookingsVersionKey) ?? 0;
+    if (savedVersion >= _currentDemoBookingsVersion) return;
+    await prefs.setInt(_demoBookingsVersionKey, _currentDemoBookingsVersion);
+
+    final checkIn = DateTime.now().add(const Duration(days: 7));
+    final demoRequests = [
+      {
+        'id': 'demo_req_1',
+        'propertyId': 'egy1',
+        'title': 'شقة فاخرة على النيل - المعادي',
+        'image': 'assets/images/home1.jpg',
+        'price': '15000',
+        'monthlyRent': '15000',
+        'tenantName': 'مستأجر تجريبي',
+        'tenantEmail': 'user@ejari.app',
+        'ownerId': 'owner@ejari.app',
+        'ownerEmail': 'owner@ejari.app',
+        'status': 'pending',
+        'requestDate': DateTime.now().toIso8601String(),
+        'leaseStartDate': checkIn.toIso8601String(),
+        'checkInDate': checkIn.toIso8601String(),
+        'startDate': checkIn.toIso8601String(),
+        'durationLabel': '6 شهر',
+        'duration': '6 شهر',
+        'leaseMonths': 6,
+        'depositAmount': '3000',
+        'rentalTier': 'medium',
+        'rentalTierLabel': '٦+ شهور',
+        'tenantType': 'family',
+        'tenantTypeLabel': 'أسرة',
+        'requiresIncomeProof': true,
+        'showInstallments': true,
+      },
+      {
+        'id': 'demo_req_2',
+        'propertyId': 'egy2',
+        'title': 'فيلا مستقلة التجمع الخامس',
+        'image': 'assets/images/home2.jpg',
+        'price': '45000',
+        'monthlyRent': '45000',
+        'tenantName': 'مستأجر تجريبي',
+        'tenantEmail': 'user@ejari.app',
+        'ownerId': 'owner@ejari.app',
+        'ownerEmail': 'owner@ejari.app',
+        'status': 'deposit_paid',
+        'requestDate':
+            DateTime.now().subtract(const Duration(hours: 5)).toIso8601String(),
+        'leaseStartDate':
+            DateTime.now().add(const Duration(days: 3)).toIso8601String(),
+        'checkInDate':
+            DateTime.now().add(const Duration(days: 3)).toIso8601String(),
+        'startDate':
+            DateTime.now().add(const Duration(days: 3)).toIso8601String(),
+        'durationLabel': '3 أسبوع',
+        'duration': '3 أسبوع',
+        'durationCount': 3,
+        'durationUnit': 'أسبوع',
+        'leaseMonths': 0,
+        'depositAmount': '11250',
+        'rentalTier': 'weekly',
+        'rentalTierLabel': 'إيجار أسبوعي',
+        'tenantType': 'individual',
+        'tenantTypeLabel': 'فرد',
+        'requiresAdvanceDeposit': true,
+        'showInstallments': false,
+      },
+    ];
+
+    final encoded = demoRequests.map(jsonEncode).toList();
+    await prefs.setStringList(_requestsKey, encoded);
+
+    final existingBookings = prefs.getStringList(_bookingsKey) ?? [];
+    final mergedBookings = {...existingBookings, ...encoded}.toList();
+    await prefs.setStringList(_bookingsKey, mergedBookings);
+  }
 
   static Future<void> initProperties() async {
     final prefs = await SharedPreferences.getInstance();
@@ -750,6 +831,19 @@ class DataService {
     await prefs.setStringList(_notificationsKey, list);
   }
 
+  static Future<void> updatePropertyActive(String id, bool isActive) async {
+    final prefs = await SharedPreferences.getInstance();
+    List<String> props = prefs.getStringList(_propertiesKey) ?? [];
+    List<String> updated = props.map((p) {
+      final data = jsonDecode(p) as Map<String, dynamic>;
+      if (data['id'].toString() == id) {
+        data['isActive'] = isActive;
+      }
+      return jsonEncode(data);
+    }).toList();
+    await prefs.setStringList(_propertiesKey, updated);
+  }
+
   static Future<void> deleteProperty(String id) async {
     final prefs = await SharedPreferences.getInstance();
     List<String> props = prefs.getStringList(_propertiesKey) ?? [];
@@ -1069,6 +1163,8 @@ class DataService {
     request['status'] = request['status'] ?? 'pending';
     request['requestDate'] = DateTime.now().toIso8601String();
     request['tenantEmail'] = currentEmail; // Record who made the request
+    request['ownerEmail'] =
+        request['ownerEmail'] ?? request['ownerId']?.toString() ?? '';
     request['leaseMonths'] = request['leaseMonths'] ?? request['duration'];
     request['leaseStartDate'] =
         request['leaseStartDate'] ?? request['startDate'];
@@ -1202,57 +1298,42 @@ class DataService {
     }
   }
 
-  // Owner gets their bookings
+  // Owner gets their bookings (filtered by ownerId / property ownership)
   static Future<List<Map<String, dynamic>>> getOwnerBookings(
       String ownerId) async {
     final prefs = await SharedPreferences.getInstance();
     List<String> bookings = prefs.getStringList(_bookingsKey) ?? [];
+    final ownerProperties = await getOwnerProperties(ownerId);
+    final ownerPropertyIds =
+        ownerProperties.map((p) => p['id']?.toString() ?? '').toSet();
+
     List<Map<String, dynamic>> allBookings = bookings
-        .map((item) => jsonDecode(item) as Map<String, dynamic>)
+        .map((item) =>
+            _normalizeBooking(jsonDecode(item) as Map<String, dynamic>))
+        .where((b) {
+          final bookingOwner = b['ownerId']?.toString() ??
+              b['ownerEmail']?.toString() ??
+              '';
+          final propertyId = b['propertyId']?.toString() ?? '';
+          return bookingOwner == ownerId ||
+              ownerPropertyIds.contains(propertyId);
+        })
+        .map((b) {
+          final price = double.tryParse(
+                  (b['price'] ?? b['monthlyRent'] ?? '0')
+                      .toString()
+                      .replaceAll(RegExp(r'[^0-9.]'), '')) ??
+              0.0;
+          return {
+            ...b,
+            'propertyTitle': b['title'] ?? b['propertyTitle'] ?? 'عقار',
+            'date': b['requestDate'] ?? b['startDate'] ?? '',
+            'amount': '${price.toStringAsFixed(0)} ج.م',
+            'revenue': b['revenue'] ?? price,
+          };
+        })
         .toList();
 
-    // In a real app, you would filter by property ownerId.
-    // Assuming bookings have property info including ownerId, or we join with properties.
-    // For demo simplicity, we return all bookings if ownerId matches a specific demo owner,
-    // or return a filtered list based on the demo properties we know belong to 'admin'/'owner123'.
-    if (ownerId == 'owner123') {
-      // Return some demo bookings if none exist
-      if (allBookings.isEmpty) {
-        return [
-          {
-            'id': 'b1',
-            'propertyTitle': 'شقة فاخرة بالمعادي',
-            'tenantName': 'أحمد محمد',
-            'date': DateTime.now().toIso8601String(),
-            'amount': '12,000 ج.م',
-            'status': 'active',
-            'revenue': 12000.0,
-          },
-          {
-            'id': 'b2',
-            'propertyTitle': 'فيلا بالتجمع الخامس',
-            'tenantName': 'سارة علي',
-            'date': DateTime.now()
-                .subtract(const Duration(days: 1))
-                .toIso8601String(),
-            'amount': '25,000 ج.م',
-            'status': 'active',
-            'revenue': 25000.0,
-          },
-          {
-            'id': 'b3',
-            'propertyTitle': 'استوديو نصر',
-            'tenantName': 'محمود حسن',
-            'date': DateTime.now()
-                .subtract(const Duration(days: 4))
-                .toIso8601String(),
-            'amount': '8,000 ج.م',
-            'status': 'completed',
-            'revenue': 8000.0,
-          },
-        ];
-      }
-    }
     return allBookings.reversed.toList();
   }
 
@@ -1900,9 +1981,13 @@ class DataService {
 
   // === Property Verification ===
 
-  static bool isPropertyVerified(String propertyId) {
-    // Demo: Specific IDs are verified for 'Ejari' status
-    final verifiedIds = ['1', '3', '5', '7', '10', '15', '20', '27'];
-    return verifiedIds.contains(propertyId);
+  static Future<bool> isPropertyVerified(String propertyId) async {
+    final properties = await getAllProperties(approvedOnly: false);
+    final match = properties.firstWhere(
+      (p) => p['id']?.toString() == propertyId,
+      orElse: () => <String, dynamic>{},
+    );
+    if (match.isEmpty) return false;
+    return match['isVerified'] == true;
   }
 }

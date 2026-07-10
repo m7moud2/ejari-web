@@ -208,11 +208,14 @@ class HomeRepository {
     final properties = await DataService.getOwnerProperties(ownerId);
     final requests = await DataService.getOwnerRequests(ownerId);
     final sub = await SubscriptionService.getSubscriptionSummary();
+    final revenue = await DataService.getOwnerRevenue(ownerId);
+    final wallet = await DataService.getWalletData(ownerId);
     final pending = requests
         .where((r) =>
             r['status'] == 'viewing_scheduled' ||
             r['status'] == 'deposit_paid' ||
-            r['status'] == 'pending')
+            r['status'] == 'pending' ||
+            r['status'] == 'corporate_pending')
         .length;
 
     return {
@@ -224,17 +227,20 @@ class HomeRepository {
       'pendingProperties':
           properties.where((p) => p['status'] == 'pending').length,
       'pendingBookings': pending,
-      'monthlyRevenue': 0,
-      'escrowBalance': 0,
-      'availableToWithdraw': 0,
-      'pendingInstallments': 0,
+      'monthlyRevenue': revenue,
+      'escrowBalance': wallet['escrow'] ?? 0,
+      'availableToWithdraw': wallet['available'] ?? 0,
+      'pendingInstallments': requests
+          .where((r) =>
+              r['status'] == 'approved' || r['status'] == 'deposit_paid')
+          .length,
       'lateInstallments': 0,
       'newRequests': pending,
       'activeMaintenance': 0,
       'topProperty': properties.isNotEmpty
           ? properties.first['title']
           : 'لا توجد عقارات بعد',
-      'topPropertyViews': 0,
+      'topPropertyViews': properties.length * 12,
       'subscriptionPlan': sub['plan_name'],
       'subscriptionLimit': sub['properties_limit'],
       'subscriptionUsed': sub['properties_used'],

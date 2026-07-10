@@ -424,6 +424,7 @@ class _HomeContentState extends State<HomeContent> {
                                     area: property['area'] ?? '0',
                                     listingMode: property['listingMode'],
                                     isDemo: property['isDemo'] ?? false,
+                                    isVerified: property['isVerified'] == true,
                                     supportedDurations: (property['supportedDurations'] as List?)
                                         ?.map((e) => e.toString())
                                         .toList(),
