@@ -308,4 +308,127 @@ class MockDataSeeder {
       },
     ];
   }
+
+  /// سكن مشترك تجريبي للمالك owner@ejari.app — 8 أسرّة، 4 غرف.
+  static Map<String, dynamic> getSharedAccommodationProperty() {
+    final now = DateTime.now();
+    final bedUnits = List.generate(8, (i) {
+      final roomIndex = i ~/ 2;
+      final occupied = i < 5;
+      return {
+        'id': 'bed_${i + 1}',
+        'roomId': 'room_${String.fromCharCode(97 + roomIndex)}',
+        'label': 'سرير ${i + 1} — غرفة ${String.fromCharCode(65 + roomIndex)}',
+        'status': occupied ? 'occupied' : 'vacant',
+        if (occupied)
+          'tenantEmail': 'tenant_${i + 1}@demo.ejari.app',
+        if (occupied)
+          'leaseStart': now.subtract(Duration(days: 15 + i * 3)).toIso8601String(),
+        if (occupied)
+          'leaseEnd': now.add(Duration(days: 30 + i * 5)).toIso8601String(),
+        if (occupied) 'paymentStatus': i == 2 ? 'overdue' : 'paid',
+      };
+    });
+
+    final roomUnits = List.generate(4, (i) {
+      final roomBeds = bedUnits.where((b) => b['roomId'] == 'room_${String.fromCharCode(97 + i)}');
+      final occupiedCount =
+          roomBeds.where((b) => b['status'] == 'occupied').length;
+      return {
+        'id': 'room_${String.fromCharCode(97 + i)}',
+        'label': 'غرفة ${String.fromCharCode(65 + i)}',
+        'bedCount': 2,
+        'occupiedBeds': occupiedCount,
+        'status': occupiedCount == 2
+            ? 'full'
+            : occupiedCount == 0
+                ? 'vacant'
+                : 'partial',
+      };
+    });
+
+    return {
+      'id': 'shared_egy1',
+      'title': 'سكن مشترك مفروش — المعادي (٨ أسرّة)',
+      'price': '2,500',
+      'location': 'المعادي، القاهرة',
+      'governorate': 'القاهرة',
+      'lat': 29.9600,
+      'lng': 31.2700,
+      'image': 'assets/images/home7.jpg',
+      'beds': '8',
+      'baths': '2',
+      'area': '180',
+      'ownerId': 'owner@ejari.app',
+      'ownerEmail': 'owner@ejari.app',
+      'type': 'سكن مشترك',
+      'accommodationType': 'bed',
+      'totalBeds': 8,
+      'totalRooms': 4,
+      'bedUnits': bedUnits,
+      'roomUnits': roomUnits,
+      'amenities': ['واي فاي', 'مطبخ مشترك', 'تكييف', 'أمن 24/7'],
+      'furnished': true,
+      'listingMode': 'rent',
+      'status': 'approved',
+      'isDemo': true,
+      'isFeatured': true,
+      'phone': '01012345678',
+      'supportedDurations': ['يوم', 'أسبوع', 'شهر'],
+      'corporateEligible': false,
+      'dynamicPricing': {
+        'daily': 150,
+        'weekly': 800,
+        'monthly': 2500,
+        'seasonalRate': 2800,
+        'seasonalLabel': 'سعر موسمي',
+        'useManual': true,
+      },
+      'perBedPricing': {
+        'daily': 150,
+        'weekly': 800,
+        'monthly': 2500,
+      },
+      'depositAmount': '500',
+      'depositRate': 0.20,
+    };
+  }
+
+  /// 23 مستأجر تجريبي لإدارة الإشغال.
+  static List<Map<String, dynamic>> getSharedOccupancyTenants() {
+    final now = DateTime.now();
+    final names = [
+      'أحمد محمود', 'سارة علي', 'محمد حسن', 'فاطمة إبراهيم', 'كريم يوسف',
+      'نور الدين', 'ياسمين أحمد', 'عمر خالد', 'مريم سعيد', 'حسام فتحي',
+      'دينا محمد', 'طارق عبد الله', 'رانيا محسن', 'وليد سالم', 'هبة ناصر',
+      'إسلام رضوان', 'ليلى كمال', 'باسم عادل', 'شيماء فاروق', 'مصطفى جمال',
+      'ريham توفيق', 'عبد الرحمن', 'سلma حسين',
+    ];
+    return List.generate(23, (i) {
+      final isOverdue = i == 2 || i == 7 || i == 15;
+      final isLivingWithoutPay = i == 15;
+      final bedNum = (i % 8) + 1;
+      return {
+        'id': 'occ_tenant_$i',
+        'name': names[i],
+        'email': 'tenant_${(i % 8) + 1}@demo.ejari.app',
+        'phone': '010${(10000000 + i).toString().substring(1)}',
+        'propertyId': 'shared_egy1',
+        'bedId': 'bed_$bedNum',
+        'bedLabel': 'سرير $bedNum',
+        'leaseStart': now.subtract(Duration(days: 10 + i)).toIso8601String(),
+        'leaseEnd': now.add(Duration(days: 20 + i * 2)).toIso8601String(),
+        'paymentStatus': isLivingWithoutPay
+            ? 'living_without_pay'
+            : isOverdue
+                ? 'overdue'
+                : 'paid',
+        'preEntryPaid': i != 4,
+        'monthlyRent': 2500,
+        'lastPaymentDate': isOverdue
+            ? now.subtract(const Duration(days: 35)).toIso8601String()
+            : now.subtract(Duration(days: i % 20)).toIso8601String(),
+      };
+    });
+  }
 }

@@ -13,6 +13,7 @@ import '../my_service_requests_screen.dart';
 import '../property_details_screen.dart';
 import '../corporate_command_center_screen.dart';
 import '../request_verification_screen.dart';
+import '../../models/accommodation_type.dart';
 import '../../widgets/trust_score_badge.dart';
 
 class TenantHomeView extends StatelessWidget {
@@ -44,6 +45,8 @@ class TenantHomeView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildSearchCard(context),
+                  const SizedBox(height: AppTheme.spaceSm),
+                  _buildAccommodationFilters(context),
                   const SizedBox(height: AppTheme.spaceMd),
                   if (stats['contextualAction'] != null) ...[
                     _buildContextualAction(context, stats),
@@ -303,6 +306,45 @@ class TenantHomeView extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildAccommodationFilters(BuildContext context) {
+    final filters = [
+      (null, 'الكل'),
+      (AccommodationType.fullUnit.value, AccommodationType.fullUnit.filterLabel),
+      (AccommodationType.sharedRoom.value, AccommodationType.sharedRoom.filterLabel),
+      (AccommodationType.bed.value, AccommodationType.bed.filterLabel),
+    ];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: filters.map((f) {
+          return Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: ActionChip(
+              label: Text(f.$2),
+              backgroundColor: AppTheme.primaryColor.withOpacity(0.08),
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+                color: AppTheme.primaryColor,
+              ),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => SearchResultsScreen(
+                    query: '',
+                    filters: f.$1 != null
+                        ? {'accommodationType': f.$1}
+                        : null,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

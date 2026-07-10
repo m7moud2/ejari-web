@@ -234,6 +234,9 @@ class HomeRepository {
     final subUsed = (sub['properties_used'] as num?)?.toInt() ?? 0;
     final subLimit = (sub['properties_limit'] as num?)?.toInt() ?? -1;
     final nearSubLimit = subLimit > 0 && subUsed >= subLimit - 1;
+    final pendingCollection = await DataService.getPendingCollectionCount(ownerId);
+    final vacantBeds = await DataService.getVacantBeds(ownerId);
+    final overdue = await DataService.getOverduePayments(ownerId);
 
     return {
       'userName': user?['name'] ?? 'المالك',
@@ -263,7 +266,10 @@ class HomeRepository {
           .where((r) =>
               r['status'] == 'approved' || r['status'] == 'deposit_paid')
           .length,
-      'lateInstallments': 0,
+      'lateInstallments': overdue.length,
+      'pendingCollection': pendingCollection,
+      'vacantBeds': vacantBeds,
+      'overdueTenants': overdue,
       'newRequests': pending,
       'activeMaintenance': 0,
       'topProperty': properties.isNotEmpty

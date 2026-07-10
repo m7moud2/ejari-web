@@ -101,4 +101,64 @@ void main() {
       expect(bookings.first['status'], 'deposit_refunded');
     });
   });
+
+  group('Shared accommodation', () {
+    test('initDemoOccupancy seeds 23 tenants for owner', () async {
+      await DataService.initProperties();
+      await DataService.initDemoOccupancy();
+      final tenants =
+          await DataService.getOccupancyTenants('owner@ejari.app');
+      expect(tenants.length, 23);
+    });
+
+    test('getOccupancyCalendar returns vacant beds', () async {
+      await DataService.initProperties();
+      final cal = await DataService.getOccupancyCalendar('shared_egy1');
+      expect(cal['vacantCount'], greaterThan(0));
+      expect(cal['occupiedByDate'], isA<Map>());
+    });
+
+    test('rateTenant and getTenantRating work', () async {
+      await rateTenant();
+      final rating = await DataService.getTenantRating('user@ejari.app');
+      expect(rating['count'], greaterThan(0));
+    });
+
+    test('setDynamicPricing persists', () async {
+      await DataService.initProperties();
+      final result = await DataService.setDynamicPricing(
+        'shared_egy1',
+        daily: 160,
+        weekly: 850,
+        monthly: 2600,
+      );
+      expect(result['daily'], 160);
+      final loaded = await DataService.getDynamicPricing('shared_egy1');
+      expect(loaded?['daily'], 160);
+    });
+
+    test('isPreEntryPaid detects paid status', () {
+      expect(
+        DataService.isPreEntryPaid({
+          'preEntryPaid': true,
+          'depositPaid': true,
+          'firstPeriodPaid': true,
+        }),
+        isTrue,
+      );
+      expect(
+        DataService.isPreEntryPaid({'paymentStatus': 'deposit_paid'}),
+        isFalse,
+      );
+    });
+  });
+}
+
+Future<void> rateTenant() async {
+  await DataService.rateTenant(
+    tenantEmail: 'user@ejari.app',
+    rating: 4.5,
+    paymentReliability: 4.0,
+    ownerEmail: 'owner@ejari.app',
+  );
 }

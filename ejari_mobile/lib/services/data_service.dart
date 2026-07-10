@@ -20,7 +20,7 @@ class DataService {
   static const String _bookingsKey = 'bookings'; // For tenants
   static const String _requestsKey = 'requests'; // For owners (incoming)
   static const String _demoBookingsVersionKey = 'demo_bookings_version';
-  static const int _currentDemoBookingsVersion = 4;
+  static const int _currentDemoBookingsVersion = 5;
   static const String _demoReceiptsVersionKey = 'demo_receipts_version';
   static const int _currentDemoReceiptsVersion = 1;
   static const String _favoritesKey = 'favorites';
@@ -83,7 +83,7 @@ class DataService {
 
   static const String _propsVersionKey = 'properties_version';
   static const int _currentPropsVersion =
-      7; // bumped — merge Egyptian governorate demo catalog
+      8; // bumped — shared accommodation + occupancy demo
 
   /// Seed cross-role demo bookings so owner dashboard shows real pending requests.
   static Future<void> initDemoBookings() async {
@@ -726,10 +726,14 @@ class DataService {
 
     final merged = _mergePropertyCatalog(
       defaults,
-      MockDataSeeder.getEgyptianProperties(),
+      [
+        ...MockDataSeeder.getEgyptianProperties(),
+        MockDataSeeder.getSharedAccommodationProperty(),
+      ],
     );
     await prefs.setStringList(
         _propertiesKey, merged.map((e) => jsonEncode(e)).toList());
+    await initDemoOccupancy();
   }
 
   static List<Map<String, dynamic>> _mergePropertyCatalog(
@@ -790,6 +794,14 @@ class DataService {
       'corporateEligible': p['corporateEligible'] ?? false,
       'lat': p['lat'],
       'lng': p['lng'],
+      'accommodationType': p['accommodationType'] ?? 'full_unit',
+      'totalBeds': p['totalBeds'],
+      'totalRooms': p['totalRooms'],
+      'bedUnits': p['bedUnits'] ?? [],
+      'roomUnits': p['roomUnits'] ?? [],
+      'dynamicPricing': p['dynamicPricing'],
+      'perBedPricing': p['perBedPricing'],
+      'depositAmount': p['depositAmount'],
     };
   }
 
@@ -3406,5 +3418,397 @@ class DataService {
           (((base['totalRevenue'] as num?)?.toDouble() ?? 0) * 0.28).round(),
       'systemAlerts': openDisputes + pendingPayments,
     };
+  }
+
+  // === Shared accommodation & occupancy ===
+
+  static const String _occupancyTenantsKey = 'occupancy_tenants_v1';
+  static const String _tenantRatingsKey = 'tenant_ratings_v1';
+  static const String _dynamicPricingKey = 'dynamic_pricing_v1';
+  static const String _occupancyVersionKey = 'occupancy_demo_version';
+  static const int _currentOccupancyVersion = 1;
+
+  static Future<void> initDemoOccupancy() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getInt(_occupancyVersionKey) ?? 0;
+    if (saved >= _currentOccupancyVersion) return;
+    await prefs.setInt(_occupancyVersionKey, _currentOccupancyVersion);
+    final tenants = MockDataSeeder.getSharedOccupancyTenants();
+    await prefs.setStringList(
+      _occupancyTenantsKey,
+      tenants.map(jsonEncode).toList(),
+    );
+  }
+
+  static Future<List<Map<String, dynamic>>> getOccupancyTenants(
+    String ownerId, {
+    String? propertyId,
+  }) async {
+    await initDemoOccupancy();
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList(_occupancyTenantsKey) ?? [];
+    var list = raw
+        .map((e) => Map<String, dynamic>.from(jsonDecode(e) as Map))
+        .toList();
+    if (propertyId != null) {
+      list = list.where((t) => t['propertyId']?.toString() == propertyId).toList();
+    }
+    if (list.isEmpty && ownerId == 'owner@ejari.app') {
+      return MockDataSeeder.getSharedOccupancyTenants();
+    }
+    return list;
+  }
+
+  static Future<Map<String, dynamic>> getOccupancyCalendar(
+    String propertyId, {
+    int? year,
+    int? month,
+  }) async {
+    final now = DateTime.now();
+    final y = year ?? now.year;
+    final m = month ?? now.month;
+    final property = await _findPropertyById(propertyId);
+    final bedUnits = List<Map<String, dynamic>>.from(
+      property?['bedUnits'] as List? ?? [],
+    );
+    final bookings = await _getAllBookingsRaw();
+    final occupiedByDate = <String, List<String>>{};
+    final vacantBeds = <String>[];
+
+    for (final bed in bedUnits) {
+      if (bed['status'] == 'vacant') {
+        vacantBeds.add(bed['label']?.toString() ?? bed['id']?.toString() ?? '');
+        continue;
+      }
+      final start = DateTime.tryParse(bed['leaseStart']?.toString() ?? '') ??
+          now.subtract(const Duration(days: 5));
+      final end = DateTime.tryParse(bed['leaseEnd']?.toString() ?? '') ??
+          now.add(const Duration(days: 30));
+      for (var d = start; !d.isAfter(end); d = d.add(const Duration(days: 1))) {
+        if (d.year == y && d.month == m) {
+          final key =
+              '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+          occupiedByDate.putIfAbsent(key, () => []);
+          occupiedByDate[key]!.add(bed['label']?.toString() ?? '');
+        }
+      }
+    }
+
+    for (final b in bookings) {
+      if (b['propertyId']?.toString() != propertyId) continue;
+      final start = DateTime.tryParse(
+            b['leaseStartDate']?.toString() ??
+                b['checkInDate']?.toString() ??
+                b['startDate']?.toString() ??
+                '',
+          ) ??
+          now;
+      final end = DateTime.tryParse(
+            b['leaseEndDate']?.toString() ?? b['endDate']?.toString() ?? '',
+          ) ??
+          start.add(const Duration(days: 30));
+      final label = b['bedLabel']?.toString() ?? b['title']?.toString() ?? 'حجز';
+      for (var d = start; !d.isAfter(end); d = d.add(const Duration(days: 1))) {
+        if (d.year == y && d.month == m) {
+          final key =
+              '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+          occupiedByDate.putIfAbsent(key, () => []);
+          if (!occupiedByDate[key]!.contains(label)) {
+            occupiedByDate[key]!.add(label);
+          }
+        }
+      }
+    }
+
+    return {
+      'year': y,
+      'month': m,
+      'occupiedByDate': occupiedByDate,
+      'vacantBedLabels': vacantBeds,
+      'totalBeds': bedUnits.length,
+      'vacantCount': vacantBeds.length,
+      'occupiedCount': bedUnits.length - vacantBeds.length,
+    };
+  }
+
+  static Future<List<Map<String, dynamic>>> getOverduePayments(
+    String ownerId,
+  ) async {
+    final tenants = await getOccupancyTenants(ownerId);
+    final requests = await getOwnerRequests(ownerId);
+    final overdue = <Map<String, dynamic>>[];
+
+    for (final t in tenants) {
+      final status = t['paymentStatus']?.toString() ?? '';
+      if (status == 'overdue' || status == 'living_without_pay') {
+        overdue.add({...t, 'source': 'occupancy'});
+      }
+    }
+
+    for (final r in requests) {
+      final prePaid = isPreEntryPaid(r);
+      final isLate = r['status'] == 'deposit_paid' &&
+          (int.tryParse((r['paidMonths'] ?? '0').toString()) ?? 0) == 0;
+      if (!prePaid || isLate) {
+        overdue.add({
+          'id': r['id'],
+          'name': r['tenantName'] ?? 'مستأجر',
+          'email': r['tenantEmail'] ?? '',
+          'property': r['title'] ?? '',
+          'paymentStatus': !prePaid ? 'pre_entry_pending' : 'overdue',
+          'preEntryPaid': prePaid,
+          'monthlyRent': BookingValidator.parsePrice(
+            r['monthlyRent'] ?? r['price'],
+          ),
+          'source': 'booking',
+        });
+      }
+    }
+    return overdue;
+  }
+
+  static bool isPreEntryPaid(Map<String, dynamic> booking) {
+    if (booking['preEntryPaid'] == true) return true;
+    if (booking['preEntryStatus'] == 'paid') return true;
+    final depositPaid = booking['depositPaid'] == true ||
+        booking['paymentStatus'] == 'pre_entry_paid' ||
+        booking['paymentStatus'] == 'paid' ||
+        booking['status'] == BookingStatus.paid ||
+        booking['status'] == BookingStatus.active;
+    final firstPeriodPaid = booking['firstPeriodPaid'] == true ||
+        booking['preEntryPaid'] == true;
+    return depositPaid && firstPeriodPaid;
+  }
+
+  static String preEntryLabel(Map<String, dynamic> booking) {
+    return isPreEntryPaid(booking)
+        ? 'مدفوع قبل الدخول ✓'
+        : 'لم يُحصّل';
+  }
+
+  static Future<int> getPendingCollectionCount(String ownerId) async {
+    final overdue = await getOverduePayments(ownerId);
+    return overdue.length;
+  }
+
+  static Future<List<Map<String, dynamic>>> getVacantBeds(
+    String ownerId,
+  ) async {
+    final properties = await getOwnerProperties(ownerId);
+    final vacant = <Map<String, dynamic>>[];
+    for (final p in properties) {
+      final accType = p['accommodationType']?.toString() ?? 'full_unit';
+      if (accType == 'full_unit') continue;
+      final beds = List<Map<String, dynamic>>.from(p['bedUnits'] as List? ?? []);
+      for (final bed in beds) {
+        if (bed['status'] == 'vacant') {
+          vacant.add({
+            'propertyId': p['id'],
+            'propertyTitle': p['title'],
+            'bedId': bed['id'],
+            'bedLabel': bed['label'],
+            'accommodationType': accType,
+            'price': p['price'],
+          });
+        }
+      }
+      final rooms = List<Map<String, dynamic>>.from(p['roomUnits'] as List? ?? []);
+      for (final room in rooms) {
+        if (room['status'] == 'vacant') {
+          vacant.add({
+            'propertyId': p['id'],
+            'propertyTitle': p['title'],
+            'roomId': room['id'],
+            'roomLabel': room['label'],
+            'accommodationType': 'shared_room',
+            'price': p['price'],
+          });
+        }
+      }
+    }
+    return vacant;
+  }
+
+  static Future<Map<String, dynamic>> setDynamicPricing(
+    String propertyId, {
+    double? daily,
+    double? weekly,
+    double? monthly,
+    double? seasonalRate,
+    String? seasonalLabel,
+    bool useManual = true,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList(_dynamicPricingKey) ?? [];
+    final pricing = {
+      'propertyId': propertyId,
+      'daily': daily,
+      'weekly': weekly,
+      'monthly': monthly,
+      'seasonalRate': seasonalRate,
+      'seasonalLabel': seasonalLabel ?? 'سعر موسمي',
+      'useManual': useManual,
+      'updatedAt': DateTime.now().toIso8601String(),
+    };
+    final updated = raw.where((e) {
+      final m = jsonDecode(e) as Map<String, dynamic>;
+      return m['propertyId']?.toString() != propertyId;
+    }).toList();
+    updated.add(jsonEncode(pricing));
+    await prefs.setStringList(_dynamicPricingKey, updated);
+
+    final props = prefs.getStringList(_propertiesKey) ?? [];
+    final newProps = props.map((p) {
+      final data = jsonDecode(p) as Map<String, dynamic>;
+      if (data['id']?.toString() == propertyId) {
+        data['dynamicPricing'] = pricing;
+      }
+      return jsonEncode(data);
+    }).toList();
+    await prefs.setStringList(_propertiesKey, newProps);
+    return pricing;
+  }
+
+  static Future<Map<String, dynamic>?> getDynamicPricing(String propertyId) async {
+    final property = await _findPropertyById(propertyId);
+    if (property?['dynamicPricing'] != null) {
+      return Map<String, dynamic>.from(property!['dynamicPricing'] as Map);
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList(_dynamicPricingKey) ?? [];
+    for (final e in raw) {
+      final m = Map<String, dynamic>.from(jsonDecode(e) as Map);
+      if (m['propertyId']?.toString() == propertyId) return m;
+    }
+    return null;
+  }
+
+  static double resolveApplicablePrice(
+    Map<String, dynamic> property, {
+    String durationType = 'شهر',
+    bool useSeasonal = false,
+  }) {
+    final dynamicPricing = property['dynamicPricing'] as Map<String, dynamic>?;
+    if (dynamicPricing != null && dynamicPricing['useManual'] == true) {
+      if (useSeasonal && dynamicPricing['seasonalRate'] != null) {
+        return (dynamicPricing['seasonalRate'] as num).toDouble();
+      }
+      switch (durationType) {
+        case 'يوم':
+          return (dynamicPricing['daily'] as num?)?.toDouble() ?? 0;
+        case 'أسبوع':
+          return (dynamicPricing['weekly'] as num?)?.toDouble() ?? 0;
+        default:
+          return (dynamicPricing['monthly'] as num?)?.toDouble() ??
+              BookingValidator.parsePrice(property['price']);
+      }
+    }
+    final perBed = property['perBedPricing'] as Map<String, dynamic>?;
+    if (perBed != null && isSharedAccommodation(property)) {
+      switch (durationType) {
+        case 'يوم':
+          return (perBed['daily'] as num?)?.toDouble() ?? 0;
+        case 'أسبوع':
+          return (perBed['weekly'] as num?)?.toDouble() ?? 0;
+        default:
+          return (perBed['monthly'] as num?)?.toDouble() ??
+              BookingValidator.parsePrice(property['price']);
+      }
+    }
+    return BookingValidator.parsePrice(property['price']);
+  }
+
+  static bool isSharedAccommodation(Map<String, dynamic> property) {
+    final t = property['accommodationType']?.toString() ?? 'full_unit';
+    return t == 'shared_room' || t == 'bed';
+  }
+
+  static Future<Map<String, dynamic>> rateTenant({
+    required String tenantEmail,
+    required double rating,
+    double? paymentReliability,
+    String? notes,
+    String? bookingId,
+    String? ownerEmail,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList(_tenantRatingsKey) ?? [];
+    final entry = {
+      'tenantEmail': tenantEmail,
+      'rating': rating.clamp(1.0, 5.0),
+      'paymentReliability': (paymentReliability ?? rating).clamp(1.0, 5.0),
+      'notes': notes ?? '',
+      'bookingId': bookingId,
+      'ownerEmail': ownerEmail,
+      'createdAt': DateTime.now().toIso8601String(),
+    };
+    raw.add(jsonEncode(entry));
+    await prefs.setStringList(_tenantRatingsKey, raw);
+
+    await addNotificationToUser(
+      tenantEmail,
+      'تقييم جديد من المالك ⭐',
+      'قام المالك بتقييمك — موثوقية الدفع: ${entry['paymentReliability']}/5',
+      type: 'tenant_rating',
+    );
+    return entry;
+  }
+
+  static Future<Map<String, dynamic>> getTenantRating(String tenantEmail) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getStringList(_tenantRatingsKey) ?? [];
+    final ratings = raw
+        .map((e) => Map<String, dynamic>.from(jsonDecode(e) as Map))
+        .where((r) => r['tenantEmail']?.toString() == tenantEmail)
+        .toList();
+    if (ratings.isEmpty) {
+      return {
+        'averageRating': 0.0,
+        'paymentReliability': 0.0,
+        'count': 0,
+        'trustImpact': 'غير مقيّم',
+      };
+    }
+    final avgRating = ratings
+            .map((r) => (r['rating'] as num?)?.toDouble() ?? 0)
+            .reduce((a, b) => a + b) /
+        ratings.length;
+    final avgPayment = ratings
+            .map((r) => (r['paymentReliability'] as num?)?.toDouble() ?? 0)
+            .reduce((a, b) => a + b) /
+        ratings.length;
+    return {
+      'averageRating': avgRating,
+      'paymentReliability': avgPayment,
+      'count': ratings.length,
+      'trustImpact': avgPayment >= 4
+          ? 'موثوق'
+          : avgPayment >= 3
+              ? 'متوسط'
+              : 'منخفض — احذر',
+    };
+  }
+
+  static Future<bool> sendPaymentReminder({
+    required String tenantEmail,
+    required String bookingId,
+    String? ownerEmail,
+  }) async {
+    await addNotificationToUser(
+      tenantEmail,
+      'تذكير بدفع الإيجار 💳',
+      'لديك دفعة مستحقة — يرجى السداد قبل موعد الدخول لتجنب إلغاء الحجز.',
+      type: 'payment_reminder',
+      refId: bookingId,
+    );
+    if (ownerEmail != null) {
+      await addNotificationToUser(
+        ownerEmail,
+        'تم إرسال تذكير',
+        'أُرسل تذكير دفع للمستأجر $tenantEmail',
+        type: 'payment_reminder',
+      );
+    }
+    return true;
   }
 }

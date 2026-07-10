@@ -7,6 +7,8 @@ import '../providers/property_provider.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import '../services/subscription_service.dart';
+import '../models/accommodation_type.dart';
+import '../widgets/ejari_section.dart';
 import 'listing_plans_screen.dart';
 
 class AddPropertyScreen extends StatefulWidget {
@@ -25,6 +27,14 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   double price = 0.0;
   String city = '';
   String _listingMode = 'rent';
+  AccommodationType _accommodationType = AccommodationType.fullUnit;
+  int _totalBeds = 2;
+  int _totalRooms = 1;
+  double _priceDaily = 0;
+  double _priceWeekly = 0;
+  double _priceMonthly = 0;
+  double _seasonalRate = 0;
+  bool _useManualPricing = false;
 
   File? _selectedImage;
   File? _selectedVideo;
@@ -42,6 +52,19 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       description = widget.initialData!['description'] ?? '';
       price = (widget.initialData!['price'] ?? 0).toDouble();
       city = widget.initialData!['location'] ?? '';
+      _accommodationType = accommodationTypeFromProperty(widget.initialData!);
+      _totalBeds = (widget.initialData!['totalBeds'] as num?)?.toInt() ??
+          int.tryParse(widget.initialData!['beds']?.toString() ?? '2') ??
+          2;
+      _totalRooms = (widget.initialData!['totalRooms'] as num?)?.toInt() ?? 1;
+      final dp = widget.initialData!['dynamicPricing'] as Map<String, dynamic>?;
+      if (dp != null) {
+        _useManualPricing = dp['useManual'] == true;
+        _priceDaily = (dp['daily'] as num?)?.toDouble() ?? 0;
+        _priceWeekly = (dp['weekly'] as num?)?.toDouble() ?? 0;
+        _priceMonthly = (dp['monthly'] as num?)?.toDouble() ?? price;
+        _seasonalRate = (dp['seasonalRate'] as num?)?.toDouble() ?? 0;
+      }
     }
   }
 
@@ -114,25 +137,70 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     final ownerId = user?['email']?.toString() ?? user?['uid']?.toString() ?? 'owner@ejari.app';
     final autoFeature = await SubscriptionService.shouldAutoFeature();
 
+    final bedUnits = List.generate(_totalBeds, (i) {
+      final roomIndex = i ~/ (_totalBeds / _totalRooms).ceil().clamp(1, _totalBeds);
+      return {
+        'id': 'bed_${i + 1}',
+        'roomId': 'room_${String.fromCharCode(97 + roomIndex.clamp(0, 25))}',
+        'label': 'سرير ${i + 1}',
+        'status': 'vacant',
+      };
+    });
+    final roomUnits = List.generate(_totalRooms, (i) => {
+          'id': 'room_${String.fromCharCode(97 + i)}',
+          'label': 'غرفة ${String.fromCharCode(65 + i)}',
+          'bedCount': (_totalBeds / _totalRooms).ceil(),
+          'occupiedBeds': 0,
+          'status': 'vacant',
+        });
+
+    final monthlyPrice = _useManualPricing && _priceMonthly > 0
+        ? _priceMonthly
+        : price;
+
     final newProperty = {
       'title': title,
       'description': description,
-      'price': price.toStringAsFixed(0),
-      'type': _listingMode == 'for_sale' ? 'شقق' : 'شقق',
+      'price': monthlyPrice.toStringAsFixed(0),
+      'type': _accommodationType == AccommodationType.fullUnit
+          ? 'شقق'
+          : 'سكن مشترك',
       'listingMode': _listingMode,
-      'listingType': _listingMode,
+      'accommodationType': _accommodationType.value,
       'location': city,
       'governorate': city.split('،').last.trim(),
       'image': _selectedImage?.path ?? 'assets/images/home1.jpg',
-      'beds': '2',
+      'beds': _totalBeds.toString(),
       'baths': '1',
       'area': '120',
+      'totalBeds': _totalBeds,
+      'totalRooms': _totalRooms,
+      'bedUnits': bedUnits,
+      'roomUnits': roomUnits,
       'ownerId': ownerId,
       'ownerEmail': ownerId,
-      'features': {'bedrooms': 2, 'bathrooms': 1, 'area': 120},
+      'features': {'bedrooms': _totalBeds, 'bathrooms': 1, 'area': 120},
       'status': 'pending',
       'isFeatured': autoFeature,
-      'supportedDurations': _listingMode == 'for_sale' ? <String>[] : ['شهر', 'سنة'],
+      'supportedDurations': _listingMode == 'for_sale'
+          ? <String>[]
+          : ['يوم', 'أسبوع', 'شهر'],
+      if (_useManualPricing)
+        'dynamicPricing': {
+          'daily': _priceDaily,
+          'weekly': _priceWeekly,
+          'monthly': _priceMonthly > 0 ? _priceMonthly : monthlyPrice,
+          'seasonalRate': _seasonalRate > 0 ? _seasonalRate : null,
+          'seasonalLabel': 'سعر موسمي',
+          'useManual': true,
+        },
+      if (_accommodationType != AccommodationType.fullUnit)
+        'perBedPricing': {
+          'daily': _priceDaily > 0 ? _priceDaily : monthlyPrice * 0.05,
+          'weekly': _priceWeekly > 0 ? _priceWeekly : monthlyPrice * 0.28,
+          'monthly': monthlyPrice,
+        },
+      'depositAmount': (monthlyPrice * 0.2).toStringAsFixed(0),
     };
 
     try {
@@ -217,6 +285,103 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     ],
                   ),
                   const SizedBox(height: 24),
+                  if (_listingMode == 'rent') ...[
+                    _buildSectionTitle('نوع الوحدة'),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: AccommodationType.values.map((t) {
+                        final selected = _accommodationType == t;
+                        return ChoiceChip(
+                          label: Text(t.arabicLabel),
+                          selected: selected,
+                          selectedColor:
+                              AppTheme.primaryColor.withOpacity(0.15),
+                          onSelected: (_) =>
+                              setState(() => _accommodationType = t),
+                        );
+                      }).toList(),
+                    ),
+                    if (_accommodationType != AccommodationType.fullUnit) ...[
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextField(
+                              label: 'عدد الأسرّة',
+                              hint: '8',
+                              initialValue: _totalBeds.toString(),
+                              isNumber: true,
+                              onSaved: (v) =>
+                                  _totalBeds = int.tryParse(v ?? '') ?? 2,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildTextField(
+                              label: 'عدد الغرف',
+                              hint: '4',
+                              initialValue: _totalRooms.toString(),
+                              isNumber: true,
+                              onSaved: (v) =>
+                                  _totalRooms = int.tryParse(v ?? '') ?? 1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    SwitchListTile(
+                      title: const Text('تسعير يدوي (يومي/أسبوعي/شهري)'),
+                      subtitle: const Text('أو اتركه للتسعير التلقائي'),
+                      value: _useManualPricing,
+                      activeColor: AppTheme.primaryColor,
+                      onChanged: (v) => setState(() => _useManualPricing = v),
+                    ),
+                    if (_useManualPricing) ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildTextField(
+                              label: 'يومي (ج.م)',
+                              hint: '150',
+                              initialValue: _priceDaily > 0
+                                  ? _priceDaily.toStringAsFixed(0)
+                                  : '',
+                              isNumber: true,
+                              onSaved: (v) =>
+                                  _priceDaily = double.tryParse(v ?? '') ?? 0,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildTextField(
+                              label: 'أسبوعي (ج.م)',
+                              hint: '800',
+                              initialValue: _priceWeekly > 0
+                                  ? _priceWeekly.toStringAsFixed(0)
+                                  : '',
+                              isNumber: true,
+                              onSaved: (v) =>
+                                  _priceWeekly = double.tryParse(v ?? '') ?? 0,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      _buildTextField(
+                        label: 'سعر موسمي (اختياري)',
+                        hint: '2800',
+                        initialValue: _seasonalRate > 0
+                            ? _seasonalRate.toStringAsFixed(0)
+                            : '',
+                        isNumber: true,
+                        onSaved: (v) =>
+                            _seasonalRate = double.tryParse(v ?? '') ?? 0,
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                  ],
                   _buildSectionTitle('المعلومات الأساسية'),
                   _buildTextField(
                     label: 'عنوان الإعلان',

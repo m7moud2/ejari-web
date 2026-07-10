@@ -5,6 +5,7 @@ import '../../theme/app_theme.dart';
 import '../../widgets/ejari_section.dart';
 import '../add_property_screen.dart';
 import '../owner_collection_screen.dart';
+import '../owner_occupancy_screen.dart';
 import '../my_contracts_screen.dart';
 import '../maintenance_requests_screen.dart';
 import '../wallet_screen.dart';
@@ -73,6 +74,15 @@ class OwnerHomeView extends StatelessWidget {
                 const SizedBox(height: AppTheme.spaceSm),
                 const OwnerBookingRequestsPanel(),
                 const SizedBox(height: AppTheme.spaceLg),
+                if ((stats['vacantBeds'] as List?)?.isNotEmpty == true) ...[
+                  const EjariSectionHeader(
+                    title: 'أماكن فاضية',
+                    subtitle: 'أسرّة وغرف متاحة — اعرضها للمستأجرين',
+                  ),
+                  const SizedBox(height: AppTheme.spaceSm),
+                  _buildVacantBedsSection(context, stats),
+                  const SizedBox(height: AppTheme.spaceLg),
+                ],
                 const EjariSectionHeader(
                   title: 'أداء العقارات',
                   subtitle: 'أفضل الوحدات ومشاهداتها',
@@ -191,6 +201,8 @@ class OwnerHomeView extends StatelessWidget {
             children: [
               _heroMetric('عقارات', '${stats['propertiesCount'] ?? 0}'),
               _heroMetric('حجوزات جديدة', '${stats['pendingBookings'] ?? 0}'),
+              if ((stats['pendingCollection'] ?? 0) > 0)
+                _heroMetric('تحصيل معلّق', '${stats['pendingCollection']}'),
               _heroMetric('الباقة', stats['subscriptionPlan']?.toString() ?? 'مجاني'),
             ],
           ),
@@ -504,6 +516,11 @@ class OwnerHomeView extends StatelessWidget {
         const AddPropertyScreen(),
       ),
       (
+        'إدارة الإشغال',
+        Icons.bed_rounded,
+        const OwnerOccupancyScreen(),
+      ),
+      (
         'تحصيل الإيجارات',
         Icons.receipt_long,
         const OwnerCollectionScreen(),
@@ -629,6 +646,50 @@ class OwnerHomeView extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildVacantBedsSection(
+    BuildContext context,
+    Map<String, dynamic> stats,
+  ) {
+    final vacant =
+        List<Map<String, dynamic>>.from(stats['vacantBeds'] as List? ?? []);
+    return EjariSurfaceCard(
+      child: Column(
+        children: vacant.take(4).map((v) {
+          return ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.accentColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.bed_outlined, color: AppTheme.primaryColor),
+            ),
+            title: Text(
+              v['bedLabel'] ?? v['roomLabel'] ?? 'سرير',
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+            ),
+            subtitle: Text(
+              v['propertyTitle']?.toString() ?? '',
+              style: const TextStyle(fontSize: 11),
+            ),
+            trailing: TextButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => OwnerOccupancyScreen(
+                    propertyId: v['propertyId']?.toString(),
+                  ),
+                ),
+              ),
+              child: const Text('عرض للمستأجرين'),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

@@ -39,6 +39,7 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
         user?['uid']?.toString() ??
         'owner@ejari.app';
     final requests = await DataService.getOwnerRequests(ownerId);
+    final occupancyTenants = await DataService.getOccupancyTenants(ownerId);
     final active = requests
         .where((r) =>
             r['status'] == 'approved' ||
@@ -51,6 +52,36 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
     double expected = 0;
     double collected = 0;
     double late = 0;
+
+    for (final t in occupancyTenants) {
+      final rent = (t['monthlyRent'] as num?)?.toDouble() ?? 2500;
+      expected += rent;
+      final status = t['paymentStatus']?.toString() ?? '';
+      final isLate = status == 'overdue' || status == 'living_without_pay';
+      if (status == 'paid') {
+        collected += rent;
+      } else if (isLate) {
+        late += rent;
+      }
+      tenants.add({
+        'name': t['name'] ?? 'مستأجر',
+        'email': t['email'] ?? '',
+        'property': t['bedLabel'] ?? 'سرير',
+        'status': isLate ? 'Late' : 'Paid',
+        'lateAmount': isLate ? rent : 0.0,
+        'preEntryLabel': t['preEntryPaid'] == true
+            ? 'مدفوع قبل الدخول ✓'
+            : 'لم يُحصّل',
+        'nextDueDate': DateTime.tryParse(t['leaseEnd']?.toString() ?? '') ??
+            DateTime.now().add(const Duration(days: 15)),
+        'lastPayment': DateTime.tryParse(
+                t['lastPaymentDate']?.toString() ?? '') ??
+            DateTime.now().subtract(const Duration(days: 10)),
+        'rent': rent,
+        'id': t['id'],
+        'isRedFlag': status == 'living_without_pay',
+      });
+    }
 
     for (final r in active) {
       final rent = double.tryParse(
@@ -291,6 +322,32 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
               ),
             ],
           ),
+          if (tenant['preEntryLabel'] != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              tenant['preEntryLabel'].toString(),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                color: tenant['preEntryLabel']
+                        .toString()
+                        .contains('✓')
+                    ? AppTheme.primaryColor
+                    : AppTheme.errorColor,
+              ),
+            ),
+          ],
+          if (tenant['isRedFlag'] == true) ...[
+            const SizedBox(height: 6),
+            const Text(
+              '🚩 يسكن بدون دفع',
+              style: TextStyle(
+                color: AppTheme.errorColor,
+                fontWeight: FontWeight.w900,
+                fontSize: 11,
+              ),
+            ),
+          ],
           if (isLate) ...[
             const SizedBox(height: 10),
             _miniInfo('المبلغ المتأخر', '${tenant['lateAmount']} ج.م'),
@@ -375,12 +432,10 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
   }
 
   Future<void> _sendReminder(Map<String, dynamic> tenant) async {
-    final rent = tenant['rent'] as double? ?? 0;
     final tenantEmail = tenant['email']?.toString() ?? 'user@ejari.app';
-    await DataService.addNotificationToUser(
-      tenantEmail,
-      'تذكير بسداد الإيجار 📅',
-      'يرجى سداد إيجار ${tenant['property']} (${rent.toStringAsFixed(0)} ج.م) قبل ${DateFormat('yyyy/MM/dd').format(tenant['nextDueDate'] as DateTime)}.',
+    await DataService.sendPaymentReminder(
+      tenantEmail: tenantEmail,
+      bookingId: tenant['id']?.toString() ?? '',
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(

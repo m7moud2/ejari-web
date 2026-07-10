@@ -15,9 +15,10 @@ import '../config/app_config.dart';
 import '../services/auth_service.dart';
 import '../widgets/ejari_image.dart';
 import '../widgets/ejari_section.dart';
+import '../models/accommodation_type.dart';
 import '../models/listing_type.dart';
+import '../widgets/occupancy_calendar_widget.dart';
 import '../widgets/rental_booking_widgets.dart';
-import '../utils/rental_pricing.dart';
 import 'map_search_screen.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
@@ -34,6 +35,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   int _reviewsCount = 24;
   bool _isFavorite = false;
   List<Map<String, dynamic>> _marketTrends = [];
+  Map<String, dynamic> _occupancyCalendar = {};
+  String? _selectedBedId;
 
   bool _isNetworkImage(String value) {
     final uri = Uri.tryParse(value.trim());
@@ -56,12 +59,19 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           await DataService.isFavorite(widget.property['title'] ?? '');
       final trends =
           await DataService.getMarketTrends(widget.property['location'] ?? '');
+      Map<String, dynamic> calendar = {};
+      if (DataService.isSharedAccommodation(widget.property)) {
+        calendar = await DataService.getOccupancyCalendar(
+          id,
+        );
+      }
 
       setState(() {
         _averageRating = stats['average'] as double? ?? 0.0;
         _reviewsCount = stats['count'] as int? ?? 0;
         _isFavorite = favoriteStatus;
         _marketTrends = trends;
+        _occupancyCalendar = calendar;
       });
     } catch (_) {}
   }
@@ -212,6 +222,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   Widget build(BuildContext context) {
     final property = widget.property;
     final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     final imageUrl = property['image']?.toString() ?? '';
     final title = property['title']?.toString() ?? 'عقار مميز';
     final location =
@@ -460,47 +471,150 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             ] else ...[
                               const SizedBox(height: 6),
                               Builder(builder: (context) {
-                                final monthly = double.tryParse(
-                                      price.replaceAll(RegExp(r'[^0-9.]'), ''),
-                                    ) ??
-                                    0;
+                                final accType =
+                                    accommodationTypeFromProperty(property);
+                                final monthly = DataService.resolveApplicablePrice(
+                                  property,
+                                  durationType: 'شهر',
+                                );
+                                final daily = DataService.resolveApplicablePrice(
+                                  property,
+                                  durationType: 'يوم',
+                                );
+                                final weekly = DataService.resolveApplicablePrice(
+                                  property,
+                                  durationType: 'أسبوع',
+                                );
+                                final dp = property['dynamicPricing']
+                                    as Map<String, dynamic>?;
                                 if (monthly <= 0) {
                                   return const Text(
-                                    'الأسعار اليومية/الأسبوعية تظهر عند الحجز حسب المدة المختارة',
+                                    'الأسعار اليومية/الأسبوعية تظهر عند الحجز',
                                     style: TextStyle(
-                                        fontSize: 12, color: AppTheme.textSecondary),
+                                        fontSize: 12,
+                                        color: AppTheme.textSecondary),
                                   );
                                 }
-                                final daily =
-                                    RentalPricing.rentForShortPeriod(monthly, 1);
-                                final weekly =
-                                    RentalPricing.rentForShortPeriod(monthly, 7);
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    if (accType != AccommodationType.fullUnit)
+                                      Padding(
+                                        padding: const EdgeInsets.only(bottom: 6),
+                                        child: Text(
+                                          accType.arabicLabel,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w800,
+                                            color: AppTheme.primaryColor,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
                                     Text(
-                                      'يومي مميز: من ${daily.toStringAsFixed(0)} ج.م/يوم',
+                                      'يومي: ${daily.toStringAsFixed(0)} ج.م/يوم',
                                       style: const TextStyle(
                                           fontSize: 12,
                                           color: AppTheme.textSecondary),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      'باقة أسبوع: من ${weekly.toStringAsFixed(0)} ج.م',
+                                      'أسبوعي: ${weekly.toStringAsFixed(0)} ج.م',
                                       style: const TextStyle(
                                           fontSize: 12,
                                           color: AppTheme.textSecondary),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      'شهري كامل: ${monthly.toStringAsFixed(0)} ج.م (من ٣٠ يوماً)',
+                                      'شهري: ${monthly.toStringAsFixed(0)} ج.م',
                                       style: const TextStyle(
                                           fontSize: 12,
                                           color: AppTheme.textSecondary),
                                     ),
+                                    if (dp?['seasonalRate'] != null) ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${dp!['seasonalLabel'] ?? 'سعر موسمي'}: ${(dp['seasonalRate'] as num).toStringAsFixed(0)} ج.م',
+                                        style: const TextStyle(
+                                            fontSize: 12,
+                                            color: AppTheme.accentColor,
+                                            fontWeight: FontWeight.w700),
+                                      ),
+                                    ],
+                                    if (property['depositAmount'] != null) ...[
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'عربون (إسكرو): ${property['depositAmount']} ج.م',
+                                        style: const TextStyle(
+                                            fontSize: 11,
+                                            color: AppTheme.textSecondary),
+                                      ),
+                                    ],
                                   ],
                                 );
                               }),
+                            ],
+                            if (DataService.isSharedAccommodation(property)) ...[
+                              const SizedBox(height: AppTheme.spaceMd),
+                              const EjariSectionHeader(
+                                title: 'اختر السرير',
+                                subtitle: 'الأسرّة الفاضية متاحة للحجز',
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: List<Map<String, dynamic>>.from(
+                                  property['bedUnits'] as List? ?? [],
+                                ).map((bed) {
+                                  final vacant = bed['status'] == 'vacant';
+                                  final selected =
+                                      _selectedBedId == bed['id']?.toString();
+                                  return ChoiceChip(
+                                    label: Text(bed['label']?.toString() ?? ''),
+                                    selected: selected,
+                                    onSelected: vacant
+                                        ? (_) => setState(() =>
+                                            _selectedBedId =
+                                                bed['id']?.toString())
+                                        : null,
+                                    avatar: Icon(
+                                      vacant ? Icons.bed_outlined : Icons.bed,
+                                      size: 16,
+                                      color: vacant
+                                          ? AppTheme.primaryColor
+                                          : AppTheme.textSecondary,
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                              if (_occupancyCalendar.isNotEmpty) ...[
+                                const SizedBox(height: AppTheme.spaceMd),
+                                const EjariSectionHeader(
+                                  title: 'تقويم الإشغال',
+                                  subtitle: 'تحقق من التوفر قبل الحجز',
+                                ),
+                                const SizedBox(height: 8),
+                                OccupancyCalendarWidget(
+                                  year: DateTime.now().year,
+                                  month: DateTime.now().month,
+                                  occupiedByDate: Map<String, List<String>>.from(
+                                    (_occupancyCalendar['occupiedByDate']
+                                            as Map?)
+                                        ?.map(
+                                      (k, v) => MapEntry(
+                                        k.toString(),
+                                        List<String>.from(v as List),
+                                      ),
+                                    ) ??
+                                        {},
+                                  ),
+                                  vacantBedLabels: List<String>.from(
+                                    _occupancyCalendar['vacantBedLabels']
+                                            as List? ??
+                                        [],
+                                  ),
+                                ),
+                              ],
                             ],
                             const SizedBox(height: AppTheme.spaceXs),
                             const Text(
@@ -718,10 +832,31 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     actionLabel: 'حجز الوحدة',
                   );
                   if (!allowed || !context.mounted) return;
+                  if (DataService.isSharedAccommodation(property) &&
+                      _selectedBedId == null) {
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('يرجى اختيار سرير متاح أولاً'),
+                        backgroundColor: AppTheme.errorColor,
+                      ),
+                    );
+                    return;
+                  }
+                  final bookingData = {
+                    ...property,
+                    if (_selectedBedId != null) 'selectedBedId': _selectedBedId,
+                    if (_selectedBedId != null)
+                      'bedLabel': (List<Map<String, dynamic>>.from(
+                        property['bedUnits'] as List? ?? [],
+                      ).firstWhere(
+                        (b) => b['id']?.toString() == _selectedBedId,
+                        orElse: () => {'label': 'سرير'},
+                      ))['label'],
+                  };
                   navigator.push(
                     MaterialPageRoute(
                         builder: (context) => BookingScreen(
-                            itemType: 'property', itemData: property)),
+                            itemType: 'property', itemData: bookingData)),
                   );
                 },
                 child: const Text('احجز الآن',

@@ -95,6 +95,12 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
           }
         }
 
+        // Accommodation type filter
+        if (filters['accommodationType'] != null) {
+          final acc = property['accommodationType']?.toString() ?? 'full_unit';
+          if (acc != filters['accommodationType'].toString()) return false;
+        }
+
         // Listing mode (rent / sale)
         if (filters['listingMode'] != null) {
           final mode = filters['listingMode'].toString();

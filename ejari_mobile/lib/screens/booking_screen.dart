@@ -116,8 +116,19 @@ class _BookingScreenState extends State<BookingScreen> {
   }
 
   double get _remainingAfterDepositAmount {
-    final remaining = _currentMonthTotal - _bookingDepositAmount;
+    final remaining = _preEntryTotalAmount - _bookingDepositAmount;
     return remaining < 0 ? 0 : remaining;
+  }
+
+  /// المطلوب قبل الدخول: عربون + أول فترة إيجار.
+  double get _firstPeriodAmount {
+    if (isSale || _isCar) return 0;
+    return _currentMonthTotal;
+  }
+
+  double get _preEntryTotalAmount {
+    if (isSale || _isCar) return _finalTotal;
+    return _bookingDepositAmount + _firstPeriodAmount;
   }
 
   String get _paymentStageLabel => isSale
@@ -295,14 +306,15 @@ class _BookingScreenState extends State<BookingScreen> {
     bool success = false;
     String message = '';
     String transactionId = '';
-    final bookingDeposit = _bookingDepositAmount;
+    final payAmount = _isPropertyRent ? _preEntryTotalAmount : _bookingDepositAmount;
 
     // 1. Process Payment
     if (_selectedPaymentMethod == 'wallet') {
-      // Strict Wallet Check & Deduct for the refundable deposit
       success = await WalletService.payFromWallet(
-        title: 'عربون ${widget.itemData['title']}',
-        amount: bookingDeposit,
+        title: _isPropertyRent
+            ? 'دفع قبل الدخول — ${widget.itemData['title']}'
+            : 'عربون ${widget.itemData['title']}',
+        amount: payAmount,
         category: 'booking_deposit',
         bookingId: 'BK-${DateTime.now().millisecondsSinceEpoch}',
       );
@@ -321,8 +333,10 @@ class _BookingScreenState extends State<BookingScreen> {
 
       // Record in Ledger for Receipt
       await WalletService.recordExternalPayment(
-        title: 'عربون ${widget.itemData['title']}',
-        amount: bookingDeposit,
+        title: _isPropertyRent
+            ? 'دفع قبل الدخول — ${widget.itemData['title']}'
+            : 'عربون ${widget.itemData['title']}',
+        amount: payAmount,
         method: _selectedPaymentMethod,
         bookingId: 'BK-${DateTime.now().millisecondsSinceEpoch}',
       );
@@ -331,8 +345,10 @@ class _BookingScreenState extends State<BookingScreen> {
     if (success) {
       // 3. Hold the deposit safely until the user confirms the deal
       await WalletService.holdBookingDeposit(
-        title: 'عربون ${widget.itemData['title']}',
-        amount: bookingDeposit,
+        title: _isPropertyRent
+            ? 'إسكرو قبل الدخول — ${widget.itemData['title']}'
+            : 'عربون ${widget.itemData['title']}',
+        amount: payAmount,
         bookingId: transactionId,
         method: _selectedPaymentMethod,
       );
@@ -424,8 +440,17 @@ class _BookingScreenState extends State<BookingScreen> {
       'ownerEmail':
           widget.itemData['ownerEmail'] ?? widget.itemData['ownerId'] ?? 'admin',
       'status': BookingStatus.depositPaid,
-      'paymentStatus': 'deposit_paid',
-      'paymentPhase': 'deposit',
+      'paymentStatus': 'pre_entry_paid',
+      'paymentPhase': 'pre_entry',
+      'depositPaid': true,
+      'firstPeriodPaid': true,
+      'preEntryPaid': true,
+      'preEntryStatus': 'paid',
+      'preEntryAmount': _preEntryTotalAmount.toStringAsFixed(0),
+      if (widget.itemData['selectedBedId'] != null)
+        'bedId': widget.itemData['selectedBedId'],
+      if (widget.itemData['bedLabel'] != null)
+        'bedLabel': widget.itemData['bedLabel'],
       'transactionId': transactionId,
       'paymentMethod': _selectedPaymentMethod,
       if (_selectedInsuranceType != null) 'insurance': _selectedInsuranceType,
@@ -471,7 +496,7 @@ class _BookingScreenState extends State<BookingScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => SuccessPaymentScreen(
-          amount: _bookingDepositAmount,
+          amount: _isPropertyRent ? _preEntryTotalAmount : _bookingDepositAmount,
           transactionId: transactionId,
           paymentMethod: _selectedPaymentMethod,
           successTitle: 'تم حجز المعاينة بنجاح',
@@ -1026,13 +1051,45 @@ class _BookingScreenState extends State<BookingScreen> {
                                   if (!isSale && _insurancePrice > 0)
                                     _buildPriceRow('التأمين', _insurancePrice),
                                   ...[
-                                    _buildPriceRow(_paymentStageLabel,
+                                    _buildPriceRow('العربون (إسكرو)',
                                         _bookingDepositAmount),
-                                    _buildPriceRow(
-                                        _isCar
-                                            ? 'المتبقي بعد العربون'
-                                            : 'المتبقي من دفعة الشهر الأول',
-                                        _remainingAfterDepositAmount),
+                                    if (_isPropertyRent)
+                                      _buildPriceRow('أول فترة إيجار',
+                                          _firstPeriodAmount),
+                                    if (!_isPropertyRent)
+                                      _buildPriceRow(
+                                          _isCar
+                                              ? 'المتبقي بعد العربون'
+                                              : 'المتبقي من دفعة الشهر الأول',
+                                          _remainingAfterDepositAmount),
+                                  ],
+                                  if (_isPropertyRent) ...[
+                                    const Divider(),
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.accentColor
+                                            .withOpacity(0.1),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          const Icon(Icons.lock,
+                                              size: 16,
+                                              color: AppTheme.primaryColor),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'مطلوب: عربون + أول فترة قبل الدخول (${_preEntryTotalAmount.toStringAsFixed(0)} ج.م)',
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
                                   ],
                                   const Divider(),
                                   Row(
