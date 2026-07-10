@@ -18,6 +18,9 @@ import '../main.dart';
 import 'rental_statement_screen.dart';
 import '../services/chat_service.dart';
 import '../services/support_service.dart';
+import '../services/data_service.dart';
+import 'request_verification_screen.dart';
+import 'verification_screen.dart';
 import 'my_service_requests_screen.dart';
 import 'provider_jobs_screen.dart';
 import 'provider_timeline_screen.dart';
@@ -45,6 +48,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? _userData;
   String _currentRole = 'tenant';
+  Map<String, String> _verificationStatus = {'status': 'none', 'label': 'غير موثق'};
 
   @override
   void initState() {
@@ -55,9 +59,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadUserData() async {
     final data = await AuthService.getCurrentUser();
     final role = await AuthService.getUserRole();
+    Map<String, String> verification = {'status': 'none', 'label': 'غير موثق'};
+    final email = data?['email']?.toString() ?? '';
+    if (email.isNotEmpty) {
+      verification = await DataService.getIdentityVerificationStatus(email);
+    }
     setState(() {
       _userData = data;
       _currentRole = role;
+      _verificationStatus = verification;
     });
   }
 
@@ -162,7 +172,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     if (_isTenant)
                       _buildEjariMenuItem('أصبح مالكاً',
                           Icons.business_center_outlined, AppTheme.accentColor,
-                          _showBecomeOwnerDialog, isLast: true)
+                          _showBecomeOwnerDialog)
                     else if (!_isAdmin)
                       _buildEjariMenuItem('طرق الدفع المحفوظة',
                           Icons.payment_rounded, AppTheme.primaryColor, () {
@@ -171,7 +181,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             MaterialPageRoute(
                                 builder: (_) =>
                                     const PaymentMethodsScreen()));
-                      }, isLast: true)
+                      }),
+                    if (!_isAdmin)
+                      _buildEjariMenuItem(
+                        'توثيق الحساب',
+                        Icons.verified_user_outlined,
+                        AppTheme.accentColor,
+                        () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  const RequestVerificationScreen(),
+                            ),
+                          );
+                        },
+                        isLast: true,
+                      )
                     else
                       _buildEjariMenuItem('لوحة التحكم',
                           Icons.dashboard_rounded, AppTheme.primaryColor, () {
@@ -326,6 +352,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 builder: (_) =>
                                     const AdminServiceRequestsScreen()));
                       }),
+                      _buildEjariMenuItem('مراجعة التوثيق',
+                          Icons.verified_user_rounded, AppTheme.primaryColor,
+                          () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const VerificationScreen()));
+                      }),
                       _buildEjariMenuItem('التقارير',
                           Icons.analytics_rounded, AppTheme.primaryColor, () {
                         Navigator.push(
@@ -469,10 +503,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             : _isTechnician
                 ? 'فني'
                 : 'مستأجر';
-    final verification =
-        _userData?['verified'] == true || _userData?['isVerified'] == true
-            ? 'موثق'
-            : 'قيد المراجعة';
+    final verification = _verificationStatus['label'] ?? 'غير موثق';
 
     return EjariSurfaceCard(
       child: Row(

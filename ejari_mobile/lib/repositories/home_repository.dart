@@ -38,6 +38,15 @@ class HomeRepository {
       if (user?['name'] != null) {
         tenantStats['userName'] = user!['name'];
       }
+      final userEmail = user?['email']?.toString() ?? '';
+      if (userEmail.isNotEmpty) {
+        final verification =
+            await DataService.getIdentityVerificationStatus(userEmail);
+        tenantStats['verificationStatus'] = verification['label'] ?? 'غير موثق';
+        if (verification['reason'] != null) {
+          tenantStats['verificationReason'] = verification['reason'];
+        }
+      }
 
       final catalog = await FirestorePropertyService.getAllProperties();
       final rentProps = catalog
@@ -188,10 +197,14 @@ class HomeRepository {
             r['status'] == 'pending' ||
             r['status'] == 'corporate_pending')
         .length;
+    final verification =
+        await DataService.getIdentityVerificationStatus(ownerId);
 
     return {
       'userName': user?['name'] ?? 'المالك',
-      'verificationStatus': 'موثق',
+      'verificationStatus': verification['label'] ?? 'غير موثق',
+      if (verification['reason'] != null)
+        'verificationReason': verification['reason'],
       'propertiesCount': properties.length,
       'approvedProperties':
           properties.where((p) => p['status'] == 'approved').length,

@@ -491,7 +491,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                   const SizedBox(width: 12),
                   const Expanded(
                     child: Text(
-                      'حسابك غير موثق. يرجى رفع المستندات المطلوبة لتفعيل استقبال الحجوزات بشكل كامل.',
+                      'حسابك غير موثق. يرجى التقاط صور البطاقة والسيلفي لإرسالها للمراجعة.',
                       style:
                           TextStyle(fontSize: 12, color: AppTheme.textPrimary),
                     ),

@@ -2656,8 +2656,7 @@ class DataService {
       'totalProperties': properties.length,
       'activeBookings': bookings.length,
       'totalRevenue': totalRevenue,
-      'pendingVerifications':
-          properties.where((p) => p['status'] == 'pending').length,
+      'pendingVerifications': await getPendingIdentityVerificationsCount(),
       'newFeedbackCount': feedback.length,
       'offer100Progress':
           users.length / 100, // Progress towards the 100 client offer
@@ -2876,6 +2875,233 @@ class DataService {
       {'month': 'May', 'value': isUp ? 26000 : 16000},
       {'month': 'Jun', 'value': isUp ? 28500 : 16500},
     ];
+  }
+
+  // === Identity Verification (KYC) ===
+
+  static const String _verificationRequestsKey = 'verification_requests';
+
+  static Future<List<Map<String, dynamic>>> getAllIdentityVerifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_verificationRequestsKey) ?? [];
+    return list
+        .map((e) => jsonDecode(e) as Map<String, dynamic>)
+        .toList()
+        .reversed
+        .toList();
+  }
+
+  static Future<Map<String, dynamic>?> getIdentityVerificationForUser(
+      String email) async {
+    final requests = await getAllIdentityVerifications();
+    return requests.cast<Map<String, dynamic>?>().firstWhere(
+          (r) => r?['email']?.toString() == email,
+          orElse: () => null,
+        );
+  }
+
+  static Future<int> getPendingIdentityVerificationsCount() async {
+    final requests = await getAllIdentityVerifications();
+    return requests
+        .where((r) => (r['status'] ?? 'pending') == 'pending')
+        .length;
+  }
+
+  static Future<Map<String, String>> getIdentityVerificationStatus(
+      String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString('user_$email');
+    if (userJson != null) {
+      final user = jsonDecode(userJson) as Map<String, dynamic>;
+      if (user['isVerified'] == true || user['verified'] == true) {
+        return {'status': 'approved', 'label': 'موافق'};
+      }
+    }
+
+    final submission = await getIdentityVerificationForUser(email);
+    if (submission == null) {
+      return {'status': 'none', 'label': 'غير موثق'};
+    }
+
+    final status = submission['status']?.toString() ?? 'pending';
+    if (status == 'approved') {
+      return {'status': 'approved', 'label': 'موافق'};
+    }
+    if (status == 'rejected') {
+      final reason = submission['rejectionReason']?.toString() ??
+          submission['adminNote']?.toString() ??
+          '';
+      return {
+        'status': 'rejected',
+        'label': 'مرفوض',
+        'reason': reason,
+      };
+    }
+    return {'status': 'pending', 'label': 'قيد المراجعة'};
+  }
+
+  static Future<Map<String, dynamic>> submitIdentityVerification({
+    required String userId,
+    required String userName,
+    required String userType,
+    required String email,
+    required String phone,
+    required String idFront,
+    required String idBack,
+    required String selfie,
+  }) async {
+    final existing = await getIdentityVerificationForUser(email);
+    if (existing != null && (existing['status'] ?? 'pending') == 'pending') {
+      return {
+        'success': false,
+        'message': 'لديك طلب توثيق قيد المراجعة بالفعل',
+      };
+    }
+
+    final request = {
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      'userId': userId,
+      'userName': userName,
+      'userType': userType,
+      'email': email,
+      'phone': phone,
+      'status': 'pending',
+      'idFront': idFront,
+      'idBack': idBack,
+      'selfie': selfie,
+      'submittedAt': DateTime.now().toIso8601String(),
+      'adminNote': null,
+      'rejectionReason': null,
+      'reviewedAt': null,
+    };
+
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_verificationRequestsKey) ?? [];
+    if (existing != null) {
+      final updated = list.map((raw) {
+        final data = jsonDecode(raw) as Map<String, dynamic>;
+        if (data['email']?.toString() == email) {
+          return jsonEncode(request);
+        }
+        return raw;
+      }).toList();
+      await prefs.setStringList(_verificationRequestsKey, updated);
+    } else {
+      list.add(jsonEncode(request));
+      await prefs.setStringList(_verificationRequestsKey, list);
+    }
+
+    await addNotificationToUser(
+      _adminEmail,
+      'طلب توثيق هوية جديد 🪪',
+      'طلب توثيق من $userName ($email) بانتظار المراجعة.',
+      type: 'verification',
+      refId: request['id']?.toString(),
+      adminFeed: true,
+    );
+
+    return {'success': true, 'request': request};
+  }
+
+  static Future<bool> approveIdentityVerification(
+    String requestId, {
+    String? adminNote,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_verificationRequestsKey) ?? [];
+    Map<String, dynamic>? approved;
+
+    final updated = list.map((raw) {
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+      if (data['id']?.toString() == requestId) {
+        data['status'] = 'approved';
+        data['adminNote'] = adminNote;
+        data['rejectionReason'] = null;
+        data['reviewedAt'] = DateTime.now().toIso8601String();
+        approved = data;
+        return jsonEncode(data);
+      }
+      return raw;
+    }).toList();
+
+    if (approved == null) return false;
+    await prefs.setStringList(_verificationRequestsKey, updated);
+
+    final email = approved!['email']?.toString() ?? '';
+    final userName = approved!['userName']?.toString() ?? 'مستخدم';
+    final userKey = 'user_$email';
+    final userJson = prefs.getString(userKey);
+    if (userJson != null) {
+      final userData = jsonDecode(userJson) as Map<String, dynamic>;
+      userData['isVerified'] = true;
+      userData['verified'] = true;
+      userData['verifiedAt'] = DateTime.now().toIso8601String();
+      await prefs.setString(userKey, jsonEncode(userData));
+    }
+
+    final currentEmail = prefs.getString(_currentUserKey);
+    if (currentEmail == email) {
+      final sessionRaw = prefs.getString('user_data');
+      if (sessionRaw != null) {
+        final session = jsonDecode(sessionRaw) as Map<String, dynamic>;
+        session['isVerified'] = true;
+        session['verified'] = true;
+        session['verifiedAt'] = DateTime.now().toIso8601String();
+        await prefs.setString('user_data', jsonEncode(session));
+      }
+    }
+
+    final noteSuffix =
+        adminNote != null && adminNote.isNotEmpty ? '\nملاحظة: $adminNote' : '';
+    await addNotificationToUser(
+      email,
+      'تم توثيق حسابك! 🎉',
+      'تهانينا $userName، تمت الموافقة على طلب التوثيق.$noteSuffix',
+      type: 'verification',
+      refId: requestId,
+    );
+
+    return true;
+  }
+
+  static Future<bool> rejectIdentityVerification(
+    String requestId,
+    String rejectionReason,
+  ) async {
+    if (rejectionReason.trim().isEmpty) return false;
+
+    final prefs = await SharedPreferences.getInstance();
+    final list = prefs.getStringList(_verificationRequestsKey) ?? [];
+    Map<String, dynamic>? rejected;
+
+    final updated = list.map((raw) {
+      final data = jsonDecode(raw) as Map<String, dynamic>;
+      if (data['id']?.toString() == requestId) {
+        data['status'] = 'rejected';
+        data['rejectionReason'] = rejectionReason.trim();
+        data['adminNote'] = rejectionReason.trim();
+        data['reviewedAt'] = DateTime.now().toIso8601String();
+        rejected = data;
+        return jsonEncode(data);
+      }
+      return raw;
+    }).toList();
+
+    if (rejected == null) return false;
+    await prefs.setStringList(_verificationRequestsKey, updated);
+
+    final email = rejected!['email']?.toString() ?? '';
+    final userName = rejected!['userName']?.toString() ?? 'مستخدم';
+
+    await addNotificationToUser(
+      email,
+      'تم رفض طلب التوثيق ❌',
+      'عذراً $userName، تم رفض طلب التوثيق.\nالسبب: ${rejectionReason.trim()}',
+      type: 'verification',
+      refId: requestId,
+    );
+
+    return true;
   }
 
   // === Property Verification ===

@@ -12,6 +12,7 @@ import '../admin_reviews_screen.dart';
 import '../admin_search_screen.dart';
 import '../admin_feedback_screen.dart';
 import '../settings_screen.dart';
+import '../verification_screen.dart';
 
 class AdminHomeView extends StatelessWidget {
   const AdminHomeView({super.key});
@@ -207,7 +208,9 @@ class AdminHomeView extends StatelessWidget {
           AppTheme.borderColor,
           () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const AdminUsersScreen()),
+            MaterialPageRoute(
+              builder: (_) => const VerificationScreen(),
+            ),
           ),
         ),
       ],
@@ -268,6 +271,8 @@ class AdminHomeView extends StatelessWidget {
             mainAxisSpacing: 10,
             childAspectRatio: 1.15,
             children: [
+              _action(context, 'توثيق الهوية', Icons.verified_user_rounded,
+                  const VerificationScreen()),
               _action(context, 'بحث شامل', Icons.manage_search_rounded,
                   const AdminSearchScreen()),
               _action(context, 'المستخدمين', Icons.people,

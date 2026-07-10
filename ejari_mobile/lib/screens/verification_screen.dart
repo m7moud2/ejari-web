@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import '../theme/app_theme.dart';
+import '../widgets/ejari_section.dart';
+import '../widgets/camera_capture_widget.dart';
 import '../services/data_service.dart';
 import '../utils/safe_parse.dart';
 
@@ -23,85 +23,165 @@ class _VerificationScreenState extends State<VerificationScreen> {
   }
 
   Future<void> _loadRequests() async {
-    final prefs = await SharedPreferences.getInstance();
-    List<String>? requests = prefs.getStringList('verification_requests');
-
-    if (requests != null) {
+    final requests = await DataService.getAllIdentityVerifications();
+    if (mounted) {
       setState(() {
-        _verificationRequests =
-            requests.map((r) => jsonDecode(r) as Map<String, dynamic>).toList();
+        _verificationRequests = requests;
         _isLoading = false;
       });
-    } else {
-      // Add demo requests
-      _verificationRequests = [
-        {
-          'id': '1',
-          'userName': 'أحمد محمد',
-          'userType': 'owner',
-          'email': 'ahmed@example.com',
-          'phone': '01012345678',
-          'status': 'pending',
-          'documents': ['بطاقة الرقم القومي', 'عقد ملكية'],
-        },
-        {
-          'id': '2',
-          'userName': 'سارة علي',
-          'userType': 'tenant',
-          'email': 'sara@example.com',
-          'phone': '01098765432',
-          'status': 'pending',
-          'documents': ['بطاقة الرقم القومي'],
-        },
-      ];
-      setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _updateStatus(int index, String status) async {
-    setState(() {
-      _verificationRequests[index]['status'] = status;
-    });
+  Future<void> _approve(int index) async {
+    final request = _verificationRequests[index];
+    final id = request['id']?.toString() ?? '';
+    final ok = await DataService.approveIdentityVerification(id);
+    if (!mounted) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(
-      'verification_requests',
-      _verificationRequests.map((r) => jsonEncode(r)).toList(),
-    );
-
-    // Update user verification status if approved
-    if (status == 'approved') {
-      final userEmail = _verificationRequests[index]['email'];
-      final userKey = 'user_$userEmail';
-      final userJson = prefs.getString(userKey);
-
-      if (userJson != null) {
-        Map<String, dynamic> userData = jsonDecode(userJson);
-        userData['isVerified'] = true;
-        userData['verifiedAt'] = DateTime.now().toIso8601String();
-        await prefs.setString(userKey, jsonEncode(userData));
-      }
-
-      // Add Notification
-      await DataService.addNotification('تم توثيق حسابك! 🎉',
-          'تهانينا ${_verificationRequests[index]['userName']}، لقد تم فحص مستنداتك وتوثيق حسابك بنجاح. يمكنك الآن التمتع بكافة مميزات إيجاري.');
-    } else if (status == 'rejected') {
-      // Add Notification
-      await DataService.addNotification('تم رفض طلب التوثيق ❌',
-          'عذراً ${_verificationRequests[index]['userName']}، لم نتمكن من قبول مستندات التوثيق الخاصة بك. يرجى مراجعة البيانات والمحاولة مرة أخرى.');
-    }
-
-    if (mounted) {
+    if (ok) {
+      await _loadRequests();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              status == 'approved' ? 'تم توثيق الحساب ✅' : 'تم رفض التوثيق ❌'),
-          backgroundColor: status == 'approved'
-              ? AppTheme.primaryColor
-              : AppTheme.errorColor,
+        const SnackBar(
+          content: Text('تم توثيق الحساب ✅'),
+          backgroundColor: AppTheme.primaryColor,
         ),
       );
     }
+  }
+
+  Future<void> _reject(int index) async {
+    final reason = await _showRejectDialog();
+    if (reason == null || reason.trim().isEmpty) return;
+
+    final request = _verificationRequests[index];
+    final id = request['id']?.toString() ?? '';
+    final ok =
+        await DataService.rejectIdentityVerification(id, reason.trim());
+    if (!mounted) return;
+
+    if (ok) {
+      await _loadRequests();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم رفض التوثيق ❌'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+    }
+  }
+
+  Future<String?> _showRejectDialog() async {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('سبب الرفض'),
+        content: TextField(
+          controller: controller,
+          maxLines: 4,
+          decoration: const InputDecoration(
+            hintText: 'اكتب سبب الرفض (مطلوب)',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (controller.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('سبب الرفض مطلوب'),
+                    backgroundColor: AppTheme.errorColor,
+                  ),
+                );
+                return;
+              }
+              Navigator.pop(context, controller.text.trim());
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.errorColor,
+            ),
+            child: const Text('رفض الطلب'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showImages(Map<String, dynamic> request) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'صور ${safeStr(request['userName'], 'المستخدم')}',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _imagePreview('وجه البطاقة الأمامي', request['idFront']),
+            const SizedBox(height: 12),
+            _imagePreview('وجه البطاقة الخلفي', request['idBack']),
+            const SizedBox(height: 12),
+            _imagePreview('صورة السيلفي', request['selfie']),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('إغلاق'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _imagePreview(String label, dynamic data) {
+    final imageData = data?.toString();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(
+                fontWeight: FontWeight.w700, fontSize: 13)),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: SizedBox(
+            height: 160,
+            width: double.infinity,
+            child: imageData != null && imageData.isNotEmpty
+                ? VerificationImage(data: imageData)
+                : Container(
+                    color: AppTheme.backgroundColor,
+                    child: const Center(
+                      child: Text('لا توجد صورة'),
+                    ),
+                  ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -109,120 +189,53 @@ class _VerificationScreenState extends State<VerificationScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('طلبات التوثيق'),
+        title: const Text('مراجعة التوثيق'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: () {
+              setState(() => _isLoading = true);
+              _loadRequests();
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const ColoredBox(
               color: AppTheme.backgroundColor,
               child: Center(
-                child: CircularProgressIndicator(
-                  color: AppTheme.primaryColor,
-                ),
+                child: CircularProgressIndicator(color: AppTheme.primaryColor),
               ),
             )
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildHeroCard(),
-                const SizedBox(height: 16),
-                _buildSummaryStrip(),
-                const SizedBox(height: 18),
-                if (_verificationRequests.isEmpty)
-                  _buildEmptyState()
-                else
-                  ..._verificationRequests.asMap().entries.map(
-                        (entry) => _buildRequestCard(entry.value, entry.key),
-                      ),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildHeroCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.94),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: AppTheme.borderColor.withOpacity(0.34)),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryColor.withOpacity(0.07),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Stack(
-          children: [
-            Image.asset(
-              'assets/images/promo/hero_reviews.jpg',
-              height: 150,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      AppTheme.primaryColor.withOpacity(0.18),
-                    ],
+          : RefreshIndicator(
+              color: AppTheme.primaryColor,
+              onRefresh: _loadRequests,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: [
+                  EjariSurfaceCard(
+                    child: const EjariSectionHeader(
+                      title: 'طلبات توثيق الهوية',
+                      subtitle:
+                          'راجع صور البطاقة والسيلفي واتخذ قرار الموافقة أو الرفض مع توضيح السبب.',
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 14),
+                  _buildSummaryStrip(),
+                  const SizedBox(height: 18),
+                  if (_verificationRequests.isEmpty)
+                    _buildEmptyState()
+                  else
+                    ..._verificationRequests.asMap().entries.map(
+                          (entry) =>
+                              _buildRequestCard(entry.value, entry.key),
+                        ),
+                ],
               ),
             ),
-            Positioned(
-              left: 14,
-              top: 14,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.90),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: const Text(
-                  'لوحة التوثيق',
-                  style: TextStyle(
-                    color: AppTheme.primaryColor,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              right: 14,
-              bottom: 14,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppTheme.textPrimary.withOpacity(0.60),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const Text(
-                  'مراجعة واضحة • قرار سريع',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 11,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -233,13 +246,18 @@ class _VerificationScreenState extends State<VerificationScreen> {
     final approved = _verificationRequests
         .where((item) => (item['status'] ?? '') == 'approved')
         .length;
+    final rejected = _verificationRequests
+        .where((item) => (item['status'] ?? '') == 'rejected')
+        .length;
+
     return Wrap(
       spacing: 10,
       runSpacing: 10,
       children: [
         _summaryChip('إجمالي الطلبات', '${_verificationRequests.length}'),
         _summaryChip('قيد المراجعة', '$pending'),
-        _summaryChip('موثقة', '$approved'),
+        _summaryChip('موافق', '$approved'),
+        _summaryChip('مرفوض', '$rejected'),
       ],
     );
   }
@@ -273,31 +291,20 @@ class _VerificationScreenState extends State<VerificationScreen> {
   }
 
   Widget _buildRequestCard(Map<String, dynamic> request, int index) {
-    String status = request['status'] ?? 'pending';
-    Color statusColor = status == 'pending'
+    final status = request['status']?.toString() ?? 'pending';
+    final statusColor = status == 'pending'
         ? AppTheme.borderColor
-        : (status == 'approved' ? AppTheme.primaryColor : AppTheme.errorColor);
-    String statusText = status == 'pending'
+        : (status == 'approved'
+            ? AppTheme.primaryColor
+            : AppTheme.errorColor);
+    final statusText = status == 'pending'
         ? 'قيد المراجعة'
-        : (status == 'approved' ? 'موثق' : 'مرفوض');
-    IconData userIcon =
+        : (status == 'approved' ? 'موافق' : 'مرفوض');
+    final userIcon =
         request['userType'] == 'owner' ? Icons.business : Icons.person;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+    return EjariSurfaceCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.94),
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppTheme.borderColor.withOpacity(0.28)),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryColor.withOpacity(0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -339,30 +346,39 @@ class _VerificationScreenState extends State<VerificationScreen> {
             ],
           ),
           const Divider(height: 24),
-          _buildInfoRow(Icons.email, request['email']),
-          _buildInfoRow(Icons.phone, request['phone']),
+          _buildInfoRow(Icons.email, safeStr(request['email'], '')),
+          _buildInfoRow(Icons.phone, safeStr(request['phone'], '')),
+          if (request['submittedAt'] != null)
+            _buildInfoRow(
+              Icons.schedule_rounded,
+              'أُرسل: ${request['submittedAt']}',
+            ),
           const SizedBox(height: 12),
-          const Text('المستندات المرفقة:',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          const SizedBox(height: 8),
-          ...(request['documents'] as List).map((doc) => Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Row(
-                  children: [
-                    const Icon(Icons.check_circle,
-                        size: 16, color: AppTheme.primaryColor),
-                    const SizedBox(width: 8),
-                    Text(doc, style: const TextStyle(fontSize: 12)),
-                  ],
+          OutlinedButton.icon(
+            onPressed: () => _showImages(request),
+            icon: const Icon(Icons.photo_library_rounded, size: 18),
+            label: const Text('عرض الصور الملتقطة'),
+          ),
+          if (status == 'rejected' &&
+              (request['rejectionReason']?.toString().isNotEmpty ?? false))
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(
+                'سبب الرفض: ${request['rejectionReason']}',
+                style: const TextStyle(
+                  color: AppTheme.errorColor,
+                  fontSize: 12,
+                  height: 1.4,
                 ),
-              )),
+              ),
+            ),
           if (status == 'pending') ...[
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => _updateStatus(index, 'rejected'),
+                    onPressed: () => _reject(index),
                     style: OutlinedButton.styleFrom(
                         foregroundColor: AppTheme.errorColor),
                     child: const Text('رفض'),
@@ -371,10 +387,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => _updateStatus(index, 'approved'),
+                    onPressed: () => _approve(index),
                     style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryColor),
-                    child: const Text('توثيق'),
+                    child: const Text('موافقة'),
                   ),
                 ),
               ],
@@ -392,16 +408,17 @@ class _VerificationScreenState extends State<VerificationScreen> {
         children: [
           Icon(icon, size: 16, color: AppTheme.textSecondary),
           const SizedBox(width: 8),
-          Text(text, style: const TextStyle(fontSize: 14)),
+          Expanded(
+            child: Text(text, style: const TextStyle(fontSize: 14)),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildEmptyState() {
-    return const Center(
+    return const EjariSurfaceCard(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.verified_user, size: 80, color: AppTheme.primaryColor),
           SizedBox(height: 16),

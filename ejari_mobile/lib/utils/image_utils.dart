@@ -12,6 +12,7 @@ class ImageUtils {
   /// Resulting image will be cross-platform compatible (XFile).
   static Future<XFile?> pickAndCompress({
     ImageSource source = ImageSource.gallery,
+    CameraDevice preferredCameraDevice = CameraDevice.rear,
     double maxWidth = 1024,
     double maxHeight = 1024,
     int imageQuality = 70,
@@ -19,6 +20,7 @@ class ImageUtils {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: source,
+        preferredCameraDevice: preferredCameraDevice,
         maxWidth: maxWidth,
         maxHeight: maxHeight,
         imageQuality: imageQuality,
