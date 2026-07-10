@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
+import '../utils/auth_gate.dart';
 
 class OwnerCollectionScreen extends StatefulWidget {
   const OwnerCollectionScreen({super.key});
@@ -21,7 +22,14 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
   @override
   void initState() {
     super.initState();
-    _load();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final allowed = await AuthGate.requireRole(
+        context,
+        allowedRoles: const ['owner'],
+        deniedMessage: 'صفحة التحصيل متاحة للمالك فقط.',
+      );
+      if (allowed) _load();
+    });
   }
 
   Future<void> _load() async {
@@ -290,7 +298,7 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: () => _showPaymentHistory(tenant),
                   icon: const Icon(Icons.receipt_long, size: 16),
                   label: const Text('سجل الدفعات'),
                 ),
@@ -298,7 +306,7 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () {},
+                  onPressed: () => _sendReminder(tenant),
                   icon:
                       const Icon(Icons.notifications_active_rounded, size: 16),
                   label: const Text('إشعار'),
@@ -329,6 +337,52 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
               style: const TextStyle(
                   fontWeight: FontWeight.w900, color: AppTheme.textPrimary)),
         ],
+      ),
+    );
+  }
+
+  void _showPaymentHistory(Map<String, dynamic> tenant) {
+    final rent = tenant['rent'] as double? ?? 0;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('سجل دفعات ${tenant['name']}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('العقار: ${tenant['property']}'),
+            const SizedBox(height: 8),
+            Text(
+              'آخر دفع: ${DateFormat('yyyy/MM/dd').format(tenant['lastPayment'] as DateTime)}',
+            ),
+            Text('الإيجار الشهري: ${rent.toStringAsFixed(0)} ج.م'),
+            Text(
+              'الحالة: ${tenant['status'] == 'Late' ? 'متأخر' : tenant['status'] == 'Paid' ? 'مدفوع' : 'قريب الاستحقاق'}',
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إغلاق'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _sendReminder(Map<String, dynamic> tenant) async {
+    final rent = tenant['rent'] as double? ?? 0;
+    await DataService.addNotificationToUser(
+      'user@ejari.app',
+      'تذكير بسداد الإيجار 📅',
+      'يرجى سداد إيجار ${tenant['property']} (${rent.toStringAsFixed(0)} ج.م) قبل ${DateFormat('yyyy/MM/dd').format(tenant['nextDueDate'] as DateTime)}.',
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('تم إرسال تذكير إلى ${tenant['name']}'),
       ),
     );
   }

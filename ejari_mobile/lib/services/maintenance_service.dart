@@ -35,6 +35,8 @@ class MaintenanceService {
       status = 'in_progress';
     } else if (status == 'مكتمل' || status == 'completed') {
       status = 'completed';
+    } else if (status == 'ملغي' || status == 'cancelled') {
+      status = 'cancelled';
     }
 
     String priority = r['priority']?.toString() ?? 'medium';
@@ -67,6 +69,74 @@ class MaintenanceService {
           double.tryParse(r['estimatedCost']?.toString() ?? '0') ?? 0.0,
       'actualCost': double.tryParse(r['actualCost']?.toString() ?? '0') ?? 0.0,
     };
+  }
+
+  /// Seed demo maintenance requests for tenant demo account.
+  static Future<void> initDemoRequests() async {
+    final prefs = await SharedPreferences.getInstance();
+    const seedKey = 'demo_maintenance_seeded';
+    if (prefs.getBool(seedKey) == true) return;
+
+    final existing = await getAllRequests();
+    if (existing.isNotEmpty) {
+      await prefs.setBool(seedKey, true);
+      return;
+    }
+
+    final now = DateTime.now();
+    final demo = [
+      {
+        'id': 'MNT-DEMO-001',
+        'userId': 'user@ejari.app',
+        'propertyId': 'egy1',
+        'category': 'ac',
+        'priority': 'high',
+        'title': 'صيانة تكييف',
+        'description': 'التكييف لا يبرد بشكل جيد والشحنة تحتاج فحص',
+        'status': 'in_progress',
+        'createdAt': now.subtract(const Duration(days: 1)).toIso8601String(),
+        'updatedAt': now.toIso8601String(),
+        'assignedTo': 'tech@ejari.app',
+        'estimatedCost': 250.0,
+        'actualCost': 0.0,
+      },
+      {
+        'id': 'MNT-DEMO-002',
+        'userId': 'user@ejari.app',
+        'propertyId': 'egy2',
+        'category': 'plumbing',
+        'priority': 'medium',
+        'title': 'تسريب مياه',
+        'description': 'تسريب بسيط في الحمام الرئيسي',
+        'status': 'pending',
+        'createdAt': now.subtract(const Duration(hours: 3)).toIso8601String(),
+        'updatedAt': now.toIso8601String(),
+        'assignedTo': null,
+        'estimatedCost': 150.0,
+        'actualCost': 0.0,
+      },
+      {
+        'id': 'MNT-DEMO-003',
+        'userId': 'user@ejari.app',
+        'propertyId': 'egy1',
+        'category': 'cleaning',
+        'priority': 'low',
+        'title': 'تنظيف شامل',
+        'description': 'تنظيف شامل بعد الانتقال',
+        'status': 'completed',
+        'createdAt': now.subtract(const Duration(days: 5)).toIso8601String(),
+        'updatedAt': now.subtract(const Duration(days: 2)).toIso8601String(),
+        'assignedTo': 'tech@ejari.app',
+        'estimatedCost': 300.0,
+        'actualCost': 300.0,
+        'completedAt': now.subtract(const Duration(days: 2)).toIso8601String(),
+        'rating': 5,
+        'feedback': 'خدمة ممتازة',
+      },
+    ];
+
+    await prefs.setString(_requestsKey, jsonEncode(demo));
+    await prefs.setBool(seedKey, true);
   }
 
   // Create maintenance request

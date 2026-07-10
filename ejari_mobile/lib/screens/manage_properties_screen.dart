@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../services/auth_service.dart';
+import '../utils/auth_gate.dart';
 import 'add_property_screen.dart';
 
 class ManagePropertiesScreen extends StatefulWidget {
@@ -18,7 +19,14 @@ class _ManagePropertiesScreenState extends State<ManagePropertiesScreen> {
   @override
   void initState() {
     super.initState();
-    _loadProperties();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final allowed = await AuthGate.requireRole(
+        context,
+        allowedRoles: const ['owner'],
+        deniedMessage: 'إدارة العقارات متاحة للمالك فقط.',
+      );
+      if (allowed) _loadProperties();
+    });
   }
 
   Future<void> _loadProperties() async {

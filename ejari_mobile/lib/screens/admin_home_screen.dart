@@ -9,6 +9,7 @@ import 'admin_reports_screen.dart';
 import 'admin_financials_screen.dart';
 import 'chat_list_screen.dart';
 import '../services/data_service.dart';
+import '../utils/auth_gate.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -35,7 +36,14 @@ class _AdminHomeScreenState extends State<AdminHomeScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _loadStats();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final allowed = await AuthGate.requireRole(
+        context,
+        allowedRoles: const ['admin'],
+        deniedMessage: 'لوحة الإدارة متاحة للمدير فقط.',
+      );
+      if (allowed) _loadStats();
+    });
   }
 
   Future<void> _loadStats() async {

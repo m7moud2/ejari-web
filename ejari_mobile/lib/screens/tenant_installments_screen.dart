@@ -611,7 +611,7 @@ class _TenantInstallmentsScreenState extends State<TenantInstallmentsScreen> {
               ),
               if (isPaid)
                 TextButton.icon(
-                  onPressed: () {},
+                  onPressed: () => _showReceipt(inst),
                   icon: const Icon(Icons.receipt_long, size: 16),
                   label: Text(
                     'إيصال ${inst['receiptId']}',
@@ -811,5 +811,38 @@ class _TenantInstallmentsScreenState extends State<TenantInstallmentsScreen> {
         ),
       );
     }
+  }
+
+  void _showReceipt(Map<String, dynamic> inst) {
+    final dueDate = inst['dueDate'] as DateTime;
+    final paidAt = inst['paidAt'] as DateTime?;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('إيصال سداد'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('رقم الإيصال: ${inst['receiptId'] ?? 'REC-DEMO'}'),
+            Text('المبلغ: ${inst['amount']} ج.م'),
+            Text(
+              'تاريخ الاستحقاق: ${DateFormat('yyyy/MM/dd').format(dueDate)}',
+            ),
+            Text(
+              paidAt != null
+                  ? 'تاريخ السداد: ${DateFormat('yyyy/MM/dd').format(paidAt)}'
+                  : 'الحالة: مسدد',
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إغلاق'),
+          ),
+        ],
+      ),
+    );
   }
 }

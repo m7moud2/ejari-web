@@ -337,7 +337,7 @@ class _AdminFinancialsScreenState extends State<AdminFinancialsScreen>
             children: [
               Expanded(
                 child: TextButton.icon(
-                    onPressed: () {},
+                    onPressed: () => _downloadContractPdf(title, parties, date),
                     icon: const Icon(Icons.download_rounded, size: 16),
                     label: const Text('تحميل PDF',
                         maxLines: 1,
@@ -423,6 +423,16 @@ class _AdminFinancialsScreenState extends State<AdminFinancialsScreen>
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _downloadContractPdf(String title, String parties, String date) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+            'تم تحميل عقد "$title" بصيغة PDF (وضع تجريبي)\n$parties — $date'),
+        duration: const Duration(seconds: 4),
       ),
     );
   }

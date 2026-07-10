@@ -73,4 +73,22 @@ class AuthGate {
     );
     return success ?? false;
   }
+
+  /// Returns true if the current user has one of [allowedRoles].
+  /// Shows a snackbar and pops the route when access is denied.
+  static Future<bool> requireRole(
+    BuildContext context, {
+    required List<String> allowedRoles,
+    String deniedMessage = 'هذه الصفحة غير متاحة لنوع حسابك.',
+  }) async {
+    final role = await AuthService.getUserRole();
+    if (allowedRoles.contains(role)) return true;
+
+    if (!context.mounted) return false;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(deniedMessage)),
+    );
+    Navigator.maybePop(context);
+    return false;
+  }
 }

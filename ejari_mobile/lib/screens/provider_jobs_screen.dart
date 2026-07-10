@@ -38,9 +38,11 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(status == 'accepted'
-                ? 'تم قبول المهمة بنجاح ✅'
-                : 'تم تحديث حالة المهمة')),
+            content: Text(switch (status) {
+          'accepted' => 'تم قبول المهمة بنجاح ✅',
+          'cancelled' => 'تم رفض المهمة',
+          _ => 'تم تحديث حالة المهمة',
+        })),
       );
     }
   }
@@ -253,7 +255,7 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
         children: [
           Expanded(
             child: OutlinedButton(
-              onPressed: () {},
+              onPressed: () => _updateStatus(job['id'], 'cancelled'),
               style: OutlinedButton.styleFrom(
                   foregroundColor: AppTheme.errorColor),
               child: const Text('رفض'),

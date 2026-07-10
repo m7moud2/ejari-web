@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'provider_wallet_screen.dart';
 
 class TechJobScreen extends StatefulWidget {
   const TechJobScreen({super.key});
@@ -201,7 +202,14 @@ class _TechJobScreenState extends State<TechJobScreen> {
       return Column(
         children: [
           OutlinedButton.icon(
-            onPressed: () {},
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                      'تم إرفاق ٢ صورة (قبل/بعد) — محاكاة وضع تجريبي'),
+                ),
+              );
+            },
             icon: const Icon(Icons.camera_alt),
             label: const Text('إرفاق صور (قبل وبعد الإصلاح)'),
             style: OutlinedButton.styleFrom(
@@ -311,7 +319,14 @@ class _TechJobScreenState extends State<TechJobScreen> {
                     color: Colors.green, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             OutlinedButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ProviderWalletScreen(),
+                  ),
+                );
+              },
               child: const Text('عرض الإيصال وسجل المحفظة'),
             )
           ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../services/data_service.dart';
 import '../theme/app_theme.dart';
+import '../services/data_service.dart';
+import 'property_details_screen.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String userName;
@@ -238,7 +239,23 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PropertyDetailsScreen(
+                              property: {
+                                'id': property['id'] ?? 'demo',
+                                'title': property['title'] ?? 'عقار',
+                                'price': property['price'] ?? '15000',
+                                'location': property['location'] ?? 'القاهرة',
+                                'image': property['image'] ??
+                                    'assets/images/home1.jpg',
+                              },
+                            ),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.borderColor,
                           shape: RoundedRectangleBorder(

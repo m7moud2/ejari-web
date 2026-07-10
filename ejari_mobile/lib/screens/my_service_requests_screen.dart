@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
+import '../services/maintenance_service.dart';
 
 class MyServiceRequestsScreen extends StatefulWidget {
   const MyServiceRequestsScreen({super.key});
@@ -10,44 +13,27 @@ class MyServiceRequestsScreen extends StatefulWidget {
 }
 
 class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
-  final List<Map<String, dynamic>> _requests = [
-    {
-      'id': 'SR001',
-      'service': 'تنظيف شامل',
-      'provider': 'شركة النظافة المثالية',
-      'date': '2026-07-05',
-      'time': '10:00 ص',
-      'status': 'pending',
-      'price': '300',
-      'address': 'شقة 12، المعادي',
-      'notes': 'تنظيف شامل بعد الانتقال'
-    },
-    {
-      'id': 'SR002',
-      'service': 'صيانة تكييف',
-      'provider': 'مركز الصيانة السريع',
-      'date': '2026-07-03',
-      'time': '02:00 م',
-      'status': 'in_progress',
-      'price': '150',
-      'address': 'فيلا 5، الشيخ زايد',
-      'notes': 'صيانة دورية'
-    },
-    {
-      'id': 'SR003',
-      'service': 'نقل أثاث',
-      'provider': 'شركة النقل الآمن',
-      'date': '2026-07-01',
-      'time': '09:00 ص',
-      'status': 'completed',
-      'price': '500',
-      'address': 'من المعادي إلى مدينة نصر',
-      'notes': 'نقل أثاث غرفة نوم',
-      'rating': 5
-    },
-  ];
-
+  List<Map<String, dynamic>> _requests = [];
+  bool _loading = true;
   String _selectedFilter = 'all';
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final user = await AuthService.getCurrentUser();
+    final email = user?['email']?.toString() ?? 'user@ejari.app';
+    final requests = await MaintenanceService.getUserRequests(email);
+    if (mounted) {
+      setState(() {
+        _requests = requests;
+        _loading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,23 +52,26 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
             fontSize: 22,
             fontWeight: FontWeight.w900),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-            child: _filters(),
-          ),
-          Expanded(
-            child: filtered.isEmpty
-                ? _empty()
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                    itemCount: filtered.length,
-                    itemBuilder: (context, index) => _card(filtered[index]),
-                  ),
-          ),
-        ],
-      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                  child: _filters(),
+                ),
+                Expanded(
+                  child: filtered.isEmpty
+                      ? _empty()
+                      : ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                          itemCount: filtered.length,
+                          itemBuilder: (context, index) =>
+                              _card(filtered[index]),
+                        ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -117,6 +106,13 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
     );
   }
 
+  String _categoryLabel(String? id) {
+    for (final c in MaintenanceService.categories) {
+      if (c['id'] == id) return c['name'] as String;
+    }
+    return id ?? 'خدمة';
+  }
+
   Widget _card(Map<String, dynamic> request) {
     final status = request['status'] as String;
     final (text, color) = switch (status) {
@@ -127,6 +123,7 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
       'cancelled' => ('ملغي', AppTheme.errorColor),
       _ => ('غير معروف', AppTheme.textSecondary),
     };
+    final createdAt = DateTime.tryParse(request['createdAt']?.toString() ?? '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -153,11 +150,11 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(request['service'],
+                    Text(request['title'] ?? _categoryLabel(request['category']),
                         style: const TextStyle(
                             fontWeight: FontWeight.w900, fontSize: 16)),
                     const SizedBox(height: 4),
-                    Text(request['provider'],
+                    Text(_categoryLabel(request['category']),
                         style: const TextStyle(
                             color: AppTheme.textSecondary, fontSize: 12)),
                   ],
@@ -178,11 +175,15 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          _row(Icons.location_on_outlined, request['address']),
-          _row(Icons.calendar_today_outlined,
-              '${request['date']} - ${request['time']}'),
-          _row(Icons.attach_money_rounded, '${request['price']} ج.م'),
-          if (request['notes'] != null) ...[
+          if (createdAt != null)
+            _row(Icons.calendar_today_outlined,
+                DateFormat('yyyy/MM/dd - hh:mm a').format(createdAt)),
+          if (request['estimatedCost'] != null &&
+              (request['estimatedCost'] as num) > 0)
+            _row(Icons.attach_money_rounded,
+                '${request['estimatedCost']} ج.م'),
+          if (request['description'] != null &&
+              request['description'].toString().isNotEmpty) ...[
             const SizedBox(height: 8),
             Container(
               width: double.infinity,
@@ -190,7 +191,7 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
               decoration: BoxDecoration(
                   color: AppTheme.backgroundColor,
                   borderRadius: BorderRadius.circular(18)),
-              child: Text(request['notes'],
+              child: Text(request['description'],
                   style: const TextStyle(
                       color: AppTheme.textSecondary, height: 1.5)),
             ),
@@ -223,12 +224,18 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
       return Row(
         children: [
           Expanded(
-              child:
-                  OutlinedButton(onPressed: () {}, child: const Text('إلغاء'))),
+            child: OutlinedButton(
+              onPressed: () => _cancelRequest(request),
+              child: const Text('إلغاء'),
+            ),
+          ),
           const SizedBox(width: 10),
           Expanded(
-              child: ElevatedButton(
-                  onPressed: () {}, child: const Text('تتبع الطلب'))),
+            child: ElevatedButton(
+              onPressed: () => _trackService(request),
+              child: const Text('تتبع الطلب'),
+            ),
+          ),
         ],
       );
     }
@@ -246,7 +253,7 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
       return SizedBox(
         width: double.infinity,
         child: ElevatedButton.icon(
-          onPressed: () {},
+          onPressed: () => _rateService(request),
           icon: const Icon(Icons.star_rounded),
           label: const Text('تقييم الخدمة'),
         ),
@@ -261,9 +268,109 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
     );
   }
 
-  void _trackService(Map<String, dynamic> request) {
+  Future<void> _cancelRequest(Map<String, dynamic> request) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('إلغاء الطلب'),
+        content: const Text('هل أنت متأكد من إلغاء طلب الصيانة؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('تراجع'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('إلغاء الطلب'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    await MaintenanceService.updateStatus(
+      request['id'].toString(),
+      'cancelled',
+    );
+    await _load();
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('الفني في الطريق إليك.')),
+      const SnackBar(content: Text('تم إلغاء طلب الصيانة')),
+    );
+  }
+
+  void _trackService(Map<String, dynamic> request) {
+    final status = request['status'];
+    final message = status == 'pending'
+        ? 'طلبك قيد المراجعة وسيتم تعيين فني قريباً.'
+        : 'الفني في الطريق إليك.';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  Future<void> _rateService(Map<String, dynamic> request) async {
+    int rating = 5;
+    final feedbackController = TextEditingController();
+    final submitted = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('تقييم الخدمة'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (i) {
+                  return IconButton(
+                    onPressed: () => setDialogState(() => rating = i + 1),
+                    icon: Icon(
+                      i < rating ? Icons.star : Icons.star_border,
+                      color: Colors.amber,
+                    ),
+                  );
+                }),
+              ),
+              TextField(
+                controller: feedbackController,
+                decoration: const InputDecoration(
+                  hintText: 'ملاحظاتك (اختياري)',
+                ),
+                maxLines: 2,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('إرسال التقييم'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (submitted != true) {
+      feedbackController.dispose();
+      return;
+    }
+
+    final feedback = feedbackController.text.trim();
+    feedbackController.dispose();
+
+    await MaintenanceService.addFeedback(
+      request['id'].toString(),
+      rating,
+      feedback,
+    );
+    await _load();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('شكراً! تم إرسال تقييمك')),
     );
   }
 }

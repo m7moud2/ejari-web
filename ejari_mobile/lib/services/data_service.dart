@@ -1885,6 +1885,9 @@ class DataService {
       } else if (newStatus == 'completed') {
         await addNotification(
             'اكتملت الخدمة ✨', 'تم إنهاء طلب الصيانة بنجاح. يرجى تقييم الفني.');
+      } else if (newStatus == 'cancelled') {
+        await addNotification(
+            'تم رفض طلب الخدمة', 'اعتذر الفني عن تنفيذ الطلب. يمكنك طلب فني آخر.');
       }
     }
   }

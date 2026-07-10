@@ -2405,7 +2405,14 @@ class _BookingScreenState extends State<BookingScreen> {
                 children: [
                   const Text('لم تستلم الرمز؟', style: TextStyle(fontSize: 11)),
                   TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'تم إرسال رمز التحقق: 1234 (وضع تجريبي)'),
+                          ),
+                        );
+                      },
                       child: const Text('إعادة إرسال',
                           style: TextStyle(
                               fontSize: 11, fontWeight: FontWeight.bold))),
