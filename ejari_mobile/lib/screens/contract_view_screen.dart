@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:share_plus/share_plus.dart';
 import '../theme/app_theme.dart';
 import '../services/contract_service.dart';
+import '../services/pdf_export_service.dart';
 import '../utils/date_utils.dart';
 import '../utils/rental_schedule_utils.dart';
 import 'signature_screen.dart';
@@ -103,14 +103,20 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
               tooltip: 'تحميل نسخة PDF',
               icon: const Icon(Icons.picture_as_pdf),
               onPressed: () async {
-                final html = ContractService.generatePrintableHtml(
-                  contractText: _contractText,
-                  contractNumber: widget.bookingDetails['contractNumber']
-                          ?.toString() ??
-                      widget.bookingDetails['id']?.toString() ??
-                      'CTR',
-                );
-                await Share.share(html, subject: 'عقد إيجاري');
+                try {
+                  await PdfExportService.shareContractPdf(
+                    contractText: _contractText,
+                    contractNumber: widget.bookingDetails['contractNumber']
+                            ?.toString() ??
+                        widget.bookingDetails['id']?.toString() ??
+                        'CTR',
+                  );
+                } catch (e) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('تعذّر إنشاء PDF: $e')),
+                  );
+                }
               },
             ),
         ],

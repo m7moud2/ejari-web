@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import 'home_screen.dart';
 import '../services/auth_service.dart';
 import '../widgets/ejari_auth_header.dart';
 import '../widgets/ejari_section.dart';
 import '../widgets/image_upload_widget.dart';
+import 'role_picker_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   final String? redirectToRole;
@@ -169,31 +169,16 @@ class _SignupScreenState extends State<SignupScreen> {
                     Navigator.of(context).pop(true);
                     return;
                   }
-                  String roleToApply = widget.redirectToRole ?? _userType;
-                  await AuthService.setUserRole(roleToApply);
-
-                  if (roleToApply == 'owner') {
-                    if (!mounted) return;
-                    Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const HomeScreen()),
-                        (route) => false);
-                  } else if (roleToApply == 'provider') {
-                    if (!mounted) return;
-                    Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const HomeScreen()),
-                        (route) => false);
-                  } else {
-                    if (!mounted) return;
-                    Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const HomeScreen()),
-                        (route) => false);
-                  }
+                  if (!mounted) return;
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => RolePickerScreen(
+                        initialRole: widget.redirectToRole ?? _userType,
+                        userEmail: _emailController.text,
+                      ),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor,
@@ -201,7 +186,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       borderRadius: BorderRadius.circular(16)),
                   elevation: 0,
                 ),
-                child: const Text('البدء في الاستكشاف',
+                child: const Text('اختر دورك وابدأ',
                     style: TextStyle(
                         color: Colors.white, fontWeight: FontWeight.bold)),
               ),

@@ -157,6 +157,59 @@ class SmartPricingService {
     );
   }
 
+  static const String _cronRunKey = 'auto_discount_cron_last_run';
+
+  /// محاكاة cron — عند الإطلاق يفحص الأسرّة الشاغرة ويطبّق الخصم التلقائي.
+  static Future<Map<String, dynamic>> runAutoDiscountCron(String ownerId) async {
+    final config = await getDiscountScheduler(ownerId);
+    if (config['enabled'] != true) {
+      return {'applied': 0, 'skipped': 'scheduler_disabled'};
+    }
+
+    final vacantDays = config['vacantDays'] as int? ?? 3;
+    final discountPct = (config['discountPercent'] as num?)?.toDouble() ?? 10.0;
+    final vacantBeds =
+        await BedHierarchyService.getVacantBedsSinceDays(ownerId, vacantDays);
+
+    var applied = 0;
+    final appliedProps = <String>{};
+
+    for (final bed in vacantBeds) {
+      final propertyId = bed['propertyId']?.toString() ?? '';
+      if (propertyId.isEmpty || appliedProps.contains(propertyId)) continue;
+
+      final ok = await applyAutoDiscount(
+        propertyId: propertyId,
+        discountPercent: discountPct,
+      );
+      if (ok) {
+        applied++;
+        appliedProps.add(propertyId);
+        await DataService.addNotificationToUser(
+          ownerId,
+          'تخفيض تلقائي مُطبَّق 💰',
+          'خصم ${discountPct.toStringAsFixed(0)}% على ${bed['propertyTitle']} — '
+              'سرير شاغر منذ ${bed['vacantDays']} أيام',
+          type: 'auto_discount_applied',
+          refId: propertyId,
+        );
+      }
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      '$_cronRunKey$ownerId',
+      DateTime.now().toIso8601String(),
+    );
+
+    return {
+      'applied': applied,
+      'vacantBeds': vacantBeds.length,
+      'vacantDays': vacantDays,
+      'discountPercent': discountPct,
+    };
+  }
+
   /// اقتراح AI rule-based للمالك.
   static Future<String> occupancySuggestion(String ownerId) async {
     final trees = await BedHierarchyService.getOwnerTrees(ownerId);

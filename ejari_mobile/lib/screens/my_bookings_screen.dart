@@ -13,6 +13,7 @@ import '../models/rental_duration_tier.dart';
 import '../models/tenant_type.dart';
 import '../widgets/booking_status_timeline.dart';
 import '../widgets/rental_booking_widgets.dart';
+import '../widgets/skeleton_list_loader.dart';
 import '../widgets/refund_calculator_dialog.dart';
 import 'refund_tracker_screen.dart';
 import '../widgets/corporate_bookings_strip.dart';
@@ -72,14 +73,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         ],
       ),
       body: _isLoading
-          ? const ColoredBox(
-              color: AppTheme.backgroundColor,
-              child: Center(
-                child: CircularProgressIndicator(
-                  color: AppTheme.primaryColor,
-                ),
-              ),
-            )
+          ? const SkeletonListLoader(itemCount: 4, itemHeight: 120)
           : RefreshIndicator(
               onRefresh: _loadBookings,
               color: AppTheme.primaryColor,

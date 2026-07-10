@@ -236,4 +236,34 @@ class BedHierarchyService {
     await prefs.setString(_hierarchyKey, jsonEncode(vacantSince));
     return results;
   }
+
+  /// بذر تواريخ شغور قديمة للعرض التجريبي (3+ أيام).
+  static Future<void> seedDemoVacancyTracking(String ownerId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_hierarchyKey);
+    final vacantSince = <String, String>{};
+    if (raw != null) {
+      try {
+        final map = jsonDecode(raw) as Map<String, dynamic>;
+        for (final e in map.entries) {
+          vacantSince[e.key] = e.value.toString();
+        }
+      } catch (_) {}
+    }
+
+    final fourDaysAgo =
+        DateTime.now().subtract(const Duration(days: 4)).toIso8601String();
+    final trees = await getOwnerTrees(ownerId);
+    for (final tree in trees) {
+      for (final room in tree['rooms'] as List? ?? []) {
+        for (final bed in room['beds'] as List? ?? []) {
+          if (bed['status'] == 'vacant') {
+            final key = '${tree['propertyId']}_${bed['id']}';
+            vacantSince.putIfAbsent(key, () => fourDaysAgo);
+          }
+        }
+      }
+    }
+    await prefs.setString(_hierarchyKey, jsonEncode(vacantSince));
+  }
 }

@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import '../models/payment_receipt.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
+import '../services/pdf_export_service.dart';
 
 /// عرض إيصال دفع — من الحجوزات أو المحفظة أو الإشعارات.
 class ReceiptScreen extends StatelessWidget {
@@ -97,11 +98,30 @@ class ReceiptScreen extends StatelessWidget {
           if (receipt.title != null) _row('الوصف', receipt.title!),
           _row('الحالة', receipt.status == 'completed' ? 'مكتمل ✅' : receipt.status),
           const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                final text = '''
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    try {
+                      await PdfExportService.shareReceiptPdf(receipt);
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('تعذّر إنشاء PDF: $e')),
+                        );
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.picture_as_pdf_outlined),
+                  label: const Text('تحميل PDF'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    final text = '''
 إيصال دفع إيجاري
 رقم: ${receipt.id}
 المبلغ: ${receipt.amount.toStringAsFixed(0)} ج.م
@@ -111,11 +131,13 @@ class ReceiptScreen extends StatelessWidget {
 المستلم: ${receipt.payee}
 وسيلة الدفع: ${receipt.methodLabelAr}
 ''';
-                Share.share(text, subject: 'إيصال ${receipt.id}');
-              },
-              icon: const Icon(Icons.share_outlined),
-              label: const Text('مشاركة / تصدير الإيصال'),
-            ),
+                    Share.share(text, subject: 'إيصال ${receipt.id}');
+                  },
+                  icon: const Icon(Icons.share_outlined),
+                  label: const Text('مشاركة'),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           Container(

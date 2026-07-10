@@ -233,7 +233,7 @@ class _DemoFlowGuideScreenState extends State<DemoFlowGuideScreen> {
                   const SizedBox(height: AppTheme.spaceMd),
                   const EjariSectionHeader(
                     title: 'الخطوات',
-                    subtitle: 'اضغط «تنفيذ» للمحاكاة أو «انتقل» للشاشة',
+                    subtitle: 'اضغط على أي خطوة للانتقال أو «تنفيذ» للمحاكاة',
                   ),
                   const SizedBox(height: AppTheme.spaceSm),
                   ..._steps.map(_stepCard),
@@ -248,56 +248,59 @@ class _DemoFlowGuideScreenState extends State<DemoFlowGuideScreen> {
     final color = _stateColor(state);
     final isCurrent = state == 'current';
     final isDone = state == 'done';
+    final isPending = state == 'pending';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppTheme.spaceSm),
       child: EjariSurfaceCard(
         elevated: isCurrent,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          onTap: () => _navigateToStep(step),
+          borderRadius: BorderRadius.circular(AppTheme.cardRadiusLg),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isDone ? Icons.check_rounded : _iconFor(step['icon']?.toString()),
+                  color: color,
+                ),
               ),
-              child: Icon(
-                isDone ? Icons.check_rounded : _iconFor(step['icon']?.toString()),
-                color: color,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${step['index']}. ${step['title']}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      step['statusAr']?.toString() ?? '',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: color,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${step['index']}. ${step['title']}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 14,
                       ),
                     ),
-                  ),
-                  if (isCurrent || isDone) ...[
+                    const SizedBox(height: 4),
+                    Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        step['statusAr']?.toString() ?? '',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          color: color,
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 10),
                     Row(
                       children: [
@@ -320,17 +323,19 @@ class _DemoFlowGuideScreenState extends State<DemoFlowGuideScreen> {
                             style: OutlinedButton.styleFrom(
                               padding: const EdgeInsets.symmetric(vertical: 8),
                             ),
-                            child: const Text('انتقل',
-                                style: TextStyle(fontSize: 12)),
+                            child: Text(
+                              isPending ? 'انتقل (معاينة)' : 'انتقل',
+                              style: const TextStyle(fontSize: 12),
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ],
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

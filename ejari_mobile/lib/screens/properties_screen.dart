@@ -3,6 +3,7 @@ import '../widgets/property_card.dart';
 import '../widgets/empty_state_view.dart';
 import '../utils/property_image_resolver.dart';
 import '../theme/app_theme.dart';
+import '../widgets/skeleton_list_loader.dart';
 import 'property_details_screen.dart';
 import 'booking_screen.dart';
 import 'map_search_screen.dart';
@@ -212,14 +213,7 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
               color: AppTheme.primaryColor,
               onRefresh: _loadProperties,
               child: _isLoading
-                  ? const ColoredBox(
-                      color: AppTheme.backgroundColor,
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          color: AppTheme.primaryColor,
-                        ),
-                      ),
-                    )
+                  ? const SkeletonListLoader(itemCount: 6, itemHeight: 140)
                   : _filteredProperties.isEmpty
                       ? ListView(
                           physics: const AlwaysScrollableScrollPhysics(),

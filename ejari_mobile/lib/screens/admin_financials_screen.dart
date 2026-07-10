@@ -3,6 +3,7 @@ import 'package:share_plus/share_plus.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../services/wallet_service.dart';
+import '../services/pdf_export_service.dart';
 
 class AdminFinancialsScreen extends StatefulWidget {
   const AdminFinancialsScreen({super.key});
@@ -482,13 +483,27 @@ class _AdminFinancialsScreenState extends State<AdminFinancialsScreen>
     );
   }
 
-  void _downloadContractPdf(String title, String parties, String date) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-            'تم تحميل عقد "$title" بصيغة PDF (وضع تجريبي)\n$parties — $date'),
-        duration: const Duration(seconds: 4),
-      ),
-    );
+  void _downloadContractPdf(String title, String parties, String date) async {
+    try {
+      await PdfExportService.shareContractPdf(
+        contractText: '''
+عقد إيجار — $title
+
+$parties
+
+تاريخ العقد: $date
+
+بموجب هذا العقد يتفق الطرفان على شروط الإيجار المعتمدة في منصة إيجاري.
+''',
+        contractNumber: title.replaceAll(' ', '_'),
+        title: 'عقد إيجار — $title',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('تعذّر إنشاء PDF: $e')),
+        );
+      }
+    }
   }
 }

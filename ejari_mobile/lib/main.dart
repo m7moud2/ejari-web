@@ -17,6 +17,8 @@ import 'services/tenant_score_service.dart';
 import 'services/anti_fraud_service.dart';
 import 'services/ros_notification_service.dart';
 import 'services/demo_flow_service.dart';
+import 'services/smart_pricing_service.dart';
+import 'services/bed_hierarchy_service.dart';
 
 import 'screens/splash_screen.dart';
 import 'config/app_config.dart';
@@ -71,6 +73,14 @@ void main() async {
     await RosNotificationService.runSmartChecks('owner@ejari.app', 'owner');
     await DataService.simulateOverduePaymentNotification();
     await DemoFlowService.ensureFlowBooking();
+    await BedHierarchyService.seedDemoVacancyTracking('owner@ejari.app');
+    await SmartPricingService.saveDiscountScheduler(
+      ownerId: 'owner@ejari.app',
+      vacantDays: 3,
+      discountPercent: 10,
+      enabled: true,
+    );
+    await SmartPricingService.runAutoDiscountCron('owner@ejari.app');
     await RosNotificationService.runSmartChecks('user@ejari.app', 'tenant');
   }
 
