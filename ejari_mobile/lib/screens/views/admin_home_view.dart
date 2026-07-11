@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/home_provider.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/ejari_section.dart';
+import '../../widgets/home/home_ui_kit.dart';
 import '../admin_users_screen.dart';
 import '../admin_properties_screen.dart';
 import '../admin_reports_screen.dart';
@@ -30,164 +32,146 @@ class AdminHomeView extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          _buildHero(stats),
-          const SizedBox(height: 14),
-          _buildMetrics(stats),
-          const SizedBox(height: 14),
-          _buildAlerts(context, stats),
-          const SizedBox(height: 14),
+          _buildHero(),
+          const SizedBox(height: 12),
+          HomeQuickLookRow(tiles: [
+            HomeQuickLookTile(
+              label: 'المستخدمين',
+              value: '${stats['totalUsers'] ?? 0}',
+              icon: Icons.people_alt_rounded,
+              color: AppTheme.primaryColor,
+            ),
+            HomeQuickLookTile(
+              label: 'الأرباح',
+              value: '${stats['platformRevenue'] ?? 0}',
+              hint: 'ج.م',
+              icon: Icons.payments_rounded,
+              color: AppTheme.accentColor,
+            ),
+            HomeQuickLookTile(
+              label: 'نزاعات',
+              value: '${stats['openDisputes'] ?? 0}',
+              icon: Icons.gavel_rounded,
+              color: AppTheme.errorColor,
+            ),
+            HomeQuickLookTile(
+              label: 'توثيقات',
+              value: '${stats['pendingVerifications'] ?? 0}',
+              icon: Icons.verified_user_rounded,
+              color: const Color(0xFF2D6A5A),
+            ),
+          ]),
+          const SizedBox(height: 12),
+          HomeExpandableSection(
+            title: 'تفاصيل النظام',
+            subtitle: 'إحصائيات إضافية',
+            child: _buildDetailMetrics(stats),
+          ),
+          const SizedBox(height: 12),
+          HomeExpandableSection(
+            title: 'تنبيهات',
+            subtitle: 'أحداث تحتاج مراجعة',
+            child: _buildAlerts(context, stats),
+          ),
+          const SizedBox(height: 12),
+          const EjariSectionHeader(
+            title: 'النشاط المباشر',
+            subtitle: 'آخر العمليات في المنصة',
+          ),
+          const SizedBox(height: 8),
           const AdminOperationsFeed(),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
+          const EjariSectionHeader(
+            title: 'إجراءات سريعة',
+            subtitle: 'الوصول لأدوات الإدارة',
+          ),
+          const SizedBox(height: 8),
           _buildQuickActions(context),
         ],
       ),
     );
   }
 
-  Widget _buildHero(Map<String, dynamic> stats) {
+  Widget _buildHero() {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.primaryColor,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(24),
       ),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'لوحة تحكم الإدارة',
             style: TextStyle(
               color: Colors.white,
-              fontSize: 22,
+              fontSize: 20,
               fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(height: 6),
-          const Text(
-            'ملخص سريع لكل شيء داخل النظام بشكل واضح ومباشر.',
+          SizedBox(height: 4),
+          Text(
+            'ملخص سريع لكل شيء داخل النظام.',
             style: TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _heroMetric('المستخدمين', '${stats['totalUsers'] ?? 0}'),
-              _heroMetric('الأرباح', '${stats['platformRevenue'] ?? 0} ج.م'),
-              _heroMetric('نزاعات', '${stats['openDisputes'] ?? 0}'),
-            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _heroMetric(String label, String value) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minWidth: 90, maxWidth: 135),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.10),
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: Colors.white70, fontSize: 11)),
-            const SizedBox(height: 6),
-            Text(value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w900)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMetrics(Map<String, dynamic> stats) {
+  Widget _buildDetailMetrics(Map<String, dynamic> stats) {
     return GridView(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        mainAxisSpacing: 12,
-        crossAxisSpacing: 12,
-        mainAxisExtent: 90,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+        mainAxisExtent: 72,
       ),
       children: [
-        _metric('مستخدمين', '${stats['totalUsers'] ?? 0}',
-            Icons.people_alt_rounded, AppTheme.primaryColor),
-        _metric('مستأجرين', '${stats['tenantsCount'] ?? 0}',
-            Icons.person_search_rounded, AppTheme.accentColor),
-        _metric('ملاك', '${stats['ownersCount'] ?? 0}', Icons.home_work_rounded,
-            Colors.teal),
-        _metric('فنيين', '${stats['techniciansCount'] ?? 0}',
-            Icons.handyman_rounded, Colors.orange),
-        _metric('توثيقات', '${stats['pendingVerifications'] ?? 0}',
-            Icons.verified_user_rounded, AppTheme.borderColor),
-        _metric('مدفوعات معلقة', '${stats['pendingPayments'] ?? 0}',
-            Icons.payments_rounded, AppTheme.errorColor),
-        _metric('Escrow', '${stats['escrowBalance'] ?? 0} ج.م',
-            Icons.lock_rounded, AppTheme.primaryColor),
-        _metric('صيانة جارية', '${stats['activeMaintenance'] ?? 0}',
-            Icons.build_circle_rounded, Colors.blue),
+        EjariStatTile(
+          icon: Icons.person_search_rounded,
+          label: 'مستأجرين',
+          value: '${stats['tenantsCount'] ?? 0}',
+          accentColor: AppTheme.accentColor,
+          compact: true,
+        ),
+        EjariStatTile(
+          icon: Icons.home_work_rounded,
+          label: 'ملاك',
+          value: '${stats['ownersCount'] ?? 0}',
+          compact: true,
+        ),
+        EjariStatTile(
+          icon: Icons.handyman_rounded,
+          label: 'فنيين',
+          value: '${stats['techniciansCount'] ?? 0}',
+          accentColor: Colors.orange,
+          compact: true,
+        ),
+        EjariStatTile(
+          icon: Icons.payments_rounded,
+          label: 'مدفوعات معلقة',
+          value: '${stats['pendingPayments'] ?? 0}',
+          accentColor: AppTheme.errorColor,
+          compact: true,
+        ),
+        EjariStatTile(
+          icon: Icons.lock_rounded,
+          label: 'Escrow',
+          value: '${stats['escrowBalance'] ?? 0} ج.م',
+          compact: true,
+        ),
+        EjariStatTile(
+          icon: Icons.build_circle_rounded,
+          label: 'صيانة جارية',
+          value: '${stats['activeMaintenance'] ?? 0}',
+          accentColor: Colors.blue,
+          compact: true,
+        ),
       ],
-    );
-  }
-
-  Widget _metric(String label, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: color.withOpacity(0.18)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.10),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: color, size: 16),
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700)),
-                const SizedBox(height: 1),
-                Text(value,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        color: color,
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w900)),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -196,7 +180,7 @@ class AdminHomeView extends StatelessWidget {
       children: [
         _alert(
           context,
-          'تنبيه أمني: ${stats['systemAlerts'] ?? 0} أحداث تحتاج مراجعة',
+          '${stats['systemAlerts'] ?? 0} أحداث أمنية',
           AppTheme.errorColor,
           () => Navigator.push(
             context,
@@ -205,10 +189,10 @@ class AdminHomeView extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         _alert(
           context,
-          'يوجد ${stats['openDisputes'] ?? 0} نزاعات مفتوحة تحتاج مراجعة',
+          '${stats['openDisputes'] ?? 0} نزاعات مفتوحة',
           AppTheme.errorColor,
           () => Navigator.push(
             context,
@@ -217,10 +201,10 @@ class AdminHomeView extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         _alert(
           context,
-          'يوجد ${stats['pendingVerifications'] ?? 0} حسابات في انتظار التوثيق (KYC)',
+          '${stats['pendingVerifications'] ?? 0} حسابات بانتظار التوثيق',
           AppTheme.borderColor,
           () => Navigator.push(
             context,
@@ -241,24 +225,30 @@ class AdminHomeView extends StatelessWidget {
   ) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: color.withOpacity(0.10),
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: color.withOpacity(0.20)),
         ),
         child: Row(
           children: [
-            Icon(Icons.notification_important_rounded, color: color),
-            const SizedBox(width: 12),
+            Icon(Icons.notification_important_rounded, color: color, size: 18),
+            const SizedBox(width: 10),
             Expanded(
-              child: Text(message,
-                  style: TextStyle(
-                      color: color, fontWeight: FontWeight.w800, height: 1.4)),
+              child: Text(
+                message,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12,
+                  height: 1.3,
+                ),
+              ),
             ),
-            Icon(Icons.chevron_left, color: color.withOpacity(0.7)),
+            Icon(Icons.chevron_left, color: color.withOpacity(0.7), size: 18),
           ],
         ),
       ),
@@ -266,97 +256,103 @@ class AdminHomeView extends StatelessWidget {
   }
 
   Widget _buildQuickActions(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.borderColor.withOpacity(0.18)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('إجراءات سريعة',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 12),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            childAspectRatio: 1.15,
-            children: [
-              _action(context, 'سجل النشاط', Icons.history_rounded,
-                  const AdminAuditLogScreen()),
-              _action(context, 'توثيق الهوية', Icons.verified_user_rounded,
-                  const VerificationScreen()),
-              _action(context, 'بحث شامل', Icons.manage_search_rounded,
-                  const AdminSearchScreen()),
-              _action(context, 'المستخدمين', Icons.people,
-                  const AdminUsersScreen()),
-              _action(context, 'العقارات', Icons.home_work_rounded,
-                  const AdminPropertiesScreen()),
-              _action(context, 'المالية', Icons.account_balance_wallet_rounded,
-                  const AdminFinancialsScreen()),
-              _action(context, 'صندوق الدعم', Icons.support_agent_rounded,
-                  const AdminSupportScreen()),
-              _action(context, 'التقييمات', Icons.star_rate_rounded,
-                  const AdminReviewsScreen()),
-              _action(context, 'طلبات الخدمة', Icons.handyman_rounded,
-                  const AdminServiceRequestsScreen()),
-              _action(context, 'التقارير', Icons.analytics_rounded,
-                  const AdminReportsScreen()),
-              _action(context, 'تقييم التطبيق', Icons.feedback_rounded,
-                  const AdminFeedbackScreen()),
-              _action(context, 'الإعدادات', Icons.settings_rounded,
-                  const SettingsScreen()),
-            ],
+    return HomeActionGrid(
+      actions: const [
+        (
+          label: 'سجل النشاط',
+          icon: Icons.history_rounded,
+          page: AdminAuditLogScreen(),
+        ),
+        (
+          label: 'توثيق الهوية',
+          icon: Icons.verified_user_rounded,
+          page: VerificationScreen(),
+        ),
+        (
+          label: 'بحث شامل',
+          icon: Icons.manage_search_rounded,
+          page: AdminSearchScreen(),
+        ),
+        (
+          label: 'المستخدمين',
+          icon: Icons.people,
+          page: AdminUsersScreen(),
+        ),
+        (
+          label: 'العقارات',
+          icon: Icons.home_work_rounded,
+          page: AdminPropertiesScreen(),
+        ),
+        (
+          label: 'المالية',
+          icon: Icons.account_balance_wallet_rounded,
+          page: AdminFinancialsScreen(),
+        ),
+      ],
+      maxVisible: 5,
+      onMore: () => showHomeMoreSheet(
+        context,
+        title: 'المزيد من الأدوات',
+        items: [
+          (
+            label: 'صندوق الدعم',
+            icon: Icons.support_agent_rounded,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AdminSupportScreen(),
+              ),
+            ),
+          ),
+          (
+            label: 'التقييمات',
+            icon: Icons.star_rate_rounded,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AdminReviewsScreen(),
+              ),
+            ),
+          ),
+          (
+            label: 'طلبات الخدمة',
+            icon: Icons.handyman_rounded,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AdminServiceRequestsScreen(),
+              ),
+            ),
+          ),
+          (
+            label: 'التقارير',
+            icon: Icons.analytics_rounded,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AdminReportsScreen(),
+              ),
+            ),
+          ),
+          (
+            label: 'تقييم التطبيق',
+            icon: Icons.feedback_rounded,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AdminFeedbackScreen(),
+              ),
+            ),
+          ),
+          (
+            label: 'الإعدادات',
+            icon: Icons.settings_rounded,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _action(
-      BuildContext context, String title, IconData icon, Widget page) {
-    return InkWell(
-      onTap: () =>
-          Navigator.push(context, MaterialPageRoute(builder: (_) => page)),
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppTheme.backgroundColor,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppTheme.borderColor.withOpacity(0.12)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withOpacity(0.10),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, color: AppTheme.primaryColor, size: 20),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 12,
-                height: 1.25,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
