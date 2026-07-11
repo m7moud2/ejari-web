@@ -7,6 +7,8 @@ import '../widgets/skeleton_list_loader.dart';
 import 'property_details_screen.dart';
 import 'booking_screen.dart';
 import 'map_search_screen.dart';
+import '../models/listing_type.dart';
+import '../widgets/sale_listing_widgets.dart';
 import '../models/accommodation_type.dart';
 import '../services/firestore_property_service.dart';
 
@@ -162,7 +164,7 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
                 children: [
                   _listingChip('rent', 'للإيجار'),
                   const SizedBox(width: 8),
-                  _listingChip('sale', 'للبيع'),
+                  _listingChip('sale', 'إعلانات البيع'),
                   const SizedBox(width: 8),
                   _listingChip('all', 'الكل'),
                 ],
@@ -253,6 +255,16 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
                                   .toList(),
                               onTap: () => _navigateToDetails(property),
                               onBook: () {
+                                if (isSaleListing(property)) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          SaleContactScreen(property: property),
+                                    ),
+                                  );
+                                  return;
+                                }
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(

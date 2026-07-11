@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../providers/home_provider.dart';
 import '../utils/auth_gate.dart';
 import '../widgets/ejari_section.dart';
+import '../widgets/sale_listing_widgets.dart';
 import 'subscription_payment_screen.dart';
 
 class ListingPlansScreen extends StatefulWidget {
@@ -68,13 +69,22 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
                     _buildCurrentPlanBanner(),
                     const SizedBox(height: 20),
                     const EjariSectionHeader(
-                      title: 'مقارنة الباقات',
-                      subtitle: 'اختر الخطة المناسبة لنشاطك العقاري',
+                      title: 'خطط نشر الإيجار',
+                      subtitle: 'إدارة عقارات الإيجار مع حجز وإسكرو',
                     ),
                     const SizedBox(height: 12),
                     _buildComparisonTable(),
                     const SizedBox(height: 24),
                     ..._buildPlanCards(),
+                    const SizedBox(height: 28),
+                    const EjariSectionHeader(
+                      title: 'خطط عرض إعلانات البيع',
+                      subtitle: 'رسوم نشر فقط — بدون عمولة على الصفقة',
+                    ),
+                    const SizedBox(height: 8),
+                    const SaleListingDisclaimerBanner(),
+                    const SizedBox(height: 14),
+                    ..._buildSaleAdPlanCards(),
                     const SizedBox(height: 16),
                     _buildCommissionCard(),
                   ],
@@ -315,18 +325,130 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
     }).toList();
   }
 
+  List<Widget> _buildSaleAdPlanCards() {
+    const plans = [
+      ('sale_bronze', 'برونزي', 79, Color(0xFF8B6914)),
+      ('sale_silver', 'فضي', 199, AppTheme.primaryColor),
+      ('sale_gold', 'ذهبي', 399, AppTheme.accentColor),
+    ];
+
+    return plans.map((p) {
+      final id = p.$1;
+      final name = p.$2;
+      final price = p.$3;
+      final color = p.$4;
+      final features = SubscriptionService.saleAdPlanFeatureLabels(id);
+
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: EjariSurfaceCard(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(name,
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: color)),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text('إعلان بيع',
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: color)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '$price ج.م/شهر',
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 12),
+              ...features.map((f) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      children: [
+                        Icon(Icons.check_circle_rounded, color: color, size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                            child: Text(f, style: const TextStyle(fontSize: 12))),
+                      ],
+                    ),
+                  )),
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => _handleSaleAdPlanSelection(id),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: color,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text('اشترك لعرض الإعلان',
+                      style: TextStyle(fontWeight: FontWeight.w800)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }).toList();
+  }
+
+  Future<void> _handleSaleAdPlanSelection(String planId) async {
+    final allowed = await AuthGate.requireLogin(
+      context,
+      actionLabel: 'الاشتراك في باقات إعلانات البيع',
+    );
+    if (!allowed || !mounted) return;
+
+    final planDetails = SubscriptionService.saleAdPlans[planId];
+    if (planDetails == null) return;
+
+    final paid = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SubscriptionPaymentScreen(
+          planId: planId,
+          userType: 'owner',
+          planDetails: planDetails,
+        ),
+      ),
+    );
+    if (paid != true || !mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('تم تفعيل باقة إعلانات البيع! ✅'),
+        backgroundColor: AppTheme.primaryColor,
+      ),
+    );
+  }
+
   Widget _buildCommissionCard() {
     return EjariSurfaceCard(
       elevated: false,
       child: Column(
         children: [
           const Text(
-            'لا ترغب في الاشتراك؟',
+            'نظام العمولة — للإيجار فقط',
             style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
           ),
           const SizedBox(height: 6),
           const Text(
-            'انشر مجاناً بنظام العمولة — تدفع فقط عند إتمام الصفقة',
+            'انشر إيجارك مجاناً بنظام العمولة — تدفع 10% فقط عند إتمام عقد الإيجار. لا يشمل إعلانات البيع.',
             style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
             textAlign: TextAlign.center,
           ),
@@ -335,7 +457,7 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
             onPressed: _currentPlan == 'commission'
                 ? null
                 : () => _handleSelection('commission'),
-            child: const Text('اختيار نظام العمولة'),
+            child: const Text('اختيار نظام عمولة الإيجار'),
           ),
         ],
       ),

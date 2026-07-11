@@ -19,6 +19,7 @@ import '../models/accommodation_type.dart';
 import '../models/listing_type.dart';
 import '../widgets/occupancy_calendar_widget.dart';
 import '../widgets/rental_booking_widgets.dart';
+import '../widgets/sale_listing_widgets.dart';
 import 'map_search_screen.dart';
 import 'virtual_tour_screen.dart';
 import 'comparison_screen.dart';
@@ -299,7 +300,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final price = property['price']?.toString() ?? '0';
     final isDemo = property['isDemo'] == true;
     final isSale = isSaleListing(property);
-    final listingLabel = listingTypeFromProperty(property).arabicLabel;
+    final listingLabel =
+        isSale ? ListingType.sale.saleAdBadge : listingTypeFromProperty(property).arabicLabel;
     final propertyStatus = (property['status']?.toString().trim().isNotEmpty ?? false)
         ? property['status'].toString()
         : (isDemo ? 'متاح الآن' : 'متاح الآن');
@@ -506,6 +508,10 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         ),
                       ),
                       const SizedBox(height: AppTheme.spaceMd),
+                      if (isSale) ...[
+                        const SaleListingDisclaimerBanner(),
+                        const SizedBox(height: AppTheme.spaceMd),
+                      ],
                       EjariSurfaceCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -543,9 +549,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             ),
                             if (isSale) ...[
                               const SizedBox(height: 6),
-                              Text(
-                                'عربون معاينة: ${(double.tryParse(price.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0) * 0.05 ~/ 1} ج.م تقريباً',
-                                style: const TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                              const Text(
+                                'سعر العرض — التفاوض والدفع مباشرة مع المالك',
+                                style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                               ),
                             ] else ...[
                               const SizedBox(height: 6),
@@ -991,56 +997,107 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             bottom: AppTheme.screenPadding,
             left: AppTheme.screenPadding,
             right: AppTheme.screenPadding,
-            child: SizedBox(
-              height: AppTheme.ctaHeight,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.cardRadius - 2),
-                  ),
-                  elevation: 0,
-                ),
-                onPressed: () async {
-                  final allowed = await AuthGate.requireLogin(
-                    context,
-                    actionLabel: 'حجز الوحدة',
-                  );
-                  if (!allowed || !context.mounted) return;
-                  if (DataService.isSharedAccommodation(property) &&
-                      _selectedBedId == null) {
-                    messenger.showSnackBar(
-                      const SnackBar(
-                        content: Text('يرجى اختيار سرير متاح أولاً'),
-                        backgroundColor: AppTheme.errorColor,
+            child: isSale
+                ? Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: SizedBox(
+                          height: AppTheme.ctaHeight,
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppTheme.cardRadius - 2),
+                              ),
+                              elevation: 0,
+                            ),
+                            onPressed: _openWhatsApp,
+                            icon: const Icon(Icons.chat_rounded, color: Colors.white),
+                            label: const Text(
+                              'تواصل مع المالك',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
-                    );
-                    return;
-                  }
-                  final bookingData = {
-                    ...property,
-                    if (_selectedBedId != null) 'selectedBedId': _selectedBedId,
-                    if (_selectedBedId != null)
-                      'bedLabel': (List<Map<String, dynamic>>.from(
-                        property['bedUnits'] as List? ?? [],
-                      ).firstWhere(
-                        (b) => b['id']?.toString() == _selectedBedId,
-                        orElse: () => {'label': 'سرير'},
-                      ))['label'],
-                  };
-                  navigator.push(
-                    MaterialPageRoute(
-                        builder: (context) => BookingScreen(
-                            itemType: 'property', itemData: bookingData)),
-                  );
-                },
-                child: const Text('احجز الآن',
-                    style: TextStyle(
-                        fontSize: 17,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800)),
-              ),
-            ),
+                      const SizedBox(width: 10),
+                      SizedBox(
+                        height: AppTheme.ctaHeight,
+                        width: 56,
+                        child: OutlinedButton(
+                          onPressed: _showPhoneCallDialog,
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                  AppTheme.cardRadius - 2),
+                            ),
+                          ),
+                          child: const Icon(Icons.phone_rounded,
+                              color: AppTheme.primaryColor),
+                        ),
+                      ),
+                    ],
+                  )
+                : SizedBox(
+                    height: AppTheme.ctaHeight,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.cardRadius - 2),
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: () async {
+                        final allowed = await AuthGate.requireLogin(
+                          context,
+                          actionLabel: 'حجز الوحدة',
+                        );
+                        if (!allowed || !context.mounted) return;
+                        if (DataService.isSharedAccommodation(property) &&
+                            _selectedBedId == null) {
+                          messenger.showSnackBar(
+                            const SnackBar(
+                              content: Text('يرجى اختيار سرير متاح أولاً'),
+                              backgroundColor: AppTheme.errorColor,
+                            ),
+                          );
+                          return;
+                        }
+                        final bookingData = {
+                          ...property,
+                          if (_selectedBedId != null)
+                            'selectedBedId': _selectedBedId,
+                          if (_selectedBedId != null)
+                            'bedLabel': (List<Map<String, dynamic>>.from(
+                              property['bedUnits'] as List? ?? [],
+                            ).firstWhere(
+                              (b) => b['id']?.toString() == _selectedBedId,
+                              orElse: () => {'label': 'سرير'},
+                            ))['label'],
+                        };
+                        navigator.push(
+                          MaterialPageRoute(
+                              builder: (context) => BookingScreen(
+                                  itemType: 'property',
+                                  itemData: bookingData)),
+                        );
+                      },
+                      child: const Text('احجز الآن',
+                          style: TextStyle(
+                              fontSize: 17,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800)),
+                    ),
+                  ),
           ),
         ],
       ),

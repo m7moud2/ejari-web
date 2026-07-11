@@ -9,7 +9,32 @@ class SubscriptionService {
   static const String _ownerSubscriptionKeyPrefix = 'owner_subscription_';
 
   static const double commissionRent = 0.10;
-  static const double commissionSale = 0.025;
+
+  /// خطط عرض إعلانات البيع — رسوم نشر فقط، بدون عمولة على الصفقة.
+  static const Map<String, Map<String, dynamic>> saleAdPlans = {
+    'sale_bronze': {
+      'name': 'برونزي — بيع',
+      'price': 79,
+      'sale_ads_limit': 2,
+      'duration_days': 30,
+      'featured': false,
+    },
+    'sale_silver': {
+      'name': 'فضي — بيع',
+      'price': 199,
+      'sale_ads_limit': 8,
+      'duration_days': 30,
+      'featured': true,
+    },
+    'sale_gold': {
+      'name': 'ذهبي — بيع',
+      'price': 399,
+      'sale_ads_limit': -1,
+      'duration_days': 60,
+      'featured': true,
+      'priority': true,
+    },
+  };
 
   static const Map<String, Map<String, dynamic>> ownerPlans = {
     'free': {
@@ -279,7 +304,21 @@ class SubscriptionService {
       if (featured != null) featured,
       if (analyticsLabel != null) analyticsLabel,
       if (priority != null) priority,
-      if (plan['commission'] == true) 'عمولة 10% على الإيجار' else 'بدون عمولة',
+      if (plan['commission'] == true) 'عمولة 10% على الإيجار فقط' else 'بدون عمولة',
+    ];
+  }
+
+  static List<String> saleAdPlanFeatureLabels(String planId) {
+    final plan = saleAdPlans[planId] ?? saleAdPlans['sale_bronze']!;
+    final limit = safeInt(plan['sale_ads_limit'], 2);
+    final ads = limit == -1 ? 'إعلانات بيع غير محدودة' : 'حتى $limit إعلان بيع';
+    final duration = safeInt(plan['duration_days'], 30);
+    return [
+      ads,
+      'مدة العرض $duration يوم',
+      if (plan['featured'] == true) 'تمييز في قسم البيع',
+      if (plan['priority'] == true) 'أولوية في نتائج البحث',
+      'بدون عمولة على سعر البيع',
     ];
   }
 
@@ -369,7 +408,6 @@ class SubscriptionService {
       'has_priority': plan['priority'] == true,
       'analytics': plan['analytics'] ?? 'none',
       'commission_rate_rent': commissionRent,
-      'commission_rate_sale': commissionSale,
       'is_active': sub['active'] != false,
       'end_date': sub['end_date'],
       'features': planFeatureLabels(planId),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/property_card.dart';
 import '../theme/app_theme.dart';
 import 'property_details_screen.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../widgets/sale_listing_widgets.dart';
 
 class SalesPropertiesScreen extends StatefulWidget {
   const SalesPropertiesScreen({super.key});
@@ -50,29 +50,20 @@ class _SalesPropertiesScreenState extends State<SalesPropertiesScreen> {
     );
   }
 
-  void _contactAdvertiser(String phone) async {
-    final Uri url = Uri.parse('tel:$phone');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('عذراً، لا يمكن فتح تطبيق الاتصال')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('عقارات للبيع 🏠'),
+        title: const Text('إعلانات البيع 🏠'),
         centerTitle: true,
         elevation: 0,
       ),
       body: Column(
         children: [
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: SaleListingDisclaimerBanner(),
+          ),
           Container(
             padding: const EdgeInsets.all(16),
             color: AppTheme.primaryColor.withOpacity(0.05),
@@ -82,7 +73,7 @@ class _SalesPropertiesScreenState extends State<SalesPropertiesScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'هذا القسم مخصص للإعلانات المباشرة من الملاك. تواصل معهم مباشرة بدون عمولات.',
+                    'منصة عرض إعلانات — المالك يدفع رسوم النشر فقط. تواصل مباشرة بدون عمولة بيع.',
                     style: TextStyle(
                       fontSize: 13,
                       color: AppTheme.primaryColor.withOpacity(0.8),
@@ -114,8 +105,12 @@ class _SalesPropertiesScreenState extends State<SalesPropertiesScreen> {
                     listingMode: property['listingMode'],
                     isDemo: false,
                     onTap: () => _navigateToDetails(property),
-                    onBook: () =>
-                        _contactAdvertiser(property['advertiserPhone']),
+                    onBook: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => SaleContactScreen(property: property),
+                      ),
+                    ),
                   ),
                 );
               },

@@ -5,6 +5,7 @@ import 'package:ejari_mobile/services/auth_service.dart';
 import 'package:ejari_mobile/services/booking_qr_service.dart';
 import 'package:ejari_mobile/services/data_service.dart';
 import 'package:ejari_mobile/services/subscription_service.dart';
+import 'package:ejari_mobile/widgets/sale_listing_widgets.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +21,18 @@ void main() {
     expect(isSaleListing({'listingMode': 'for_sale'}), true);
     expect(isSaleListing({'listingMode': 'rent'}), false);
     expect(listingTypeFromProperty({'listingMode': 'rent'}).arabicLabel, 'للإيجار');
-    expect(listingTypeFromProperty({'listingMode': 'for_sale'}).arabicLabel, 'للبيع');
+    expect(listingTypeFromProperty({'listingMode': 'for_sale'}).arabicLabel, 'إعلان بيع');
+    expect(ListingType.sale.saleAdBadge, kSaleAdBadgeLabel);
+  });
+
+  test('Sale listings are ad-only — no sale commission rate', () async {
+    final ability = await SubscriptionService.checkListingAbility();
+    expect(ability.containsKey('commission_rate_sale'), false);
+    expect(SubscriptionService.saleAdPlans['sale_bronze']!['sale_ads_limit'], 2);
+    expect(
+      SubscriptionService.saleAdPlanFeatureLabels('sale_gold'),
+      contains('بدون عمولة على سعر البيع'),
+    );
   });
 
   test('SubscriptionService owner plans have limits', () {

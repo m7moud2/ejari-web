@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/listing_type.dart';
+import '../widgets/sale_listing_widgets.dart';
 import '../services/data_service.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/property_image_resolver.dart';
@@ -124,19 +125,20 @@ class _PropertyCardState extends State<PropertyCard> {
                   ),
                 ),
 
-                // Listing type badge
                 Positioned(
                   bottom: 60,
                   left: 15,
                   child: _buildBadge(
-                    listingTypeFromProperty({
-                      'listingMode': widget.listingMode,
-                    }).arabicLabel,
+                    isSaleListing({'listingMode': widget.listingMode})
+                        ? kSaleAdBadgeLabel
+                        : listingTypeFromProperty({
+                            'listingMode': widget.listingMode,
+                          }).arabicLabel,
                     isSaleListing({'listingMode': widget.listingMode})
                         ? AppTheme.borderColor
                         : AppTheme.primaryColor,
                     isSaleListing({'listingMode': widget.listingMode})
-                        ? Icons.sell_rounded
+                        ? Icons.campaign_rounded
                         : Icons.key_rounded,
                   ),
                 ),
@@ -438,7 +440,7 @@ class _PropertyCardState extends State<PropertyCard> {
                           ),
                           child: Text(
                               widget.listingMode == 'for_sale'
-                                  ? 'تواصل مع المعلن'
+                                  ? 'تواصل مع المالك'
                                   : 'حجز الشقة',
                               style:
                                   const TextStyle(fontWeight: FontWeight.bold)),

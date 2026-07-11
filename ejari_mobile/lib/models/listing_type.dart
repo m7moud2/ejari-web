@@ -10,9 +10,12 @@ extension ListingTypeX on ListingType {
       case ListingType.rent:
         return 'للإيجار';
       case ListingType.sale:
-        return 'للبيع';
+        return 'إعلان بيع';
     }
   }
+
+  /// شارة إعلان البيع — للعرض فقط بدون وساطة.
+  String get saleAdBadge => 'إعلان — للعرض فقط';
 
   String get value {
     switch (this) {

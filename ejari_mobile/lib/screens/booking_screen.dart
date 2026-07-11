@@ -21,6 +21,7 @@ import '../widgets/image_upload_widget.dart';
 import '../widgets/ejari_image.dart';
 import '../widgets/ejari_section.dart';
 import '../widgets/smart_booking_assistant.dart';
+import '../widgets/sale_listing_widgets.dart';
 import '../l10n/app_localizations.dart';
 
 class BookingScreen extends StatefulWidget {
@@ -533,6 +534,10 @@ class _BookingScreenState extends State<BookingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (isSale && widget.itemType == 'property') {
+      return SaleContactScreen(property: widget.itemData);
+    }
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(

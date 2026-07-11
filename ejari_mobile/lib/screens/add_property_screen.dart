@@ -9,6 +9,7 @@ import '../services/data_service.dart';
 import '../services/subscription_service.dart';
 import '../models/accommodation_type.dart';
 import '../widgets/ejari_section.dart';
+import '../widgets/sale_listing_widgets.dart';
 import 'listing_plans_screen.dart';
 
 class AddPropertyScreen extends StatefulWidget {
@@ -35,6 +36,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   double _priceMonthly = 0;
   double _seasonalRate = 0;
   bool _useManualPricing = false;
+  String _area = '120';
   int _currentStep = 0;
 
   File? _selectedImage;
@@ -65,6 +67,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
           2;
       _totalRooms = (widget.initialData!['totalRooms'] as num?)?.toInt() ?? 1;
       _listingMode = widget.initialData!['listingMode']?.toString() ?? 'rent';
+      _area = widget.initialData!['area']?.toString() ?? '120';
       final dp = widget.initialData!['dynamicPricing'] as Map<String, dynamic>?;
       if (dp != null) {
         _useManualPricing = dp['useManual'] == true;
@@ -193,7 +196,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
           'assets/images/home1.jpg',
       'beds': _totalBeds.toString(),
       'baths': widget.initialData?['baths']?.toString() ?? '1',
-      'area': widget.initialData?['area']?.toString() ?? '120',
+      'area': _listingMode == 'for_sale'
+          ? _area
+          : (widget.initialData?['area']?.toString() ?? '120'),
       'totalBeds': _totalBeds,
       'totalRooms': _totalRooms,
       'bedUnits': bedUnits,
@@ -356,9 +361,43 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     children: [
                       Expanded(child: _modeChip('rent', 'للإيجار')),
                       const SizedBox(width: 10),
-                      Expanded(child: _modeChip('for_sale', 'للبيع')),
+                      Expanded(child: _modeChip('for_sale', 'إعلان بيع')),
                     ],
                   ),
+                  if (_listingMode == 'for_sale') ...[
+                    const SizedBox(height: 12),
+                    const SaleListingDisclaimerBanner(),
+                    const SizedBox(height: 8),
+                    EjariSurfaceCard(
+                      elevated: false,
+                      child: Row(
+                        children: [
+                          const Icon(Icons.payments_outlined,
+                              color: AppTheme.primaryColor, size: 20),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'رسوم النشر حسب باقة عرض الإعلانات (برونزي/فضي/ذهبي) — بدون عمولة على سعر البيع.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.textSecondary.withOpacity(0.95),
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const ListingPlansScreen(),
+                              ),
+                            ),
+                            child: const Text('الباقات', style: TextStyle(fontSize: 11)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   if (_listingMode == 'rent') ...[
                     _buildSectionTitle('نوع الوحدة'),
@@ -473,12 +512,22 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
-                    label: _listingMode == 'for_sale' ? 'سعر البيع (ج.م)' : 'الإيجار الشهري (ج.م)',
+                    label: _listingMode == 'for_sale' ? 'سعر العرض (ج.م)' : 'الإيجار الشهري (ج.م)',
                     hint: 'مثال: 500000',
                     initialValue: price == 0.0 ? '' : price.toString(),
                     isNumber: true,
                     onSaved: (val) => price = double.tryParse(val!) ?? 0,
                   ),
+                  if (_listingMode == 'for_sale') ...[
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      label: 'المساحة (م²)',
+                      hint: 'مثال: 160',
+                      initialValue: _area,
+                      isNumber: true,
+                      onSaved: (val) => _area = val ?? '120',
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   _buildTextField(
                     label: 'الوصف التفصيلي',

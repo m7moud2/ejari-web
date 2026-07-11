@@ -228,7 +228,7 @@ class _HomeContentState extends State<HomeContent> {
         'color': AppTheme.primaryColor
       },
       {
-        'label': 'عقارات للبيع',
+        'label': 'إعلانات البيع',
         'icon': Icons.campaign_rounded,
         'color': AppTheme.errorColor
       },
@@ -1517,7 +1517,7 @@ class _HomeContentState extends State<HomeContent> {
     bool isSelected = _selectedCategory == title;
     return GestureDetector(
       onTap: () {
-        if (title == 'عقارات للبيع') {
+        if (title == 'إعلانات البيع') {
           Navigator.push(
             context,
             MaterialPageRoute(

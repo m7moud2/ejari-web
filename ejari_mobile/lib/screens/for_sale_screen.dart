@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/firestore_property_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/sale_listing_widgets.dart';
 import 'property_details_screen.dart';
 
 class ForSaleScreen extends StatefulWidget {
@@ -54,7 +55,7 @@ class _ForSaleScreenState extends State<ForSaleScreen> {
                   color: Colors.white),
               onPressed: () => Navigator.pop(context),
             ),
-            title: const Text('للبيع بعمولة إيجاري',
+            title: const Text('إعلانات البيع',
                 style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
@@ -91,14 +92,14 @@ class _ForSaleScreenState extends State<ForSaleScreen> {
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(color: AppTheme.borderColor)),
                           child: const Text(
-                              'عمولة تصل لـ 2% فقط — أقل من السوق بـ 60%',
+                              'منصة عرض إعلانات — بدون عمولة بيع',
                               style: TextStyle(
                                   color: AppTheme.borderColor,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold)),
                         ),
                         const SizedBox(height: 8),
-                        const Text('بيع عقارك بأسرع وقت\nبدون تعقيدات ووسطاء',
+                        const Text('اعرض عقارك للبيع\nبرسوم نشر فقط',
                             style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 20,
@@ -154,7 +155,13 @@ class _ForSaleScreenState extends State<ForSaleScreen> {
             ),
           ),
 
-          // ─── Commission Advantage Banner ─────────────────
+          // ─── Ad platform banner ─────────────────
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: SaleListingDisclaimerBanner(),
+            ),
+          ),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -167,21 +174,21 @@ class _ForSaleScreenState extends State<ForSaleScreen> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.savings_rounded,
+                    Icon(Icons.campaign_rounded,
                         color: AppTheme.borderColor, size: 32),
                     SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('وفّر آلاف الجنيهات على عمولة البيع',
+                          Text('رسوم نشر فقط — لا عمولة على الصفقة',
                               style: TextStyle(
                                   fontWeight: FontWeight.w900,
                                   fontSize: 14,
                                   color: AppTheme.textPrimary)),
                           SizedBox(height: 4),
                           Text(
-                              'نأخذ 1.5–2% فقط مقابل 4–5% في السوق. توثيق قانوني كامل.',
+                              'المالك يدفع باقة عرض الإعلان. المشتري يتواصل مباشرة مع المالك.',
                               style: TextStyle(
                                   fontSize: 12, color: AppTheme.textPrimary)),
                         ],
@@ -227,22 +234,7 @@ class _ForSaleScreenState extends State<ForSaleScreen> {
   }
 
   Widget _buildSaleCard(Map<String, dynamic> p) {
-    final marketPrice = p['marketPrice'] ?? p['price'];
     final salePrice = p['price'];
-    final commission = p['saleCommission'] ?? '2';
-
-    // Compute savings
-    String savings = '';
-    try {
-      final market = double.parse(
-          marketPrice.toString().replaceAll(RegExp(r'[^0-9]'), ''));
-      final sale =
-          double.parse(salePrice.toString().replaceAll(RegExp(r'[^0-9]'), ''));
-      final diff = market - sale;
-      if (diff > 0) {
-        savings = '${(diff / 1000).toStringAsFixed(0)}K وفر';
-      }
-    } catch (_) {}
 
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -289,37 +281,18 @@ class _ForSaleScreenState extends State<ForSaleScreen> {
                         borderRadius: BorderRadius.circular(12)),
                     child: const Row(
                       children: [
-                        Icon(Icons.sell_rounded,
+                        Icon(Icons.campaign_rounded,
                             color: AppTheme.borderColor, size: 14),
                         SizedBox(width: 4),
-                        Text('للبيع',
+                        Text(kSaleAdBadgeLabel,
                             style: TextStyle(
                                 color: AppTheme.textPrimary,
                                 fontWeight: FontWeight.w900,
-                                fontSize: 12)),
+                                fontSize: 11)),
                       ],
                     ),
                   ),
                 ),
-                // Savings badge
-                if (savings.isNotEmpty)
-                  Positioned(
-                    top: 14,
-                    left: 14,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                          color: AppTheme.primaryColor,
-                          borderRadius: BorderRadius.circular(12)),
-                      child: Text(savings,
-                          style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11)),
-                    ),
-                  ),
-                // Commission badge
                 Positioned(
                   bottom: 14,
                   right: 14,
@@ -331,7 +304,8 @@ class _ForSaleScreenState extends State<ForSaleScreen> {
                             ? Colors.white
                             : AppTheme.textPrimary,
                         borderRadius: BorderRadius.circular(12)),
-                    child: Text('عمولة $commission% فقط',
+                    child: Text(
+                        '${p['area'] ?? '—'} م²',
                         style: TextStyle(
                             color:
                                 Theme.of(context).brightness == Brightness.light
@@ -387,11 +361,14 @@ class _ForSaleScreenState extends State<ForSaleScreen> {
                                     : AppTheme.textPrimary)),
                     child: Row(
                       children: [
+                        const Icon(Icons.sell_outlined,
+                            color: AppTheme.primaryColor, size: 18),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('سعر إيجاري',
+                              const Text('سعر العرض',
                                   style: TextStyle(
                                       color: AppTheme.primaryColor,
                                       fontSize: 10)),
@@ -406,27 +383,6 @@ class _ForSaleScreenState extends State<ForSaleScreen> {
                                               AppTheme.textPrimary,
                                           fontWeight: FontWeight.w900,
                                           fontSize: 18))),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              const Text('السعر في السوق',
-                                  style: TextStyle(
-                                      color: AppTheme.primaryColor,
-                                      fontSize: 10)),
-                              const SizedBox(height: 2),
-                              FittedBox(
-                                  child: Text('$marketPrice ج.م',
-                                      style: const TextStyle(
-                                          color: AppTheme.primaryColor,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
-                                          decoration:
-                                              TextDecoration.lineThrough))),
                             ],
                           ),
                         ),
@@ -455,7 +411,7 @@ class _ForSaleScreenState extends State<ForSaleScreen> {
                               builder: (_) =>
                                   PropertyDetailsScreen(property: p))),
                       icon: const Icon(Icons.contact_phone_rounded, size: 18),
-                      label: const Text('تواصل مع مستشار البيع',
+                      label: const Text('تواصل مع المالك',
                           style: TextStyle(fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.borderColor,
