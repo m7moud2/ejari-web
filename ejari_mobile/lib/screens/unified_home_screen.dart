@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/home_provider.dart';
 import '../services/auth_service.dart';
+import '../services/deep_link_service.dart';
 import '../theme/app_theme.dart';
 
 import 'views/tenant_home_view.dart';
@@ -40,6 +41,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         _isRoleLoaded = true;
       });
       await context.read<HomeProvider>().loadHomeData(userRole);
+      await DeepLinkService.processPending();
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -47,6 +49,7 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
         _isRoleLoaded = true;
       });
       await context.read<HomeProvider>().loadHomeData(userRole);
+      await DeepLinkService.processPending();
     }
   }
 

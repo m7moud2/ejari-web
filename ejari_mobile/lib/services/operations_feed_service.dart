@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'data_service.dart';
 import 'maintenance_service.dart';
+import 'live_sync_service.dart';
 import '../models/booking_status.dart';
 
 /// بث العمليات الحي للإدارة — حجوزات، مدفوعات، توثيق، نزاعات.
@@ -121,6 +122,7 @@ class OperationsFeedService {
 
     if (list.length > 50) list.removeRange(50, list.length);
     await prefs.setString(_feedKey, jsonEncode(list));
+    await LiveSyncService.bumpRevision();
   }
 
   static Future<List<Map<String, dynamic>>> getLiveFeed({int limit = 20}) async {

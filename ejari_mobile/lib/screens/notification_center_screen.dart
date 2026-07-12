@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
+import '../services/deep_link_service.dart';
 import '../utils/date_utils.dart';
+import '../widgets/empty_state_view.dart';
 import 'receipt_screen.dart';
 import 'my_service_requests_screen.dart';
 import 'my_bookings_screen.dart';
+import 'property_details_screen.dart';
+import 'subscriptions_screen.dart';
+import 'payment_screen.dart';
 import 'tech_job_screen.dart';
 import '../services/auth_service.dart';
+import '../utils/safe_parse.dart';
 
 class NotificationCenterScreen extends StatefulWidget {
   const NotificationCenterScreen({super.key});
@@ -87,9 +93,58 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
 
   Future<void> _openBooking(Map<String, dynamic> note) async {
     if (!mounted) return;
+    final refId = note['refId']?.toString();
+    if (refId != null && refId.isNotEmpty) {
+      final target = DeepLinkTarget(type: DeepLinkType.booking, id: refId);
+      await DeepLinkService.navigate(target);
+      return;
+    }
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+    );
+  }
+
+  Future<void> _openSubscription() async {
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SubscriptionsScreen()),
+    );
+  }
+
+  Future<void> _openProperty(String propertyId) async {
+    final property = await DataService.findPropertyById(propertyId);
+    if (property == null || !mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PropertyDetailsScreen(property: property),
+      ),
+    );
+  }
+
+  Future<void> _openPaymentBooking(String bookingId) async {
+    final booking = await DataService.findBookingById(bookingId);
+    if (booking == null || !mounted) return;
+    final monthly = safeDouble(booking['monthlyRent'] ?? booking['price']);
+    final deposit = safeDouble(booking['depositAmount']);
+    final leaseTotal = safeDouble(
+      booking['leaseTotal'] ?? booking['totalAmount'] ?? monthly,
+    );
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentScreen(
+          itemType: 'booking',
+          itemData: booking,
+          amount: deposit > 0 ? deposit : monthly * 0.2,
+          paymentStage: 'deposit',
+          totalAmount: leaseTotal,
+          depositAmount: deposit,
+          remainingAmount: deposit > 0 ? deposit : monthly * 0.2,
+        ),
+      ),
     );
   }
 
@@ -157,8 +212,12 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     child: items.isEmpty
                         ? ListView(
                             children: const [
-                              SizedBox(height: 120),
-                              Center(child: Text('لا توجد إشعارات حالياً')),
+                              SizedBox(height: 80),
+                              EmptyStateView(
+                                icon: Icons.notifications_none_rounded,
+                                title: 'لا توجد إشعارات حالياً',
+                                subtitle: 'ستظهر هنا التنبيهات والتحديثات المهمة.',
+                              ),
                             ],
                           )
                         : ListView.builder(
@@ -279,8 +338,19 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           }
           if (type == 'Payment') {
             await _openReceiptIfPayment(notif);
+            final refId = notif['refId']?.toString();
+            if (refId != null &&
+                !refId.startsWith('RCP-') &&
+                mounted) {
+              await _openPaymentBooking(refId);
+            }
           } else if (type == 'Booking' || type == 'Reminder') {
             await _openBooking(notif);
+          } else if (type == 'Subscription') {
+            await _openSubscription();
+          } else if (type == 'Vacant') {
+            final refId = notif['refId']?.toString();
+            if (refId != null) await _openProperty(refId);
           } else if (type == 'Maintenance') {
             await _openMaintenance(notif);
           }

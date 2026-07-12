@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
 import '../services/data_service.dart';
@@ -20,6 +21,7 @@ import '../widgets/corporate_bookings_strip.dart';
 import '../widgets/escrow_transparency_widget.dart';
 import '../utils/safe_parse.dart';
 import '../services/check_in_out_service.dart';
+import '../services/live_sync_service.dart';
 import 'booking_qr_screen.dart';
 import 'owner_rating_screen.dart';
 
@@ -33,19 +35,58 @@ class MyBookingsScreen extends StatefulWidget {
 class _MyBookingsScreenState extends State<MyBookingsScreen> {
   List<Map<String, dynamic>> _bookings = [];
   bool _isLoading = true;
+  bool _isSyncRefreshing = false;
+  int _lastSyncGeneration = 0;
+  LiveSyncService? _liveSync;
 
   @override
   void initState() {
     super.initState();
     _loadBookings();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _liveSync = context.read<LiveSyncService>();
+      _liveSync?.addListener(_onLiveSync);
+    });
   }
 
-  Future<void> _loadBookings() async {
+  @override
+  void dispose() {
+    _liveSync?.removeListener(_onLiveSync);
+    super.dispose();
+  }
+
+  void _onLiveSync() {
+    final sync = _liveSync;
+    if (sync == null || !mounted) return;
+    final gen = sync.syncGeneration;
+    if (gen == _lastSyncGeneration) return;
+    final showSnack = _lastSyncGeneration > 0 && !_isLoading;
+    _lastSyncGeneration = gen;
+    _loadBookings(showUpdatedSnack: showSnack);
+  }
+
+  Future<void> _loadBookings({bool showUpdatedSnack = false}) async {
+    if (_isSyncRefreshing) return;
+    if (showUpdatedSnack) {
+      setState(() => _isSyncRefreshing = true);
+    }
     final bookings = await DataService.getBookings();
+    if (!mounted) return;
     setState(() {
       _bookings = bookings;
       _isLoading = false;
+      _isSyncRefreshing = false;
     });
+    if (showUpdatedSnack && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم التحديث'),
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -62,6 +103,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           fontWeight: FontWeight.w900,
         ),
         actions: [
+          if (_isSyncRefreshing)
+            const Padding(
+              padding: EdgeInsets.all(14),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
           IconButton(
             icon: const Icon(Icons.undo_rounded),
             tooltip: 'متابعة الاسترداد',
@@ -75,7 +125,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       body: _isLoading
           ? const SkeletonListLoader(itemCount: 4, itemHeight: 120)
           : RefreshIndicator(
-              onRefresh: _loadBookings,
+              onRefresh: () => _loadBookings(),
               color: AppTheme.primaryColor,
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(

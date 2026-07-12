@@ -16,6 +16,7 @@ import 'wallet_service.dart';
 import 'financial_service.dart';
 import 'maintenance_service.dart';
 import 'subscription_service.dart';
+import 'live_sync_service.dart';
 
 class DataService {
   /// true عندما يُحمَّل كatalog العقارات من التخزين المحلي بدل الشبكة.
@@ -1067,6 +1068,7 @@ class DataService {
       category: type,
       refId: refId,
     );
+    await LiveSyncService.bumpRevision();
   }
 
   static Future<void> _notifyBookingParties({
@@ -2283,6 +2285,7 @@ class DataService {
         );
       }
     }
+    await LiveSyncService.bumpRevision();
     return true;
   }
 

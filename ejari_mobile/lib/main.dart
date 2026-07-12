@@ -6,6 +6,9 @@ import 'theme/app_theme.dart';
 import 'l10n/app_localizations.dart';
 import 'services/firebase_service.dart';
 import 'services/push_notification_service.dart';
+import 'services/live_sync_service.dart';
+import 'services/deep_link_service.dart';
+import 'navigation/app_navigator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'services/auth_service.dart';
@@ -50,10 +53,18 @@ void main() async {
 
   // Initialize Push Notifications (local in demo, FCM in production)
   try {
-    await PushNotificationService.initialize();
+    await PushNotificationService.initialize(
+      onNotificationTap: DeepLinkService.parseNotificationPayload,
+    );
   } catch (e) {
     debugPrint('Push notifications skipped/failed safely: $e');
   }
+
+  // Start live sync polling (demo)
+  await LiveSyncService.instance.start();
+
+  // Web demo deep links: ?booking=demo_req_1&property=shared_egy1
+  DeepLinkService.enqueueAll(DeepLinkService.parseWebLaunchTargets());
 
   if (AppConfig.demoMode) {
     await AuthService.initDemoAccounts();
@@ -103,6 +114,7 @@ void main() async {
         ChangeNotifierProvider(
             create: (_) => PropertyProvider()..fetchAllProperties()),
         ChangeNotifierProvider(create: (_) => HomeProvider()),
+        ChangeNotifierProvider.value(value: LiveSyncService.instance),
       ],
       child: const EjariApp(),
     ),
@@ -138,6 +150,7 @@ class _EjariAppState extends State<EjariApp> {
           valueListenable: localeNotifier,
           builder: (context, currentLocale, _) {
             return MaterialApp(
+              navigatorKey: rootNavigatorKey,
               title: 'إيجاري',
               debugShowCheckedModeBanner: false,
               theme: AppTheme.lightTheme,

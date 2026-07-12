@@ -45,6 +45,21 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.ejari.app</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>ejari</string>
+			</array>
+		</dict>
+	</array>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>يحتاج إيجاري إلى الكاميرا لمسح رموز QR والتحقق من الحجوزات.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

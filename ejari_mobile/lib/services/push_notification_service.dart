@@ -8,6 +8,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'data_service.dart';
 import 'auth_service.dart';
 import 'subscription_service.dart';
+import 'deep_link_service.dart';
 import '../config/app_config.dart';
 
 // Background message handler
@@ -45,7 +46,12 @@ class PushNotificationService {
   static const String _enabledKey = 'notifications_enabled';
   static const String _demoScheduledKey = 'demo_reminders_scheduled_v1';
 
-  static Future<void> initialize() async {
+  static DeepLinkTarget? Function(String? payload)? _onNotificationTap;
+
+  static Future<void> initialize({
+    DeepLinkTarget? Function(String? payload)? onNotificationTap,
+  }) async {
+    _onNotificationTap = onNotificationTap;
     try {
       await _initLocalNotifications();
 
@@ -74,7 +80,10 @@ class PushNotificationService {
       android: androidSettings,
       iOS: iosSettings,
     );
-    await _localNotificationsPlugin.initialize(initSettings);
+    await _localNotificationsPlugin.initialize(
+      initSettings,
+      onDidReceiveNotificationResponse: _handleNotificationResponse,
+    );
     tz.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Africa/Cairo'));
   }
@@ -134,6 +143,7 @@ class PushNotificationService {
         'دفعة متأخرة 💳',
         'يرجى سداد قسط الإيجار في أقرب وقت — تنبيه للمستأجر',
         'reminders_channel',
+        payload: 'payment:demo_req_1',
       );
       await _scheduleZoned(
         _idPaymentOverdueOwner,
@@ -141,6 +151,7 @@ class PushNotificationService {
         'مستأجر متأخر في الدفع ⚠️',
         'أحد مستأجرينك متأخر في السداد — تنبيه للمالك',
         'reminders_channel',
+        payload: 'payment:demo_req_1',
       );
     }
 
@@ -154,6 +165,7 @@ class PushNotificationService {
             ? 'باقتك تنتهي خلال $days أيام — جدّد الآن'
             : 'باقتك تنتهي خلال 7 أيام — جدّد الآن',
         'reminders_channel',
+        payload: 'subscription',
       );
     }
 
@@ -164,6 +176,7 @@ class PushNotificationService {
         'موعد الدخول قريب 🏠',
         'حجزك يبدأ خلال 3 أيام — جهّز مستنداتك',
         'reminders_channel',
+        payload: 'booking:demo_flow_bed_1',
       );
     }
 
@@ -174,6 +187,7 @@ class PushNotificationService {
         'طلب حجز جديد 📩',
         'مستأجر جديد يريد حجز وحدتك — راجع الطلب',
         'reminders_channel',
+        payload: 'booking:demo_req_1',
       );
     }
 
@@ -193,8 +207,9 @@ class PushNotificationService {
     tz.TZDateTime when,
     String title,
     String body,
-    String channelId,
-  ) async {
+    String channelId, {
+    String? payload,
+  }) async {
     try {
       await _localNotificationsPlugin.zonedSchedule(
         id,
@@ -211,6 +226,7 @@ class PushNotificationService {
           iOS: const DarwinNotificationDetails(),
         ),
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        payload: payload,
       );
     } catch (e) {
       debugPrint('Zoned schedule skipped: $e');
@@ -346,6 +362,24 @@ class PushNotificationService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_demoScheduledKey, false);
     await scheduleDemoReminders();
+  }
+
+  static void _handleNotificationResponse(NotificationResponse response) {
+    final payload = response.payload;
+    final resolver = _onNotificationTap ?? DeepLinkService.parseNotificationPayload;
+    final target = resolver(payload);
+    if (target != null) {
+      DeepLinkService.enqueue(target);
+      DeepLinkService.processPending();
+    }
+  }
+
+  /// للاختبار — يحاكي نقر إشعار مجدول.
+  static Future<void> handleDemoTapPayload(String payload) async {
+    _handleNotificationResponse(NotificationResponse(
+      notificationResponseType: NotificationResponseType.selectedNotification,
+      payload: payload,
+    ));
   }
 
   static Future<void> _showLocalNotification(

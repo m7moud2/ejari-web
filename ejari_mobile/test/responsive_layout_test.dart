@@ -10,6 +10,7 @@ import 'package:ejari_mobile/widgets/property_card.dart';
 import 'package:ejari_mobile/providers/auth_provider.dart';
 import 'package:ejari_mobile/providers/home_provider.dart';
 import 'package:ejari_mobile/providers/property_provider.dart';
+import 'package:ejari_mobile/services/live_sync_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -30,6 +31,7 @@ Widget _homeShell(Widget home) {
       ChangeNotifierProvider(create: (_) => AuthProvider()),
       ChangeNotifierProvider(create: (_) => PropertyProvider()),
       ChangeNotifierProvider(create: (_) => HomeProvider()),
+      ChangeNotifierProvider.value(value: LiveSyncService.instance),
     ],
     child: MaterialApp(theme: AppTheme.lightTheme, home: home),
   );

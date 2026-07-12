@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../services/operations_feed_service.dart';
+import '../services/live_sync_service.dart';
 import '../screens/verification_screen.dart';
 import '../screens/admin_search_screen.dart';
 import '../screens/admin_service_requests_screen.dart';
 import 'ejari_section.dart';
+import 'empty_state_view.dart';
 
 /// بث العمليات الحي — لوحة تحكم الإدارة.
 class AdminOperationsFeed extends StatefulWidget {
@@ -17,20 +20,57 @@ class AdminOperationsFeed extends StatefulWidget {
 class _AdminOperationsFeedState extends State<AdminOperationsFeed> {
   List<Map<String, dynamic>> _events = [];
   bool _loading = true;
+  bool _isSyncRefreshing = false;
+  int _lastSyncGeneration = 0;
+  LiveSyncService? _liveSync;
 
   @override
   void initState() {
     super.initState();
     _load();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _liveSync = context.read<LiveSyncService>();
+      _liveSync?.addListener(_onLiveSync);
+    });
   }
 
-  Future<void> _load() async {
+  @override
+  void dispose() {
+    _liveSync?.removeListener(_onLiveSync);
+    super.dispose();
+  }
+
+  void _onLiveSync() {
+    final sync = _liveSync;
+    if (sync == null || !mounted) return;
+    final gen = sync.syncGeneration;
+    if (gen == _lastSyncGeneration) return;
+    final showSnack = _lastSyncGeneration > 0 && !_loading;
+    _lastSyncGeneration = gen;
+    _load(showUpdatedSnack: showSnack);
+  }
+
+  Future<void> _load({bool showUpdatedSnack = false}) async {
+    if (_isSyncRefreshing) return;
+    if (showUpdatedSnack || _loading) {
+      setState(() => _isSyncRefreshing = showUpdatedSnack);
+    }
     final events = await OperationsFeedService.getLiveFeed(limit: 12);
-    if (mounted) {
-      setState(() {
-        _events = events;
-        _loading = false;
-      });
+    if (!mounted) return;
+    setState(() {
+      _events = events;
+      _loading = false;
+      _isSyncRefreshing = false;
+    });
+    if (showUpdatedSnack && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم التحديث'),
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
@@ -67,13 +107,10 @@ class _AdminOperationsFeedState extends State<AdminOperationsFeed> {
             title: 'بث العمليات الحي',
             subtitle: 'آخر الأحداث — حجوزات، مدفوعات، توثيق، نزاعات',
             actionLabel: 'تحديث',
-            onAction: () {
-              setState(() => _loading = true);
-              _load();
-            },
+            onAction: () => _load(),
           ),
           const SizedBox(height: AppTheme.spaceSm),
-          if (_loading)
+          if (_loading || _isSyncRefreshing)
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(20),
@@ -81,11 +118,12 @@ class _AdminOperationsFeedState extends State<AdminOperationsFeed> {
               ),
             )
           else if (_events.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(12),
-              child: Text(
-                'لا أحداث حديثة — النظام هادئ حالياً.',
-                style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            const SizedBox(
+              height: 160,
+              child: EmptyStateView(
+                icon: Icons.rss_feed_rounded,
+                title: 'لا أحداث حديثة',
+                subtitle: 'النظام هادئ حالياً — سيظهر النشاط هنا تلقائياً.',
               ),
             )
           else

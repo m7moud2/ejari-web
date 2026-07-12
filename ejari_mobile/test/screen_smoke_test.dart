@@ -11,6 +11,7 @@ import 'package:ejari_mobile/services/data_service.dart';
 import 'package:ejari_mobile/services/maintenance_service.dart';
 import 'package:ejari_mobile/services/wallet_service.dart';
 import 'package:ejari_mobile/services/operations_feed_service.dart';
+import 'package:ejari_mobile/services/live_sync_service.dart';
 
 import 'package:ejari_mobile/screens/admin_service_requests_screen.dart';
 import 'package:ejari_mobile/screens/admin_search_screen.dart';
@@ -65,6 +66,7 @@ Widget _wrap(Widget child) {
     providers: [
       ChangeNotifierProvider(create: (_) => HomeProvider()),
       ChangeNotifierProvider(create: (_) => PropertyProvider()),
+      ChangeNotifierProvider.value(value: LiveSyncService.instance),
     ],
     child: MaterialApp(home: child),
   );

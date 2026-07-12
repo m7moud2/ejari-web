@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
+import '../services/live_sync_service.dart';
 import '../widgets/ejari_section.dart';
 import '../widgets/tenant_score_card.dart';
 
@@ -17,20 +19,49 @@ class OwnerBookingRequestsPanel extends StatefulWidget {
 class _OwnerBookingRequestsPanelState extends State<OwnerBookingRequestsPanel> {
   List<Map<String, dynamic>> _requests = [];
   bool _loading = true;
+  bool _isSyncRefreshing = false;
+  int _lastSyncGeneration = 0;
+  LiveSyncService? _liveSync;
 
   @override
   void initState() {
     super.initState();
     _load();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _liveSync = context.read<LiveSyncService>();
+      _liveSync?.addListener(_onLiveSync);
+    });
   }
 
-  Future<void> _load() async {
+  @override
+  void dispose() {
+    _liveSync?.removeListener(_onLiveSync);
+    super.dispose();
+  }
+
+  void _onLiveSync() {
+    final sync = _liveSync;
+    if (sync == null || !mounted) return;
+    final gen = sync.syncGeneration;
+    if (gen == _lastSyncGeneration) return;
+    final showSnack = _lastSyncGeneration > 0 && !_loading;
+    _lastSyncGeneration = gen;
+    _load(showUpdatedSnack: showSnack);
+  }
+
+  Future<void> _load({bool showUpdatedSnack = false}) async {
+    if (_isSyncRefreshing) return;
+    if (showUpdatedSnack) {
+      setState(() => _isSyncRefreshing = true);
+    }
     final user = await AuthService.getCurrentUser();
     final ownerId = user?['email']?.toString() ??
         user?['uid']?.toString() ??
         user?['id']?.toString() ??
         'owner@ejari.app';
     final requests = await DataService.getOwnerRequests(ownerId);
+    if (!mounted) return;
     setState(() {
       _requests = requests
           .where((r) =>
@@ -41,7 +72,17 @@ class _OwnerBookingRequestsPanelState extends State<OwnerBookingRequestsPanel> {
               r['status'] == 'corporate_pending')
           .toList();
       _loading = false;
+      _isSyncRefreshing = false;
     });
+    if (showUpdatedSnack && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم التحديث'),
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Future<void> _handle(String id, String status, {String? reason}) async {
@@ -99,11 +140,24 @@ class _OwnerBookingRequestsPanelState extends State<OwnerBookingRequestsPanel> {
     }
 
     if (_requests.isEmpty) {
-      return const EjariSurfaceCard(
+      return EjariSurfaceCard(
         elevated: false,
-        child: Text(
-          'لا توجد طلبات حجز جديدة حالياً.',
-          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+        child: Column(
+          children: [
+            if (_isSyncRefreshing)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            const Text(
+              'لا توجد طلبات حجز جديدة حالياً.',
+              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            ),
+          ],
         ),
       );
     }

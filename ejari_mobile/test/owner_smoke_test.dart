@@ -13,6 +13,7 @@ import 'package:ejari_mobile/services/wallet_service.dart';
 import 'package:ejari_mobile/services/operations_feed_service.dart';
 import 'package:ejari_mobile/services/tenant_score_service.dart';
 import 'package:ejari_mobile/services/anti_fraud_service.dart';
+import 'package:ejari_mobile/services/live_sync_service.dart';
 
 import 'package:ejari_mobile/screens/owner_occupancy_screen.dart';
 import 'package:ejari_mobile/screens/owner_collection_screen.dart';
@@ -47,6 +48,7 @@ Widget _wrap(Widget child) {
     providers: [
       ChangeNotifierProvider(create: (_) => HomeProvider()),
       ChangeNotifierProvider(create: (_) => PropertyProvider()),
+      ChangeNotifierProvider.value(value: LiveSyncService.instance),
     ],
     child: MaterialApp(home: child),
   );
