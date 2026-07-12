@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/app_config.dart';
 import '../theme/app_theme.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config/social_links.dart';
@@ -60,9 +61,9 @@ class AboutAppScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            const Text(
-              'الإصدار 1.1.0',
-              style: TextStyle(
+            Text(
+              'الإصدار ${AppConfig.versionLabel}',
+              style: const TextStyle(
                 fontSize: 14,
                 color: AppTheme.textSecondary,
               ),

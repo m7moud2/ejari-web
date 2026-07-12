@@ -25,6 +25,9 @@ import '../../widgets/trust_score_badge.dart';
 import '../subscriptions_screen.dart';
 import '../manage_properties_screen.dart';
 import '../sales_properties_screen.dart';
+import '../../services/auth_service.dart';
+import '../../services/data_service.dart';
+import '../../services/pdf_export_service.dart';
 
 class OwnerHomeView extends StatelessWidget {
   const OwnerHomeView({super.key});
@@ -112,6 +115,7 @@ class OwnerHomeView extends StatelessWidget {
                     title: 'ذكاء الأعمال',
                     subtitle: 'تسعير ذكي، ثقة، وتوقعات الإيراد',
                     child: _buildBusinessIntelligence(
+                      context,
                       stats,
                       smartHint,
                       trustData,
@@ -293,6 +297,11 @@ class OwnerHomeView extends StatelessWidget {
           ),
         ),
         (
+          label: 'تقرير شهري PDF',
+          icon: Icons.picture_as_pdf_rounded,
+          onTap: () => _exportOwnerMonthlyReport(context),
+        ),
+        (
           label: 'إعلانات البيع',
           icon: Icons.sell_outlined,
           onTap: () => Navigator.push(
@@ -307,6 +316,7 @@ class OwnerHomeView extends StatelessWidget {
   }
 
   Widget _buildBusinessIntelligence(
+    BuildContext context,
     Map<String, dynamic> stats,
     Map<String, dynamic>? smartHint,
     Map<String, dynamic>? trustData,
@@ -446,8 +456,53 @@ class OwnerHomeView extends StatelessWidget {
             ),
           ),
         ],
+        const SizedBox(height: AppTheme.spaceSm),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => _exportOwnerMonthlyReport(context),
+            icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+            label: const Text('تصدير التقرير الشهري PDF'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppTheme.primaryColor,
+              side: BorderSide(color: AppTheme.primaryColor.withOpacity(0.35)),
+            ),
+          ),
+        ),
       ],
     );
+  }
+
+  Future<void> _exportOwnerMonthlyReport(BuildContext context) async {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('جاري إنشاء التقرير الشهري...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    try {
+      final user = await AuthService.getCurrentUser();
+      final ownerId = user?['email']?.toString() ?? 'owner@ejari.app';
+      final report = await DataService.exportOwnerMonthlyReport(ownerId);
+      await PdfExportService.shareOwnerMonthlyReportPdf(report);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم تصدير التقرير الشهري كـ PDF'),
+          backgroundColor: AppTheme.primaryColor,
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تعذر تصدير التقرير: $e'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+    }
   }
 
   Widget _buildContextualBanner(

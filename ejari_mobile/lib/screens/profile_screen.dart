@@ -43,7 +43,12 @@ import 'owner_booking_requests_screen.dart';
 import 'corporate_command_center_screen.dart';
 import 'listing_plans_screen.dart';
 import 'subscriptions_screen.dart';
+import 'changelog_screen.dart';
+import 'app_update_screen.dart';
 import '../services/subscription_service.dart';
+import '../services/app_version_service.dart';
+import '../services/share_app_service.dart';
+import '../config/app_config.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -305,9 +310,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           MaterialPageRoute(
                               builder: (_) => const SettingsScreen()));
                     }),
+                    _buildEjariMenuItem(
+                      'ما الجديد',
+                      Icons.new_releases_outlined,
+                      AppTheme.primaryColor,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ChangelogScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    _buildEjariMenuItem(
+                      'شارك التطبيق',
+                      Icons.share_rounded,
+                      AppTheme.accentColor,
+                      () => ShareAppService.shareInvite(),
+                    ),
+                    _buildEjariMenuItem(
+                      'التحقق من التحديثات',
+                      Icons.system_update_alt_rounded,
+                      AppTheme.borderColor,
+                      _checkForUpdates,
+                    ),
                     _buildEjariMenuItem('تسجيل الخروج', Icons.logout_rounded,
                         AppTheme.errorColor, _logout, isLast: true),
                   ]),
+                  const SizedBox(height: AppTheme.spaceSm),
+                  Center(
+                    child: Text(
+                      'إيجاري ${AppConfig.versionLabel}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ),
 
                   if (_isAdmin) ...[
                     const SizedBox(height: AppTheme.spaceXl),
@@ -763,6 +803,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context,
       userEmail: email,
       userName: name,
+    );
+  }
+
+  Future<void> _checkForUpdates() async {
+    final latest = await AppVersionService.checkForUpdates();
+    if (!mounted) return;
+    if (latest == null || latest == AppVersionService.currentVersion) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'أنت تستخدم أحدث إصدار (${AppVersionService.fullVersion})',
+          ),
+          backgroundColor: AppTheme.primaryColor,
+        ),
+      );
+      return;
+    }
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AppUpdateScreen(
+          currentVersion: AppVersionService.currentVersion,
+          latestVersion: latest,
+        ),
+      ),
     );
   }
 

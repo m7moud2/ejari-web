@@ -231,6 +231,123 @@ class PdfExportService {
     );
   }
 
+  /// مشاركة التقرير الشهري للمالك كملف PDF.
+  static Future<void> shareOwnerMonthlyReportPdf(
+    Map<String, dynamic> report,
+  ) async {
+    final font = await _loadArabicFont();
+    final monthLabel = report['monthLabel']?.toString() ?? '';
+    final generatedAt = report['generatedAt']?.toString() ?? '';
+    final topProps = (report['topProperties'] as List?) ?? const [];
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(40),
+        textDirection: pw.TextDirection.rtl,
+        build: (context) => [
+          pw.Text(
+            'إيجاري — التقرير الشهري للمالك',
+            style: _style(font, size: 22, bold: true),
+          ),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            report['reportLabel']?.toString() ?? 'تقرير شهري — $monthLabel',
+            style: _style(font, size: 11),
+          ),
+          pw.Divider(thickness: 1),
+          pw.SizedBox(height: 12),
+          pw.Text('ملخص الإيراد', style: _style(font, size: 14, bold: true)),
+          pw.SizedBox(height: 8),
+          _pdfRow(
+            font,
+            'إيراد الشهر',
+            '${report['monthlyRevenue'] ?? 0} ج.م',
+            bold: true,
+          ),
+          _pdfRow(font, 'إيراد اليوم', '${report['todayIncome'] ?? 0} ج.م'),
+          _pdfRow(
+            font,
+            'رصيد متاح',
+            '${report['walletAvailable'] ?? 0} ج.م',
+          ),
+          _pdfRow(
+            font,
+            'رصيد الضمان',
+            '${report['escrowBalance'] ?? 0} ج.م',
+          ),
+          _pdfRow(
+            font,
+            'مدفوعات معلّقة',
+            '${report['pendingPayouts'] ?? 0} ج.م',
+          ),
+          pw.SizedBox(height: 16),
+          pw.Text('العقارات والحجوزات',
+              style: _style(font, size: 14, bold: true)),
+          pw.SizedBox(height: 8),
+          _pdfRow(font, 'عدد العقارات', '${report['propertiesCount'] ?? 0}'),
+          _pdfRow(
+            font,
+            'حجوزات هذا الشهر',
+            '${report['bookingsThisMonth'] ?? 0}',
+          ),
+          _pdfRow(
+            font,
+            'نسبة الإشغال',
+            '${report['occupancyRate'] ?? 0}%',
+          ),
+          _pdfRow(
+            font,
+            'تحصيل معلّق',
+            '${report['pendingCollection'] ?? 0}',
+          ),
+          _pdfRow(
+            font,
+            'متأخرات',
+            '${report['overdueCount'] ?? 0}',
+          ),
+          _pdfRow(
+            font,
+            'متوسط مدة الإقامة',
+            '${report['avgStayDuration'] ?? 0} يوم',
+          ),
+          if (topProps.isNotEmpty) ...[
+            pw.SizedBox(height: 16),
+            pw.Text('أفضل العقارات',
+                style: _style(font, size: 14, bold: true)),
+            pw.SizedBox(height: 8),
+            ...topProps.map((p) {
+              final map = Map<String, dynamic>.from(p as Map);
+              return _pdfRow(
+                font,
+                map['title']?.toString() ?? 'عقار',
+                '${map['views'] ?? 0} مشاهدة',
+              );
+            }),
+          ],
+          pw.SizedBox(height: 24),
+          pw.Text(
+            'تقرير تجريبي — يُولَّد تلقائياً من لوحة المالك.',
+            style: _style(font, size: 9),
+            textAlign: pw.TextAlign.center,
+          ),
+          pw.SizedBox(height: 4),
+          pw.Text(
+            'تاريخ التوليد: $generatedAt',
+            style: _style(font, size: 9),
+            textAlign: pw.TextAlign.center,
+          ),
+        ],
+      ),
+    );
+
+    await Printing.sharePdf(
+      bytes: await pdf.save(),
+      filename: 'ejari_owner_report_${monthLabel.replaceAll('/', '-')}.pdf',
+    );
+  }
+
   static pw.Widget _pdfRow(
     pw.Font font,
     String label,

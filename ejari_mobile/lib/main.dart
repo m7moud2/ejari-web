@@ -29,6 +29,7 @@ import 'providers/auth_provider.dart';
 import 'providers/property_provider.dart';
 import 'providers/home_provider.dart';
 import 'widgets/ejari_error_boundary.dart';
+import 'widgets/demo_mode_banner.dart';
 
 // Global Notifiers
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
@@ -157,6 +158,8 @@ class _EjariAppState extends State<EjariApp> {
               darkTheme: AppTheme.darkTheme,
               themeMode: currentMode,
               locale: currentLocale,
+              builder: (context, child) =>
+                  DemoModeBanner(child: child ?? const SizedBox.shrink()),
               localizationsDelegates: const [
                 AppLocalizations.delegate, // <-- Custom Translation Engine
                 GlobalMaterialLocalizations.delegate,

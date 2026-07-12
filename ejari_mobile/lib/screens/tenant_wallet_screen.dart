@@ -10,6 +10,7 @@ import 'payment_methods_screen.dart';
 import 'rewards_screen.dart';
 import 'rental_statement_screen.dart';
 import '../utils/wallet_category_labels.dart';
+import 'payment_screen.dart';
 
 class TenantWalletScreen extends StatefulWidget {
   const TenantWalletScreen({super.key});
@@ -23,6 +24,7 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
   List<Map<String, dynamic>> _transactions = [];
   Map<String, dynamic>? _rentSummary;
   List<Map<String, dynamic>> _relatedBookings = [];
+  List<Map<String, dynamic>> _upcomingPayments = [];
   String _selectedFilter = 'الكل'; // الكل، إيجار، عربون، استرداد، إيداع، سحب
   bool _isLoading = true;
 
@@ -37,6 +39,7 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
     final balance = await WalletService.getBalance();
     final transactions = await WalletService.getTransactions();
     final bookings = await DataService.getBookings();
+    final upcoming = await DataService.getTenantUpcomingPayments();
 
     final activeBookings = bookings
         .where((b) =>
@@ -67,6 +70,7 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
         _transactions = transactions;
         _relatedBookings = activeBookings;
         _rentSummary = rentSummary;
+        _upcomingPayments = upcoming;
         _isLoading = false;
       });
     }
@@ -104,6 +108,10 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
                     _buildBalanceCard(),
                     const SizedBox(height: 16),
                     _buildRentSummaryCard(),
+                    if (_upcomingPayments.isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      _buildUpcomingPaymentsCard(),
+                    ],
                     const SizedBox(height: 24),
                     _buildQuickActions(),
                     const SizedBox(height: 16),
@@ -595,6 +603,126 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildUpcomingPaymentsCard() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppTheme.accentColor.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.notifications_active_outlined,
+                  color: AppTheme.accentColor),
+              SizedBox(width: 10),
+              Text(
+                'تذكيرات الدفع القادمة',
+                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ..._upcomingPayments.take(4).map((payment) {
+            final due = DateTime.tryParse(payment['dueDate']?.toString() ?? '');
+            final dueText = due == null
+                ? '—'
+                : DateFormat('yyyy/MM/dd').format(due);
+            final isOverdue = payment['isOverdue'] == true;
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isOverdue
+                    ? AppTheme.errorColor.withOpacity(0.06)
+                    : AppTheme.backgroundColor,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isOverdue
+                      ? AppTheme.errorColor.withOpacity(0.25)
+                      : AppTheme.borderColor.withOpacity(0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          payment['title']?.toString() ?? 'قسط إيجار',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '$dueText • ${payment['statusLabel']}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isOverdue
+                                ? AppTheme.errorColor
+                                : AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    '${payment['amount']} ج.م',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      color: isOverdue
+                          ? AppTheme.errorColor
+                          : AppTheme.primaryColor,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.payment_rounded, size: 20),
+                    color: AppTheme.primaryColor,
+                    onPressed: () =>
+                        _openPaymentForReminder(payment['bookingId']?.toString()),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openPaymentForReminder(String? bookingId) async {
+    if (bookingId == null || bookingId.isEmpty) return;
+    final booking = await DataService.findBookingById(bookingId);
+    if (booking == null || !mounted) return;
+    final monthly = safeDouble(booking['monthlyRent'] ?? booking['price']);
+    final deposit = safeDouble(booking['depositAmount']);
+    final leaseTotal = safeDouble(
+      booking['leaseTotal'] ?? booking['totalAmount'] ?? monthly,
+    );
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentScreen(
+          itemType: 'booking',
+          itemData: booking,
+          amount: deposit > 0 ? deposit : monthly * 0.2,
+          paymentStage: 'deposit',
+          totalAmount: leaseTotal,
+          depositAmount: deposit,
+          remainingAmount: deposit > 0 ? deposit : monthly * 0.2,
+        ),
+      ),
+    );
+    _loadWalletData();
   }
 
   Widget _miniStat(String label, String value) {

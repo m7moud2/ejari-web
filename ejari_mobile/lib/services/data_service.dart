@@ -6,6 +6,7 @@ import '../utils/api_client.dart';
 import '../utils/date_utils.dart';
 import '../utils/safe_parse.dart';
 import '../utils/rental_rules.dart';
+import '../utils/rental_schedule_utils.dart';
 import '../utils/booking_validator.dart';
 import '../models/booking_status.dart';
 import 'activity_log_service.dart';
@@ -4379,6 +4380,94 @@ class DataService {
     if (changed) {
       await prefs.setStringList(_favoritesKey, updated);
     }
+  }
+
+  /// دفعات قادمة للمستأجر (خلال 60 يوماً).
+  static Future<List<Map<String, dynamic>>> getTenantUpcomingPayments() async {
+    final bookings = await getBookings();
+    final now = DateTime.now();
+    final horizon = now.add(const Duration(days: 60));
+    final upcoming = <Map<String, dynamic>>[];
+
+    for (final booking in bookings) {
+      final status = (booking['status'] ?? '').toString();
+      if (status == 'deposit_refunded' || status == 'rejected') continue;
+
+      final snapshot = RentalScheduleUtils.buildLeaseSnapshot(booking);
+      final nextDue = snapshot['nextDueDate'] as DateTime?;
+      if (nextDue == null || nextDue.isAfter(horizon)) continue;
+
+      final daysUntil = nextDue.difference(now).inDays;
+      upcoming.add({
+        'bookingId': booking['id']?.toString() ?? '',
+        'title': booking['title']?.toString() ?? 'حجز إيجار',
+        'amount': (snapshot['nextDueAmount'] as num?)?.toDouble() ?? 0,
+        'dueDate': nextDue.toIso8601String(),
+        'daysUntil': daysUntil,
+        'statusLabel': daysUntil < 0
+            ? 'متأخر'
+            : daysUntil == 0
+                ? 'اليوم'
+                : 'خلال $daysUntil يوم',
+        'isOverdue': daysUntil < 0,
+      });
+    }
+
+    upcoming.sort((a, b) {
+      final da = DateTime.tryParse(a['dueDate']?.toString() ?? '') ??
+          DateTime.now();
+      final db = DateTime.tryParse(b['dueDate']?.toString() ?? '') ??
+          DateTime.now();
+      return da.compareTo(db);
+    });
+    return upcoming;
+  }
+
+  /// تقرير شهري للمالك — ملخص الإيراد والإشغال والتحصيل.
+  static Future<Map<String, dynamic>> exportOwnerMonthlyReport(
+    String ownerId,
+  ) async {
+    final now = DateTime.now();
+    final monthLabel = '${now.month}/${now.year}';
+    final revenue = await getOwnerRevenue(ownerId);
+    final wallet = await getWalletData(ownerId);
+    final properties = await getOwnerProperties(ownerId);
+    final requests = await getOwnerRequests(ownerId);
+    final bookingsThisMonth = await getOwnerBookingsThisMonth(ownerId);
+    final overdue = await getOverduePayments(ownerId);
+    final todayIncome = await getOwnerTodayIncome(ownerId);
+    final performance = await getOwnerPropertyPerformance(ownerId);
+    final pendingCollection = await getPendingCollectionCount(ownerId);
+    final avgStay = await getOwnerAvgStayDuration(ownerId);
+
+    final occupiedCount = requests
+        .where((r) =>
+            r['status'] == BookingStatus.active ||
+            r['status'] == BookingStatus.approved ||
+            r['status'] == BookingStatus.depositPaid)
+        .length;
+    final occupancyRate = properties.isEmpty
+        ? 0.0
+        : (occupiedCount / properties.length * 100).clamp(0, 100);
+
+    return {
+      'ownerId': ownerId,
+      'generatedAt': now.toIso8601String(),
+      'reportLabel': 'تقرير شهري — $monthLabel',
+      'monthLabel': monthLabel,
+      'monthlyRevenue': revenue.round(),
+      'todayIncome': todayIncome.round(),
+      'walletAvailable': (wallet['available'] as num?)?.round() ?? 0,
+      'escrowBalance': (wallet['escrow'] as num?)?.round() ?? 0,
+      'pendingPayouts': (wallet['pending'] as num?)?.round() ?? 0,
+      'propertiesCount': properties.length,
+      'bookingsThisMonth': bookingsThisMonth,
+      'overdueCount': overdue.length,
+      'pendingCollection': pendingCollection,
+      'occupancyRate': occupancyRate.round(),
+      'avgStayDuration': avgStay,
+      'topProperties': performance.take(5).toList(),
+    };
   }
 
   /// تقرير يومي للوحة الإدارة.

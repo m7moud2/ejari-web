@@ -4,6 +4,11 @@ import 'help_center_screen.dart';
 import '../main.dart';
 import 'about_app_screen.dart';
 import 'feedback_screen.dart';
+import 'changelog_screen.dart';
+import 'app_update_screen.dart';
+import '../services/app_version_service.dart';
+import '../services/share_app_service.dart';
+import '../config/app_config.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config/social_links.dart';
 import 'package:local_auth/local_auth.dart'; // Add import
@@ -281,8 +286,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           _buildListTile(
+            title: 'ما الجديد',
+            subtitle: 'الإصدار ${AppConfig.versionLabel}',
+            icon: Icons.new_releases_outlined,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ChangelogScreen()),
+              );
+            },
+          ),
+          _buildListTile(
+            title: 'شارك التطبيق',
+            subtitle: 'ادعُ أصدقاءك لتجربة إيجاري',
+            icon: Icons.share_rounded,
+            onTap: ShareAppService.shareInvite,
+          ),
+          _buildListTile(
+            title: 'التحقق من التحديثات',
+            subtitle: 'الإصدار ${AppConfig.versionLabel}',
+            icon: Icons.system_update_alt_rounded,
+            onTap: _checkForUpdates,
+          ),
+          _buildListTile(
             title: 'عن تطبيق إيجاري',
-            subtitle: 'نسخة 1.1.0',
+            subtitle: 'نسخة ${AppConfig.versionLabel}',
             icon: Icons.info_outline,
             onTap: () {
               Navigator.push(
@@ -306,6 +334,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onTap: () => _launchUrl(SocialLinks.linkedin),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _checkForUpdates() async {
+    final latest = await AppVersionService.checkForUpdates();
+    if (!mounted) return;
+    if (latest == null || latest == AppVersionService.currentVersion) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'أنت تستخدم أحدث إصدار (${AppVersionService.fullVersion})',
+          ),
+          backgroundColor: AppTheme.primaryColor,
+        ),
+      );
+      return;
+    }
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AppUpdateScreen(
+          currentVersion: AppVersionService.currentVersion,
+          latestVersion: latest,
+        ),
       ),
     );
   }
