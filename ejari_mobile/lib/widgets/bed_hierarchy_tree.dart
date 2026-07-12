@@ -8,11 +8,13 @@ import 'ejari_section.dart';
 class BedHierarchyTree extends StatelessWidget {
   final Map<String, dynamic> tree;
   final void Function(String bedId, String bedLabel)? onBedTap;
+  final void Function(Map<String, dynamic> bed)? onBedLongPress;
 
   const BedHierarchyTree({
     super.key,
     required this.tree,
     this.onBedTap,
+    this.onBedLongPress,
   });
 
   @override
@@ -104,13 +106,28 @@ class BedHierarchyTree extends StatelessWidget {
   }
 
   Widget _bedChip(Map<String, dynamic> bed) {
-    final vacant = bed['status'] == 'vacant';
-    final color = vacant ? const Color(0xFF2D6A5A) : AppTheme.primaryColor;
+    final status = bed['status']?.toString() ?? 'vacant';
+    final color = switch (status) {
+      'vacant' => const Color(0xFF2D6A5A),
+      'maintenance' => Colors.orange,
+      _ => AppTheme.primaryColor,
+    };
+    final statusLabel = switch (status) {
+      'vacant' => 'فاضي',
+      'occupied' => 'مشغول',
+      'maintenance' => 'صيانة',
+      _ => status,
+    };
 
     return GestureDetector(
       onTap: onBedTap != null
-          ? () => onBedTap!(bed['id']?.toString() ?? '', bed['label']?.toString() ?? '')
+          ? () => onBedTap!(
+                bed['id']?.toString() ?? '',
+                bed['label']?.toString() ?? '',
+              )
           : null,
+      onLongPress:
+          onBedLongPress != null ? () => onBedLongPress!(bed) : null,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
@@ -122,14 +139,18 @@ class BedHierarchyTree extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              vacant ? Icons.bed_outlined : Icons.bed_rounded,
+              status == 'maintenance'
+                  ? Icons.build_circle_outlined
+                  : status == 'vacant'
+                      ? Icons.bed_outlined
+                      : Icons.bed_rounded,
               size: 14,
               color: color,
             ),
             const SizedBox(width: 4),
             Flexible(
               child: Text(
-                bed['label']?.toString() ?? 'سرير',
+                '${bed['label']?.toString() ?? 'سرير'} • $statusLabel',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
@@ -139,7 +160,7 @@ class BedHierarchyTree extends StatelessWidget {
                 ),
               ),
             ),
-            if (!vacant && bed['tenantName'] != null) ...[
+            if (status == 'occupied' && bed['tenantName'] != null) ...[
               const SizedBox(width: 4),
               Flexible(
                 child: Text(
@@ -211,6 +232,55 @@ class _BedHierarchyScreenState extends State<BedHierarchyScreen> {
     });
   }
 
+  Future<void> _showBedStatusSheet(
+    Map<String, dynamic> tree,
+    Map<String, dynamic> bed,
+  ) async {
+    final propertyId = tree['propertyId']?.toString() ?? '';
+    final bedId = bed['id']?.toString() ?? '';
+    if (propertyId.isEmpty || bedId.isEmpty) return;
+
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.bed_outlined),
+              title: const Text('فاضي'),
+              onTap: () => Navigator.pop(ctx, 'vacant'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.bed_rounded),
+              title: const Text('مشغول'),
+              onTap: () => Navigator.pop(ctx, 'occupied'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.build_circle_outlined),
+              title: const Text('صيانة'),
+              onTap: () => Navigator.pop(ctx, 'maintenance'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (choice == null) return;
+    await BedHierarchyService.updateBedStatus(
+      propertyId: propertyId,
+      bedId: bedId,
+      status: choice,
+      tenantName: choice == 'occupied' ? 'مستأجر' : null,
+    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تم تحديث حالة السرير')),
+      );
+      _load();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -230,7 +300,7 @@ class _BedHierarchyScreenState extends State<BedHierarchyScreen> {
                   const EjariSurfaceCard(
                     elevated: false,
                     child: Text(
-                      'الشقة → الغرف → الأسرّة — إدارة الإشغال والحجز لكل سرير.',
+                      'اضغط مطولاً على أي سرير لتغيير حالته: فاضي، مشغول، أو صيانة.',
                       style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
                     ),
                   ),
@@ -241,7 +311,11 @@ class _BedHierarchyScreenState extends State<BedHierarchyScreen> {
                     ..._trees.map(
                       (t) => Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: BedHierarchyTree(tree: t),
+                        child: BedHierarchyTree(
+                          tree: t,
+                          onBedLongPress: (bed) =>
+                              _showBedStatusSheet(t, bed),
+                        ),
                       ),
                     ),
                 ],

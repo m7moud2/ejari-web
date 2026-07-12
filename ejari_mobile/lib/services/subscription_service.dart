@@ -424,6 +424,16 @@ class SubscriptionService {
     return ability['can_feature'] == true;
   }
 
+  /// أيام متبقية على انتهاء الباقة — null إذا لا يوجد تاريخ انتهاء.
+  static Future<int?> getDaysUntilExpiry() async {
+    final sub = await getCurrentSubscription();
+    final endRaw = sub['end_date']?.toString();
+    if (endRaw == null || endRaw.isEmpty) return null;
+    final end = DateTime.tryParse(endRaw);
+    if (end == null) return null;
+    return end.difference(DateTime.now()).inDays;
+  }
+
   static Future<Map<String, dynamic>> getSubscriptionSummary() async {
     final sub = await getCurrentSubscription();
     final planId = sub['plan']?.toString() ?? 'free';

@@ -68,7 +68,7 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
         'name': t['name'] ?? 'مستأجر',
         'email': t['email'] ?? '',
         'property': t['bedLabel'] ?? 'سرير',
-        'status': isLate ? 'Late' : 'Paid',
+        'status': isLate ? 'متأخر' : 'مدفوع',
         'lateAmount': isLate ? rent : 0.0,
         'preEntryLabel': t['preEntryPaid'] == true
             ? 'مدفوع قبل الدخول ✓'
@@ -102,7 +102,7 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
         'name': r['tenantName'] ?? r['employeeName'] ?? 'مستأجر',
         'email': r['tenantEmail'] ?? r['tenantId'] ?? 'user@ejari.app',
         'property': r['title'] ?? 'عقار',
-        'status': isLate ? 'Late' : (paidMonths > 0 ? 'Paid' : 'Upcoming'),
+        'status': isLate ? 'متأخر' : (paidMonths > 0 ? 'مدفوع' : 'قريب'),
         'lateAmount': isLate ? rent * 0.8 : 0.0,
         'nextDueDate': DateTime.now().add(Duration(days: isLate ? -3 : 15)),
         'lastPayment': DateTime.now().subtract(const Duration(days: 10)),
@@ -115,7 +115,7 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
         {
           'name': 'لا يوجد مستأجرون بعد',
           'property': 'أضف عقاراً واقبل حجزاً لبدء التحصيل',
-          'status': 'Upcoming',
+          'status': 'قريب',
           'lateAmount': 0.0,
           'nextDueDate': DateTime.now().add(const Duration(days: 30)),
           'lastPayment': DateTime.now(),
@@ -164,6 +164,28 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
     );
   }
 
+  Future<void> _batchRemindOverdue() async {
+    final user = await AuthService.getCurrentUser();
+    final ownerEmail = user?['email']?.toString() ?? 'owner@ejari.app';
+    final sent = await DataService.batchSendPaymentReminders(
+      ownerEmail,
+      _tenants,
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          sent > 0
+              ? 'تم إرسال $sent تذكير للمتأخرين'
+              : 'لا يوجد مستأجرون متأخرون',
+        ),
+      ),
+    );
+  }
+
+  int get _overdueCount =>
+      _tenants.where((t) => t['status']?.toString() == 'متأخر').length;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -201,6 +223,21 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
             title: 'حالة المستأجرين',
             subtitle: 'متأخرات مميزة — تذكير ودفع مسبق',
           ),
+          if (_overdueCount > 0) ...[
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _batchRemindOverdue,
+                icon: const Icon(Icons.notifications_active_rounded, size: 18),
+                label: Text('تذكير جميع المتأخرين ($_overdueCount)'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.errorColor,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 10),
           ..._tenants.map(_tenantCard),
         ],
@@ -290,9 +327,9 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
   }
 
   Widget _tenantCard(Map<String, dynamic> tenant) {
-    final status = safeStr(tenant['status'], 'Upcoming');
-    final isLate = status == 'Late';
-    final isPaid = status == 'Paid';
+    final status = safeStr(tenant['status'], 'قريب');
+    final isLate = status == 'متأخر';
+    final isPaid = status == 'مدفوع';
     final color = isLate
         ? AppTheme.errorColor
         : (isPaid ? AppTheme.primaryColor : Colors.orange);
@@ -463,7 +500,7 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
             ),
             Text('الإيجار الشهري: ${rent.toStringAsFixed(0)} ج.م'),
             Text(
-              'الحالة: ${tenant['status'] == 'Late' ? 'متأخر' : tenant['status'] == 'Paid' ? 'مدفوع' : 'قريب الاستحقاق'}',
+              'الحالة: ${tenant['status'] == 'متأخر' ? 'متأخر' : tenant['status'] == 'مدفوع' ? 'مدفوع' : 'قريب الاستحقاق'}',
             ),
           ],
         ),

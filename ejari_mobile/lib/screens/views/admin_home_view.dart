@@ -17,6 +17,7 @@ import '../admin_audit_log_screen.dart';
 import '../settings_screen.dart';
 import '../verification_screen.dart';
 import '../../widgets/admin_operations_feed.dart';
+import '../../services/data_service.dart';
 
 class AdminHomeView extends StatelessWidget {
   const AdminHomeView({super.key});
@@ -32,7 +33,7 @@ class AdminHomeView extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          _buildHero(),
+          _buildHero(context, stats),
           const SizedBox(height: 12),
           HomeQuickLookRow(tiles: [
             HomeQuickLookTile(
@@ -61,6 +62,8 @@ class AdminHomeView extends StatelessWidget {
               color: const Color(0xFF2D6A5A),
             ),
           ]),
+          const SizedBox(height: 12),
+          _buildPriorityActions(context, stats),
           const SizedBox(height: 12),
           HomeExpandableSection(
             title: 'تفاصيل النظام',
@@ -92,17 +95,17 @@ class AdminHomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildHero() {
+  Widget _buildHero(BuildContext context, Map<String, dynamic> stats) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.primaryColor,
         borderRadius: BorderRadius.circular(24),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             'لوحة تحكم الإدارة',
             style: TextStyle(
               color: Colors.white,
@@ -110,12 +113,185 @@ class AdminHomeView extends StatelessWidget {
               fontWeight: FontWeight.w900,
             ),
           ),
-          SizedBox(height: 4),
-          Text(
+          const SizedBox(height: 4),
+          const Text(
             'ملخص سريع لكل شيء داخل النظام.',
             style: TextStyle(color: Colors.white70, fontSize: 12),
           ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => _exportDailyReport(context),
+            icon: const Icon(Icons.download_rounded, color: Colors.white, size: 18),
+            label: const Text(
+              'تصدير التقرير اليومي',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+            ),
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Colors.white54),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _exportDailyReport(BuildContext context) async {
+    final report = await DataService.exportAdminDailyReport();
+    if (!context.mounted) return;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(report['reportLabel']?.toString() ?? 'تقرير يومي'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('المستخدمين: ${report['totalUsers']}'),
+              Text('حجوزات اليوم: ${report['todayBookings']}'),
+              Text('إيراد المنصة: ${report['platformRevenue']} ج.م'),
+              Text('توثيقات معلّقة: ${report['pendingVerifications']}'),
+              Text('نزاعات: ${report['openDisputes']}'),
+              Text('تصعيدات البوت: ${report['botEscalations']}'),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إغلاق'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriorityActions(
+    BuildContext context,
+    Map<String, dynamic> stats,
+  ) {
+    final kyc = (stats['pendingVerifications'] as num?)?.toInt() ?? 0;
+    final disputes =
+        (stats['disputedBookings'] as num?)?.toInt() ??
+        (stats['openDisputes'] as num?)?.toInt() ??
+        0;
+    final botEsc = (stats['botEscalations'] as num?)?.toInt() ?? 0;
+
+    return Row(
+      children: [
+        Expanded(
+          child: _countAction(
+            context,
+            label: 'توثيق معلّق',
+            count: kyc,
+            icon: Icons.verified_user_rounded,
+            color: AppTheme.primaryColor,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const VerificationScreen()),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _countAction(
+            context,
+            label: 'حجوزات متنازع',
+            count: disputes,
+            icon: Icons.gavel_rounded,
+            color: AppTheme.errorColor,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AdminServiceRequestsScreen(),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _countAction(
+            context,
+            label: 'تصعيدات البوت',
+            count: botEsc,
+            icon: Icons.smart_toy_rounded,
+            color: Colors.orange,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AdminSupportScreen()),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _countAction(
+    BuildContext context, {
+    required String label,
+    required int count,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: AppTheme.surfaceColor,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: color.withOpacity(0.2)),
+          ),
+          child: Column(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(icon, color: color, size: 20),
+                  if (count > 0)
+                    Positioned(
+                      top: -6,
+                      right: -8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          count > 9 ? '9+' : '$count',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                style: const TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -160,7 +336,7 @@ class AdminHomeView extends StatelessWidget {
         ),
         EjariStatTile(
           icon: Icons.lock_rounded,
-          label: 'Escrow',
+          label: 'الضمان',
           value: '${stats['escrowBalance'] ?? 0} ج.م',
           compact: true,
         ),

@@ -6,7 +6,7 @@ import '../services/auth_service.dart';
 import 'insurance_selection_screen.dart';
 import 'contract_screen.dart';
 import '../services/wallet_service.dart';
-import 'success_payment_screen.dart';
+import 'booking_confirmation_screen.dart';
 import '../utils/auth_gate.dart';
 import '../utils/date_utils.dart';
 import '../utils/rental_schedule_utils.dart';
@@ -423,7 +423,7 @@ class _BookingScreenState extends State<BookingScreen> {
             : monthlyRent;
 
     // Save to backend with server-side validation
-    final result = await DataService.sendBookingRequest({
+    final bookingPayload = {
       'itemType': widget.itemType,
       'propertyId': widget.itemData['id'],
       'title': widget.itemData['title'],
@@ -497,7 +497,8 @@ class _BookingScreenState extends State<BookingScreen> {
         'employmentLetter': _employmentLetterImage,
         'hasPromissory': _isPromissorySigned,
       }
-    });
+    };
+    final result = await DataService.sendBookingRequest(bookingPayload);
 
     if (result['success'] != true) {
       if (!mounted) return;
@@ -515,18 +516,19 @@ class _BookingScreenState extends State<BookingScreen> {
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    // Navigate to Success Screen
+    // Navigate to confirmation with next steps
+    final confirmedBooking = {
+      ...bookingPayload,
+      if (result['bookingId'] != null) 'id': result['bookingId'],
+    };
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SuccessPaymentScreen(
+        builder: (context) => BookingConfirmationScreen(
+          booking: confirmedBooking,
           amount: _isPropertyRent ? _preEntryTotalAmount : _bookingDepositAmount,
           transactionId: transactionId,
           paymentMethod: _selectedPaymentMethod,
-          successTitle: 'تم حجز المعاينة بنجاح',
-          successMessage: _isCar
-              ? 'تم استلام العربون بشكل آمن. ستظهر لك باقي تفاصيل الحجز وفق مدة السيارة المختارة.'
-              : 'تم استلام العربون بشكل آمن. يمكنك استكمال المتبقي من الشهر الأول فقط بعد تأكيدك على إتمام الصفقة.',
         ),
       ),
     );

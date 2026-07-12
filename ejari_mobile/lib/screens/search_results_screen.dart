@@ -26,13 +26,40 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
   List<Map<String, dynamic>> _results = [];
   bool _isLoading = true;
   String? _accommodationFilter;
+  static const int _pageSize = 20;
+  int _visibleCount = _pageSize;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _accommodationFilter = widget.filters?['accommodationType']?.toString();
+    _scrollController.addListener(_onScroll);
     _performSearch();
   }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMore();
+    }
+  }
+
+  void _loadMore() {
+    if (_visibleCount >= _results.length) return;
+    setState(() {
+      _visibleCount = (_visibleCount + _pageSize).clamp(0, _results.length);
+    });
+  }
+
+  List<Map<String, dynamic>> get _visibleResults =>
+      _results.take(_visibleCount).toList();
 
   Future<void> _performSearch() async {
     // Simulate search delay
@@ -158,6 +185,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
     if (mounted) {
       setState(() {
         _results = results;
+        _visibleCount = _pageSize;
         _isLoading = false;
       });
     }
@@ -219,11 +247,23 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                             ],
                           )
                         : ListView.builder(
+                            controller: _scrollController,
                             physics: const AlwaysScrollableScrollPhysics(),
                             padding: const EdgeInsets.all(16),
-                            itemCount: _results.length,
+                            itemCount: _visibleResults.length +
+                                (_visibleCount < _results.length ? 1 : 0),
                             itemBuilder: (context, index) {
-                              final property = _results[index];
+                              if (index >= _visibleResults.length) {
+                                return const Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      color: AppTheme.primaryColor,
+                                    ),
+                                  ),
+                                );
+                              }
+                              final property = _visibleResults[index];
                               final image =
                                   PropertyImageResolver.resolve(property);
                               return PropertyCard(

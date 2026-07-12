@@ -22,7 +22,9 @@ import '../owner_qr_verify_screen.dart';
 import '../../widgets/bed_hierarchy_tree.dart';
 import '../../widgets/smart_pricing_hint_widget.dart';
 import '../../widgets/trust_score_badge.dart';
+import '../subscriptions_screen.dart';
 import '../manage_properties_screen.dart';
+import '../sales_properties_screen.dart';
 
 class OwnerHomeView extends StatelessWidget {
   const OwnerHomeView({super.key});
@@ -282,6 +284,24 @@ class OwnerHomeView extends StatelessWidget {
             MaterialPageRoute(builder: (_) => const ListingPlansScreen()),
           ),
         ),
+        (
+          label: 'اشتراكي',
+          icon: Icons.card_membership_rounded,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SubscriptionsScreen()),
+          ),
+        ),
+        (
+          label: 'إعلانات البيع',
+          icon: Icons.sell_outlined,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const SalesPropertiesScreen(),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -352,6 +372,34 @@ class OwnerHomeView extends StatelessWidget {
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        if (stats['subscriptionExpiringSoon'] == true) ...[
+          const SizedBox(height: AppTheme.spaceSm),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.orange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.orange.withOpacity(0.35)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.event_busy_rounded,
+                    color: Colors.orange, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'تنبيه: باقتك تنتهي خلال ${stats['daysUntilSubscriptionExpiry'] ?? 7} أيام — جدّد الآن.',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Colors.orange,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),

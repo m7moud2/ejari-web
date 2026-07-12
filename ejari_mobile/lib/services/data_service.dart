@@ -2667,6 +2667,7 @@ class DataService {
       favorites.removeAt(index); // Remove if exists
     } else {
       item['userEmail'] = currentEmail;
+      if (item['id'] != null) item['propertyId'] = item['id'];
       favorites.add(jsonEncode(item)); // Add if not exists
     }
 
@@ -3885,6 +3886,12 @@ class DataService {
             b['status'] == 'deposit_paid' || b['status'] == 'pending')
         .length;
 
+    final disputedBookings = (await getBookings())
+        .where((b) => b['status']?.toString() == 'disputed')
+        .length;
+
+    final botEscalations = await _countBotEscalations();
+
     double escrowBalance = 0;
     for (final email in users) {
       final wallet = await getWalletData(email);
@@ -3907,7 +3914,24 @@ class DataService {
       'todayTransactions':
           (((base['totalRevenue'] as num?)?.toDouble() ?? 0) * 0.28).round(),
       'systemAlerts': openDisputes + pendingPayments,
+      'disputedBookings': disputedBookings,
+      'botEscalations': botEscalations,
     };
+  }
+
+  static Future<int> _countBotEscalations() async {
+    final prefs = await SharedPreferences.getInstance();
+    var count = 0;
+    for (final key in prefs.getKeys()) {
+      if (!key.startsWith('support_bot_state_')) continue;
+      final raw = prefs.getString(key);
+      if (raw == null) continue;
+      try {
+        final state = jsonDecode(raw) as Map<String, dynamic>;
+        if (state['mode'] == 'escalated') count++;
+      } catch (_) {}
+    }
+    return count;
   }
 
   // === Shared accommodation & occupancy ===
@@ -4300,6 +4324,76 @@ class DataService {
       );
     }
     return true;
+  }
+
+  /// تذكير جماعي للمستأجرين المتأخرين.
+  static Future<int> batchSendPaymentReminders(
+    String ownerEmail,
+    List<Map<String, dynamic>> tenants,
+  ) async {
+    var sent = 0;
+    for (final tenant in tenants) {
+      if (tenant['status']?.toString() != 'متأخر' &&
+          tenant['status']?.toString() != 'Late') {
+        continue;
+      }
+      final email = tenant['email']?.toString() ?? '';
+      if (email.isEmpty || email == 'user@ejari.app') continue;
+      await sendPaymentReminder(
+        tenantEmail: email,
+        bookingId: tenant['id']?.toString() ?? '',
+        ownerEmail: ownerEmail,
+      );
+      sent++;
+    }
+    return sent;
+  }
+
+  /// مزامنة المفضلة عند تسجيل الدخول — ربط العناصر القديمة بالحساب الحالي.
+  static Future<void> syncFavoritesOnLogin(String email) async {
+    if (email.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    final favorites = prefs.getStringList(_favoritesKey) ?? [];
+    var changed = false;
+    final updated = favorites.map((element) {
+      final decoded = Map<String, dynamic>.from(jsonDecode(element) as Map);
+      if (decoded['userEmail'] == null || decoded['userEmail'] == '') {
+        decoded['userEmail'] = email;
+        changed = true;
+      }
+      if (decoded['id'] == null && decoded['propertyId'] != null) {
+        decoded['id'] = decoded['propertyId'];
+        changed = true;
+      }
+      return jsonEncode(decoded);
+    }).toList();
+    if (changed) {
+      await prefs.setStringList(_favoritesKey, updated);
+    }
+  }
+
+  /// تقرير يومي للوحة الإدارة.
+  static Future<Map<String, dynamic>> exportAdminDailyReport() async {
+    final stats = await getAdminDashboardStats();
+    final bookings = await getBookings();
+    final today = DateTime.now();
+    final todayBookings = bookings.where((b) {
+      final raw = b['requestDate']?.toString() ??
+          b['createdAt']?.toString() ??
+          '';
+      final dt = DateTime.tryParse(raw);
+      if (dt == null) return false;
+      return dt.year == today.year &&
+          dt.month == today.month &&
+          dt.day == today.day;
+    }).length;
+
+    return {
+      ...stats,
+      'todayBookings': todayBookings,
+      'generatedAt': today.toIso8601String(),
+      'reportLabel': 'تقرير يومي — ${today.toString().substring(0, 10)}',
+    };
   }
 
   static String _docTypeLabel(String type) {

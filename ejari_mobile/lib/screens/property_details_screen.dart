@@ -454,6 +454,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      _buildListingModeBanner(isSale, listingLabel, price),
+                      const SizedBox(height: AppTheme.spaceSm),
                       EjariSurfaceCard(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1133,6 +1135,60 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     return EjariImage(
       path: path.startsWith('assets/') ? path : 'assets/images/home1.jpg',
       fit: BoxFit.cover,
+    );
+  }
+
+  Widget _buildListingModeBanner(
+    bool isSale,
+    String listingLabel,
+    String price,
+  ) {
+    final bg = isSale ? const Color(0xFFB58D3D) : AppTheme.primaryColor;
+    final priceLabel =
+        isSale ? '$price ج.م — للبيع' : '$price ج.م / شهر — للإيجار';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [bg, bg.withOpacity(0.85)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isSale ? Icons.sell_rounded : Icons.key_rounded,
+            color: Colors.white,
+            size: 22,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  listingLabel,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 13,
+                  ),
+                ),
+                Text(
+                  priceLabel,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

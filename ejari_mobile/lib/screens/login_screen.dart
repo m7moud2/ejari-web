@@ -6,6 +6,7 @@ import 'home_screen.dart';
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
 import '../services/auth_service.dart';
+import '../services/data_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../widgets/ejari_auth_header.dart';
@@ -260,6 +261,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 setState(
                                                     () => _isLoading = false);
                                                 if (user != null) {
+                                                  await DataService
+                                                      .syncFavoritesOnLogin(
+                                                    user['email']
+                                                            ?.toString() ??
+                                                        _emailController.text,
+                                                  );
                                                   if (widget.redirectToRole !=
                                                       null) {
                                                     await AuthService.setUserRole(

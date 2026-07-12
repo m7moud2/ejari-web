@@ -20,6 +20,10 @@ import '../demo_flow_guide_screen.dart';
 import '../notification_center_screen.dart';
 import '../tenant_wallet_screen.dart';
 import '../rental_statement_screen.dart';
+import '../help_center_screen.dart';
+import '../favorites_screen.dart';
+import '../for_sale_screen.dart';
+import '../properties_screen.dart';
 import '../../services/demo_flow_service.dart';
 import '../../services/data_service.dart';
 
@@ -262,6 +266,14 @@ class _TenantHomeViewState extends State<TenantHomeView> {
           ),
         ),
         (
+          label: 'المفضلة',
+          icon: Icons.favorite_border_rounded,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+          ),
+        ),
+        (
           label: 'سدد القسط',
           icon: Icons.payments_rounded,
           onTap: () => _openRentPayment(context, stats),
@@ -297,6 +309,22 @@ class _TenantHomeViewState extends State<TenantHomeView> {
           ),
         ),
         (
+          label: 'عقارات للبيع',
+          icon: Icons.sell_outlined,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ForSaleScreen()),
+          ),
+        ),
+        (
+          label: 'استكشف العقارات',
+          icon: Icons.apartment_rounded,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const PropertiesScreen()),
+          ),
+        ),
+        (
           label: 'توثيق الهوية',
           icon: Icons.verified_user_rounded,
           onTap: () => Navigator.push(
@@ -314,6 +342,14 @@ class _TenantHomeViewState extends State<TenantHomeView> {
             MaterialPageRoute(
               builder: (_) => const CorporateCommandCenterScreen(),
             ),
+          ),
+        ),
+        (
+          label: 'مركز المساعدة',
+          icon: Icons.help_outline_rounded,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const HelpCenterScreen()),
           ),
         ),
         if (_showDemoLink)
@@ -685,6 +721,7 @@ class _TenantHomeViewState extends State<TenantHomeView> {
               separatorBuilder: (_, __) => const SizedBox(width: 12),
               itemBuilder: (context, index) {
                 final item = items[index];
+                final isSale = item['listingMode'] == 'for_sale';
                 return Material(
                   elevation: 0,
                   borderRadius: BorderRadius.circular(AppTheme.cardRadiusLg),
@@ -768,7 +805,9 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
-                                  '${item['price'] ?? ''} ج.م / شهر',
+                                  isSale
+                                      ? '${item['price'] ?? ''} ج.م'
+                                      : '${item['price'] ?? ''} ج.م / شهر',
                                   style: const TextStyle(
                                     color: AppTheme.primaryColor,
                                     fontWeight: FontWeight.w900,

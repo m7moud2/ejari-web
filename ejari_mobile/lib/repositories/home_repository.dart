@@ -11,8 +11,7 @@ import '../models/booking_status.dart';
 
 class HomeRepository {
   Future<HomeStatsModel> fetchHomeStats(String role) async {
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 300));
 
     Map<String, dynamic> tenantStats = {
       'userName': 'أحمد محمود',
@@ -201,6 +200,9 @@ class HomeRepository {
     final properties = await DataService.getOwnerProperties(ownerId);
     final requests = await DataService.getOwnerRequests(ownerId);
     final sub = await SubscriptionService.getSubscriptionSummary();
+    final daysUntilExpiry = await SubscriptionService.getDaysUntilExpiry();
+    final subscriptionExpiringSoon =
+        daysUntilExpiry != null && daysUntilExpiry <= 7;
     final revenue = await DataService.getOwnerRevenue(ownerId);
     final wallet = await DataService.getWalletData(ownerId);
     final pending = requests
@@ -307,6 +309,9 @@ class HomeRepository {
       'subscriptionUsed': sub['properties_used'],
       'subscriptionFeatures': sub['features'],
       'canFeature': sub['can_feature'],
+      'subscriptionEndDate': sub['end_date'],
+      'daysUntilSubscriptionExpiry': daysUntilExpiry,
+      'subscriptionExpiringSoon': subscriptionExpiringSoon,
       'contextualAction': _ownerContextualAction(pending, nearSubLimit),
       'banner': nearSubLimit
           ? 'تنبيه: اقتربت من حد الباقة — ${sub['properties_used']}/${sub['properties_limit'] == -1 ? '∞' : sub['properties_limit']} عقار'

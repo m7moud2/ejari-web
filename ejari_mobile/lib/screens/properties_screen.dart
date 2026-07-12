@@ -26,6 +26,9 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
   String _listingFilter = 'rent';
   List<Map<String, dynamic>> _allProperties = [];
   bool _isLoading = true;
+  static const int _pageSize = 20;
+  int _visibleCount = _pageSize;
+  final ScrollController _scrollController = ScrollController();
 
   static const List<String> _governorates = [
     'الكل',
@@ -40,8 +43,34 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(_onScroll);
     _loadProperties();
   }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadMore();
+    }
+  }
+
+  void _loadMore() {
+    final total = _filteredProperties.length;
+    if (_visibleCount >= total) return;
+    setState(() {
+      _visibleCount = (_visibleCount + _pageSize).clamp(0, total);
+    });
+  }
+
+
+  List<Map<String, dynamic>> get _visibleProperties =>
+      _filteredProperties.take(_visibleCount).toList();
 
   Future<void> _loadProperties() async {
     final properties = await FirestorePropertyService.getAllProperties();
@@ -190,7 +219,10 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
                     items: _governorates
                         .map((g) => DropdownMenuItem(value: g, child: Text(g, style: const TextStyle(fontSize: 13))))
                         .toList(),
-                    onChanged: (v) => setState(() => _selectedGovernorate = v!),
+                    onChanged: (v) => setState(() {
+                      _selectedGovernorate = v!;
+                      _visibleCount = _pageSize;
+                    }),
                   ),
                 ),
               ],
@@ -229,11 +261,25 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
                           ],
                         )
                       : ListView.builder(
+                          controller: _scrollController,
                           physics: const AlwaysScrollableScrollPhysics(),
                           padding: const EdgeInsets.only(bottom: 16),
-                          itemCount: _filteredProperties.length,
+                          itemCount: _visibleProperties.length +
+                              (_visibleCount < _filteredProperties.length
+                                  ? 1
+                                  : 0),
                           itemBuilder: (context, index) {
-                            final property = _filteredProperties[index];
+                            if (index >= _visibleProperties.length) {
+                              return const Padding(
+                                padding: EdgeInsets.all(16),
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                              );
+                            }
+                            final property = _visibleProperties[index];
                             final image = PropertyImageResolver.resolve(property);
                             return Padding(
                               padding: const EdgeInsets.symmetric(
@@ -326,7 +372,10 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
       child: FilterChip(
         label: Text(label),
         selected: selected,
-        onSelected: (_) => setState(() => _accommodationFilter = value),
+        onSelected: (_) => setState(() {
+          _accommodationFilter = value;
+          _visibleCount = _pageSize;
+        }),
         selectedColor: AppTheme.primaryColor,
         checkmarkColor: Colors.white,
         labelStyle: TextStyle(
@@ -341,7 +390,10 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
   Widget _listingChip(String mode, String label) {
     final selected = _listingFilter == mode;
     return GestureDetector(
-      onTap: () => setState(() => _listingFilter = mode),
+      onTap: () => setState(() {
+        _listingFilter = mode;
+        _visibleCount = _pageSize;
+      }),
       child: Container(
         constraints: const BoxConstraints(minWidth: 88),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
