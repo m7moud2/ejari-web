@@ -10,7 +10,8 @@ import 'map_search_screen.dart';
 import '../models/listing_type.dart';
 import '../widgets/sale_listing_widgets.dart';
 import '../models/accommodation_type.dart';
-import '../services/firestore_property_service.dart';
+import '../services/offline_cache_service.dart';
+import '../widgets/offline_banner.dart';
 
 class PropertiesScreen extends StatefulWidget {
   const PropertiesScreen({super.key});
@@ -26,6 +27,7 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
   String _listingFilter = 'rent';
   List<Map<String, dynamic>> _allProperties = [];
   bool _isLoading = true;
+  bool _showOfflineBanner = false;
   static const int _pageSize = 20;
   int _visibleCount = _pageSize;
   final ScrollController _scrollController = ScrollController();
@@ -73,10 +75,11 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
       _filteredProperties.take(_visibleCount).toList();
 
   Future<void> _loadProperties() async {
-    final properties = await FirestorePropertyService.getAllProperties();
+    final result = await OfflineCacheService.loadProperties();
     if (mounted) {
       setState(() {
-        _allProperties = properties;
+        _allProperties = result.items;
+        _showOfflineBanner = result.fromCache;
         _isLoading = false;
       });
     }
@@ -138,6 +141,7 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
       ),
       body: Column(
         children: [
+          if (_showOfflineBanner) const OfflineBanner(),
           // Filter Chips
           Padding(
             padding: const EdgeInsets.all(16.0),

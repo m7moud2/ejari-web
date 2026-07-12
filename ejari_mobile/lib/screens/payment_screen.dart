@@ -17,6 +17,7 @@ import '../services/auth_service.dart';
 import '../services/maintenance_service.dart';
 import '../services/payment_methods_service.dart';
 import 'success_payment_screen.dart';
+import 'booking_confirmation_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final String itemType;
@@ -336,21 +337,36 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 : 'تم استلام العربون (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح.';
 
     if (receipt != null) {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SuccessPaymentScreen(
-            amount: receipt.amount,
-            transactionId: receipt.id,
-            paymentMethod: receipt.method,
-            receipt: receipt,
-            successTitle: widget.paymentStage == 'remaining'
-                ? 'تم استكمال الصفقة! 🎉'
-                : 'تم الدفع بنجاح! 🎉',
-            successMessage: successMessage,
+      if (widget.itemType == 'booking') {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BookingConfirmationScreen(
+              booking: widget.itemData,
+              amount: receipt.amount,
+              transactionId: receipt.id,
+              paymentMethod: receipt.method,
+              receipt: receipt,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => SuccessPaymentScreen(
+              amount: receipt.amount,
+              transactionId: receipt.id,
+              paymentMethod: receipt.method,
+              receipt: receipt,
+              successTitle: widget.paymentStage == 'remaining'
+                  ? 'تم استكمال الصفقة! 🎉'
+                  : 'تم الدفع بنجاح! 🎉',
+              successMessage: successMessage,
+            ),
+          ),
+        );
+      }
       if (mounted) Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

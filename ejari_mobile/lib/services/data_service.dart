@@ -18,6 +18,9 @@ import 'maintenance_service.dart';
 import 'subscription_service.dart';
 
 class DataService {
+  /// true عندما يُحمَّل كatalog العقارات من التخزين المحلي بدل الشبكة.
+  static bool propertiesLoadedFromCache = false;
+
   static const String _bookingsKey = 'bookings'; // For tenants
   static const String _requestsKey = 'requests'; // For owners (incoming)
   static const String _demoBookingsVersionKey = 'demo_bookings_version';
@@ -910,6 +913,7 @@ class DataService {
             _propertiesKey,
             properties.map((e) => jsonEncode(e)).toList(),
           );
+          propertiesLoadedFromCache = false;
 
           if (approvedOnly) {
             return properties
@@ -925,9 +929,11 @@ class DataService {
     } catch (e) {
       debugPrint(
           'GetAllProperties API Error: $e. Falling back to local cache.');
+      propertiesLoadedFromCache = true;
     }
 
     // 2. Local fallback
+    propertiesLoadedFromCache = true;
     final prefs = await SharedPreferences.getInstance();
     await initProperties(); // Ensure defaults exist
     List<String> props = prefs.getStringList(_propertiesKey) ?? [];

@@ -23,6 +23,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _biometricsEnabled = true;
   bool _darkMode = false;
   String _language = 'ar';
+  Map<PushNotificationCategory, bool> _categoryStates = {};
 
   final LocalAuthentication auth = LocalAuthentication();
 
@@ -33,6 +34,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _darkMode = themeNotifier.value == ThemeMode.dark;
     _loadBiometricState();
     _loadNotificationState();
+    _loadCategoryStates();
+  }
+
+  Future<void> _loadCategoryStates() async {
+    final states = await PushNotificationService.getCategoryStates();
+    if (mounted) {
+      setState(() => _categoryStates = states);
+    }
   }
 
   Future<void> _loadNotificationState() async {
@@ -146,6 +155,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onChanged: (val) async {
               setState(() => _notificationsEnabled = val);
               await PushNotificationService.setEnabled(val);
+              if (val) await _loadCategoryStates();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -157,6 +167,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
               }
             },
           ),
+          if (_notificationsEnabled) ...[
+            const Padding(
+              padding: EdgeInsets.only(right: 4, bottom: 6, top: 4),
+              child: Text(
+                'فئات الإشعارات',
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            ...PushNotificationCategory.values.map((cat) {
+              final enabled = _categoryStates[cat] ?? true;
+              return _buildSwitchTile(
+                title: cat.labelAr,
+                icon: Icons.notifications_active_outlined,
+                value: enabled,
+                onChanged: (val) async {
+                  setState(() => _categoryStates[cat] = val);
+                  await PushNotificationService.setCategoryEnabled(cat, val);
+                },
+              );
+            }),
+          ],
           _buildSwitchTile(
             title: 'تفعيل البصمة',
             subtitle: 'تسجيل الدخول باستخدام الوجه/البصمة',

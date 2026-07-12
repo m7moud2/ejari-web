@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../widgets/property_card.dart';
 import '../widgets/car_card.dart';
 import '../services/data_service.dart';
+import '../services/offline_cache_service.dart';
+import '../widgets/offline_banner.dart';
 import '../theme/app_theme.dart';
 import 'property_details_screen.dart';
 import 'booking_screen.dart';
@@ -19,6 +21,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   final List<Map<String, dynamic>> _selectedItems = [];
   List<String> _folders = ['عام'];
   bool _isLoading = true;
+  bool _showOfflineBanner = false;
   String _selectedFolder = 'عام'; // Default folder
 
   @override
@@ -28,10 +31,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   Future<void> _loadData() async {
-    final favorites = await DataService.getFavorites();
+    final result = await OfflineCacheService.loadFavorites();
     final folders = await DataService.getFavoriteFolders();
     setState(() {
-      _favorites = favorites;
+      _favorites = result.items;
+      _showOfflineBanner = result.fromCache;
       _folders = folders;
       if (!folders.contains(_selectedFolder) && folders.isNotEmpty) {
         _selectedFolder = folders.first;
@@ -176,6 +180,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       ),
       body: Column(
         children: [
+          if (_showOfflineBanner) const OfflineBanner(),
           // Filter Chips
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

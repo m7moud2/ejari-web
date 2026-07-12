@@ -48,13 +48,11 @@ void main() async {
     debugPrint('Firebase initialization skipped in demo mode.');
   }
 
-  // Initialize Push Notifications
-  if (!AppConfig.demoMode) {
-    try {
-      await PushNotificationService.initialize();
-    } catch (e) {
-      debugPrint('Push notifications skipped/failed safely: $e');
-    }
+  // Initialize Push Notifications (local in demo, FCM in production)
+  try {
+    await PushNotificationService.initialize();
+  } catch (e) {
+    debugPrint('Push notifications skipped/failed safely: $e');
   }
 
   if (AppConfig.demoMode) {

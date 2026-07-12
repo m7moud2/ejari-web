@@ -6,13 +6,27 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'data_service.dart';
+import 'auth_service.dart';
+import 'subscription_service.dart';
 import '../config/app_config.dart';
 
 // Background message handler
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Handle background message
   debugPrint("Handling a background message: ${message.messageId}");
+}
+
+/// فئات الإشعارات القابلة للتفعيل من الإعدادات.
+enum PushNotificationCategory {
+  paymentOverdue('payment_overdue', 'دفعات متأخرة'),
+  subscriptionExpiring('subscription_expiring', 'انتهاء الاشتراك'),
+  bookingCheckIn('booking_checkin', 'موعد الدخول'),
+  newBookingRequest('new_booking', 'طلبات حجز جديدة'),
+  promotions('promotions', 'العروض والترويج');
+
+  const PushNotificationCategory(this.key, this.labelAr);
+  final String key;
+  final String labelAr;
 }
 
 class PushNotificationService {
@@ -20,110 +34,214 @@ class PushNotificationService {
   static final FlutterLocalNotificationsPlugin _localNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
   static const int _promoBaseId = 8000;
-  static const int _promoCount = 84; // 2-hour promos for 7 days
+  static const int _promoCount = 84;
+
+  static const int _idPaymentOverdueTenant = 1001;
+  static const int _idPaymentOverdueOwner = 1002;
+  static const int _idSubscriptionExpiring = 1003;
+  static const int _idBookingCheckIn = 1004;
+  static const int _idNewBookingRequest = 1005;
+
+  static const String _enabledKey = 'notifications_enabled';
+  static const String _demoScheduledKey = 'demo_reminders_scheduled_v1';
 
   static Future<void> initialize() async {
     try {
-      if (AppConfig.demoMode) {
-        debugPrint('Push notifications skipped in demo mode.');
-        return;
-      }
+      await _initLocalNotifications();
+
       if (!await isEnabled()) {
         debugPrint('Push notifications disabled by user preference.');
         return;
       }
-      // 1. Request Permission
-      final NotificationSettings settings = await _messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
 
-      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        debugPrint('User granted permission');
+      if (!AppConfig.demoMode) {
+        await _initFirebaseMessaging();
       } else {
-        debugPrint('User declined or has not accepted permission');
+        debugPrint('Demo mode: local notifications only (FCM skipped).');
       }
 
-      // 2. Set Background Handler
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-      // 3. Configure Local Notifications for Foreground
-      const AndroidInitializationSettings initializationSettingsAndroid =
-          AndroidInitializationSettings('@mipmap/ic_launcher');
-      const DarwinInitializationSettings initializationSettingsIOS =
-          DarwinInitializationSettings();
-      const InitializationSettings initializationSettings =
-          InitializationSettings(
-              android: initializationSettingsAndroid,
-              iOS: initializationSettingsIOS);
-
-      await _localNotificationsPlugin.initialize(initializationSettings);
-      tz.initializeTimeZones();
-      tz.setLocalLocation(tz.getLocation('Africa/Cairo'));
-
-      // 4. Listen to Foreground Messages
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        debugPrint('Got a message whilst in the foreground!');
-        debugPrint('Message data: ${message.data}');
-
-        if (message.notification != null) {
-          _showLocalNotification(message);
-        }
-      });
-
-      // 5. Get FCM Token if Firebase Installations is ready
-      try {
-        final String? token = await _messaging.getToken();
-        debugPrint("FCM Token: $token");
-      } catch (e) {
-        debugPrint('FCM token unavailable right now: $e');
-      }
-
-      await _schedulePromotions();
-      // In a real app, save this token to the user's document in Firestore.
+      await scheduleDemoReminders();
     } catch (e) {
-      debugPrint('Push notifications disabled for now: $e');
+      debugPrint('Push notifications init failed: $e');
+    }
+  }
+
+  static Future<void> _initLocalNotifications() async {
+    const androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosSettings = DarwinInitializationSettings();
+    const initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+    await _localNotificationsPlugin.initialize(initSettings);
+    tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Africa/Cairo'));
+  }
+
+  static Future<void> _initFirebaseMessaging() async {
+    final settings = await _messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      debugPrint('User granted FCM permission');
+    }
+
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (message.notification != null) {
+        _showLocalNotification(
+          message.hashCode,
+          message.notification?.title,
+          message.notification?.body,
+        );
+      }
+    });
+
+    try {
+      final token = await _messaging.getToken();
+      debugPrint('FCM Token: $token');
+    } catch (e) {
+      debugPrint('FCM token unavailable: $e');
+    }
+
+    if (await isCategoryEnabled(PushNotificationCategory.promotions)) {
+      await _schedulePromotions();
+    }
+  }
+
+  /// جدولة تنبيهات تجريبية للعرض (محلية).
+  static Future<void> scheduleDemoReminders() async {
+    if (!await isEnabled()) return;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool(_demoScheduledKey) == true) {
+        await _cancelDemoReminders();
+      }
+
+      final now = tz.TZDateTime.now(tz.local);
+    final base = now.add(const Duration(minutes: 2));
+
+    if (await isCategoryEnabled(PushNotificationCategory.paymentOverdue)) {
+      await _scheduleZoned(
+        _idPaymentOverdueTenant,
+        base,
+        'دفعة متأخرة 💳',
+        'يرجى سداد قسط الإيجار في أقرب وقت — تنبيه للمستأجر',
+        'reminders_channel',
+      );
+      await _scheduleZoned(
+        _idPaymentOverdueOwner,
+        base.add(const Duration(minutes: 1)),
+        'مستأجر متأخر في الدفع ⚠️',
+        'أحد مستأجرينك متأخر في السداد — تنبيه للمالك',
+        'reminders_channel',
+      );
+    }
+
+    if (await isCategoryEnabled(PushNotificationCategory.subscriptionExpiring)) {
+      final days = await SubscriptionService.getDaysUntilExpiry();
+      await _scheduleZoned(
+        _idSubscriptionExpiring,
+        base.add(const Duration(minutes: 2)),
+        'اشتراكك ينتهي قريباً 📅',
+        days != null
+            ? 'باقتك تنتهي خلال $days أيام — جدّد الآن'
+            : 'باقتك تنتهي خلال 7 أيام — جدّد الآن',
+        'reminders_channel',
+      );
+    }
+
+    if (await isCategoryEnabled(PushNotificationCategory.bookingCheckIn)) {
+      await _scheduleZoned(
+        _idBookingCheckIn,
+        base.add(const Duration(minutes: 3)),
+        'موعد الدخول قريب 🏠',
+        'حجزك يبدأ خلال 3 أيام — جهّز مستنداتك',
+        'reminders_channel',
+      );
+    }
+
+    if (await isCategoryEnabled(PushNotificationCategory.newBookingRequest)) {
+      await _scheduleZoned(
+        _idNewBookingRequest,
+        base.add(const Duration(minutes: 4)),
+        'طلب حجز جديد 📩',
+        'مستأجر جديد يريد حجز وحدتك — راجع الطلب',
+        'reminders_channel',
+      );
+    }
+
+    if (await isCategoryEnabled(PushNotificationCategory.promotions) &&
+        AppConfig.demoMode) {
+      await _schedulePromotions();
+    }
+
+    await prefs.setBool(_demoScheduledKey, true);
+    } catch (e) {
+      debugPrint('Demo reminders scheduling skipped: $e');
+    }
+  }
+
+  static Future<void> _scheduleZoned(
+    int id,
+    tz.TZDateTime when,
+    String title,
+    String body,
+    String channelId,
+  ) async {
+    try {
+      await _localNotificationsPlugin.zonedSchedule(
+        id,
+        title,
+        body,
+        when,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            channelId,
+            'Ejari Reminders',
+            importance: Importance.high,
+            priority: Priority.high,
+          ),
+          iOS: const DarwinNotificationDetails(),
+        ),
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      );
+    } catch (e) {
+      debugPrint('Zoned schedule skipped: $e');
     }
   }
 
   static Future<void> _schedulePromotions() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      if (prefs.getBool('promo_notifications_scheduled') == true) {
-        await _cancelPromoNotifications();
-      }
-
-      final properties = await DataService.getAllProperties(approvedOnly: false);
+      final properties =
+          await DataService.getAllProperties(approvedOnly: false);
       final propertyCount = properties.length;
       final now = tz.TZDateTime.now(tz.local).add(const Duration(minutes: 5));
       final messages = <Map<String, String>>[
         {
           'title': 'عرض جديد على إيجاري',
-          'body': 'استكشف وحدات وعروض جديدة قبل ما تخلص بسرعة.'
+          'body': 'استكشف وحدات وعروض جديدة قبل ما تخلص بسرعة.',
         },
         {
           'title': 'خدمة مفيدة لك',
-          'body': 'فعّل التذكيرات وخلّي متابعة الإيجار أسهل وأوضح.'
+          'body': 'فعّل التذكيرات وخلّي متابعة الإيجار أسهل وأوضح.',
         },
         {
           'title': 'عقارات جديدة انضافت',
-          'body': 'تمت إضافة $propertyCount عقار/وحدة داخل المنصة مؤخرًا.'
-        },
-        {
-          'title': 'خصم أوفر',
-          'body': 'تابع العروض الحالية وقد تلاقي سعر أفضل في منطقتك.'
-        },
-        {
-          'title': 'متابعة عقدك',
-          'body': 'راجع الأقساط والدفعات القادمة من شاشة الكشوفات.'
+          'body': 'تمت إضافة $propertyCount عقار/وحدة داخل المنصة مؤخرًا.',
         },
       ];
 
       for (var i = 0; i < _promoCount; i++) {
         final scheduledTime = now.add(Duration(hours: i * 2));
         final message = messages[i % messages.length];
-          await _localNotificationsPlugin.zonedSchedule(
+        await _localNotificationsPlugin.zonedSchedule(
           _promoBaseId + i,
           message['title'],
           message['body'],
@@ -137,23 +255,39 @@ class PushNotificationService {
             ),
             iOS: DarwinNotificationDetails(),
           ),
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
         );
       }
-
-      await prefs.setBool('promo_notifications_scheduled', true);
     } catch (e) {
       debugPrint('Promo notifications scheduling failed: $e');
     }
   }
 
   static Future<void> _cancelPromoNotifications() async {
-    for (var i = 0; i < _promoCount; i++) {
-      await _localNotificationsPlugin.cancel(_promoBaseId + i);
+    try {
+      for (var i = 0; i < _promoCount; i++) {
+        await _localNotificationsPlugin.cancel(_promoBaseId + i);
+      }
+    } catch (e) {
+      debugPrint('Cancel promo notifications skipped: $e');
     }
   }
 
-  static const String _enabledKey = 'notifications_enabled';
+  static Future<void> _cancelDemoReminders() async {
+    try {
+      for (final id in [
+        _idPaymentOverdueTenant,
+        _idPaymentOverdueOwner,
+        _idSubscriptionExpiring,
+        _idBookingCheckIn,
+        _idNewBookingRequest,
+      ]) {
+        await _localNotificationsPlugin.cancel(id);
+      }
+    } catch (e) {
+      debugPrint('Cancel demo reminders skipped: $e');
+    }
+  }
 
   static Future<bool> isEnabled() async {
     final prefs = await SharedPreferences.getInstance();
@@ -165,26 +299,73 @@ class PushNotificationService {
     await prefs.setBool(_enabledKey, enabled);
     if (!enabled) {
       await _cancelPromoNotifications();
+      await _cancelDemoReminders();
+      await prefs.setBool(_demoScheduledKey, false);
       await prefs.setBool('promo_notifications_scheduled', false);
+    } else {
+      await scheduleDemoReminders();
     }
   }
 
-  static Future<void> _showLocalNotification(RemoteMessage message) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
-      'high_importance_channel', // id
-      'High Importance Notifications', // name
+  static String _categoryKey(PushNotificationCategory cat) =>
+      'notif_cat_${cat.key}';
+
+  static Future<bool> isCategoryEnabled(PushNotificationCategory cat) async {
+    if (!await isEnabled()) return false;
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_categoryKey(cat)) ?? true;
+  }
+
+  static Future<void> setCategoryEnabled(
+    PushNotificationCategory cat,
+    bool enabled,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_categoryKey(cat), enabled);
+    await prefs.setBool(_demoScheduledKey, false);
+    if (await isEnabled()) {
+      await scheduleDemoReminders();
+    }
+  }
+
+  static Future<Map<PushNotificationCategory, bool>>
+      getCategoryStates() async {
+    final map = <PushNotificationCategory, bool>{};
+    for (final cat in PushNotificationCategory.values) {
+      map[cat] = await isCategoryEnabled(cat);
+    }
+    return map;
+  }
+
+  /// إعادة جدولة بعد تسجيل الدخول (حسب دور المستخدم).
+  static Future<void> refreshForCurrentUser() async {
+    if (!await isEnabled()) return;
+    final user = await AuthService.getCurrentUser();
+    final role = user?['role']?.toString() ?? 'tenant';
+    debugPrint('Rescheduling push reminders for role: $role');
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_demoScheduledKey, false);
+    await scheduleDemoReminders();
+  }
+
+  static Future<void> _showLocalNotification(
+    int id,
+    String? title,
+    String? body,
+  ) async {
+    const androidDetails = AndroidNotificationDetails(
+      'high_importance_channel',
+      'High Importance Notifications',
       importance: Importance.max,
       priority: Priority.high,
     );
-    const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
+    const platformDetails = NotificationDetails(android: androidDetails);
 
     await _localNotificationsPlugin.show(
-      message.hashCode,
-      message.notification?.title,
-      message.notification?.body,
-      platformChannelSpecifics,
+      id,
+      title,
+      body,
+      platformDetails,
     );
   }
 }

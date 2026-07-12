@@ -18,6 +18,7 @@ import '../settings_screen.dart';
 import '../verification_screen.dart';
 import '../../widgets/admin_operations_feed.dart';
 import '../../services/data_service.dart';
+import '../../services/pdf_export_service.dart';
 
 class AdminHomeView extends StatelessWidget {
   const AdminHomeView({super.key});
@@ -136,34 +137,33 @@ class AdminHomeView extends StatelessWidget {
   }
 
   Future<void> _exportDailyReport(BuildContext context) async {
-    final report = await DataService.exportAdminDailyReport();
     if (!context.mounted) return;
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(report['reportLabel']?.toString() ?? 'تقرير يومي'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('المستخدمين: ${report['totalUsers']}'),
-              Text('حجوزات اليوم: ${report['todayBookings']}'),
-              Text('إيراد المنصة: ${report['platformRevenue']} ج.م'),
-              Text('توثيقات معلّقة: ${report['pendingVerifications']}'),
-              Text('نزاعات: ${report['openDisputes']}'),
-              Text('تصعيدات البوت: ${report['botEscalations']}'),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('إغلاق'),
-          ),
-        ],
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('جاري إنشاء التقرير اليومي...'),
+        duration: Duration(seconds: 2),
       ),
     );
+
+    try {
+      final report = await DataService.exportAdminDailyReport();
+      await PdfExportService.shareAdminDailyReportPdf(report);
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم تصدير التقرير اليومي كـ PDF'),
+          backgroundColor: AppTheme.primaryColor,
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تعذر تصدير التقرير: $e'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+    }
   }
 
   Widget _buildPriorityActions(
