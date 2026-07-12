@@ -31,6 +31,9 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Local release APKs / bundles (do not commit binaries)
+/releases/
+
 # Symbolication related
 app.*.symbols
 
