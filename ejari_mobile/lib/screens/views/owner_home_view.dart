@@ -18,6 +18,7 @@ import '../owner_property_performance_screen.dart';
 import '../listing_plans_screen.dart';
 import '../../widgets/owner_booking_requests_panel.dart';
 import '../owner_booking_requests_screen.dart';
+import '../owner_viewings_screen.dart';
 import '../owner_qr_verify_screen.dart';
 import '../../widgets/bed_hierarchy_tree.dart';
 import '../../widgets/smart_pricing_hint_widget.dart';
@@ -158,6 +159,13 @@ class OwnerHomeView extends StatelessWidget {
                 ),
                 const SizedBox(height: AppTheme.spaceSm),
                 const OwnerBookingRequestsPanel(),
+                const SizedBox(height: AppTheme.spaceMd),
+                const EjariSectionHeader(
+                  title: 'طلبات المعاينة',
+                  subtitle: 'موافقة / رفض / إعادة جدولة',
+                ),
+                const SizedBox(height: AppTheme.spaceSm),
+                const OwnerViewingsPanel(),
               ],
             ),
           ),
@@ -183,6 +191,11 @@ class OwnerHomeView extends StatelessWidget {
         label: 'حجوزات',
         icon: Icons.inbox_rounded,
         page: const OwnerBookingRequestsScreen(),
+      ),
+      (
+        label: 'معاينة',
+        icon: Icons.visibility_rounded,
+        page: const OwnerViewingsScreen(),
       ),
       (
         label: 'تحصيل',

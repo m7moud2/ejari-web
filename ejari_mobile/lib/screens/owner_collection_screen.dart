@@ -5,6 +5,8 @@ import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import '../utils/auth_gate.dart';
 import '../utils/safe_parse.dart';
+import '../utils/rental_schedule_utils.dart';
+import '../utils/date_utils.dart';
 import '../widgets/ejari_section.dart';
 
 class OwnerCollectionScreen extends StatefulWidget {
@@ -95,7 +97,12 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
           int.tryParse((r['paidMonths'] ?? '0').toString()) ?? 0;
       final collectedPart = rent * paidMonths;
       collected += collectedPart > 0 ? collectedPart : rent * 0.2;
-      final isLate = r['status'] == 'deposit_paid' && paidMonths == 0;
+      final snapshot = RentalScheduleUtils.buildLeaseSnapshot(r);
+      final nextDue = snapshot['nextDueDate'] as DateTime? ??
+          DateParsing.bookingCheckIn(r) ??
+          DateTime.now().add(const Duration(days: 15));
+      final isLate = nextDue.isBefore(DateTime.now()) &&
+          (r['status'] == 'deposit_paid' || paidMonths == 0);
       if (isLate) late += rent * 0.8;
 
       tenants.add({
@@ -104,8 +111,9 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
         'property': r['title'] ?? 'عقار',
         'status': isLate ? 'متأخر' : (paidMonths > 0 ? 'مدفوع' : 'قريب'),
         'lateAmount': isLate ? rent * 0.8 : 0.0,
-        'nextDueDate': DateTime.now().add(Duration(days: isLate ? -3 : 15)),
-        'lastPayment': DateTime.now().subtract(const Duration(days: 10)),
+        'nextDueDate': nextDue,
+        'lastPayment': DateParsing.parse(r['paidAt'] ?? r['depositPaidAt']) ??
+            DateTime.now().subtract(const Duration(days: 10)),
         'rent': rent,
       });
     }

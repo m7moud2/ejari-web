@@ -74,13 +74,12 @@ class RentalRules {
     }
   }
 
-  /// قابل للاسترداد فقط إذا الإلغاء ≥ يومين قبل تاريخ الاستلام.
+  /// قابل للاسترداد فقط إذا الإلغاء ≥ ٤٨ ساعة قبل تاريخ الاستلام الفعلي.
   static bool isRefundable({
     required DateTime checkInDate,
     required DateTime cancelDate,
   }) {
-    final daysBefore = checkInDate.difference(cancelDate).inDays;
-    return daysBefore >= 2;
+    return checkInDate.difference(cancelDate).inHours >= 48;
   }
 
   static String refundStatusArabic({

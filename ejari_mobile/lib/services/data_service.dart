@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/app_config.dart';
 import '../models/payment_receipt.dart';
 import '../utils/api_client.dart';
 import '../utils/date_utils.dart';
@@ -11,6 +12,7 @@ import '../utils/booking_validator.dart';
 import '../models/booking_status.dart';
 import 'activity_log_service.dart';
 import 'auth_service.dart';
+import 'firestore_booking_service.dart';
 import 'mock_data_seeder.dart';
 import '../utils/property_image_resolver.dart';
 import 'wallet_service.dart';
@@ -26,7 +28,7 @@ class DataService {
   static const String _bookingsKey = 'bookings'; // For tenants
   static const String _requestsKey = 'requests'; // For owners (incoming)
   static const String _demoBookingsVersionKey = 'demo_bookings_version';
-  static const int _currentDemoBookingsVersion = 7;
+  static const int _currentDemoBookingsVersion = 8;
   static const String _demoReceiptsVersionKey = 'demo_receipts_version';
   static const int _currentDemoReceiptsVersion = 1;
   static const String _favoritesKey = 'favorites';
@@ -120,6 +122,7 @@ class DataService {
         'ownerEmail': 'owner@ejari.app',
         'status': BookingStatus.submitted,
         'requestDate': DateTime.now().toIso8601String(),
+        'createdAt': DateTime.now().toIso8601String(),
         'statusHistory': [
           {
             'status': BookingStatus.submitted,
@@ -131,6 +134,11 @@ class DataService {
         'leaseStartDate': checkIn.toIso8601String(),
         'checkInDate': checkIn.toIso8601String(),
         'startDate': checkIn.toIso8601String(),
+        'leaseEndDate':
+            checkIn.add(const Duration(days: 180)).toIso8601String(),
+        'checkOutDate':
+            checkIn.add(const Duration(days: 180)).toIso8601String(),
+        'endDate': checkIn.add(const Duration(days: 180)).toIso8601String(),
         'durationLabel': '6 شهر',
         'duration': '6 شهر',
         'leaseMonths': 6,
@@ -158,6 +166,8 @@ class DataService {
         'paymentStatus': 'deposit_paid',
         'requestDate':
             DateTime.now().subtract(const Duration(hours: 5)).toIso8601String(),
+        'createdAt':
+            DateTime.now().subtract(const Duration(hours: 6)).toIso8601String(),
         'depositPaidAt':
             DateTime.now().subtract(const Duration(hours: 5)).toIso8601String(),
         'statusHistory': [
@@ -879,6 +889,7 @@ class DataService {
       'phone': p['phone']?.toString() ?? '',
       'financialAccount': p['financialAccount']?.toString() ?? '',
       'governorate': p['governorate'] ?? '',
+      'region': p['region'] ?? '',
       'ownerId': p['ownerId']?.toString() ?? p['ownerEmail']?.toString() ?? '',
       'supportedDurations': p['supportedDurations'] ?? [],
       'corporateEligible': p['corporateEligible'] ?? false,
@@ -892,6 +903,15 @@ class DataService {
       'dynamicPricing': p['dynamicPricing'],
       'perBedPricing': p['perBedPricing'],
       'depositAmount': p['depositAmount'],
+      'dailyPrice': p['dailyPrice'] ?? p['pricePerDay'],
+      'nearbyBeachMinutes': p['nearbyBeachMinutes'],
+      'carAvailable': p['carAvailable'] == true,
+      'familyFriendly': p['familyFriendly'] == true,
+      'independentHouse': p['independentHouse'] == true,
+      'shortStay': p['shortStay'] == true,
+      'multiUnitDeal': p['multiUnitDeal'] == true,
+      'packageHalfWeek': p['packageHalfWeek'],
+      'specialOffers': p['specialOffers'] ?? [],
     };
     return _ensurePropertyImage(normalized);
   }
@@ -1894,8 +1914,9 @@ class DataService {
     }
 
     final effectiveCancel = cancelDate ?? DateTime.now();
+    final effectiveCheckIn = DateParsing.bookingCheckIn(booking) ?? checkInDate;
     final refundable = RentalRules.isRefundable(
-      checkInDate: checkInDate,
+      checkInDate: effectiveCheckIn,
       cancelDate: effectiveCancel,
     );
     final refundAmount = refundable ? depositAmount : 0.0;
@@ -1915,7 +1936,9 @@ class DataService {
       'success': true,
       'refundable': refundable,
       'refundAmount': refundAmount,
-      'daysBeforeCheckIn': checkInDate.difference(effectiveCancel).inDays,
+      'daysBeforeCheckIn': effectiveCheckIn.difference(effectiveCancel).inDays,
+      'hoursBeforeCheckIn':
+          effectiveCheckIn.difference(effectiveCancel).inHours,
       'status': refundable ? BookingStatus.depositRefunded : BookingStatus.cancelled,
     };
   }
@@ -1994,6 +2017,21 @@ class DataService {
           ? 'تم دفع العربون — بانتظار موافقة المالك'
           : 'تم إرسال الطلب — بانتظار المراجعة',
     );
+
+    // Real Firebase mode: write booking to Firestore.
+    if (!AppConfig.demoMode) {
+      try {
+        // Rules require status == pending on create.
+        final firestoreRequest = Map<String, dynamic>.from(request);
+        firestoreRequest['status'] = 'pending';
+        return await FirestoreBookingService.createBooking(firestoreRequest);
+      } catch (e) {
+        debugPrint('SendBookingRequest Firestore Error: $e');
+        if (e is String) rethrow;
+        throw 'تعذر إنشاء الحجز. تحقق من الاتصال وحاول مرة أخرى';
+      }
+    }
+
     // 1. Try backend API
     try {
       final body = {
@@ -2050,6 +2088,7 @@ class DataService {
     request['id'] = request['id']?.toString() ??
         DateTime.now().millisecondsSinceEpoch.toString();
     request['requestDate'] = DateTime.now().toIso8601String();
+    request['createdAt'] = request['createdAt'] ?? request['requestDate'];
     request['tenantEmail'] = currentEmail;
     request['ownerEmail'] =
         request['ownerEmail'] ?? request['ownerId']?.toString() ?? '';
@@ -2060,11 +2099,15 @@ class DataService {
     request['checkInDate'] = request['checkInDate'] ??
         request['leaseStartDate'] ??
         request['startDate'];
+    request['checkOutDate'] = request['checkOutDate'] ??
+        request['leaseEndDate'] ??
+        request['endDate'];
     request['paidMonths'] = request['paidMonths'] ?? 0;
     request['remainingMonths'] = request['remainingMonths'];
     request['durationLabel'] = request['durationLabel'] ?? request['duration'];
     request['durationType'] =
         request['durationType'] ?? request['durationUnit'] ?? 'شهر';
+    DateParsing.normalizeBookingDates(request);
 
     List<String> bookings = prefs.getStringList(_bookingsKey) ?? [];
     bookings.add(jsonEncode(request));
@@ -2610,6 +2653,16 @@ class DataService {
 
   // Tenant gets their bookings
   static Future<List<Map<String, dynamic>>> getBookings() async {
+    if (!AppConfig.demoMode) {
+      try {
+        return await FirestoreBookingService.getBookingsForCurrentUser();
+      } catch (e) {
+        debugPrint('GetBookings Firestore Error: $e');
+        if (e is String) rethrow;
+        throw 'تعذر تحميل الحجوزات. تحقق من الاتصال';
+      }
+    }
+
     // 1. Try backend API
     try {
       final response = await ApiClient.get('/bookings');
@@ -4406,9 +4459,18 @@ class DataService {
       if (nextDue == null || nextDue.isAfter(horizon)) continue;
 
       final daysUntil = nextDue.difference(now).inDays;
+      final propertyTitle = booking['title']?.toString() ??
+          booking['propertyTitle']?.toString() ??
+          'حجز إيجار';
+      final location = booking['location']?.toString() ??
+          booking['address']?.toString() ??
+          booking['city']?.toString() ??
+          '';
       upcoming.add({
         'bookingId': booking['id']?.toString() ?? '',
-        'title': booking['title']?.toString() ?? 'حجز إيجار',
+        'title': propertyTitle,
+        'property': propertyTitle,
+        'location': location,
         'amount': (snapshot['nextDueAmount'] as num?)?.toDouble() ?? 0,
         'dueDate': nextDue.toIso8601String(),
         'daysUntil': daysUntil,

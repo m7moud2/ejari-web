@@ -52,18 +52,18 @@ void main() {
   });
 
   group('RentalRules refund policy', () {
-    final checkIn = DateTime(2026, 8, 10);
+    final checkIn = DateTime(2026, 8, 10, 12, 0);
 
-    test('refundable when cancel >= 2 days before', () {
-      final cancel = DateTime(2026, 8, 7);
+    test('refundable when cancel >= 48 hours before', () {
+      final cancel = DateTime(2026, 8, 7, 12, 0);
       expect(
         RentalRules.isRefundable(checkInDate: checkIn, cancelDate: cancel),
         true,
       );
     });
 
-    test('not refundable within 2 days', () {
-      final cancel = DateTime(2026, 8, 9);
+    test('not refundable within 48 hours', () {
+      final cancel = DateTime(2026, 8, 9, 12, 0);
       expect(
         RentalRules.isRefundable(checkInDate: checkIn, cancelDate: cancel),
         false,
@@ -71,7 +71,7 @@ void main() {
     });
 
     test('not refundable after check-in', () {
-      final cancel = DateTime(2026, 8, 11);
+      final cancel = DateTime(2026, 8, 11, 12, 0);
       expect(
         RentalRules.isRefundable(checkInDate: checkIn, cancelDate: cancel),
         false,

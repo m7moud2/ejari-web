@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
+import '../services/viewing_appointment_service.dart';
+import '../utils/date_utils.dart';
 import 'my_bookings_screen.dart';
 import 'admin_users_screen.dart';
 import 'admin_service_requests_screen.dart';
 import 'admin_support_screen.dart';
 import 'tenant_wallet_screen.dart';
+import 'owner_viewings_screen.dart';
 
 class AdminSearchScreen extends StatefulWidget {
   const AdminSearchScreen({super.key});
@@ -42,6 +45,18 @@ class _AdminSearchScreenState extends State<AdminSearchScreen> {
     });
 
     final results = await DataService.adminGlobalSearch(trimmed);
+    final viewings = await ViewingAppointmentService.search(trimmed);
+    for (final v in viewings) {
+      results.add({
+        'type': 'viewing',
+        'typeLabel': 'معاينة',
+        'id': v.id,
+        'title': v.propertyTitle,
+        'subtitle':
+            '${v.tenantName} — ${v.statusLabel} — ${DateParsing.displayArabic(v.scheduledAt, withTime: true)}',
+        'data': v.toJson(),
+      });
+    }
     if (!mounted) return;
     setState(() {
       _results = results;
@@ -89,7 +104,7 @@ class _AdminSearchScreenState extends State<AdminSearchScreen> {
             child: Align(
               alignment: Alignment.centerRight,
               child: Text(
-                'ابحث في العقود والحجوزات والإيصالات وطلبات الصيانة والمستخدمين',
+                'ابحث في العقود والحجوزات والمعاينات والإيصالات وطلبات الصيانة والمستخدمين',
                 style: TextStyle(
                   fontSize: 11,
                   color: AppTheme.textSecondary.withOpacity(0.9),
@@ -248,6 +263,8 @@ class _AdminSearchScreenState extends State<AdminSearchScreen> {
     switch (type) {
       case 'booking':
         return Icons.calendar_month_rounded;
+      case 'viewing':
+        return Icons.visibility_rounded;
       case 'contract':
         return Icons.description_outlined;
       case 'receipt':
@@ -267,6 +284,8 @@ class _AdminSearchScreenState extends State<AdminSearchScreen> {
     switch (type) {
       case 'booking':
         return AppTheme.primaryColor;
+      case 'viewing':
+        return const Color(0xFFB58D3D);
       case 'contract':
         return AppTheme.accentColor;
       case 'receipt':
@@ -289,6 +308,9 @@ class _AdminSearchScreenState extends State<AdminSearchScreen> {
       case 'booking':
       case 'contract':
         page = const MyBookingsScreen();
+        break;
+      case 'viewing':
+        page = const OwnerViewingsScreen();
         break;
       case 'receipt':
         page = const TenantWalletScreen();

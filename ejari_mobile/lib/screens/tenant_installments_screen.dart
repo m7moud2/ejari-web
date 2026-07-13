@@ -116,8 +116,7 @@ class _TenantInstallmentsScreenState extends State<TenantInstallmentsScreen> {
           (leaseMonths - paidMonths).clamp(0, leaseMonths);
 
       for (var i = 0; i < leaseMonths; i++) {
-        final dueDate =
-            DateTime(startDate.year, startDate.month + i, startDate.day);
+        final dueDate = RentalScheduleUtils.addMonths(startDate, i);
         final isPaid = i < paidMonths;
         final isDueSoon = !isPaid &&
             dueDate.difference(DateTime.now()).inDays <= 14 &&
@@ -132,6 +131,7 @@ class _TenantInstallmentsScreenState extends State<TenantInstallmentsScreen> {
           'bookingTitle': booking['title']?.toString() ?? 'عقد إيجار',
           'amount': monthlyRent,
           'dueDate': dueDate,
+          'paidDate': isPaid ? dueDate.add(const Duration(days: 1)) : null,
           'status': isPaid
               ? 'Paid'
               : isLate

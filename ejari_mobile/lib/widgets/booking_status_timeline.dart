@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/booking_status.dart';
 import '../theme/app_theme.dart';
+import '../utils/date_utils.dart';
 
 /// Vertical timeline showing booking lifecycle progress.
 class BookingStatusTimeline extends StatelessWidget {
@@ -129,7 +130,8 @@ class BookingStatusTimeline extends StatelessWidget {
                                           : AppTheme.textSecondary,
                             ),
                           ),
-                          if (step['at'] != null)
+                          if (step['at'] != null &&
+                              step['at'].toString().trim().isNotEmpty)
                             Text(
                               _formatAt(step['at']),
                               style: const TextStyle(
@@ -160,8 +162,10 @@ class BookingStatusTimeline extends StatelessWidget {
   }
 
   String _formatAt(dynamic at) {
-    final dt = DateTime.tryParse(at.toString());
-    if (dt == null) return at.toString();
+    final arabic = DateParsing.displayArabic(at, withTime: true, fallback: '');
+    if (arabic.isNotEmpty && arabic != '—') return arabic;
+    final dt = DateParsing.parse(at);
+    if (dt == null) return '';
     return '${dt.day}/${dt.month}/${dt.year} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}';
   }
 }

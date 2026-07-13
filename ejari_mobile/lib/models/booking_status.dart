@@ -1,4 +1,6 @@
-/// Canonical booking lifecycle statuses and valid transitions (demo + API).
+// Canonical booking lifecycle statuses and valid transitions (demo + API).
+import '../utils/date_utils.dart';
+
 class BookingStatus {
   BookingStatus._();
 
@@ -88,7 +90,7 @@ class BookingStatus {
       case depositPaid:
         return 'عربون مدفوع';
       case viewingScheduled:
-        return 'عربون المعاينة';
+        return 'موعد معاينة';
       case approved:
         return 'موافقة المالك';
       case confirmed:
@@ -187,41 +189,94 @@ class BookingStatus {
     final current = normalize(booking['status']?.toString());
     final checkedIn = booking['checkedInAt'] != null;
     final checkedOut = booking['checkedOutAt'] != null;
+    final dateMap = DateParsing.timelineDatesForBooking(booking);
+
+    String? atFor(String id) {
+      final v = dateMap[id];
+      if (v == null || v.isEmpty || v == '—') return null;
+      return v;
+    }
 
     if (current == rejected) {
       return [
-        {'id': 'submitted', 'label': 'طلب مُرسل', 'done': true},
-        {'id': 'rejected', 'label': 'مرفوض', 'done': true, 'failed': true, 'active': true},
+        {
+          'id': 'submitted',
+          'label': 'طلب مُرسل',
+          'done': true,
+          if (atFor('submitted') != null) 'at': atFor('submitted'),
+        },
+        {
+          'id': 'rejected',
+          'label': 'مرفوض',
+          'done': true,
+          'failed': true,
+          'active': true,
+          if (atFor('rejected') != null) 'at': atFor('rejected'),
+        },
       ];
     }
     if (current == cancelled) {
       return [
-        {'id': 'submitted', 'label': 'طلب مُرسل', 'done': true},
-        {'id': 'cancelled', 'label': 'ملغي', 'done': true, 'failed': true, 'active': true},
+        {
+          'id': 'submitted',
+          'label': 'طلب مُرسل',
+          'done': true,
+          if (atFor('submitted') != null) 'at': atFor('submitted'),
+        },
+        {
+          'id': 'cancelled',
+          'label': 'ملغي',
+          'done': true,
+          'failed': true,
+          'active': true,
+          if (atFor('cancelled') != null) 'at': atFor('cancelled'),
+        },
       ];
     }
     if (current == depositRefunded) {
       return [
-        {'id': 'submitted', 'label': 'طلب مُرسل', 'done': true},
-        {'id': 'deposit', 'label': 'دفع العربون / المقدم', 'done': true},
+        {
+          'id': 'submitted',
+          'label': 'طلب مُرسل',
+          'done': true,
+          if (atFor('submitted') != null) 'at': atFor('submitted'),
+        },
+        {
+          'id': 'deposit',
+          'label': 'دفع العربون / المقدم',
+          'done': true,
+          if (atFor('deposit') != null) 'at': atFor('deposit'),
+        },
         {
           'id': 'refund',
           'label': 'استرداد التأمين / تقييم',
           'done': true,
           'active': true,
+          if (atFor('refund') != null) 'at': atFor('refund'),
         },
       ];
     }
     if (current == disputed) {
       return [
-        {'id': 'submitted', 'label': 'طلب مُرسل', 'done': true},
-        {'id': 'deposit', 'label': 'دفع العربون / المقدم', 'done': true},
+        {
+          'id': 'submitted',
+          'label': 'طلب مُرسل',
+          'done': true,
+          if (atFor('submitted') != null) 'at': atFor('submitted'),
+        },
+        {
+          'id': 'deposit',
+          'label': 'دفع العربون / المقدم',
+          'done': true,
+          if (atFor('deposit') != null) 'at': atFor('deposit'),
+        },
         {
           'id': 'disputed',
           'label': 'نزاع — مراجعة إدارية',
           'done': true,
           'failed': true,
           'active': true,
+          if (atFor('disputed') != null) 'at': atFor('disputed'),
         },
       ];
     }
@@ -240,7 +295,9 @@ class BookingStatus {
       progress = 5; // QR جاهز
     } else if (current == approved) {
       progress = 3; // إكمال الدفع
-    } else if (current == depositPaid || current == viewingScheduled) {
+    } else if (current == viewingScheduled) {
+      progress = 2; // موافقة المالك / معاينة
+    } else if (current == depositPaid) {
       progress = 2; // موافقة المالك
     } else {
       progress = 0; // طلب مُرسل
@@ -249,7 +306,7 @@ class BookingStatus {
     final labels = <String>[
       'طلب مُرسل',
       'دفع العربون / المقدم',
-      'موافقة المالك',
+      current == viewingScheduled ? 'موعد المعاينة / موافقة المالك' : 'موافقة المالك',
       'إكمال الدفع',
       'العقد جاهز',
       'QR جاهز للدخول',
@@ -275,11 +332,13 @@ class BookingStatus {
     return List.generate(labels.length, (i) {
       final done = allDone || i < progress;
       final isCurrent = !allDone && i == progress;
+      final at = atFor(ids[i]);
       return {
         'id': ids[i],
         'label': labels[i],
         'done': done,
         'active': isCurrent,
+        if (at != null && (done || isCurrent)) 'at': at,
       };
     });
   }
@@ -313,8 +372,9 @@ class BookingStatus {
       case approved:
         return ('payments', 'ادفع الآن', 'pay');
       case depositPaid:
+        return ('visibility', 'اطلب / تابع المعاينة', 'viewing');
       case viewingScheduled:
-        return ('hourglass', 'بانتظار موافقة المالك', 'wait');
+        return ('event', 'موعد المعاينة مجدول', 'viewing');
       case paid:
       case confirmed:
       case active:

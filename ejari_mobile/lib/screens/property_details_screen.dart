@@ -4,6 +4,8 @@ import '../services/data_service.dart';
 import 'booking_screen.dart';
 import '../utils/auth_gate.dart';
 import '../utils/date_utils.dart';
+import '../widgets/viewing_widgets.dart';
+import 'my_viewings_screen.dart';
 import 'chat_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -1047,58 +1049,128 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       ),
                     ],
                   )
-                : SizedBox(
-                    height: AppTheme.ctaHeight,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.circular(AppTheme.cardRadius - 2),
-                        ),
-                        elevation: 0,
-                      ),
-                      onPressed: () async {
-                        final allowed = await AuthGate.requireLogin(
-                          context,
-                          actionLabel: 'حجز الوحدة',
-                        );
-                        if (!allowed || !context.mounted) return;
-                        if (DataService.isSharedAccommodation(property) &&
-                            _selectedBedId == null) {
-                          messenger.showSnackBar(
-                            const SnackBar(
-                              content: Text('يرجى اختيار سرير متاح أولاً'),
-                              backgroundColor: AppTheme.errorColor,
+                : Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: AppTheme.ctaHeight,
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(
+                                  color: AppTheme.primaryColor, width: 1.4),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppTheme.cardRadius - 2),
+                              ),
                             ),
-                          );
-                          return;
-                        }
-                        final bookingData = {
-                          ...property,
-                          if (_selectedBedId != null)
-                            'selectedBedId': _selectedBedId,
-                          if (_selectedBedId != null)
-                            'bedLabel': (List<Map<String, dynamic>>.from(
-                              property['bedUnits'] as List? ?? [],
-                            ).firstWhere(
-                              (b) => b['id']?.toString() == _selectedBedId,
-                              orElse: () => {'label': 'سرير'},
-                            ))['label'],
-                        };
-                        navigator.push(
-                          MaterialPageRoute(
-                              builder: (context) => BookingScreen(
-                                  itemType: 'property',
-                                  itemData: bookingData)),
-                        );
-                      },
-                      child: const Text('احجز الآن',
-                          style: TextStyle(
-                              fontSize: 17,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800)),
-                    ),
+                            onPressed: () async {
+                              final allowed = await AuthGate.requireLogin(
+                                context,
+                                actionLabel: 'طلب معاينة',
+                              );
+                              if (!allowed || !context.mounted) return;
+                              final ok = await RequestViewingSheet.show(
+                                context,
+                                property: property,
+                              );
+                              if (ok == true && context.mounted) {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: const Text(
+                                        'يمكنك متابعة المعاينة من «مواعيدي»'),
+                                    action: SnackBarAction(
+                                      label: 'فتح',
+                                      onPressed: () {
+                                        navigator.push(
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                const MyViewingsScreen(),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                            icon: const Icon(Icons.visibility_rounded,
+                                color: AppTheme.primaryColor),
+                            label: const Text(
+                              'معاينة',
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 2,
+                        child: SizedBox(
+                          height: AppTheme.ctaHeight,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                    AppTheme.cardRadius - 2),
+                              ),
+                              elevation: 0,
+                            ),
+                            onPressed: () async {
+                              final allowed = await AuthGate.requireLogin(
+                                context,
+                                actionLabel: 'حجز الوحدة',
+                              );
+                              if (!allowed || !context.mounted) return;
+                              if (DataService.isSharedAccommodation(property) &&
+                                  _selectedBedId == null) {
+                                messenger.showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text('يرجى اختيار سرير متاح أولاً'),
+                                    backgroundColor: AppTheme.errorColor,
+                                  ),
+                                );
+                                return;
+                              }
+                              final bookingData = {
+                                ...property,
+                                if (_selectedBedId != null)
+                                  'selectedBedId': _selectedBedId,
+                                if (_selectedBedId != null)
+                                  'bedLabel': (List<Map<String, dynamic>>.from(
+                                    property['bedUnits'] as List? ?? [],
+                                  ).firstWhere(
+                                    (b) =>
+                                        b['id']?.toString() == _selectedBedId,
+                                    orElse: () => {'label': 'سرير'},
+                                  ))['label'],
+                              };
+                              navigator.push(
+                                MaterialPageRoute(
+                                  builder: (context) => BookingScreen(
+                                    itemType: 'property',
+                                    itemData: bookingData,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              'احجز الآن',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
           ),
         ],

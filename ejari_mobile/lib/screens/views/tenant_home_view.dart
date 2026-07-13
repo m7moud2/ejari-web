@@ -20,6 +20,7 @@ import '../demo_flow_guide_screen.dart';
 import '../notification_center_screen.dart';
 import '../rental_statement_screen.dart';
 import '../favorites_screen.dart';
+import '../my_viewings_screen.dart';
 import '../../services/demo_flow_service.dart';
 import '../../services/data_service.dart';
 
@@ -256,6 +257,14 @@ class _TenantHomeViewState extends State<TenantHomeView> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+          ),
+        ),
+        (
+          label: 'مواعيدي',
+          icon: Icons.visibility_rounded,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MyViewingsScreen()),
           ),
         ),
         (

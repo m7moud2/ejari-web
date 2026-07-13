@@ -101,12 +101,12 @@ class RentalScheduleUtils {
     );
     final durationUnit = durationMeta['unit']?.toString() ?? 'شهر';
     final durationCount = (durationMeta['count'] as num?)?.toInt() ?? 1;
-    final startDate =
+    final startDate = DateParsing.bookingCheckIn(booking) ??
         DateParsing.parse(booking['leaseStartDate'] ?? booking['startDate']) ??
-            current;
-    final endDate =
+        current;
+    final endDate = DateParsing.bookingCheckOut(booking) ??
         DateParsing.parse(booking['leaseEndDate'] ?? booking['endDate']) ??
-            addMonths(startDate, leaseMonths);
+        addMonths(startDate, leaseMonths);
     int totalUnits;
     int elapsed;
     int remaining;
