@@ -37,6 +37,8 @@ class _CorporateBookingsStripState extends State<CorporateBookingsStrip> {
   @override
   Widget build(BuildContext context) {
     if (_loading) return const SizedBox.shrink();
+    // Hide empty strip — corporate lives under حسابي → خدمات only.
+    if (_corporateBookings.isEmpty) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppTheme.spaceSm),
@@ -49,7 +51,7 @@ class _CorporateBookingsStripState extends State<CorporateBookingsStrip> {
               const Expanded(
                 child: EjariSectionHeader(
                   title: 'إسكان الموظفين (شركات)',
-                  subtitle: 'متابعة من مركز قيادة الشركات — ليس ضمن حجز العقار الشخصي',
+                  subtitle: 'متابعة من مركز قيادة الشركات',
                 ),
               ),
               TextButton.icon(
@@ -67,16 +69,7 @@ class _CorporateBookingsStripState extends State<CorporateBookingsStrip> {
               ),
             ],
           ),
-          if (_corporateBookings.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Text(
-                'لا توجد حجوزات موظفين بعد. افتح مركز قيادة الشركات لإضافة حجز.',
-                style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-              ),
-            )
-          else
-            ..._corporateBookings.take(5).map(_employeeRow),
+          ..._corporateBookings.take(5).map(_employeeRow),
         ],
       ),
       ),

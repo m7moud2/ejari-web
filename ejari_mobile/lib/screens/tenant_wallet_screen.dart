@@ -89,11 +89,14 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
                 fontWeight: FontWeight.bold,
                 fontSize: 18)),
         centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
-              color: Theme.of(context).iconTheme.color, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: Navigator.canPop(context),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: Icon(Icons.arrow_back_ios_new_rounded,
+                    color: Theme.of(context).iconTheme.color, size: 20),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -104,14 +107,15 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
                   children: [
-                    _buildOverviewCard(),
                     _buildBalanceCard(),
-                    const SizedBox(height: 16),
-                    _buildRentSummaryCard(),
                     if (_upcomingPayments.isNotEmpty) ...[
                       const SizedBox(height: 16),
                       _buildUpcomingPaymentsCard(),
                     ],
+                    const SizedBox(height: 16),
+                    _buildOverviewCard(),
+                    const SizedBox(height: 16),
+                    _buildRentSummaryCard(),
                     const SizedBox(height: 24),
                     _buildQuickActions(),
                     const SizedBox(height: 16),

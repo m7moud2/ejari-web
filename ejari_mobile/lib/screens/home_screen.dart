@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'sales_properties_screen.dart';
 import '../widgets/ejari_navigation_bar.dart';
 import 'add_property_screen.dart';
-import 'property_reels_screen.dart';
 import 'properties_screen.dart';
 import 'profile_screen.dart';
 import '../theme/app_theme.dart';
@@ -15,6 +14,7 @@ import 'package:provider/provider.dart';
 import '../providers/property_provider.dart';
 import 'notifications_screen.dart';
 import 'tenant_installments_screen.dart';
+import 'tenant_wallet_screen.dart';
 import 'rental_statement_screen.dart';
 import 'advanced_filters_screen.dart';
 import 'service_details_screen.dart';
@@ -110,11 +110,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ProfileScreen(),
         ];
       default:
+        // Tenant IA: home → explore → bookings → wallet → profile
         return const [
           UnifiedHomeScreen(),
           PropertiesScreen(),
-          AddPropertyScreen(),
-          PropertyReelsScreen(),
+          MyBookingsScreen(),
+          TenantWalletScreen(),
           ProfileScreen(),
         ];
     }

@@ -8,6 +8,17 @@ class ChangelogScreen extends StatelessWidget {
   static const List<({String version, String date, List<String> items})>
       releases = [
     (
+      version: '1.1.9',
+      date: 'يوليو 2026',
+      items: [
+        'تنظيف واجهة المستأجر: شريط سفلي (رئيسية · استكشف · حجوزاتي · محفظة · حسابي)',
+        'إزالة التكرار وأزرار غير مناسبة من قائمة المستأجر',
+        'حسابي مرتب: حجوزات · مالية · خدمات · عام',
+        'خطوة تالية واضحة لكل حالة حجز (ادفع · QR · دخول · قيّم)',
+        'المحفظة تبرز الرصيد والمدفوعات القادمة',
+      ],
+    ),
+    (
       version: '1.1.8',
       date: 'يوليو 2026',
       items: [

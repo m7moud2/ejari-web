@@ -11,20 +11,14 @@ import '../search_results_screen.dart';
 import '../payment_screen.dart';
 import '../my_service_requests_screen.dart';
 import '../property_details_screen.dart';
-import '../corporate_command_center_screen.dart';
 import '../request_verification_screen.dart';
 import '../../models/accommodation_type.dart';
 import '../../widgets/trust_score_badge.dart';
 import '../../widgets/overdue_payment_banner.dart';
 import '../demo_flow_guide_screen.dart';
 import '../notification_center_screen.dart';
-import '../tenant_wallet_screen.dart';
 import '../rental_statement_screen.dart';
-import '../help_center_screen.dart';
 import '../favorites_screen.dart';
-import '../for_sale_screen.dart';
-import '../properties_screen.dart';
-import '../changelog_screen.dart';
 import '../../services/demo_flow_service.dart';
 import '../../services/data_service.dart';
 
@@ -160,7 +154,7 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                   const SizedBox(height: AppTheme.spaceSm),
                   HomeExpandableSection(
                     title: 'حسابك',
-                    subtitle: 'الثقة، الشركات، والخدمات الإضافية',
+                    subtitle: 'درجة الثقة وخدمات الشركات',
                     child: _buildAccountSection(context, stats),
                   ),
                 ],
@@ -214,35 +208,31 @@ class _TenantHomeViewState extends State<TenantHomeView> {
     BuildContext context,
     Map<String, dynamic> stats,
   ) {
+    // Avoid duplicating bottom-nav primaries (استكشف / حجوزاتي / المحفظة).
     return [
       HomePrimaryAction(
-        label: 'بحث عقار',
-        icon: Icons.search_rounded,
+        label: 'عقودي',
+        icon: Icons.description_outlined,
         color: const Color(0xFF0F3A30),
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (_) => const SearchResultsScreen(query: ''),
-          ),
+          MaterialPageRoute(builder: (_) => const MyContractsScreen()),
         ),
       ),
       HomePrimaryAction(
-        label: 'حجوزاتي',
-        icon: Icons.calendar_month_rounded,
+        label: 'صيانة',
+        icon: Icons.build_circle_outlined,
         color: const Color(0xFF1B594B),
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+          MaterialPageRoute(builder: (_) => const MyServiceRequestsScreen()),
         ),
       ),
       HomePrimaryAction(
-        label: 'محفظتي',
-        icon: Icons.account_balance_wallet_outlined,
+        label: 'ادفع',
+        icon: Icons.payments_rounded,
         color: const Color(0xFFB58D3D),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const TenantWalletScreen()),
-        ),
+        onTap: () => _openRentPayment(context, stats),
       ),
       HomePrimaryAction(
         label: 'المزيد',
@@ -254,18 +244,11 @@ class _TenantHomeViewState extends State<TenantHomeView> {
   }
 
   void _showMoreSheet(BuildContext context, Map<String, dynamic> stats) {
+    // Tenant shortcuts only — no bottom-nav duplicates, no owner tools.
     showHomeMoreSheet(
       context,
-      title: 'المزيد من الخدمات',
+      title: 'اختصارات المستأجر',
       items: [
-        (
-          label: 'عقودي',
-          icon: Icons.description_outlined,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const MyContractsScreen()),
-          ),
-        ),
         (
           label: 'المفضلة',
           icon: Icons.favorite_border_rounded,
@@ -273,11 +256,6 @@ class _TenantHomeViewState extends State<TenantHomeView> {
             context,
             MaterialPageRoute(builder: (_) => const FavoritesScreen()),
           ),
-        ),
-        (
-          label: 'سدد القسط',
-          icon: Icons.payments_rounded,
-          onTap: () => _openRentPayment(context, stats),
         ),
         (
           label: 'أقساطي',
@@ -290,39 +268,13 @@ class _TenantHomeViewState extends State<TenantHomeView> {
           ),
         ),
         (
-          label: 'كشف الحساب',
+          label: 'إيصالاتي',
           icon: Icons.receipt_long_rounded,
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => const RentalStatementScreen(),
             ),
-          ),
-        ),
-        (
-          label: 'طلب صيانة',
-          icon: Icons.build_circle_outlined,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const MyServiceRequestsScreen(),
-            ),
-          ),
-        ),
-        (
-          label: 'عقارات للبيع',
-          icon: Icons.sell_outlined,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ForSaleScreen()),
-          ),
-        ),
-        (
-          label: 'استكشف العقارات',
-          icon: Icons.apartment_rounded,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const PropertiesScreen()),
           ),
         ),
         (
@@ -333,32 +285,6 @@ class _TenantHomeViewState extends State<TenantHomeView> {
             MaterialPageRoute(
               builder: (_) => const RequestVerificationScreen(),
             ),
-          ),
-        ),
-        (
-          label: 'مركز الشركات',
-          icon: Icons.corporate_fare_rounded,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const CorporateCommandCenterScreen(),
-            ),
-          ),
-        ),
-        (
-          label: 'مركز المساعدة',
-          icon: Icons.help_outline_rounded,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const HelpCenterScreen()),
-          ),
-        ),
-        (
-          label: 'ما الجديد',
-          icon: Icons.new_releases_outlined,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ChangelogScreen()),
           ),
         ),
         if (_showDemoLink)
@@ -388,17 +314,6 @@ class _TenantHomeViewState extends State<TenantHomeView> {
             trustData: Map<String, dynamic>.from(stats['trustData'] as Map),
           ),
         if (stats['trustData'] != null) const SizedBox(height: AppTheme.spaceSm),
-        HomeSecondaryLink(
-          icon: Icons.corporate_fare_rounded,
-          title: 'مركز قيادة الشركات',
-          subtitle: 'إدارة إسكان الموظفين',
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const CorporateCommandCenterScreen(),
-            ),
-          ),
-        ),
         if (_showDemoLink)
           HomeSecondaryLink(
             icon: Icons.play_circle_outline_rounded,
@@ -421,6 +336,14 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                 setState(() => _showDemoLink = false);
               },
               icon: const Icon(Icons.close_rounded, size: 16),
+            ),
+          )
+        else if (stats['trustData'] == null)
+          const Text(
+            'درجة الثقة تظهر بعد نشاط الحجوزات والدفع.',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondary,
             ),
           ),
       ],

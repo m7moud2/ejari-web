@@ -400,6 +400,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     final status = BookingStatus.normalize(booking['status']?.toString());
     final statusColor = _statusColor(status);
     final statusText = BookingStatus.arabicLabel(status);
+    final nextAction = _nextActionForStatus(status, booking);
 
     // Format date
     String dateStr = '';
@@ -424,27 +425,63 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(16)),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(Icons.bookmark, color: statusColor, size: 20),
-                    const SizedBox(width: 8),
+                    Row(
+                      children: [
+                        Icon(Icons.bookmark, color: statusColor, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          statusText,
+                          style: TextStyle(
+                            color: statusColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                     Text(
-                      statusText,
-                      style: TextStyle(
-                        color: statusColor,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      dateStr,
+                      style: const TextStyle(
+                          color: AppTheme.textSecondary, fontSize: 12),
                     ),
                   ],
                 ),
-                Text(
-                  dateStr,
-                  style: const TextStyle(
-                      color: AppTheme.textSecondary, fontSize: 12),
-                ),
+                if (nextAction != null) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                          color: AppTheme.primaryColor.withOpacity(0.18)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(nextAction.$1,
+                            size: 16, color: AppTheme.primaryColor),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'الخطوة التالية: ${nextAction.$2}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -717,6 +754,38 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       ),
       ),
     );
+  }
+
+  /// Clear next step for the tenant per booking status.
+  (IconData, String)? _nextActionForStatus(
+    String status,
+    Map<String, dynamic> booking,
+  ) {
+    switch (status) {
+      case BookingStatus.submitted:
+      case BookingStatus.pending:
+      case BookingStatus.corporatePending:
+        return (Icons.hourglass_top_rounded, 'انتظر موافقة المالك');
+      case BookingStatus.approved:
+        return (Icons.payments_rounded, 'ادفع المتبقي');
+      case BookingStatus.depositPaid:
+      case BookingStatus.viewingScheduled:
+        return (Icons.hourglass_top_rounded, 'بانتظار موافقة المالك');
+      case BookingStatus.paid:
+      case BookingStatus.confirmed:
+      case BookingStatus.active:
+        if (booking['checkedInAt'] == null) {
+          return (Icons.qr_code_rounded, 'اعرض QR أو سجّل الدخول');
+        }
+        if (booking['checkedOutAt'] == null) {
+          return (Icons.logout_rounded, 'سجّل الخروج عند المغادرة');
+        }
+        return (Icons.star_rounded, 'قيّم الإقامة');
+      case BookingStatus.completed:
+        return (Icons.star_rounded, 'قيّم المالك');
+      default:
+        return null;
+    }
   }
 
   Color _statusColor(String status) {

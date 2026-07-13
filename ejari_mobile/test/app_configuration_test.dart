@@ -10,7 +10,11 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('debug configuration has a usable API address', () {
-    expect(AppConfig.resolvedApiBaseUrl, startsWith('http'));
+    if (AppConfig.demoMode) {
+      expect(AppConfig.resolvedApiBaseUrl, isEmpty);
+    } else {
+      expect(AppConfig.resolvedApiBaseUrl, startsWith('http'));
+    }
   });
 
   test('demo mode never waits for a remote API', () async {

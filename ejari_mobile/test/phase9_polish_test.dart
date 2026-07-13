@@ -42,16 +42,16 @@ void main() {
   });
 
   group('Phase 9 — release UX wiring', () {
-    test('changelog lists 1.1.8 features', () {
+    test('changelog lists 1.1.9 tenant IA cleanup', () {
       final latest = ChangelogScreen.releases.first;
-      expect(latest.version, '1.1.8');
+      expect(latest.version, '1.1.9');
       expect(
-        latest.items,
-        contains('إصلاح تسجيل الدخول وإنشاء الحساب على أندرويد (وضع العرض)'),
+        latest.items.any((i) => i.contains('تنظيف واجهة المستأجر')),
+        isTrue,
       );
       expect(
-        latest.items,
-        contains('شات الدعم يعمل بدون إنترنت في النسخة التجريبية'),
+        latest.items.any((i) => i.contains('حجوزاتي')),
+        isTrue,
       );
     });
 
