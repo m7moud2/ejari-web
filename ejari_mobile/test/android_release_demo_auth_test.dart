@@ -1,11 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ejari_mobile/config/app_config.dart';
 import 'package:ejari_mobile/services/auth_service.dart';
 import 'package:ejari_mobile/services/chat_service.dart';
 import 'package:ejari_mobile/services/support_bot_service.dart';
 
-/// Regression: Android release APK must use local demo auth (not Firebase/API).
+/// Demo-mode regression: offline auth must work without live Firebase (CI/tests).
+/// Release APKs use real Firebase (kReleaseMode → demoMode=false).
+/// Web always stays in demo unless DEMO_MODE=false is forced.
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -14,11 +17,23 @@ void main() {
     await AuthService.initDemoAccounts();
   });
 
-  group('Android release demo auth', () {
-    test('demoMode is enabled by default for distributed builds', () {
+  group('Demo-mode offline auth (debug / CI)', () {
+    test('demoMode is enabled by default in debug/tests', () {
       expect(AppConfig.demoMode, isTrue);
       expect(AppConfig.authTimeout.inSeconds, greaterThanOrEqualTo(5));
       expect(AppConfig.authTimeout.inSeconds, lessThanOrEqualTo(8));
+    });
+
+    test('friendlyAuthError hides raw Firebase configuration codes', () {
+      final mapped = AuthService.friendlyAuthError(
+        FirebaseAuthException(
+          code: 'configuration-not-found',
+          message: 'CONFIG',
+        ),
+      );
+      expect(mapped.contains('firebase_auth'), isFalse);
+      expect(mapped.contains('configuration-not-found'), isFalse);
+      expect(mapped, contains('وضع العرض'));
     });
 
     test('demo login works offline without Firebase', () async {

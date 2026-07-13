@@ -118,9 +118,7 @@ class _SignupScreenState extends State<SignupScreen> {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            e.toString().replaceFirst('Exception: ', ''),
-          ),
+          content: Text(AuthService.friendlyAuthError(e)),
           backgroundColor: AppTheme.errorColor,
           action: SnackBarAction(
             label: 'إعادة',

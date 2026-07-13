@@ -295,11 +295,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                                   messenger.showSnackBar(
                                                     SnackBar(
                                                       content: Text(
-                                                        e
-                                                            .toString()
-                                                            .replaceFirst(
-                                                                'Exception: ',
-                                                                ''),
+                                                        AuthService
+                                                            .friendlyAuthError(
+                                                                e),
                                                       ),
                                                       backgroundColor:
                                                           AppTheme.errorColor,
@@ -551,8 +549,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                             messenger.showSnackBar(
                                               SnackBar(
                                                 content: Text(
-                                                  e.toString().replaceFirst(
-                                                      'Exception: ', ''),
+                                                  AuthService.friendlyAuthError(
+                                                      e),
                                                 ),
                                                 backgroundColor:
                                                     AppTheme.errorColor,

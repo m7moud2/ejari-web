@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 
 /// Build-time configuration shared by the mobile app.
 ///
-/// **Production (release APK):** uses real Firebase Auth + Firestore by default.
-/// **Debug / tests:** demo mode (local SharedPreferences) unless overridden.
+/// **Release APK (Android/iOS):** uses real Firebase Auth + Firestore by default.
+/// **Web / debug / profile / tests:** demo mode (local SharedPreferences).
 ///
 /// Override with `--dart-define=DEMO_MODE=true|false`.
 class AppConfig {
@@ -45,11 +45,15 @@ class AppConfig {
 
   /// Demo = local SharedPreferences. Real = Firebase Auth + Firestore.
   ///
-  /// Default: release → real Firebase; debug/tests → demo.
+  /// Defaults:
+  /// - Web / debug / profile → demo (no Firebase Console required)
+  /// - Native release APK → Firebase
   static bool get demoMode {
     if (_demoModeValue == 'true') return true;
     if (_demoModeValue == 'false') return false;
-    // Release APKs ship with real Firebase; debug/tests stay demo-first.
+    // Local web (`flutter run` / web-server) must work without Console setup.
+    if (kIsWeb) return true;
+    // Debug + profile stay demo-first; only release APK uses Firebase.
     return !kReleaseMode;
   }
 

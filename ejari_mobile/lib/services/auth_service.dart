@@ -65,13 +65,89 @@ class AuthService {
   static List<Map<String, String>> get demoAccounts =>
       List.unmodifiable(_demoAccounts);
 
-  /// Local SharedPreferences auth for demo — must work on Android release APKs
-  /// (kDebugMode is false in release; do not gate on it).
+  /// Local SharedPreferences auth — demo / debug only.
   static bool get _useLocalAuth => AppConfig.demoMode;
+  /// Real Firebase Auth when not in demo and Firebase initialized.
+  /// Prefer Firebase over optional Express API when no API_BASE_URL is set.
   static bool get _useFirebaseAuth =>
-      !AppConfig.demoMode &&
-      _baseUrl == null &&
-      Firebase.apps.isNotEmpty;
+      !AppConfig.demoMode && Firebase.apps.isNotEmpty && _baseUrl == null;
+
+  /// Firebase Auth codes that mean Email/Password (or Auth) is not configured.
+  static const Set<String> _authConfigurationCodes = {
+    'configuration-not-found',
+    'operation-not-allowed',
+    'admin-restricted-operation',
+  };
+
+  static bool _isAuthConfigurationError(Object e) {
+    if (e is FirebaseAuthException) {
+      return _authConfigurationCodes.contains(e.code);
+    }
+    final text = e.toString().toLowerCase();
+    return text.contains('configuration-not-found') ||
+        text.contains('operation-not-allowed') ||
+        text.contains('auth/configuration-not-found');
+  }
+
+  /// Public Arabic mapping for UI — never show raw Firebase codes to users.
+  static String friendlyAuthError(Object e) => _arabicFirebaseAuthError(e);
+
+  static String _arabicFirebaseAuthError(Object e) {
+    if (e is TimeoutException) {
+      return 'انتهت مهلة الاتصال. تحقق من الإنترنت وحاول مرة أخرى';
+    }
+    if (_isAuthConfigurationError(e)) {
+      return 'تعذر الاتصال بخدمة التسجيل. جاري استخدام وضع العرض.';
+    }
+    if (e is FirebaseAuthException) {
+      switch (e.code) {
+        case 'email-already-in-use':
+          return 'هذا البريد مسجّل مسبقاً. سجّل الدخول أو استخدم بريداً آخر';
+        case 'invalid-email':
+          return 'البريد الإلكتروني غير صالح';
+        case 'weak-password':
+          return 'كلمة المرور ضعيفة. استخدم 6 أحرف على الأقل';
+        case 'user-not-found':
+        case 'wrong-password':
+        case 'invalid-credential':
+          return 'بيانات الدخول غير صحيحة';
+        case 'user-disabled':
+          return 'تم تعطيل هذا الحساب';
+        case 'too-many-requests':
+          return 'محاولات كثيرة. انتظر قليلاً ثم حاول مرة أخرى';
+        case 'network-request-failed':
+          return 'تعذر الاتصال. تحقق من الإنترنت وحاول مرة أخرى';
+        default:
+          return 'تعذر إتمام العملية. تحقق من الاتصال وحاول مرة أخرى';
+      }
+    }
+    final text = e.toString();
+    if (text.contains('firebase_auth/') || text.contains('FirebaseAuthException')) {
+      return 'تعذر إتمام العملية. تحقق من الاتصال وحاول مرة أخرى';
+    }
+    if (text.contains('SocketException') ||
+        text.contains('ClientException') ||
+        text.contains('HandshakeException') ||
+        text.contains('network')) {
+      return 'تعذر الاتصال. تحقق من الإنترنت وحاول مرة أخرى';
+    }
+    if (e is String && e.trim().isNotEmpty) {
+      // Strip accidental Exception: / Error prefixes and raw Firebase codes.
+      var cleaned = e.trim();
+      cleaned = cleaned.replaceFirst(RegExp(r'^(Exception|Error):\s*'), '');
+      if (cleaned.contains('firebase_auth/') ||
+          cleaned.contains('configuration-not-found')) {
+        return 'تعذر الاتصال بخدمة التسجيل. جاري استخدام وضع العرض.';
+      }
+      return cleaned;
+    }
+    return 'تعذر إتمام العملية. تحقق من الاتصال وحاول مرة أخرى';
+  }
+
+  static String _accountIdFromUid(String uid) {
+    final hash = uid.hashCode.abs() % 900000;
+    return 'EJR-${(100000 + hash).toString()}';
+  }
 
   static bool get _firebaseReady {
     try {
@@ -368,8 +444,12 @@ class AuthService {
 
   static Future<Map<String, dynamic>?> _tryLocalLoginFallback(
     String email,
-    String password,
-  ) async {
+    String password, {
+    bool forceForConfigError = false,
+  }) async {
+    // Local demo is default for web/debug. Also allow when Firebase Auth
+    // provider is misconfigured (configuration-not-found) so UI never hangs.
+    if (!AppConfig.demoMode && !forceForConfigError) return null;
     await initDemoAccounts();
     final localAccount = await _findLocalAccount(email, password);
     if (localAccount == null) return null;
@@ -413,11 +493,14 @@ class AuthService {
               password: password,
             )
             .timeout(AppConfig.authTimeout);
+        final uid = credential.user!.uid;
+        final accountId = _accountIdFromUid(uid);
         final profile = <String, dynamic>{
           'name': userData['name'] ?? '',
           'email': email.toLowerCase(),
           'phone': userData['phone'] ?? '',
           'address': userData['address'] ?? 'العنوان غير محدد',
+          'accountId': accountId,
           ...registrationRoleFields,
           'createdAt': FieldValue.serverTimestamp(),
           'status': 'active',
@@ -425,12 +508,17 @@ class AuthService {
 
         await _firestore
             .collection('users')
-            .doc(credential.user!.uid)
+            .doc(uid)
             .set(
               profile,
               SetOptions(merge: true),
             )
             .timeout(AppConfig.authTimeout);
+        if (userData['name'] != null) {
+          await credential.user!
+              .updateDisplayName(userData['name'].toString())
+              .timeout(AppConfig.authTimeout);
+        }
         await _storeFirebaseSession(
           firebaseUser: credential.user!,
           profile: profile,
@@ -438,13 +526,17 @@ class AuthService {
         return true;
       } catch (e) {
         debugPrint('Firebase SignUp Error: $e');
-        // Fail open to local demo account so UI never hangs forever.
-        return localSignUp();
+        if (_isAuthConfigurationError(e)) {
+          debugPrint('Firebase Auth not configured — falling back to demo signup');
+          return localSignUp();
+        }
+        throw _arabicFirebaseAuthError(e);
       }
     }
 
     if (_baseUrl == null || _baseUrl!.isEmpty) {
-      return localSignUp();
+      if (AppConfig.demoMode) return localSignUp();
+      throw 'خدمة التسجيل غير متاحة. تحقق من الاتصال وحاول مرة أخرى';
     }
 
     try {
@@ -490,11 +582,12 @@ class AuthService {
           e.toString().contains('ClientException') ||
           e.toString().contains('HandshakeException');
 
-      if (AppConfig.demoMode || isNetworkError || _baseUrl == null) {
+      if (AppConfig.demoMode && (isNetworkError || _baseUrl == null)) {
         return localSignUp();
       }
 
-      rethrow;
+      if (e is String) rethrow;
+      throw _arabicFirebaseAuthError(e);
     }
   }
 
@@ -550,13 +643,14 @@ class AuthService {
         return user;
       } catch (e) {
         debugPrint('Firebase Login Error: $e');
-        final local = await _tryLocalLoginFallback(email, password);
+        final configError = _isAuthConfigurationError(e);
+        final local = await _tryLocalLoginFallback(
+          email,
+          password,
+          forceForConfigError: configError,
+        );
         if (local != null) return local;
-        if (e is TimeoutException) {
-          throw 'انتهت مهلة الاتصال. تحقق من الإنترنت وحاول مرة أخرى';
-        }
-        if (e is String) rethrow;
-        throw 'تعذر تسجيل الدخول. حاول مرة أخرى';
+        throw _arabicFirebaseAuthError(e);
       }
     }
 
@@ -582,6 +676,9 @@ class AuthService {
     if (_baseUrl == null || _baseUrl!.isEmpty) {
       final local = await _tryLocalLoginFallback(email, password);
       if (local != null) return local;
+      if (!AppConfig.demoMode && !_firebaseReady) {
+        throw 'تعذر الاتصال بـ Firebase. تحقق من الإنترنت وحاول مرة أخرى';
+      }
       throw 'بيانات الدخول غير صحيحة';
     }
 
