@@ -1292,9 +1292,17 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             fontWeight: FontWeight.w800, fontSize: 13)),
                     const SizedBox(height: 2),
                     Text(
-                      '$days أيام · $perDay ج.م / يوم',
+                      '$days أيام مربوطة بالحجز · $perDay ج.م / يوم',
                       style: const TextStyle(
                           fontSize: 11, color: AppTheme.textSecondary),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'اضغط للحجز بهذه المدة مباشرة',
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.w700),
                     ),
                   ],
                 ),

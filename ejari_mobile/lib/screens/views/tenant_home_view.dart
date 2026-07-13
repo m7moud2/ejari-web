@@ -22,8 +22,10 @@ import '../notification_center_screen.dart';
 import '../rental_statement_screen.dart';
 import '../favorites_screen.dart';
 import '../my_viewings_screen.dart';
+import '../advanced_filters_screen.dart';
 import '../../services/demo_flow_service.dart';
 import '../../services/data_service.dart';
+import '../../services/location_service.dart';
 
 class TenantHomeView extends StatefulWidget {
   const TenantHomeView({super.key});
@@ -35,22 +37,52 @@ class TenantHomeView extends StatefulWidget {
 class _TenantHomeViewState extends State<TenantHomeView> {
   bool _showDemoLink = false;
   int _unreadNotifications = 0;
+  String _locationLabel = 'تحديد موقعك';
+  bool _locationPromptChecked = false;
 
   @override
   void initState() {
     super.initState();
     _loadExtras();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _ensureLocation());
   }
 
   Future<void> _loadExtras() async {
     final dismissed = await DemoFlowService.isBannerDismissed();
     final complete = await DemoFlowService.isFlowComplete();
     final unread = await DataService.getUnreadNotificationCount();
+    final loc = await LocationService.loadSaved();
     if (mounted) {
       setState(() {
         _showDemoLink = !dismissed && !complete;
         _unreadNotifications = unread;
+        _locationLabel = loc.hasArea || loc.hasCoords ? loc.label : 'تحديد موقعك';
       });
+    }
+  }
+
+  Future<void> _ensureLocation() async {
+    if (_locationPromptChecked) return;
+    _locationPromptChecked = true;
+    final should = await LocationService.shouldPromptForLocation();
+    if (!should || !mounted) {
+      await _loadExtras();
+      return;
+    }
+    final snap = await LocationService.showEnableLocationDialog(context);
+    if (snap != null && mounted) {
+      setState(() => _locationLabel = snap.label);
+      await context.read<HomeProvider>().loadHomeData('tenant');
+    } else {
+      await _loadExtras();
+    }
+  }
+
+  Future<void> _changeLocation() async {
+    final snap = await LocationService.showManualPicker(context);
+    if (snap != null && mounted) {
+      setState(() => _locationLabel = snap.label);
+      await context.read<HomeProvider>().loadHomeData('tenant');
     }
   }
 
@@ -63,6 +95,18 @@ class _TenantHomeViewState extends State<TenantHomeView> {
     final featured = List<Map<String, dynamic>>.from(
       stats['featuredProperties'] ?? const [],
     );
+    final nearby = List<Map<String, dynamic>>.from(
+      stats['nearbyProperties'] ?? const [],
+    );
+    final hotOffers = List<Map<String, dynamic>>.from(
+      stats['hotOffers'] ?? const [],
+    );
+    final shortStays = List<Map<String, dynamic>>.from(
+      stats['shortStayProperties'] ?? const [],
+    );
+    final locLabel =
+        stats['userLocationLabel']?.toString() ?? _locationLabel;
+    final pendingViewings = (stats['pendingViewings'] as num?)?.toInt() ?? 0;
 
     return RefreshIndicator(
       color: AppTheme.accentColor,
@@ -98,8 +142,14 @@ class _TenantHomeViewState extends State<TenantHomeView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _buildLocationBar(locLabel),
+                  const SizedBox(height: AppTheme.spaceSm),
                   _buildSearchCard(context),
                   const SizedBox(height: AppTheme.spaceSm),
+                  if (pendingViewings > 0) ...[
+                    _buildViewingCta(context, pendingViewings),
+                    const SizedBox(height: AppTheme.spaceSm),
+                  ],
                   if (stats['contextualAction'] != null) ...[
                     _buildContextualAction(context, stats),
                     const SizedBox(height: AppTheme.spaceSm),
@@ -109,14 +159,55 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                   HomePrimaryActionRow(actions: _primaryActions(context, stats)),
                   const SizedBox(height: AppTheme.spaceMd),
                   HomeExpandableSection(
-                    title: 'استكشف',
-                    subtitle: 'فلترة العقارات والوحدات المميزة',
+                    title: 'قربك الآن',
+                    subtitle: 'وحدات مرتّبة حسب موقعك',
+                    initiallyExpanded: true,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildPropertyStrip(
+                          context,
+                          nearby.isNotEmpty ? nearby : recommended,
+                          showBadge: true,
+                          showProximity: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceSm),
+                  HomeExpandableSection(
+                    title: 'عروض ساخنة',
+                    subtitle: 'باقات وأسعار خاصة لمدة محددة',
+                    initiallyExpanded: true,
+                    child: _buildPropertyStrip(
+                      context,
+                      hotOffers,
+                      showBadge: false,
+                      offerAccent: true,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceSm),
+                  HomeExpandableSection(
+                    title: 'إقامات قصيرة',
+                    subtitle: 'يومي · أسبوعي · نصف أسبوع',
                     initiallyExpanded: true,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildAccommodationFilters(context),
                         const SizedBox(height: AppTheme.spaceSm),
+                        _buildPropertyStrip(context, shortStays, showBadge: false),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spaceSm),
+                  HomeExpandableSection(
+                    title: 'استكشف',
+                    subtitle: 'عقارات مميزة ومقترحة',
+                    initiallyExpanded: false,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         if (stats['activeBooking'] == true ||
                             (stats['nextInstallmentDays'] ?? 99) <= 7) ...[
                           _buildBookingAlert(context, stats),
@@ -124,7 +215,7 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                         ],
                         EjariSectionHeader(
                           title: 'عقارات مقترحة',
-                          subtitle: 'مختارة حسب تفضيلاتك',
+                          subtitle: 'مختارة حسب موقعك وتفضيلاتك',
                           actionLabel: 'عرض الكل',
                           onAction: () => Navigator.push(
                             context,
@@ -157,7 +248,7 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                   const SizedBox(height: AppTheme.spaceSm),
                   HomeExpandableSection(
                     title: 'حسابك',
-                    subtitle: 'درجة الثقة وخدمات الشركات',
+                    subtitle: 'درجة الثقة وخدماتك كمستأجر',
                     child: _buildAccountSection(context, stats),
                   ),
                 ],
@@ -166,6 +257,101 @@ class _TenantHomeViewState extends State<TenantHomeView> {
           ),
           const SizedBox(height: AppTheme.spaceXl),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLocationBar(String label) {
+    return Material(
+      color: AppTheme.surfaceColor,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: _changeLocation,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppTheme.primaryColor.withOpacity(0.12)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.location_on_rounded,
+                  color: AppTheme.primaryColor, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'موقعك للبحث',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 13,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              TextButton(
+                onPressed: _changeLocation,
+                child: const Text(
+                  'تغيير',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildViewingCta(BuildContext context, int count) {
+    return Material(
+      color: AppTheme.accentColor.withOpacity(0.12),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MyViewingsScreen()),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              const Icon(Icons.visibility_rounded, color: AppTheme.accentColor),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  count == 1
+                      ? 'لديك موعد معاينة بانتظار المتابعة'
+                      : 'لديك $count مواعيد معاينة',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              const Icon(Icons.chevron_left_rounded),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -373,7 +559,7 @@ class _TenantHomeViewState extends State<TenantHomeView> {
         onTap: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const SearchResultsScreen(query: ''),
+            builder: (_) => const AdvancedFiltersScreen(),
           ),
         ),
         child: Container(
@@ -395,17 +581,17 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
-                  Icons.search_rounded,
+                  Icons.tune_rounded,
                   color: AppTheme.primaryColor,
                   size: 22,
                 ),
               ),
               const Expanded(
                 child: Text(
-                  'ابحث عن شقة، فيلا، مكتب...',
+                  'فلاتر احترافية · محافظة · سعر · مدة',
                   style: TextStyle(
                     color: AppTheme.textSecondary,
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -419,7 +605,7 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Text(
-                  'بحث',
+                  'فلتر',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
@@ -775,6 +961,8 @@ class _TenantHomeViewState extends State<TenantHomeView> {
     BuildContext context,
     List<Map<String, dynamic>> items, {
     required bool showBadge,
+    bool showProximity = false,
+    bool offerAccent = false,
   }) {
     return SizedBox(
       height: 240,
@@ -800,6 +988,7 @@ class _TenantHomeViewState extends State<TenantHomeView> {
               itemBuilder: (context, index) {
                 final item = items[index];
                 final isSale = item['listingMode'] == 'for_sale';
+                final proximity = item['proximityLabel']?.toString();
                 return Material(
                   elevation: 0,
                   borderRadius: BorderRadius.circular(AppTheme.cardRadiusLg),
@@ -816,6 +1005,11 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                       width: 200,
                       decoration: AppTheme.surfaceCardDecoration(
                         radius: AppTheme.cardRadiusLg,
+                      ).copyWith(
+                        border: offerAccent
+                            ? Border.all(
+                                color: AppTheme.accentColor.withOpacity(0.4))
+                            : null,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -854,6 +1048,31 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                                     ),
                                   ),
                                 ),
+                              if (showProximity &&
+                                  proximity != null &&
+                                  proximity.isNotEmpty)
+                                Positioned(
+                                  top: 8,
+                                  left: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primaryColor,
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      proximity,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
                           Padding(
@@ -885,7 +1104,9 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                                 Text(
                                   isSale
                                       ? '${item['price'] ?? ''} ج.م'
-                                      : '${item['price'] ?? ''} ج.م / شهر',
+                                      : (item['dailyPrice'] != null
+                                          ? '${item['dailyPrice']} ج.م / يوم'
+                                          : '${item['price'] ?? ''} ج.م / شهر'),
                                   style: const TextStyle(
                                     color: AppTheme.primaryColor,
                                     fontWeight: FontWeight.w900,

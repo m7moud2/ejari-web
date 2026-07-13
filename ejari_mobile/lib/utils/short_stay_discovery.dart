@@ -1,3 +1,6 @@
+import 'location_ranking.dart';
+import '../data/egypt_locations.dart';
+
 /// اكتشاف الإقامات القصيرة والعروض — بديل منظم لإعلانات فيسبوك.
 class ShortStayDurationIntent {
   final String id;
@@ -267,6 +270,20 @@ class ShortStayDiscovery {
             joined.contains('سراير') ||
             joined.contains('أسرّة') ||
             flagTrue(property, 'multiBeds');
+      case 'مصعد':
+        return joined.contains('مصعد') ||
+            joined.contains('أسانسير') ||
+            joined.contains('اسانسير') ||
+            flagTrue(property, 'hasElevator');
+      case 'موقف':
+        return joined.contains('موقف') ||
+            joined.contains('جراج') ||
+            joined.contains('سيارات') ||
+            flagTrue(property, 'hasParking');
+      case 'غاز':
+        return joined.contains('غاز') || flagTrue(property, 'hasGas');
+      case 'بحر':
+        return matchesAmenityFilter(property, 'قريب من البحر');
       default:
         return amenities.contains(amenityName) || joined.contains(amenityName);
     }
@@ -277,18 +294,37 @@ class ShortStayDiscovery {
     String governorate,
   ) {
     if (governorate == 'الكل') return true;
+    final normalized = EgyptLocations.normalizeGovernorate(governorate);
+    final pGov = EgyptLocations.normalizeGovernorate(
+      property['governorate']?.toString(),
+    );
+    if (normalized.isNotEmpty && pGov.isNotEmpty && normalized == pGov) {
+      return true;
+    }
     final hay =
         '${property['governorate'] ?? ''} ${property['location'] ?? ''} ${property['region'] ?? ''} ${property['title'] ?? ''}';
-    if (governorate == 'الساحل الشمالي') {
-      return hay.contains('الساحل') ||
-          hay.contains('سيدي عبدالرحمن') ||
-          hay.contains('العلمين') ||
-          (hay.contains('مطروح') && isCoastal(property));
+    if (governorate == 'الساحل الشمالي' || normalized == 'مطروح') {
+      if (governorate == 'الساحل الشمالي') {
+        return hay.contains('الساحل') ||
+            hay.contains('سيدي عبدالرحمن') ||
+            hay.contains('العلمين') ||
+            (hay.contains('مطروح') && isCoastal(property));
+      }
     }
-    if (governorate == 'شرم الشيخ') {
-      return hay.contains('شرم');
+    if (governorate == 'شرم الشيخ' || normalized == 'جنوب سيناء') {
+      if (governorate == 'شرم الشيخ' || hay.contains('شرم')) {
+        return hay.contains('شرم') || pGov == 'جنوب سيناء';
+      }
     }
-    return hay.contains(governorate);
+    if (governorate == 'الغردقة' || normalized == 'البحر الأحمر') {
+      if (governorate == 'الغردقة' || hay.contains('الغردقة')) {
+        return hay.contains('الغردقة') ||
+            hay.contains('الجونة') ||
+            pGov == 'البحر الأحمر';
+      }
+    }
+    return hay.contains(governorate) ||
+        (normalized.isNotEmpty && hay.contains(normalized));
   }
 
   static bool matchesAnyGovernorate(
@@ -361,6 +397,47 @@ class ShortStayDiscovery {
       return false;
     }
 
+    if (filters['specialOffersOnly'] == true) {
+      if (specialOffers(property).isEmpty &&
+          property['packageHalfWeek'] == null &&
+          !flagTrue(property, 'multiUnitDeal')) {
+        return false;
+      }
+    }
+
+    if (!LocationRanking.matchesOfferType(
+      property,
+      filters['offerType']?.toString(),
+    )) {
+      return false;
+    }
+
+    if (!LocationRanking.matchesAudience(
+      property,
+      filters['suitableFor']?.toString() ?? filters['audience']?.toString(),
+    )) {
+      return false;
+    }
+
+    if (!LocationRanking.matchesFinish(
+      property,
+      filters['finishStatus']?.toString(),
+    )) {
+      return false;
+    }
+
+    final bedsCount = filters['bedsCount'] ?? filters['minBedsCount'];
+    if (bedsCount is num) {
+      if (!LocationRanking.matchesMinBedsCount(property, bedsCount.toInt())) {
+        return false;
+      }
+    }
+
+    final city = filters['city']?.toString();
+    if (city != null && city.isNotEmpty && city != 'الكل') {
+      if (!LocationRanking.matchesCityFilter(property, city)) return false;
+    }
+
     final govList = filters['governorates'];
     if (govList is List && govList.isNotEmpty) {
       if (!matchesAnyGovernorate(
@@ -414,6 +491,32 @@ class ShortStayDiscovery {
     }
 
     return true;
+  }
+
+  /// Apply sortMode from filters (`nearest` | `cheapest` | `newest` | `rating`).
+  static List<Map<String, dynamic>> sortFiltered(
+    List<Map<String, dynamic>> properties,
+    Map<String, dynamic> filters, {
+    double? userLat,
+    double? userLng,
+    String? userGovernorate,
+    String? userCity,
+  }) {
+    final mode = filters['sortMode']?.toString() ?? 'nearest';
+    return LocationRanking.rankProperties(
+      properties,
+      userLat: userLat,
+      userLng: userLng,
+      userGovernorate: userGovernorate,
+      userCity: userCity,
+      sortMode: mode,
+    ).map((r) {
+      final p = Map<String, dynamic>.from(r.property);
+      p['distanceKm'] = r.distanceKm;
+      p['proximityBand'] = r.band.name;
+      p['proximityLabel'] = r.arabicDistanceLabel;
+      return p;
+    }).toList();
   }
 
   /// مدة الحجز المقترحة من عرض خاص.

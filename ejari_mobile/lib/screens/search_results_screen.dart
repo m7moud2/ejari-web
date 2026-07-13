@@ -6,6 +6,7 @@ import '../utils/property_image_resolver.dart';
 import '../utils/short_stay_discovery.dart';
 import '../models/accommodation_type.dart';
 import '../services/firestore_property_service.dart';
+import '../services/location_service.dart';
 import 'property_details_screen.dart';
 import 'booking_screen.dart';
 
@@ -155,9 +156,25 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       return true;
     }).toList();
 
+    final filters = widget.filters ?? {};
+    List<Map<String, dynamic>> sorted = results;
+    try {
+      final loc = await LocationService.loadSaved();
+      sorted = ShortStayDiscovery.sortFiltered(
+        results,
+        filters,
+        userLat: loc.lat,
+        userLng: loc.lng,
+        userGovernorate: loc.governorate,
+        userCity: loc.city,
+      );
+    } catch (_) {
+      sorted = results;
+    }
+
     if (mounted) {
       setState(() {
-        _results = results;
+        _results = sorted;
         _visibleCount = _pageSize;
         _isLoading = false;
       });

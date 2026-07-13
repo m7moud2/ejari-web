@@ -5,6 +5,7 @@ import 'search_results_screen.dart';
 import '../services/firestore_property_service.dart';
 import '../services/search_filters_service.dart';
 import '../utils/short_stay_discovery.dart';
+import '../data/egypt_locations.dart';
 
 class AdvancedFiltersScreen extends StatefulWidget {
   const AdvancedFiltersScreen({super.key});
@@ -19,9 +20,17 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
   bool _useDailyPrice = true;
   int _selectedBeds = 0;
   int _selectedBaths = 0;
+  int _selectedBedsCount = 0;
   String _selectedType = 'الكل';
   bool? _isFurnished;
   String _listingFilter = 'all';
+  String? _offerType;
+  String? _finishStatus;
+  String? _suitableFor;
+  String? _selectedGovernorate;
+  String? _selectedCity;
+  String _sortMode = 'nearest';
+  bool _specialOffersOnly = false;
   final Set<String> _selectedGovernorates = {};
   String? _durationIntentId;
   final List<String> _selectedOfferFilters = [];
@@ -33,20 +42,47 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
     'شاليهات',
     'مكاتب',
     'فندقي',
+    'سكن مشترك',
   ];
+
+  final List<String> _offerTypes = [
+    'إيجار يومي',
+    'أسبوعي',
+    'شهري',
+    'طويل',
+    'إعلان بيع',
+  ];
+
+  final List<String> _finishOptions = ['مفروش', 'على التشطيب', 'جديد'];
+  final List<String> _audienceOptions = [
+    'أفراد',
+    'عائلات',
+    'طلاب',
+    'عمال',
+    'شركات',
+  ];
+
+  final List<Map<String, dynamic>> _sortOptions = [
+    {'id': 'nearest', 'label': 'الأقرب'},
+    {'id': 'cheapest', 'label': 'الأرخص'},
+    {'id': 'newest', 'label': 'الأحدث'},
+    {'id': 'rating', 'label': 'الأعلى تقييماً'},
+  ];
+
   final List<String> _selectedAmenities = [];
   final List<Map<String, dynamic>> _amenitiesList = [
     {'name': 'قريب من البحر', 'icon': Icons.beach_access_rounded},
-    {'name': 'سيارة متاحة', 'icon': Icons.directions_car_rounded},
+    {'name': 'واي فاي', 'icon': Icons.wifi_rounded},
+    {'name': 'مكيف', 'icon': Icons.ac_unit_rounded},
+    {'name': 'مصعد', 'icon': Icons.elevator_rounded},
+    {'name': 'موقف', 'icon': Icons.local_parking_rounded},
     {'name': 'مطبخ', 'icon': Icons.kitchen_rounded},
+    {'name': 'غاز', 'icon': Icons.local_fire_department_rounded},
+    {'name': 'سيارة متاحة', 'icon': Icons.directions_car_rounded},
     {'name': 'مناسب للعائلات', 'icon': Icons.family_restroom_rounded},
     {'name': 'بيت مستقل', 'icon': Icons.holiday_village_rounded},
-    {'name': 'مكيف', 'icon': Icons.ac_unit_rounded},
-    {'name': 'واي فاي', 'icon': Icons.wifi_rounded},
     {'name': 'تشطيب لوكس', 'icon': Icons.diamond_rounded},
     {'name': 'سراير متعددة', 'icon': Icons.bed_rounded},
-    {'name': 'مسبح خاص', 'icon': Icons.pool_rounded},
-    {'name': 'أمن 24/7', 'icon': Icons.security_rounded},
   ];
 
   int _matchingCount = 0;
@@ -76,13 +112,25 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
       _useDailyPrice = last['useDailyPrice'] as bool? ?? true;
       _selectedBeds = last['beds'] as int? ?? 0;
       _selectedBaths = last['baths'] as int? ?? 0;
+      _selectedBedsCount = last['bedsCount'] as int? ?? 0;
       _selectedType = last['type']?.toString() ?? 'الكل';
       _isFurnished = last['furnished'] as bool?;
       _listingFilter = last['listingMode']?.toString() ?? 'all';
       _durationIntentId = last['durationIntent']?.toString();
+      _offerType = last['offerType']?.toString();
+      _finishStatus = last['finishStatus']?.toString();
+      _suitableFor = last['suitableFor']?.toString();
+      _selectedCity = last['city']?.toString();
+      _sortMode = last['sortMode']?.toString() ?? 'nearest';
+      _specialOffersOnly = last['specialOffersOnly'] == true;
       _selectedGovernorates
         ..clear()
         ..addAll(_governoratesFromFilters(last));
+      if (_selectedGovernorates.length == 1) {
+        _selectedGovernorate = _selectedGovernorates.first;
+      } else {
+        _selectedGovernorate = last['governorate']?.toString();
+      }
       final amenities = last['amenities'];
       if (amenities is List) {
         _selectedAmenities
@@ -112,6 +160,7 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
   }
 
   Map<String, dynamic> _buildFiltersMap() {
+    final gov = _selectedGovernorate;
     return {
       'minPrice': _priceRange.start,
       'maxPrice': _priceRange.end,
@@ -120,23 +169,28 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
       'useDailyPrice': _useDailyPrice,
       'beds': _selectedBeds > 0 ? _selectedBeds : null,
       'baths': _selectedBaths > 0 ? _selectedBaths : null,
+      'bedsCount': _selectedBedsCount > 0 ? _selectedBedsCount : null,
       'type': _selectedType != 'الكل' ? _selectedType : null,
       'furnished': _isFurnished,
       'amenities': _selectedAmenities.isNotEmpty ? _selectedAmenities : null,
       'listingMode': _listingFilter == 'all' ? null : _listingFilter,
-      'governorates':
-          _selectedGovernorates.isNotEmpty ? _selectedGovernorates.toList() : null,
-      'governorate': _selectedGovernorates.length == 1
-          ? _selectedGovernorates.first
-          : null,
+      'governorates': gov != null && gov.isNotEmpty ? [gov] : null,
+      'governorate': gov,
+      'city': _selectedCity,
       'durationIntent': _durationIntentId,
+      'offerType': _offerType,
+      'finishStatus': _finishStatus,
+      'suitableFor': _suitableFor,
+      'sortMode': _sortMode,
+      'specialOffersOnly': _specialOffersOnly ? true : null,
       'offerFilters':
           _selectedOfferFilters.isNotEmpty ? _selectedOfferFilters : null,
       'shortStayOnly': _durationIntentId != null ||
           _selectedOfferFilters.isNotEmpty ||
-          _selectedAmenities.any((a) =>
-              ShortStayDiscovery.vacationAmenityFilters
-                  .any((v) => v['name'] == a)),
+          _offerType == 'إيجار يومي' ||
+          _offerType == 'أسبوعي' ||
+          _selectedAmenities.any((a) => ShortStayDiscovery.vacationAmenityFilters
+              .any((v) => v['name'] == a)),
     };
   }
 
@@ -162,34 +216,27 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
 
   void _updateFiltersCount() {
     final filters = _buildFiltersMap();
-
-    int count = _allProperties.where((p) {
+    final count = _allProperties.where((p) {
       if (_listingFilter == 'rent' && p['listingMode'] == 'for_sale') {
         return false;
       }
       if (_listingFilter == 'sale' && p['listingMode'] != 'for_sale') {
         return false;
       }
-
       if (_selectedType != 'الكل' && p['type'] != _selectedType) return false;
-
       if (_selectedBeds > 0) {
         final b = int.tryParse(p['beds']?.toString() ?? '0') ?? 0;
         if (b < _selectedBeds) return false;
       }
-
       if (_selectedBaths > 0) {
         final b = int.tryParse(p['baths']?.toString() ?? '0') ?? 0;
         if (b < _selectedBaths) return false;
       }
-
       if (_isFurnished != null) {
         final furnished = p['furnished'] == true || p['isFurnished'] == true;
         if (_isFurnished == true && !furnished) return false;
         if (_isFurnished == false && furnished) return false;
       }
-
-      // عند التسعير اليومي نتجاهل نطاق السعر الشهري الافتراضي الواسع
       final effective = Map<String, dynamic>.from(filters);
       if (_useDailyPrice) {
         effective.remove('minPrice');
@@ -198,10 +245,8 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
         effective.remove('minDailyPrice');
         effective.remove('maxDailyPrice');
       }
-
       return ShortStayDiscovery.matchesFilters(p, effective);
     }).length;
-
     setState(() => _matchingCount = count);
   }
 
@@ -214,16 +259,11 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
       filters.remove('minDailyPrice');
       filters.remove('maxDailyPrice');
     }
-
     SearchFiltersService.saveLast(filters);
-
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => SearchResultsScreen(
-          query: '',
-          filters: filters,
-        ),
+        builder: (context) => SearchResultsScreen(query: '', filters: filters),
       ),
     );
   }
@@ -239,13 +279,18 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
           decoration: const InputDecoration(labelText: 'اسم البحث المحفوظ'),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('حفظ')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('إلغاء')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('حفظ')),
         ],
       ),
     );
     if (ok == true && nameCtrl.text.trim().isNotEmpty) {
-      await SearchFiltersService.savePreset(nameCtrl.text.trim(), _buildFiltersMap());
+      await SearchFiltersService.savePreset(
+          nameCtrl.text.trim(), _buildFiltersMap());
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('تم حفظ البحث ✅')),
@@ -270,7 +315,8 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
         children: presets
             .map((p) => ListTile(
                   title: Text(p['name']?.toString() ?? ''),
-                  subtitle: Text(p['savedAt']?.toString().split('T').first ?? ''),
+                  subtitle:
+                      Text(p['savedAt']?.toString().split('T').first ?? ''),
                   onTap: () => Navigator.pop(ctx, p),
                 ))
             .toList(),
@@ -290,8 +336,16 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
       _useDailyPrice = f['useDailyPrice'] as bool? ?? _useDailyPrice;
       _selectedBeds = f['beds'] as int? ?? 0;
       _selectedBaths = f['baths'] as int? ?? 0;
+      _selectedBedsCount = f['bedsCount'] as int? ?? 0;
       _selectedType = f['type']?.toString() ?? 'الكل';
       _durationIntentId = f['durationIntent']?.toString();
+      _offerType = f['offerType']?.toString();
+      _finishStatus = f['finishStatus']?.toString();
+      _suitableFor = f['suitableFor']?.toString();
+      _selectedCity = f['city']?.toString();
+      _sortMode = f['sortMode']?.toString() ?? 'nearest';
+      _specialOffersOnly = f['specialOffersOnly'] == true;
+      _selectedGovernorate = f['governorate']?.toString();
       _selectedGovernorates
         ..clear()
         ..addAll(_governoratesFromFilters(f));
@@ -311,12 +365,38 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
     });
   }
 
+  void _resetAll() {
+    setState(() {
+      _priceRange = const RangeValues(1000, 100000);
+      _dailyPriceRange = const RangeValues(200, 2000);
+      _useDailyPrice = true;
+      _selectedBeds = 0;
+      _selectedBaths = 0;
+      _selectedBedsCount = 0;
+      _selectedType = 'الكل';
+      _isFurnished = null;
+      _listingFilter = 'all';
+      _selectedGovernorates.clear();
+      _selectedGovernorate = null;
+      _selectedCity = null;
+      _durationIntentId = null;
+      _offerType = null;
+      _finishStatus = null;
+      _suitableFor = null;
+      _sortMode = 'nearest';
+      _specialOffersOnly = false;
+      _selectedAmenities.clear();
+      _selectedOfferFilters.clear();
+      _updateFiltersCount();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('محرك البحث الذكي',
+        title: const Text('فلاتر احترافية',
             style: TextStyle(
                 fontWeight: FontWeight.w900,
                 color: AppTheme.textPrimary,
@@ -340,23 +420,7 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
             onPressed: _savePreset,
           ),
           TextButton(
-            onPressed: () {
-              setState(() {
-                _priceRange = const RangeValues(1000, 100000);
-                _dailyPriceRange = const RangeValues(200, 2000);
-                _useDailyPrice = true;
-                _selectedBeds = 0;
-                _selectedBaths = 0;
-                _selectedType = 'الكل';
-                _isFurnished = null;
-                _listingFilter = 'all';
-                _selectedGovernorates.clear();
-                _durationIntentId = null;
-                _selectedAmenities.clear();
-                _selectedOfferFilters.clear();
-                _updateFiltersCount();
-              });
-            },
+            onPressed: _resetAll,
             child: const Text('إعادة ضبط',
                 style: TextStyle(
                     color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
@@ -366,105 +430,46 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
       body: Stack(
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 10,
-                bottom: 168),
+            padding:
+                const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 168),
             physics: const BouncingScrollPhysics(),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardTheme.color ??
-                        Theme.of(context).cardColor,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: AppTheme.primaryColor.withOpacity(0.08),
-                    ),
-                  ),
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.tune_rounded,
-                              color: AppTheme.primaryColor),
-                          SizedBox(width: 8),
-                          Text('فلترة أذكى',
-                              style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.textPrimary)),
-                        ],
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'حدد الميزانية والمواصفات التي تهمك، ثم اعرض النتائج الأقرب لاحتياجك.',
-                        style: TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontSize: 12,
-                            height: 1.5),
-                      ),
-                    ],
-                  ),
-                ),
+                _buildIntroCard(),
                 const SizedBox(height: 20),
-                _buildSectionTitle('ما الذي تبحث عنه؟'),
-                const SizedBox(height: 16),
-                _buildPropertyTypes(),
-                const SizedBox(height: 24),
                 _buildSectionTitle('نوع العرض'),
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildGlassyChip(
-                          'للإيجار', _listingFilter == 'rent', () {
-                        setState(() => _listingFilter = 'rent');
-                        _updateFiltersCount();
-                      }),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildGlassyChip(
-                          'للبيع', _listingFilter == 'sale', () {
-                        setState(() => _listingFilter = 'sale');
-                        _updateFiltersCount();
-                      }),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _buildGlassyChip('الكل', _listingFilter == 'all',
-                          () {
-                        setState(() => _listingFilter = 'all');
-                        _updateFiltersCount();
-                      }),
-                    ),
-                  ],
-                ),
+                _buildChipWrap(_offerTypes, _offerType, (v) {
+                  setState(() {
+                    _offerType = _offerType == v ? null : v;
+                    if (_offerType == 'إعلان بيع') {
+                      _listingFilter = 'sale';
+                    } else if (_offerType != null) {
+                      _listingFilter = 'rent';
+                    }
+                  });
+                  _updateFiltersCount();
+                }),
                 const SizedBox(height: 24),
-                _buildSectionTitle('مدة الإقامة'),
+                _buildSectionTitle('مدة الإقامة المرنة'),
                 const SizedBox(height: 12),
                 _buildDurationIntents(),
                 const SizedBox(height: 24),
-                _buildSectionTitle('المحافظة / المنطقة'),
+                _buildSectionTitle('نوع الوحدة'),
                 const SizedBox(height: 12),
-                _buildGovernorateMultiSelect(),
+                _buildPropertyTypes(),
                 const SizedBox(height: 24),
-                _buildSectionTitle('عروض خاصة'),
+                _buildSectionTitle('المحافظة والمدينة'),
                 const SizedBox(height: 12),
-                _buildOfferFilters(),
-                const SizedBox(height: 36),
+                _buildGovernorateCityCascading(),
+                const SizedBox(height: 24),
                 Row(
                   children: [
                     Expanded(
                       child: _buildSectionTitle(_useDailyPrice
-                          ? 'نطاق السعر اليومي'
-                          : 'نطاق الاستثمار المخطط'),
+                          ? 'السعر اليومي من–إلى'
+                          : 'السعر الشهري من–إلى'),
                     ),
                     TextButton(
                       onPressed: () {
@@ -484,61 +489,110 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
                 ),
                 const SizedBox(height: 12),
                 _buildPriceHistogram(),
-                const SizedBox(height: 36),
+                const SizedBox(height: 28),
                 Row(
                   children: [
                     Expanded(
-                        child:
-                            _buildSelectorColumn('الغرف', _selectedBeds, (v) {
-                      setState(() => _selectedBeds = v);
-                      _updateFiltersCount();
-                    })),
-                    const SizedBox(width: 20),
+                      child: _buildSelectorColumn('الغرف', _selectedBeds, (v) {
+                        setState(() => _selectedBeds = v);
+                        _updateFiltersCount();
+                      }),
+                    ),
+                    const SizedBox(width: 12),
                     Expanded(
-                        child: _buildSelectorColumn('الحمامات', _selectedBaths,
-                            (v) {
-                      setState(() => _selectedBaths = v);
-                      _updateFiltersCount();
-                    })),
+                      child: _buildSelectorColumn('السراير', _selectedBedsCount,
+                          (v) {
+                        setState(() => _selectedBedsCount = v);
+                        _updateFiltersCount();
+                      }),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child:
+                          _buildSelectorColumn('الحمامات', _selectedBaths, (v) {
+                        setState(() => _selectedBaths = v);
+                        _updateFiltersCount();
+                      }),
+                    ),
                   ],
                 ),
-                const SizedBox(height: 36),
-                _buildSectionTitle('مرافق الإقامة القصيرة'),
-                const SizedBox(height: 16),
+                const SizedBox(height: 28),
+                _buildSectionTitle('حالة الوحدة'),
+                const SizedBox(height: 12),
+                _buildChipWrap(_finishOptions, _finishStatus, (v) {
+                  setState(() {
+                    _finishStatus = _finishStatus == v ? null : v;
+                    if (_finishStatus == 'مفروش') _isFurnished = true;
+                  });
+                  _updateFiltersCount();
+                }),
+                const SizedBox(height: 24),
+                _buildSectionTitle('مناسب لـ'),
+                const SizedBox(height: 12),
+                _buildChipWrap(_audienceOptions, _suitableFor, (v) {
+                  setState(() {
+                    _suitableFor = _suitableFor == v ? null : v;
+                  });
+                  _updateFiltersCount();
+                }),
+                const SizedBox(height: 24),
+                _buildSectionTitle('المرافق'),
+                const SizedBox(height: 12),
                 _buildAmenities(),
-                const SizedBox(height: 36),
-                _buildSectionTitle('نمط الأثاث'),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                        child:
-                            _buildGlassyChip('الكل', _isFurnished == null, () {
-                      setState(() => _isFurnished = null);
-                      _updateFiltersCount();
-                    })),
-                    const SizedBox(width: 12),
-                    Expanded(
-                        child:
-                            _buildGlassyChip('مفروش', _isFurnished == true, () {
-                      setState(() => _isFurnished = true);
-                      _updateFiltersCount();
-                    })),
-                    const SizedBox(width: 12),
-                    Expanded(
-                        child: _buildGlassyChip(
-                            'غير مفروش', _isFurnished == false, () {
-                      setState(() => _isFurnished = false);
-                      _updateFiltersCount();
-                    })),
-                  ],
+                const SizedBox(height: 24),
+                _buildSectionTitle('عروض خاصة'),
+                const SizedBox(height: 12),
+                FilterChip(
+                  label: const Text('عروض خاصة فقط',
+                      style: TextStyle(fontSize: 12)),
+                  selected: _specialOffersOnly,
+                  onSelected: (v) {
+                    setState(() => _specialOffersOnly = v);
+                    _updateFiltersCount();
+                  },
+                  selectedColor: AppTheme.primaryColor,
+                  checkmarkColor: Colors.white,
+                  labelStyle: TextStyle(
+                    color: _specialOffersOnly
+                        ? Colors.white
+                        : AppTheme.textPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildOfferFilters(),
+                const SizedBox(height: 24),
+                _buildSectionTitle('ترتيب النتائج'),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _sortOptions.map((o) {
+                    final id = o['id'] as String;
+                    final selected = _sortMode == id;
+                    return FilterChip(
+                      label: Text(o['label'] as String,
+                          style: const TextStyle(fontSize: 12)),
+                      selected: selected,
+                      onSelected: (_) {
+                        setState(() => _sortMode = id);
+                        _updateFiltersCount();
+                      },
+                      selectedColor: AppTheme.accentColor.withOpacity(0.45),
+                      labelStyle: TextStyle(
+                        color: selected
+                            ? AppTheme.primaryColor
+                            : AppTheme.textSecondary,
+                        fontWeight:
+                            selected ? FontWeight.w900 : FontWeight.w600,
+                      ),
+                    );
+                  }).toList(),
                 ),
                 const SizedBox(height: 20),
               ],
             ),
           ),
-
-          // Refined Bottom Button with Gradient and Shadow
           Positioned(
             left: 0,
             right: 0,
@@ -547,64 +601,54 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
               top: false,
               child: Container(
                 padding: const EdgeInsets.fromLTRB(24, 16, 24, 18),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardTheme.color ?? Colors.white,
-                  boxShadow: const [],
-                ),
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppTheme.borderColor, AppTheme.borderColor],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
+                color: Theme.of(context).cardTheme.color ?? Colors.white,
+                child: ElevatedButton(
+                  onPressed: _matchingCount > 0 ? _applyFilters : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    disabledBackgroundColor: AppTheme.borderColor,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    borderRadius: BorderRadius.circular(20),
                   ),
-                  child: ElevatedButton(
-                    onPressed: _applyFilters,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      elevation: 0,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Flexible(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          _matchingCount > 0
+                              ? 'استعراض العقارات'
+                              : 'لا توجد نتائج مطابقة',
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white),
+                        ),
+                      ),
+                      if (_matchingCount > 0) ...[
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                           child: Text(
-                            _matchingCount > 0
-                                ? 'استعراض العقارات'
-                                : 'لا توجد نتائج مطابقة',
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                            '$_matchingCount',
                             style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white),
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                            ),
                           ),
                         ),
-                        if (_matchingCount > 0) ...[
-                          const SizedBox(width: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppTheme.borderColor.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              '$_matchingCount',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  color: AppTheme.textPrimary,
-                                  fontSize: 13),
-                            ),
-                          ),
-                        ],
                       ],
-                    ),
+                    ],
                   ),
                 ),
               ),
@@ -615,20 +659,140 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
     );
   }
 
+  Widget _buildIntroCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color ?? Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.primaryColor.withOpacity(0.08)),
+      ),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.tune_rounded, color: AppTheme.primaryColor),
+              SizedBox(width: 8),
+              Text('بحث بمستوى جروبات الإيجار',
+                  style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.textPrimary)),
+            ],
+          ),
+          SizedBox(height: 8),
+          Text(
+            'كل المحافظات والمدن، مدة الإقامة، السعر، المرافق، والترتيب حسب القرب.',
+            style: TextStyle(
+                color: AppTheme.textSecondary, fontSize: 12, height: 1.5),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
       style: const TextStyle(
-          fontSize: 17,
+          fontSize: 16,
           fontWeight: FontWeight.w900,
           color: AppTheme.textPrimary,
           letterSpacing: -0.3),
     );
   }
 
+  Widget _buildChipWrap(
+    List<String> options,
+    String? selected,
+    ValueChanged<String> onTap,
+  ) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: options.map((o) {
+        final isSelected = selected == o;
+        return FilterChip(
+          label: Text(o, style: const TextStyle(fontSize: 12)),
+          selected: isSelected,
+          onSelected: (_) => onTap(o),
+          selectedColor: AppTheme.primaryColor,
+          checkmarkColor: Colors.white,
+          labelStyle: TextStyle(
+            color: isSelected ? Colors.white : AppTheme.textPrimary,
+            fontWeight: FontWeight.w800,
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildGovernorateCityCascading() {
+    final cities = EgyptLocations.citiesFor(_selectedGovernorate);
+    return Column(
+      children: [
+        DropdownButtonFormField<String>(
+          value: _selectedGovernorate,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: 'المحافظة',
+            filled: true,
+            fillColor: AppTheme.backgroundColor,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          items: [
+            const DropdownMenuItem(value: null, child: Text('كل المحافظات')),
+            ...EgyptLocations.allGovernorates.map(
+              (g) => DropdownMenuItem(value: g, child: Text(g)),
+            ),
+          ],
+          onChanged: (v) {
+            setState(() {
+              _selectedGovernorate = v;
+              _selectedCity = null;
+              _selectedGovernorates
+                ..clear()
+                ..addAll(v == null ? const [] : [v]);
+            });
+            _updateFiltersCount();
+          },
+        ),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          value: _selectedCity,
+          isExpanded: true,
+          decoration: InputDecoration(
+            labelText: 'المدينة / الحي',
+            filled: true,
+            fillColor: AppTheme.backgroundColor,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          items: [
+            const DropdownMenuItem(value: null, child: Text('كل المدن')),
+            ...cities.map((c) => DropdownMenuItem(value: c, child: Text(c))),
+          ],
+          onChanged: _selectedGovernorate == null
+              ? null
+              : (v) {
+                  setState(() => _selectedCity = v);
+                  _updateFiltersCount();
+                },
+        ),
+      ],
+    );
+  }
+
   Widget _buildPropertyTypes() {
     return SizedBox(
-      height: 55,
+      height: 48,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -636,40 +800,20 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
         itemBuilder: (context, index) {
           final type = _propertyTypes[index];
           final isSelected = _selectedType == type;
-          return GestureDetector(
-            onTap: () {
-              setState(() => _selectedType = type);
-              _updateFiltersCount();
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: isSelected ? AppTheme.borderColor : Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                            color: AppTheme.borderColor.withOpacity(0.3),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4))
-                      ]
-                    : [],
-                border: Border.all(
-                    color: isSelected
-                        ? AppTheme.borderColor
-                        : AppTheme.backgroundColor,
-                    width: 1.5),
-              ),
-              child: Text(
-                type,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : AppTheme.textPrimary,
-                  fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
-                  fontSize: 14,
-                ),
+          return Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: FilterChip(
+              label: Text(type, style: const TextStyle(fontSize: 12)),
+              selected: isSelected,
+              onSelected: (_) {
+                setState(() => _selectedType = type);
+                _updateFiltersCount();
+              },
+              selectedColor: AppTheme.primaryColor,
+              checkmarkColor: Colors.white,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : AppTheme.textPrimary,
+                fontWeight: FontWeight.w800,
               ),
             ),
           );
@@ -682,50 +826,39 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
     final range = _useDailyPrice ? _dailyPriceRange : _priceRange;
     final maxVal = _useDailyPrice ? 3000.0 : 100000.0;
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.backgroundColor,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.backgroundColor),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildPriceLabel('الحد الأدنى', range.start),
-              _buildPriceLabel('الحد الأعلى', range.end),
+              _buildPriceLabel('من', range.start),
+              _buildPriceLabel('إلى', range.end),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
           SizedBox(
-            height: 60,
+            height: 48,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: List.generate(30, (index) {
-                double ratio = index / 29;
-                double currentMinRatio = range.start / maxVal;
-                double currentMaxRatio = range.end / maxVal;
-                bool isActive =
+                final ratio = index / 29;
+                final currentMinRatio = range.start / maxVal;
+                final currentMaxRatio = range.end / maxVal;
+                final isActive =
                     ratio >= currentMinRatio && ratio <= currentMaxRatio;
-
-                return AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  width: 7,
-                  height: max(5.0, _histogramHeights[index]),
+                return Container(
+                  width: 6,
+                  height: max(4.0, _histogramHeights[index] * 0.7),
                   decoration: BoxDecoration(
-                    gradient: isActive
-                        ? LinearGradient(
-                            colors: [
-                              AppTheme.primaryColor,
-                              AppTheme.primaryColor.withOpacity(0.7)
-                            ],
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                          )
-                        : null,
-                    color: isActive ? null : AppTheme.backgroundColor,
+                    color: isActive
+                        ? AppTheme.primaryColor
+                        : AppTheme.borderColor.withOpacity(0.35),
                     borderRadius: BorderRadius.circular(4),
                   ),
                 );
@@ -736,11 +869,9 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
             data: SliderThemeData(
               trackHeight: 2,
               activeTrackColor: AppTheme.primaryColor,
-              inactiveTrackColor: AppTheme.backgroundColor,
+              inactiveTrackColor: AppTheme.borderColor.withOpacity(0.3),
               thumbColor: Colors.white,
               overlayColor: AppTheme.primaryColor.withOpacity(0.1),
-              thumbShape: const RoundSliderThumbShape(
-                  enabledThumbRadius: 10, elevation: 0),
               rangeThumbShape: const RoundRangeSliderThumbShape(
                   enabledThumbRadius: 10, elevation: 0),
             ),
@@ -792,38 +923,6 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
     );
   }
 
-  Widget _buildGovernorateMultiSelect() {
-    final options = ShortStayDiscovery.exploreGovernorates
-        .where((g) => g != 'الكل')
-        .toList();
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: options.map((g) {
-        final selected = _selectedGovernorates.contains(g);
-        return FilterChip(
-          label: Text(g, style: const TextStyle(fontSize: 12)),
-          selected: selected,
-          onSelected: (v) {
-            setState(() {
-              if (v) {
-                _selectedGovernorates.add(g);
-              } else {
-                _selectedGovernorates.remove(g);
-              }
-            });
-            _updateFiltersCount();
-          },
-          selectedColor: AppTheme.accentColor.withOpacity(0.35),
-          labelStyle: TextStyle(
-            color: selected ? AppTheme.primaryColor : AppTheme.textSecondary,
-            fontWeight: selected ? FontWeight.w900 : FontWeight.w600,
-          ),
-        );
-      }).toList(),
-    );
-  }
-
   Widget _buildOfferFilters() {
     return Wrap(
       spacing: 8,
@@ -861,21 +960,19 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
 
   Widget _buildPriceLabel(String label, double price) {
     return Column(
-      crossAxisAlignment: label == 'الحد الأدنى'
-          ? CrossAxisAlignment.start
-          : CrossAxisAlignment.end,
+      crossAxisAlignment:
+          label == 'من' ? CrossAxisAlignment.start : CrossAxisAlignment.end,
       children: [
         Text(label,
             style: const TextStyle(
-                color: AppTheme.backgroundColor,
+                color: AppTheme.textSecondary,
                 fontSize: 11,
                 fontWeight: FontWeight.bold)),
-        const SizedBox(height: 2),
         Text(
             '${price.round().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} ج.م',
             style: const TextStyle(
                 fontWeight: FontWeight.w900,
-                fontSize: 15,
+                fontSize: 14,
                 color: AppTheme.textPrimary)),
       ],
     );
@@ -886,49 +983,38 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle(title),
-        const SizedBox(height: 16),
+        Text(title,
+            style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textPrimary)),
+        const SizedBox(height: 10),
         SizedBox(
-          height: 52, // Height for the selector items
+          height: 40,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
             itemCount: 5,
             itemBuilder: (context, index) {
               final isSelected = currentValue == index;
               return GestureDetector(
                 onTap: () => onChanged(index),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  width: 44,
-                  height: 44,
-                  margin: const EdgeInsets.only(left: 10),
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  margin: const EdgeInsets.only(left: 6),
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.white : AppTheme.backgroundColor,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                                color: AppTheme.textPrimary.withOpacity(0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4))
-                          ]
-                        : [],
-                    border: Border.all(
-                        color: isSelected
-                            ? AppTheme.primaryColor.withOpacity(0.1)
-                            : Colors.transparent),
+                    color: isSelected
+                        ? AppTheme.primaryColor
+                        : AppTheme.backgroundColor,
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   alignment: Alignment.center,
                   child: Text(
-                    index == 0 ? 'أي' : '$index',
+                    index == 0 ? 'أي' : '$index${index == 4 ? '+' : ''}',
                     style: TextStyle(
-                      color: isSelected
-                          ? AppTheme.borderColor
-                          : AppTheme.textPrimary,
-                      fontWeight:
-                          isSelected ? FontWeight.w900 : FontWeight.bold,
-                      fontSize: 14,
+                      color: isSelected ? Colors.white : AppTheme.textPrimary,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 11,
                     ),
                   ),
                 ),
@@ -942,100 +1028,37 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
 
   Widget _buildAmenities() {
     return Wrap(
-      spacing: 10,
-      runSpacing: 10,
+      spacing: 8,
+      runSpacing: 8,
       children: _amenitiesList.map((amenity) {
         final isSelected = _selectedAmenities.contains(amenity['name']);
-        return GestureDetector(
-          onTap: () {
+        return FilterChip(
+          avatar: Icon(
+            amenity['icon'] as IconData,
+            size: 16,
+            color: isSelected ? Colors.white : AppTheme.primaryColor,
+          ),
+          label: Text(amenity['name'] as String,
+              style: const TextStyle(fontSize: 11)),
+          selected: isSelected,
+          onSelected: (v) {
             setState(() {
-              if (isSelected) {
-                _selectedAmenities.remove(amenity['name']);
+              if (v) {
+                _selectedAmenities.add(amenity['name'] as String);
               } else {
-                _selectedAmenities.add(amenity['name']);
+                _selectedAmenities.remove(amenity['name']);
               }
-              _updateFiltersCount();
             });
+            _updateFiltersCount();
           },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: BoxDecoration(
-              color: isSelected ? AppTheme.borderColor : Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                  color: isSelected
-                      ? AppTheme.borderColor
-                      : AppTheme.backgroundColor,
-                  width: 1.5),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                          color: AppTheme.borderColor.withOpacity(0.2),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4))
-                    ]
-                  : [],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(amenity['icon'],
-                    size: 16,
-                    color: isSelected
-                        ? AppTheme.borderColor
-                        : AppTheme.backgroundColor),
-                const SizedBox(width: 8),
-                Text(
-                  amenity['name']!,
-                  style: TextStyle(
-                    color: isSelected ? Colors.white : AppTheme.textPrimary,
-                    fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
+          selectedColor: AppTheme.primaryColor,
+          checkmarkColor: Colors.white,
+          labelStyle: TextStyle(
+            color: isSelected ? Colors.white : AppTheme.textPrimary,
+            fontWeight: FontWeight.w800,
           ),
         );
       }).toList(),
-    );
-  }
-
-  Widget _buildGlassyChip(String label, bool isSelected, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isSelected ? AppTheme.borderColor : Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-              color:
-                  isSelected ? AppTheme.borderColor : AppTheme.backgroundColor,
-              width: 1.5),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                      color: AppTheme.borderColor.withOpacity(0.2),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4))
-                ]
-              : [],
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : AppTheme.textPrimary,
-            fontWeight: isSelected ? FontWeight.w900 : FontWeight.bold,
-            fontSize: 14,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
     );
   }
 }

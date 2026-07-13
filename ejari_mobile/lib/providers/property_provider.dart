@@ -24,16 +24,12 @@ class PropertyProvider extends ChangeNotifier {
       final properties =
           await FirestorePropertyService.getAllProperties(approvedOnly: true);
 
-      // Attempt to get user location
-      final locationData = await LocationService.getCurrentLocation();
-      if (locationData != null &&
-          locationData.latitude != null &&
-          locationData.longitude != null) {
-        final userLat = locationData.latitude!;
-        final userLng = locationData.longitude!;
-
-        // Get city name
-        _userCity = await LocationService.getCityName(userLat, userLng);
+      // Prefer persisted location; avoid re-prompting on every catalog fetch.
+      final saved = await LocationService.loadSaved();
+      final userLat = saved.lat;
+      final userLng = saved.lng;
+      if (userLat != null && userLng != null) {
+        _userCity = saved.label;
 
         const Distance distance = Distance();
 

@@ -210,6 +210,14 @@ class _BookingScreenState extends State<BookingScreen> {
       if (prefCount != null && prefCount > 0) {
         _duration = prefCount;
       }
+      final offer = widget.itemData['selectedOffer'];
+      if (offer is Map && (prefCount == null || prefCount <= 0)) {
+        final days = int.tryParse(offer['days']?.toString() ?? '') ?? 0;
+        if (days > 0) {
+          _selectedDurationType = 'يوم';
+          _duration = days;
+        }
+      }
     }
 
     _loadAvailability();
@@ -2142,7 +2150,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 children: [
                   Text(
                     _bookingRange == null
-                        ? 'اختر تاريخ البداية والنهاية'
+                        ? 'اختر تاريخ البداية والنهاية بوضوح'
                         : 'فترة الحجز المختارة',
                     style: TextStyle(
                         fontSize: 12,
@@ -2151,14 +2159,18 @@ class _BookingScreenState extends State<BookingScreen> {
                   ),
                   if (_bookingRange != null)
                     Text(
-                      'من ${_bookingRange!.start.toIso8601String().substring(0, 10)} إلى ${_bookingRange!.end.toIso8601String().substring(0, 10)}',
+                      'من ${_bookingRange!.start.toIso8601String().substring(0, 10)} إلى ${_bookingRange!.end.toIso8601String().substring(0, 10)}  ·  $_duration $_selectedDurationType',
                       style: const TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 14),
                     )
                   else
-                    const Text('تحديد المواعيد المتاحة',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text(
+                      widget.itemData['selectedOffer'] is Map
+                          ? 'العرض يحدد المدة: $_duration $_selectedDurationType — اختر التواريخ'
+                          : 'تحديد المواعيد المتاحة',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
                 ],
               ),
             ),

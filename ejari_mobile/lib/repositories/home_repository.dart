@@ -4,8 +4,11 @@ import '../services/data_service.dart';
 import '../services/firestore_property_service.dart';
 import '../services/trust_score_service.dart';
 import '../services/viewing_appointment_service.dart';
+import '../services/location_service.dart';
 import '../utils/rental_schedule_utils.dart';
 import '../utils/account_id_service.dart';
+import '../utils/location_ranking.dart';
+import '../utils/short_stay_discovery.dart';
 import '../services/maintenance_service.dart';
 import '../models/home_stats_model.dart';
 import '../models/booking_status.dart';
@@ -62,33 +65,93 @@ class HomeRepository {
           await DataService.getUnreadNotificationCount();
 
       final catalog = await FirestorePropertyService.getAllProperties();
-      final rentProps = catalog
-          .where((p) => p['listingMode'] != 'for_sale')
+      final userLoc = await LocationService.loadSaved();
+      final rentCatalog =
+          catalog.where((p) => p['listingMode'] != 'for_sale').toList();
+
+      Map<String, dynamic> toCard(Map<String, dynamic> p,
+          {String? proximityLabel}) {
+        return {
+          'id': p['id'],
+          'title': p['title'],
+          'location': p['location'] ?? p['governorate'] ?? '',
+          'price': p['price'],
+          'dailyPrice': p['dailyPrice'],
+          'image': p['image'],
+          'governorate': p['governorate'],
+          'lat': p['lat'],
+          'lng': p['lng'],
+          'listingMode': p['listingMode'],
+          'shortStay': p['shortStay'],
+          'specialOffers': p['specialOffers'],
+          'proximityLabel': proximityLabel ?? p['proximityLabel'],
+          'distanceKm': p['distanceKm'],
+        };
+      }
+
+      final ranked = LocationRanking.rankProperties(
+        rentCatalog,
+        userLat: userLoc.lat,
+        userLng: userLoc.lng,
+        userGovernorate: userLoc.governorate,
+        userCity: userLoc.city,
+      );
+
+      final nearby = ranked
+          .where((r) =>
+              r.band == LocationProximityBand.nearby ||
+              r.band == LocationProximityBand.sameCity ||
+              r.band == LocationProximityBand.sameGovernorate)
+          .take(8)
+          .map((r) => toCard(r.property, proximityLabel: r.arabicDistanceLabel))
+          .toList();
+
+      final hotOffers = rentCatalog
+          .where((p) =>
+              ShortStayDiscovery.specialOffers(p).isNotEmpty ||
+              p['packageHalfWeek'] != null ||
+              p['multiUnitDeal'] == true)
           .take(6)
-          .map((p) => {
-                'id': p['id'],
-                'title': p['title'],
-                'location': p['location'] ?? p['governorate'] ?? '',
-                'price': p['price'],
-                'image': p['image'],
-                'governorate': p['governorate'],
-              })
+          .map((p) => toCard(p))
+          .toList();
+
+      final shortStays = rentCatalog
+          .where(ShortStayDiscovery.isShortStayListing)
+          .take(6)
+          .map((p) => toCard(p))
+          .toList();
+
+      final rentProps = ranked
+          .take(6)
+          .map((r) => toCard(r.property, proximityLabel: r.arabicDistanceLabel))
           .toList();
       final featured = catalog
           .where((p) => p['isFeatured'] == true || p['listingMode'] == 'for_sale')
           .take(4)
-          .map((p) => {
-                'id': p['id'],
-                'title': p['title'],
-                'location': p['location'] ?? p['governorate'] ?? '',
-                'price': p['price'],
-                'image': p['image'],
-                'listingMode': p['listingMode'],
-              })
+          .map((p) => toCard(p))
           .toList();
+
+      tenantStats['userLocationLabel'] = userLoc.label;
+      tenantStats['userGovernorate'] = userLoc.governorate;
+      tenantStats['userCity'] = userLoc.city;
+      tenantStats['hasLocation'] = userLoc.hasCoords || userLoc.hasArea;
+      tenantStats['nearbyProperties'] =
+          nearby.isNotEmpty ? nearby : rentProps;
+      tenantStats['hotOffers'] = hotOffers;
+      tenantStats['shortStayProperties'] = shortStays;
       tenantStats['recommendedProperties'] = rentProps;
       tenantStats['featuredProperties'] =
           featured.isNotEmpty ? featured : rentProps.take(3).toList();
+
+      final viewings = userEmail.isNotEmpty
+          ? await ViewingAppointmentService.getForTenant(userEmail)
+          : <ViewingAppointment>[];
+      final pendingViewing = viewings
+          .where((v) =>
+              v.status == ViewingStatus.requested ||
+              v.status == ViewingStatus.confirmed)
+          .length;
+      tenantStats['pendingViewings'] = pendingViewing;
 
       final bookings = await DataService.getBookings();
       final activeBookings = bookings
