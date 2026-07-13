@@ -22,8 +22,8 @@ void main() {
 
   group('Phase 8 — production prep', () {
     test('AppConfig has version and production-ready label defaults', () {
-      expect(AppConfig.appVersion, '1.2.1');
-      expect(AppConfig.buildNumber, 12);
+      expect(AppConfig.appVersion, '1.2.2');
+      expect(AppConfig.buildNumber, 13);
       // Unit tests run in debug → demo mode by default.
       expect(AppConfig.environmentLabel, 'وضع العرض');
       expect(AppConfig.demoMode, isTrue);
@@ -51,7 +51,7 @@ void main() {
 
     test('AppVersionService checkForUpdates returns null when offline/API fails',
         () async {
-      expect(AppVersionService.fullVersion, '1.2.1+12');
+      expect(AppVersionService.fullVersion, '1.2.2+13');
       // Without a live GitHub release (or when network fails), returns null.
       final latest = await AppVersionService.checkForUpdates();
       // May be null (no release / network) or a newer tag if already published.

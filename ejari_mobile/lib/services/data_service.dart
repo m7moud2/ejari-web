@@ -93,7 +93,7 @@ class DataService {
 
   static const String _propsVersionKey = 'properties_version';
   static const int _currentPropsVersion =
-      10; // bumped — property images + overflow fixes
+      11; // bumped — ensure coastal / short-stay catalog for demo
 
   /// Seed cross-role demo bookings so owner dashboard shows real pending requests.
   static Future<void> initDemoBookings() async {
@@ -957,7 +957,7 @@ class DataService {
     // 2. Local fallback
     propertiesLoadedFromCache = true;
     final prefs = await SharedPreferences.getInstance();
-    await initProperties(); // Ensure defaults exist
+    await ensureCoastalCatalog();
     List<String> props = prefs.getStringList(_propertiesKey) ?? [];
     var list = props
         .map((item) =>
@@ -1311,21 +1311,8 @@ class DataService {
     final isAdmin = currentEmail == _adminEmail;
 
     List<String> list = prefs.getStringList(_notificationsKey) ?? [];
-    if (list.isEmpty) {
-      if (currentEmail == null) return [];
-      return [
-        {
-          'title': 'مرحباً بك في إيجاري! 👋',
-          'body': 'استكشف مئات العقارات المتاحة الآن.',
-          'date': DateTime.now()
-              .subtract(const Duration(hours: 2))
-              .toIso8601String(),
-          'read': false,
-          'userEmail': currentEmail,
-          'feedType': 'user',
-        }
-      ];
-    }
+    // Never invent an unread "welcome" notification — it inflated the badge.
+    if (list.isEmpty || currentEmail == null) return [];
 
     final allNotes =
         list.map((e) => jsonDecode(e) as Map<String, dynamic>).toList();
@@ -1423,7 +1410,12 @@ class DataService {
 
   static Future<int> getUnreadNotificationCount() async {
     final notes = await getNotifications();
-    return notes.where((n) => n['read'] != true).length;
+    return notes.where((n) {
+      if (n['read'] == true) return false;
+      // Ignore malformed / legacy rows without a user target.
+      final email = n['userEmail']?.toString() ?? '';
+      return email.isNotEmpty;
+    }).length;
   }
 
   static Future<Map<String, int>> getUnreadCountByCategory() async {
@@ -2769,6 +2761,66 @@ class DataService {
         .toList()
         .reversed
         .toList();
+  }
+
+  /// Remove all favorites for the signed-in user (other accounts untouched).
+  static Future<void> clearFavoritesForCurrentUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentEmail = await _getCurrentUserEmail();
+    if (currentEmail == null) return;
+    final favorites = prefs.getStringList(_favoritesKey) ?? [];
+    final kept = favorites.where((raw) {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      return decoded['userEmail']?.toString() != currentEmail;
+    }).toList();
+    await prefs.setStringList(_favoritesKey, kept);
+  }
+
+  /// Remove one favorite by title (and optional id) for the current user.
+  static Future<void> removeFavorite(Map<String, dynamic> item) async {
+    final prefs = await SharedPreferences.getInstance();
+    final currentEmail = await _getCurrentUserEmail();
+    if (currentEmail == null) return;
+    final title = item['title']?.toString() ?? '';
+    final id = item['id']?.toString() ?? item['propertyId']?.toString() ?? '';
+    final favorites = prefs.getStringList(_favoritesKey) ?? [];
+    final kept = favorites.where((raw) {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      if (decoded['userEmail']?.toString() != currentEmail) return true;
+      final sameTitle = decoded['title']?.toString() == title;
+      final sameId = id.isNotEmpty &&
+          (decoded['id']?.toString() == id ||
+              decoded['propertyId']?.toString() == id);
+      return !(sameTitle || sameId);
+    }).toList();
+    await prefs.setStringList(_favoritesKey, kept);
+  }
+
+  /// Persist coastal / short-stay seed listings if a stale cache omitted them.
+  static Future<void> ensureCoastalCatalog() async {
+    final prefs = await SharedPreferences.getInstance();
+    await initProperties();
+    final existing = prefs.getStringList(_propertiesKey) ?? [];
+    var list = existing
+        .map((item) =>
+            _normalizeProperty(jsonDecode(item) as Map<String, dynamic>))
+        .toList();
+    final before = list.length;
+    list = _mergePropertyCatalog(list, MockDataSeeder.getEgyptianProperties());
+    if (list.length == before) {
+      // Still verify known coastal ids exist.
+      const coastalIds = {
+        'egy7',
+        'vac_matrouh_1',
+        'vac_matrouh_2',
+      };
+      final have = list.map((p) => p['id']?.toString()).toSet();
+      if (coastalIds.every(have.contains)) return;
+    }
+    await prefs.setStringList(
+      _propertiesKey,
+      list.map((e) => jsonEncode(e)).toList(),
+    );
   }
 
   // --- Folders Management ---

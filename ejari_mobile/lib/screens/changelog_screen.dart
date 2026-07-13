@@ -8,6 +8,16 @@ class ChangelogScreen extends StatelessWidget {
   static const List<({String version, String date, List<String> items})>
       releases = [
     (
+      version: '1.2.2',
+      date: 'يوليو 2026',
+      items: [
+        'بانر «التالي» أوضح لحجز المستأجر النشط مع اختصار المتابعة',
+        'تحسين المفضلة: مسح دائم، سحب للحذف، وعدّاد العناصر',
+        'دقة شارة الإشعارات (بدون تنبيه وهمي)',
+        'فلاتر إقامة قصيرة وساحل من الرئيسية + ضمان عقارات الساحل في العرض',
+      ],
+    ),
+    (
       version: '1.2.1',
       date: 'يوليو 2026',
       items: [

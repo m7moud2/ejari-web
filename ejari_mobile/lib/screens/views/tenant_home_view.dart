@@ -178,7 +178,9 @@ class _TenantHomeViewState extends State<TenantHomeView> {
       HomeQuickLookTile(
         label: 'الحجز',
         value: hasBooking ? 'نشط' : 'لا يوجد',
-        hint: hasBooking ? 'قيد المتابعة' : 'ابدأ البحث',
+        hint: hasBooking
+            ? (stats['nextActionLabel']?.toString() ?? 'قيد المتابعة')
+            : 'ابدأ البحث',
         icon: Icons.event_available_rounded,
         color: AppTheme.accentColor,
       ),
@@ -433,10 +435,32 @@ class _TenantHomeViewState extends State<TenantHomeView> {
 
   Widget _buildAccommodationFilters(BuildContext context) {
     final filters = [
-      (null, 'الكل'),
-      (AccommodationType.fullUnit.value, AccommodationType.fullUnit.filterLabel),
-      (AccommodationType.sharedRoom.value, AccommodationType.sharedRoom.filterLabel),
-      (AccommodationType.bed.value, AccommodationType.bed.filterLabel),
+      (null as String?, 'الكل', null as Map<String, dynamic>?),
+      (
+        AccommodationType.fullUnit.value,
+        AccommodationType.fullUnit.filterLabel,
+        null,
+      ),
+      (
+        AccommodationType.sharedRoom.value,
+        AccommodationType.sharedRoom.filterLabel,
+        null,
+      ),
+      (
+        AccommodationType.bed.value,
+        AccommodationType.bed.filterLabel,
+        null,
+      ),
+      (
+        'short_stay',
+        'إقامة قصيرة',
+        {'shortStayOnly': true},
+      ),
+      (
+        'coastal',
+        'ساحل / مطروح',
+        {'coastalOnly': true, 'shortStayOnly': true},
+      ),
     ];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -452,17 +476,25 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                 fontSize: 11,
                 color: AppTheme.primaryColor,
               ),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => SearchResultsScreen(
-                    query: '',
-                    filters: f.$1 != null
-                        ? {'accommodationType': f.$1}
-                        : null,
+              onPressed: () {
+                final Map<String, dynamic>? filtersMap;
+                if (f.$3 != null) {
+                  filtersMap = Map<String, dynamic>.from(f.$3!);
+                } else if (f.$1 != null && f.$1 != 'short_stay' && f.$1 != 'coastal') {
+                  filtersMap = {'accommodationType': f.$1};
+                } else {
+                  filtersMap = null;
+                }
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SearchResultsScreen(
+                      query: '',
+                      filters: filtersMap,
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           );
         }).toList(),
@@ -478,28 +510,16 @@ class _TenantHomeViewState extends State<TenantHomeView> {
         Map<String, dynamic>.from(stats['contextualAction'] as Map? ?? {});
     final icon = action['icon']?.toString() ?? 'info';
     final badge = action['badge'];
+    final actionKey = action['actionKey']?.toString() ??
+        stats['nextActionKey']?.toString() ??
+        '';
 
     IconData iconData;
     VoidCallback onTap;
     switch (icon) {
       case 'booking':
         iconData = Icons.event_available_rounded;
-        onTap = () {
-          final bookingId = stats['bookingId']?.toString() ?? '';
-          if (bookingId.isNotEmpty) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => BookingTrackScreen(bookingId: bookingId),
-              ),
-            );
-          } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
-            );
-          }
-        };
+        onTap = () => _openNextBookingAction(context, stats, actionKey);
         break;
       case 'kyc':
         iconData = Icons.verified_user_rounded;
@@ -569,8 +589,23 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                     ),
                   ),
                 ),
-              const Icon(Icons.arrow_forward_ios_rounded,
-                  color: Colors.white70, size: 12),
+              const SizedBox(width: 6),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: const Text(
+                  'افتح',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -578,9 +613,43 @@ class _TenantHomeViewState extends State<TenantHomeView> {
     );
   }
 
+  void _openNextBookingAction(
+    BuildContext context,
+    Map<String, dynamic> stats,
+    String actionKey,
+  ) {
+    final bookingId = stats['bookingId']?.toString() ?? '';
+    if (actionKey == 'pay') {
+      _openRentPayment(context, stats);
+      return;
+    }
+    if (actionKey == 'viewing') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const MyViewingsScreen()),
+      );
+      return;
+    }
+    if (bookingId.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BookingTrackScreen(bookingId: bookingId),
+        ),
+      );
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+    );
+  }
+
   Widget _buildBookingAlert(BuildContext context, Map<String, dynamic> stats) {
     final nextAmount = stats['nextInstallmentAmount'] ?? 0;
     final nextDays = stats['nextInstallmentDays'] ?? 0;
+    final nextLabel = stats['nextActionLabel']?.toString();
+    final bookingId = stats['bookingId']?.toString() ?? '';
     return Container(
       padding: const EdgeInsets.all(AppTheme.spaceSm),
       decoration: BoxDecoration(
@@ -588,24 +657,70 @@ class _TenantHomeViewState extends State<TenantHomeView> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppTheme.accentColor.withOpacity(0.25)),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.payments_rounded,
-              color: AppTheme.primaryColor, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'قسط مستحق خلال $nextDays يوم • $nextAmount ج.م',
-              style: const TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 11,
-                color: AppTheme.textPrimary,
-              ),
+          if (nextLabel != null && nextLabel.isNotEmpty) ...[
+            Row(
+              children: [
+                const Icon(Icons.flag_rounded,
+                    color: AppTheme.primaryColor, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'التالي: $nextLabel',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 12,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (bookingId.isEmpty) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const MyBookingsScreen(),
+                        ),
+                      );
+                      return;
+                    }
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            BookingTrackScreen(bookingId: bookingId),
+                      ),
+                    );
+                  },
+                  child: const Text('تابع', style: TextStyle(fontSize: 11)),
+                ),
+              ],
             ),
-          ),
-          TextButton(
-            onPressed: () => _openRentPayment(context, stats),
-            child: const Text('ادفع', style: TextStyle(fontSize: 11)),
+            const SizedBox(height: 4),
+          ],
+          Row(
+            children: [
+              const Icon(Icons.payments_rounded,
+                  color: AppTheme.primaryColor, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'قسط مستحق خلال $nextDays يوم • $nextAmount ج.م',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 11,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () => _openRentPayment(context, stats),
+                child: const Text('ادفع', style: TextStyle(fontSize: 11)),
+              ),
+            ],
           ),
         ],
       ),

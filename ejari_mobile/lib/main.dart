@@ -90,6 +90,7 @@ void main() async {
       await DataService.simulateOverduePaymentNotification();
       await DemoFlowService.ensureFlowBooking();
       await BedHierarchyService.seedDemoVacancyTracking('owner@ejari.app');
+      await DataService.ensureCoastalCatalog();
       await SmartPricingService.saveDiscountScheduler(
         ownerId: 'owner@ejari.app',
         vacantDays: 3,

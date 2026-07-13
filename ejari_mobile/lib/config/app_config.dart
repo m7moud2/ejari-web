@@ -8,8 +8,8 @@ import 'package:flutter/foundation.dart';
 /// Override with `--dart-define=DEMO_MODE=true|false`.
 class AppConfig {
   /// Keep in sync with pubspec.yaml `version` (name part).
-  static const String appVersion = '1.2.1';
-  static const int buildNumber = 12;
+  static const String appVersion = '1.2.2';
+  static const int buildNumber = 13;
 
   static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL');
   static const String _demoModeValue = String.fromEnvironment('DEMO_MODE');

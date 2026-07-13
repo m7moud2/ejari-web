@@ -102,6 +102,7 @@ class HomeRepository {
         final nextDueDays = nextDueDate == null
             ? 0
             : nextDueDate.difference(DateTime.now()).inDays;
+        final nextStep = BookingStatus.nextActionForBooking(booking);
 
         tenantStats = {
           ...tenantStats,
@@ -110,6 +111,11 @@ class HomeRepository {
           'bookingTitle': booking['title']?.toString() ?? 'حجز إيجار',
           'bookingImage': booking['image']?.toString() ?? '',
           'bookingStatus': booking['status']?.toString() ?? 'pending',
+          'bookingStatusLabel':
+              BookingStatus.arabicLabel(booking['status']?.toString()),
+          'nextActionLabel': nextStep?.$2,
+          'nextActionKey': nextStep?.$3,
+          'nextActionIcon': nextStep?.$1,
           'nextInstallmentDays': nextDueDays < 0 ? 0 : nextDueDays,
           'nextInstallmentAmount':
               (snapshot['nextDueAmount'] as num?)?.toDouble() ?? 0.0,
@@ -133,8 +139,16 @@ class HomeRepository {
           'featuredProperties': featured.isNotEmpty
               ? featured
               : tenantStats['featuredProperties'],
-          'offers': 'عندك حجز قائم: راجع القسط التالي أو استكمل الدفع من هنا',
+          'offers': nextStep != null
+              ? 'التالي: ${nextStep.$2}'
+              : 'عندك حجز قائم: راجع القسط التالي أو استكمل الدفع من هنا',
           'recentActivities': [
+            if (nextStep != null)
+              {
+                'icon': 'booking',
+                'title': 'التالي',
+                'subtitle': nextStep.$2,
+              },
             {
               'icon': 'payments',
               'title': 'قسط مستحق قريب',
@@ -322,11 +336,17 @@ class HomeRepository {
 
   Map<String, dynamic>? _tenantContextualAction(Map<String, dynamic> stats) {
     if (stats['activeBooking'] == true) {
+      final nextLabel = stats['nextActionLabel']?.toString();
+      final statusLabel = stats['bookingStatusLabel']?.toString() ?? 'حجز نشط';
+      final title = nextLabel != null && nextLabel.isNotEmpty
+          ? 'التالي: $nextLabel'
+          : 'تابع حجزك';
       return {
-        'title': 'تابع حجزك',
-        'subtitle': stats['bookingTitle'] ?? 'حجز نشط',
+        'title': title,
+        'subtitle': stats['bookingTitle'] ?? statusLabel,
         'icon': 'booking',
         'badge': stats['nextInstallmentDays'] ?? 0,
+        'actionKey': stats['nextActionKey'],
       };
     }
     if ((stats['verificationStatus'] ?? '').toString().contains('غير موثق')) {
