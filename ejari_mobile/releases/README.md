@@ -76,6 +76,28 @@ gh auth login -h github.com
 # أو: GH_TOKEN=ghp_xxx gh release create ...
 ```
 
+## عدّاد التحميلات (GitHub)
+
+العداد المعروض على صفحات التحميل يأخذ الرقم الرسمي من GitHub Releases API (`assets[].download_count`) — يزيد تلقائيًا كلما نُزّل ملف الـ APK من رابط الإصدار.
+
+صفحات العرض:
+- https://m7moud2.github.io/ejari-web/promo/
+- https://m7moud2.github.io/ejari-web/promo/download.html
+- https://m7moud2.github.io/ejari-web/docs/download/
+
+للتحقق يدويًا (Admin):
+
+```bash
+# آخر إصدار
+gh api repos/m7moud2/ejari-web/releases/latest --jq '.assets[] | {name, download_count}'
+
+# كل الإصدارات (مجموع كل ملفات APK التابعة لإيجاري)
+gh api repos/m7moud2/ejari-web/releases --paginate \
+  --jq '[.[] | .assets[] | select(.name|test("\\.apk$";"i")) | select(.name|test("^keyo";"i")|not) | .download_count] | add'
+```
+
+> ملاحظة: العدد يعدّ التحميلات عبر روابط GitHub Releases فقط (وهي روابط أزرار التحميل الحالية).
+
 ## تثبيت APK (عملاء حقيقيون — v1.2.0+)
 
 1. فعّل **مصادر غير معروفة** على جهاز Android.

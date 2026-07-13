@@ -140,6 +140,22 @@
       margin-top:14px;padding:14px 16px;border-radius:18px;
       background:rgba(181,141,61,.12);border:1px solid rgba(181,141,61,.28)
     }
+    .download-stats{
+      display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;
+      margin-top:18px;padding:14px 16px;border-radius:18px;
+      background:rgba(15,58,48,.06);border:1px solid var(--border);
+      color:var(--primary);font-weight:800
+    }
+    .download-stats .dl-icon{
+      width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
+      background:linear-gradient(135deg,rgba(15,58,48,.14),rgba(181,141,61,.18));color:var(--gold)
+    }
+    .download-stats .dl-main{font-size:1.05rem}
+    .download-stats .dl-sub{
+      font-size:.86rem;font-weight:700;padding:4px 10px;border-radius:999px;
+      background:rgba(181,141,61,.12);border:1px solid rgba(181,141,61,.28);color:var(--gold)
+    }
+    .download-stats .dl-note{width:100%;color:var(--muted);font-size:.8rem;font-weight:700}
     @media (max-width: 900px){
       .hero-grid,.grid-2,.steps,.metric-grid,.updates-grid{grid-template-columns:1fr}
       .nav-inner{flex-wrap:wrap}
@@ -241,6 +257,12 @@
           <div class="warn">
             <strong>مهم:</strong> لو عندك نسخة قديمة مثبتة، احذفها أولاً ثم ثبّت v<span data-app-version>1.2.1</span> لتجنب تعارض التوقيع.
           </div>
+          <div class="download-stats" data-ejari-download-stats aria-busy="true" aria-live="polite">
+            <span class="dl-icon"><i class="fa-solid fa-download"></i></span>
+            <span class="dl-main" data-dl-total>جاري حساب التحميلات…</span>
+            <span class="dl-sub" data-dl-current></span>
+            <span class="dl-note" data-dl-status hidden></span>
+          </div>
           <div class="metric-grid">
             <div class="metric"><div class="label">النسخة</div><div class="value">v<span data-app-version>1.2.1</span></div></div>
             <div class="metric"><div class="label">المنصة</div><div class="value">Android APK</div></div>
@@ -332,5 +354,6 @@
     </div>
   </div>
   <div id="copyToast" class="toast">تم نسخ رابط التحميل</div>
+  <script src="js/download-stats.js" defer></script>
 </body>
 </html>
