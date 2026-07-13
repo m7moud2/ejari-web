@@ -34,6 +34,9 @@ import 'owner_collection_screen.dart';
 import 'provider_jobs_screen.dart';
 import 'provider_timeline_screen.dart';
 import 'provider_wallet_screen.dart';
+import '../utils/short_stay_discovery.dart';
+import '../utils/property_image_resolver.dart';
+import '../widgets/ejari_section.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -189,6 +192,198 @@ class _HomeContentState extends State<HomeContent> {
 
   void _applyFilters() {
     setState(() {});
+  }
+
+  Widget _buildShortStayHomeSection(
+    BuildContext context,
+    List<Map<String, dynamic>> rentProperties,
+  ) {
+    final shortStays = rentProperties
+        .where(ShortStayDiscovery.isShortStayListing)
+        .take(8)
+        .toList();
+    if (shortStays.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              const Expanded(
+                child: EjariSectionHeader(
+                  title: 'إقامات قصيرة وعروض',
+                  subtitle: 'بديل منظم لإعلانات فيسبوك',
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PropertiesScreen(coastalOnly: true),
+                  ),
+                ),
+                child: const Text(
+                  'الساحل والبحر',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.primaryColor,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: ActionChip(
+                  avatar: const Icon(Icons.beach_access_rounded, size: 16),
+                  label: const Text('الساحل والبحر'),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          const PropertiesScreen(coastalOnly: true),
+                    ),
+                  ),
+                ),
+              ),
+              ...ShortStayDiscovery.durationIntents.take(4).map((intent) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: ActionChip(
+                    label: Text(intent.label),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PropertiesScreen(
+                          durationIntentId: intent.id,
+                          coastalOnly: true,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 176,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: shortStays.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final p = shortStays[index];
+              final image = PropertyImageResolver.resolve(p);
+              final daily =
+                  ShortStayDiscovery.dailyRate(p).round().toString();
+              final badges = ShortStayDiscovery.offerBadges(p);
+              return InkWell(
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => PropertyDetailsScreen(property: p),
+                  ),
+                ),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  width: 210,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardTheme.color ??
+                        Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppTheme.primaryColor.withOpacity(0.12),
+                    ),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            Image.asset(
+                              image,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                color: AppTheme.primaryColor.withOpacity(0.08),
+                                child: const Icon(Icons.beach_access_rounded,
+                                    color: AppTheme.primaryColor),
+                              ),
+                            ),
+                            if (badges.isNotEmpty)
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.accentColor,
+                                    borderRadius: BorderRadius.circular(999),
+                                  ),
+                                  child: Text(
+                                    badges.first,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              p['title']?.toString() ?? 'عقار',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 12,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'من $daily ج.م / يوم',
+                              style: const TextStyle(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildCategoriesGrid(BuildContext context) {
@@ -369,6 +564,15 @@ class _HomeContentState extends State<HomeContent> {
                   child: Padding(
                     padding: const EdgeInsets.only(top: 20),
                     child: _buildCategoriesGrid(context),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: _buildShortStayHomeSection(
+                      context,
+                      propertyProvider.rentProperties,
+                    ),
                   ),
                 ),
                 SliverToBoxAdapter(

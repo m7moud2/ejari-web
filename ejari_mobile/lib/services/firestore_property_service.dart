@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../config/app_config.dart';
@@ -29,16 +31,17 @@ class FirestorePropertyService {
     try {
       QuerySnapshot query;
       if (approvedOnly) {
+        // Avoid composite index: filter + sort client-side.
         query = await _firestore
             .collection('properties')
             .where('status', isEqualTo: 'approved')
-            .orderBy('createdAt', descending: true)
-            .get();
+            .get()
+            .timeout(AppConfig.authTimeout);
       } else {
         query = await _firestore
             .collection('properties')
-            .orderBy('createdAt', descending: true)
-            .get();
+            .get()
+            .timeout(AppConfig.authTimeout);
       }
 
       final properties = query.docs.map((doc) {
@@ -47,17 +50,17 @@ class FirestorePropertyService {
         return _normalizeProperty(data);
       }).toList();
 
-      // If Firestore is completely empty (no properties added yet),
-      // fallback to mock data so the app doesn't look empty for the demo.
-      if (properties.isEmpty) {
-        return MockDataSeeder.getEgyptianProperties();
-      }
+      properties.sort((a, b) {
+        final aDate = a['createdAt']?.toString() ?? '';
+        final bDate = b['createdAt']?.toString() ?? '';
+        return bDate.compareTo(aDate);
+      });
 
+      // Real mode: empty catalog is OK (no mock seed).
       return properties;
     } catch (e) {
       debugPrint('Firestore Error fetching properties: $e');
-      // السقوط التلقائي للبيانات المحلية في حالة فشل الاتصال بالسحابة
-      return MockDataSeeder.getEgyptianProperties();
+      throw 'تعذر تحميل العقارات. تحقق من الاتصال وحاول مرة أخرى';
     }
   }
 
@@ -105,11 +108,13 @@ class FirestorePropertyService {
       property['status'] = 'pending';
       property['createdAt'] = FieldValue.serverTimestamp();
 
-      await _firestore.collection('properties').add(property);
+      await _firestore
+          .collection('properties')
+          .add(property)
+          .timeout(AppConfig.authTimeout);
     } catch (e) {
       debugPrint('Firestore Error adding property: $e');
-      // Fallback
-      await DataService.addProperty(property);
+      throw 'تعذر إضافة العقار. تحقق من الاتصال وحاول مرة أخرى';
     }
   }
 
@@ -235,10 +240,20 @@ class FirestorePropertyService {
       'phone': p['phone']?.toString() ?? '',
       'ownerId': p['ownerId']?.toString() ?? 'admin',
       'governorate': p['governorate'] ?? '',
+      'region': p['region'] ?? '',
       'supportedDurations': p['supportedDurations'] ?? [],
       'corporateEligible': p['corporateEligible'] ?? false,
       'lat': p['lat'],
       'lng': p['lng'],
+      'dailyPrice': p['dailyPrice'] ?? p['pricePerDay'],
+      'nearbyBeachMinutes': p['nearbyBeachMinutes'],
+      'carAvailable': p['carAvailable'] == true,
+      'familyFriendly': p['familyFriendly'] == true,
+      'independentHouse': p['independentHouse'] == true,
+      'shortStay': p['shortStay'] == true,
+      'multiUnitDeal': p['multiUnitDeal'] == true,
+      'packageHalfWeek': p['packageHalfWeek'],
+      'specialOffers': p['specialOffers'] ?? [],
     };
     return {
       ...normalized,

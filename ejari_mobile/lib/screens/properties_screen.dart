@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import '../widgets/property_card.dart';
 import '../widgets/empty_state_view.dart';
 import '../utils/property_image_resolver.dart';
+import '../utils/short_stay_discovery.dart';
 import '../theme/app_theme.dart';
 import '../widgets/skeleton_list_loader.dart';
 import '../widgets/ejari_section.dart';
 import 'property_details_screen.dart';
 import 'booking_screen.dart';
 import 'map_search_screen.dart';
+import 'advanced_filters_screen.dart';
 import '../models/listing_type.dart';
 import '../widgets/sale_listing_widgets.dart';
 import '../models/accommodation_type.dart';
@@ -18,7 +20,16 @@ enum _ExploreSort { newest, priceAsc, priceDesc, rating }
 
 /// تبويب استكشف — مركز اكتشاف العقارات للمستأجر.
 class PropertiesScreen extends StatefulWidget {
-  const PropertiesScreen({super.key});
+  final String? initialGovernorate;
+  final bool coastalOnly;
+  final String? durationIntentId;
+
+  const PropertiesScreen({
+    super.key,
+    this.initialGovernorate,
+    this.coastalOnly = false,
+    this.durationIntentId,
+  });
 
   @override
   State<PropertiesScreen> createState() => _PropertiesScreenState();
@@ -28,6 +39,8 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
   /// الكل | شقق | غرف مشتركة | أسرّة | إعلانات البيع
   String _hubFilter = 'الكل';
   String _selectedGovernorate = 'الكل';
+  bool _coastalOnly = false;
+  String? _durationIntentId;
   _ExploreSort _sort = _ExploreSort.newest;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
@@ -38,16 +51,6 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
   static const int _pageSize = 20;
   int _visibleCount = _pageSize;
   final ScrollController _scrollController = ScrollController();
-
-  static const List<String> _governorates = [
-    'الكل',
-    'القاهرة',
-    'الجيزة',
-    'الإسكندرية',
-    'القليوبية',
-    'الشرقية',
-    'مطروح',
-  ];
 
   static const List<String> _hubFilters = [
     'الكل',
@@ -60,6 +63,9 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedGovernorate = widget.initialGovernorate ?? 'الكل';
+    _coastalOnly = widget.coastalOnly;
+    _durationIntentId = widget.durationIntentId;
     _scrollController.addListener(_onScroll);
     _loadProperties();
   }
@@ -113,6 +119,13 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
         .toList();
   }
 
+  List<Map<String, dynamic>> get _shortStayProperties {
+    return _allProperties
+        .where(ShortStayDiscovery.isShortStayListing)
+        .take(12)
+        .toList();
+  }
+
   List<Map<String, dynamic>> get _filteredProperties {
     var list = List<Map<String, dynamic>>.from(_allProperties);
 
@@ -142,12 +155,14 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
         break;
     }
 
-    if (_selectedGovernorate != 'الكل') {
+    final discoveryFilters = <String, dynamic>{
+      if (_selectedGovernorate != 'الكل') 'governorate': _selectedGovernorate,
+      if (_coastalOnly) 'coastalOnly': true,
+      if (_durationIntentId != null) 'durationIntent': _durationIntentId,
+    };
+    if (discoveryFilters.isNotEmpty) {
       list = list
-          .where((p) =>
-              (p['governorate'] ?? p['location'] ?? '')
-                  .toString()
-                  .contains(_selectedGovernorate))
+          .where((p) => ShortStayDiscovery.matchesFilters(p, discoveryFilters))
           .toList();
     }
 
@@ -160,6 +175,9 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
           p['governorate'],
           p['type'],
           p['address'],
+          ...(p['amenities'] is List
+              ? (p['amenities'] as List).map((e) => e.toString())
+              : const <String>[]),
         ].map((e) => e?.toString() ?? '').join(' ');
         return hay.contains(q);
       }).toList();
@@ -242,6 +260,13 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
                       physics: const AlwaysScrollableScrollPhysics(),
                       slivers: [
                         SliverToBoxAdapter(child: _buildSearchAndFilters()),
+                        if (_hubFilter == 'الكل' &&
+                            _searchQuery.isEmpty &&
+                            !_coastalOnly &&
+                            _durationIntentId == null &&
+                            _selectedGovernorate == 'الكل' &&
+                            _shortStayProperties.isNotEmpty)
+                          SliverToBoxAdapter(child: _buildShortStaySection()),
                         if (_hubFilter == 'الكل' &&
                             _searchQuery.isEmpty &&
                             _featuredProperties.isNotEmpty)
@@ -347,23 +372,87 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: _hubFilters.map((f) {
-                final selected = _hubFilter == f;
-                return Padding(
+              children: [
+                ..._hubFilters.map((f) {
+                  final selected = _hubFilter == f;
+                  return Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: FilterChip(
+                      label: Text(f),
+                      selected: selected,
+                      onSelected: (_) => setState(() {
+                        _hubFilter = f;
+                        _visibleCount = _pageSize;
+                      }),
+                      selectedColor: AppTheme.primaryColor,
+                      checkmarkColor: Colors.white,
+                      labelStyle: TextStyle(
+                        color: selected ? Colors.white : AppTheme.textPrimary,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                      ),
+                    ),
+                  );
+                }),
+                Padding(
                   padding: const EdgeInsets.only(left: 8),
                   child: FilterChip(
-                    label: Text(f),
-                    selected: selected,
-                    onSelected: (_) => setState(() {
-                      _hubFilter = f;
+                    avatar: Icon(
+                      Icons.beach_access_rounded,
+                      size: 16,
+                      color: _coastalOnly ? Colors.white : AppTheme.primaryColor,
+                    ),
+                    label: const Text('الساحل والبحر'),
+                    selected: _coastalOnly,
+                    onSelected: (v) => setState(() {
+                      _coastalOnly = v;
                       _visibleCount = _pageSize;
                     }),
                     selectedColor: AppTheme.primaryColor,
                     checkmarkColor: Colors.white,
                     labelStyle: TextStyle(
-                      color: selected ? Colors.white : AppTheme.textPrimary,
+                      color:
+                          _coastalOnly ? Colors.white : AppTheme.textPrimary,
                       fontWeight: FontWeight.w800,
                       fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            'مدة الإقامة',
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 12,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: ShortStayDiscovery.durationIntents.map((intent) {
+                final selected = _durationIntentId == intent.id;
+                return Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: ChoiceChip(
+                    label: Text(intent.label,
+                        style: const TextStyle(fontSize: 12)),
+                    selected: selected,
+                    onSelected: (_) => setState(() {
+                      _durationIntentId = selected ? null : intent.id;
+                      _visibleCount = _pageSize;
+                    }),
+                    selectedColor: AppTheme.primaryColor.withOpacity(0.2),
+                    labelStyle: TextStyle(
+                      color: selected
+                          ? AppTheme.primaryColor
+                          : AppTheme.textSecondary,
+                      fontWeight:
+                          selected ? FontWeight.w900 : FontWeight.w600,
                     ),
                   ),
                 );
@@ -383,7 +472,7 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
-              children: _governorates.map((g) {
+              children: ShortStayDiscovery.exploreGovernorates.map((g) {
                 final selected = _selectedGovernorate == g;
                 return Padding(
                   padding: const EdgeInsets.only(left: 8),
@@ -434,16 +523,31 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MapSearchScreen()),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MapSearchScreen()),
+                  ),
+                  icon: const Icon(Icons.map_outlined, size: 18),
+                  label: const Text('الخريطة'),
+                ),
               ),
-              icon: const Icon(Icons.map_outlined, size: 18),
-              label: const Text('استكشف على الخريطة'),
-            ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const AdvancedFiltersScreen()),
+                  ),
+                  icon: const Icon(Icons.tune_rounded, size: 18),
+                  label: const Text('فلاتر متقدمة'),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
         ],
@@ -467,6 +571,157 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
           color: selected ? AppTheme.primaryColor : AppTheme.textSecondary,
           fontWeight: selected ? FontWeight.w900 : FontWeight.w600,
         ),
+      ),
+    );
+  }
+
+  Widget _buildShortStaySection() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppTheme.spaceSm),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppTheme.screenPadding),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: EjariSectionHeader(
+                    title: 'إقامات قصيرة وعروض',
+                    subtitle: 'ليلة · أيام · نصف أسبوع · ساحل',
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => setState(() {
+                    _coastalOnly = true;
+                    _visibleCount = _pageSize;
+                  }),
+                  child: const Text(
+                    'الكل',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.primaryColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 188,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppTheme.screenPadding),
+              itemCount: _shortStayProperties.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemBuilder: (context, index) {
+                final p = _shortStayProperties[index];
+                final image = PropertyImageResolver.resolve(p);
+                final daily =
+                    ShortStayDiscovery.dailyRate(p).round().toString();
+                final badges = ShortStayDiscovery.offerBadges(p);
+                final beach = ShortStayDiscovery.nearbyBeachMinutes(p);
+                return InkWell(
+                  onTap: () => _navigateToDetails(p),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    width: 230,
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppTheme.borderColor.withOpacity(0.35),
+                      ),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Image.asset(
+                                image,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  color:
+                                      AppTheme.primaryColor.withOpacity(0.08),
+                                  child: const Icon(Icons.beach_access_rounded,
+                                      color: AppTheme.primaryColor),
+                                ),
+                              ),
+                              if (badges.isNotEmpty)
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.accentColor,
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      badges.first,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                p['title']?.toString() ?? 'عقار',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'من $daily ج.م / يوم',
+                                style: const TextStyle(
+                                  color: AppTheme.primaryColor,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 11,
+                                ),
+                              ),
+                              if (beach != null) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  'البحر خلال $beach دقائق',
+                                  style: const TextStyle(
+                                    color: AppTheme.textSecondary,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -611,7 +866,9 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
           const Spacer(),
           if (_hubFilter != 'الكل' ||
               _selectedGovernorate != 'الكل' ||
-              _searchQuery.isNotEmpty)
+              _searchQuery.isNotEmpty ||
+              _coastalOnly ||
+              _durationIntentId != null)
             TextButton(
               onPressed: () {
                 _searchController.clear();
@@ -619,6 +876,8 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
                   _hubFilter = 'الكل';
                   _selectedGovernorate = 'الكل';
                   _searchQuery = '';
+                  _coastalOnly = false;
+                  _durationIntentId = null;
                   _sort = _ExploreSort.newest;
                   _visibleCount = _pageSize;
                 });

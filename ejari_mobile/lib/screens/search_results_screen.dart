@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../widgets/property_card.dart';
 import '../widgets/empty_state_view.dart';
 import '../utils/property_image_resolver.dart';
+import '../utils/short_stay_discovery.dart';
 import '../models/accommodation_type.dart';
 import '../services/firestore_property_service.dart';
 import 'property_details_screen.dart';
@@ -90,19 +91,6 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
       // Apply filters
       final filters = widget.filters ?? {};
       if (filters.isNotEmpty || _accommodationFilter != null) {
-
-        // Price Range
-        final priceStr =
-            property['price']?.toString().replaceAll(',', '') ?? '0';
-        final price = double.tryParse(priceStr) ?? 0.0;
-
-        if (filters['minPrice'] != null) {
-          if (price < filters['minPrice']) return false;
-        }
-        if (filters['maxPrice'] != null) {
-          if (price > filters['maxPrice']) return false;
-        }
-
         // Bedrooms
         if (filters['beds'] != null) {
           final beds = int.tryParse(
@@ -150,14 +138,6 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
           }
         }
 
-        // Governorate
-        if (filters['governorate'] != null) {
-          final gov = filters['governorate'].toString();
-          final loc =
-              '${property['governorate'] ?? ''} ${property['location'] ?? ''}';
-          if (!loc.contains(gov)) return false;
-        }
-
         // Furnished
         if (filters['furnished'] != null) {
           final furnished = property['furnished'] == true ||
@@ -166,16 +146,9 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
           if (filters['furnished'] == false && furnished) return false;
         }
 
-        // Amenities
-        if (filters['amenities'] != null) {
-          final List<String> requiredAmenities =
-              List<String>.from(filters['amenities']);
-          final propertyAmenities =
-              List<String>.from(property['amenities'] ?? []);
-
-          for (var amenity in requiredAmenities) {
-            if (!propertyAmenities.contains(amenity)) return false;
-          }
+        // Short-stay / coastal / amenities / offers / price ranges
+        if (!ShortStayDiscovery.matchesFilters(property, filters)) {
+          return false;
         }
       }
 

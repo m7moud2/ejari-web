@@ -28,6 +28,8 @@ import 'comparison_screen.dart';
 import '../services/compare_list_service.dart';
 import '../utils/first_run_tooltips.dart';
 import '../utils/haptic_utils.dart';
+import '../utils/short_stay_discovery.dart';
+import '../utils/rental_pricing.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> property;
@@ -827,6 +829,35 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                       ))
                                   .toList(),
                             ),
+                            if (_hasVacationHighlights(property)) ...[
+                              const SizedBox(height: AppTheme.spaceMd),
+                              const EjariSectionHeader(
+                                title: 'مميزات الإقامة القصيرة',
+                                subtitle: 'البحر · السيارة · العائلة · العروض',
+                              ),
+                              const SizedBox(height: 8),
+                              _buildVacationHighlights(property),
+                            ],
+                            if (ShortStayDiscovery.specialOffers(property)
+                                .isNotEmpty) ...[
+                              const SizedBox(height: AppTheme.spaceMd),
+                              const EjariSectionHeader(
+                                title: 'عروض المدة',
+                                subtitle: 'اضغط العرض لاختيار المدة عند الحجز',
+                              ),
+                              const SizedBox(height: 8),
+                              ...ShortStayDiscovery.specialOffers(property)
+                                  .map((offer) => _buildOfferTile(offer)),
+                            ],
+                            if (!isSale) ...[
+                              const SizedBox(height: AppTheme.spaceMd),
+                              const EjariSectionHeader(
+                                title: 'باقات ١ · ٣ · ٧ أيام',
+                                subtitle: 'تسعير متدرج واضح قبل الحجز',
+                              ),
+                              const SizedBox(height: 8),
+                              _buildTierPackageRow(property),
+                            ],
                             const SizedBox(height: AppTheme.spaceMd),
                             const EjariSectionHeader(
                               title: 'قريب منك',
@@ -1174,6 +1205,212 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   ),
           ),
         ],
+      ),
+    );
+  }
+
+  bool _hasVacationHighlights(Map<String, dynamic> property) {
+    return ShortStayDiscovery.nearbyBeachMinutes(property) != null ||
+        ShortStayDiscovery.flagTrue(property, 'carAvailable') ||
+        ShortStayDiscovery.flagTrue(property, 'familyFriendly') ||
+        ShortStayDiscovery.flagTrue(property, 'independentHouse') ||
+        ShortStayDiscovery.offerBadges(property).isNotEmpty;
+  }
+
+  Widget _buildVacationHighlights(Map<String, dynamic> property) {
+    final chips = <Widget>[];
+    final beach = ShortStayDiscovery.nearbyBeachMinutes(property);
+    if (beach != null) {
+      chips.add(_highlightChip(Icons.beach_access_rounded, 'البحر خلال $beach د'));
+    }
+    if (ShortStayDiscovery.flagTrue(property, 'carAvailable')) {
+      chips.add(_highlightChip(Icons.directions_car_rounded, 'سيارة متاحة'));
+    }
+    if (ShortStayDiscovery.flagTrue(property, 'familyFriendly')) {
+      chips.add(_highlightChip(Icons.family_restroom_rounded, 'مناسب للعائلات'));
+    }
+    if (ShortStayDiscovery.flagTrue(property, 'independentHouse')) {
+      chips.add(_highlightChip(Icons.holiday_village_rounded, 'بيت مستقل'));
+    }
+    for (final badge in ShortStayDiscovery.offerBadges(property)) {
+      chips.add(_highlightChip(Icons.local_offer_rounded, badge));
+    }
+    return Wrap(spacing: 8, runSpacing: 8, children: chips);
+  }
+
+  Widget _highlightChip(IconData icon, String label) {
+    return Chip(
+      avatar: Icon(icon, size: 16, color: AppTheme.primaryColor),
+      label: Text(label, style: const TextStyle(fontSize: 12)),
+      backgroundColor: AppTheme.primaryColor.withOpacity(0.08),
+    );
+  }
+
+  Widget _buildOfferTile(Map<String, dynamic> offer) {
+    final title = offer['title']?.toString() ?? offer['label']?.toString() ?? 'عرض';
+    final days = offer['days']?.toString() ?? '—';
+    final perDay = offer['pricePerDay']?.toString() ?? '—';
+    final label = offer['label']?.toString() ?? '';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => _bookWithOffer(offer),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withOpacity(0.06),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppTheme.primaryColor.withOpacity(0.18)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentColor,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  label.isNotEmpty ? label : '$days أيام',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title,
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w800, fontSize: 13)),
+                    const SizedBox(height: 2),
+                    Text(
+                      '$days أيام · $perDay ج.م / يوم',
+                      style: const TextStyle(
+                          fontSize: 11, color: AppTheme.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_left_rounded,
+                  color: AppTheme.primaryColor),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTierPackageRow(Map<String, dynamic> property) {
+    final monthly = DataService.resolveApplicablePrice(
+      property,
+      durationType: 'شهر',
+    );
+    if (monthly <= 0) {
+      final daily = ShortStayDiscovery.dailyRate(property);
+      if (daily <= 0) {
+        return const Text(
+          'تظهر الباقات عند توفر السعر',
+          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+        );
+      }
+      return Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          _packageChip('١ يوم', '${daily.round()} ج.م'),
+          _packageChip('٣ أيام', '${(daily * 3).round()} ج.م'),
+          _packageChip(
+            '٧ أيام',
+            property['packageHalfWeek'] != null
+                ? '${property['packageHalfWeek']} ج.م'
+                : '${(daily * 7 * 0.85).round()} ج.م',
+          ),
+        ],
+      );
+    }
+    final one = RentalPricing.calculate(
+      monthlyRent: monthly,
+      durationType: 'يوم',
+      durationCount: 1,
+    );
+    final three = RentalPricing.calculate(
+      monthlyRent: monthly,
+      durationType: 'يوم',
+      durationCount: 3,
+    );
+    final seven = RentalPricing.calculate(
+      monthlyRent: monthly,
+      durationType: 'يوم',
+      durationCount: 7,
+    );
+    final halfWeek = property['packageHalfWeek'];
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _packageChip('١ يوم', '${one.totalRent.round()} ج.م'),
+        _packageChip('٣ أيام', '${three.totalRent.round()} ج.م'),
+        _packageChip(
+          '٧ أيام',
+          halfWeek != null
+              ? '$halfWeek ج.م'
+              : '${seven.totalRent.round()} ج.م',
+        ),
+      ],
+    );
+  }
+
+  Widget _packageChip(String label, String price) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.borderColor.withOpacity(0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textSecondary)),
+          const SizedBox(height: 2),
+          Text(price,
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.primaryColor)),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _bookWithOffer(Map<String, dynamic> offer) async {
+    final prefill = ShortStayDiscovery.bookingPrefillFromOffer(offer);
+    final bookingData = {
+      ...widget.property,
+      if (prefill != null) ...prefill,
+      'selectedOffer': offer,
+      if (_selectedBedId != null) 'selectedBedId': _selectedBedId,
+    };
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BookingScreen(
+          itemType: 'property',
+          itemData: bookingData,
+        ),
       ),
     );
   }

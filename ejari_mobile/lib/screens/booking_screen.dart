@@ -200,6 +200,16 @@ class _BookingScreenState extends State<BookingScreen> {
       _selectedDurationType = 'يوم';
     } else if (isSale) {
       _selectedDurationType = 'مرة واحدة';
+    } else {
+      final prefType = widget.itemData['durationType']?.toString();
+      final prefCount =
+          int.tryParse(widget.itemData['durationCount']?.toString() ?? '');
+      if (prefType != null && prefType.isNotEmpty) {
+        _selectedDurationType = prefType;
+      }
+      if (prefCount != null && prefCount > 0) {
+        _duration = prefCount;
+      }
     }
 
     _loadAvailability();
