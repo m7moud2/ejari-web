@@ -13,10 +13,23 @@ class AppConfig {
   static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL');
   static const String _demoModeValue = String.fromEnvironment('DEMO_MODE');
 
-  /// Public invite link for share-app flows.
+  /// Public invite / download landing page (GitHub Pages or Releases).
   static const String inviteUrl = String.fromEnvironment(
     'INVITE_URL',
-    defaultValue: 'https://ejari.app/download',
+    defaultValue: 'https://m7moud2.github.io/ejari-web/docs/download/',
+  );
+
+  /// Fallback when GitHub Pages is not enabled yet.
+  static const String githubReleasesUrl = String.fromEnvironment(
+    'GITHUB_RELEASES_URL',
+    defaultValue: 'https://github.com/m7moud2/ejari-web/releases/latest',
+  );
+
+  /// GitHub Releases API — used by [AppVersionService] for update checks.
+  static const String githubLatestReleaseApiUrl = String.fromEnvironment(
+    'GITHUB_LATEST_RELEASE_API',
+    defaultValue:
+        'https://api.github.com/repos/m7moud2/ejari-web/releases/latest',
   );
 
   /// Play Store listing (placeholder until published).

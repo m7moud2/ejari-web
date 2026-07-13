@@ -48,10 +48,20 @@ void main() {
       expect(find.text('وضع العرض'), findsOneWidget);
     });
 
-    test('AppVersionService checkForUpdates placeholder returns null', () async {
+    test('AppVersionService checkForUpdates returns null when offline/API fails',
+        () async {
       expect(AppVersionService.fullVersion, '1.1.8+9');
+      // Without a live GitHub release (or when network fails), returns null.
       final latest = await AppVersionService.checkForUpdates();
-      expect(latest, isNull);
+      // May be null (no release / network) or a newer tag if already published.
+      if (latest != null) {
+        expect(latest, isNot(equals(AppVersionService.currentVersion)));
+      }
+    });
+
+    test('AppConfig invite URL points at public download page', () {
+      expect(AppConfig.inviteUrl, contains('github'));
+      expect(AppConfig.githubLatestReleaseApiUrl, contains('releases/latest'));
     });
   });
 

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>تحميل إيجاري — Ejari</title>
+  <meta name="description" content="حمّل تطبيق إيجاري لإدارة الإيجار والعقارات على أندرويد" />
+  <style>
+    :root {
+      --bg: #0f2f2a;
+      --bg-2: #1a4a42;
+      --accent: #2dd4a8;
+      --accent-dark: #0d9488;
+      --text: #f4faf8;
+      --muted: #b7d4cd;
+      --card: rgba(255, 255, 255, 0.08);
+      --border: rgba(255, 255, 255, 0.14);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", Tahoma, "Noto Sans Arabic", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 20% 0%, #1f6b5c 0%, transparent 55%),
+        radial-gradient(ellipse at 90% 80%, #0b3d36 0%, transparent 50%),
+        linear-gradient(160deg, var(--bg), var(--bg-2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .shell {
+      width: min(440px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 36px 28px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    }
+    .brand {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin: 0 0 6px;
+      color: var(--accent);
+    }
+    .tagline {
+      margin: 0 0 28px;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+    .version {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(45, 212, 168, 0.15);
+      border: 1px solid rgba(45, 212, 168, 0.35);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 22px;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      text-align: center;
+      text-decoration: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: #062820;
+      font-weight: 800;
+      font-size: 1.15rem;
+      padding: 16px 20px;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      box-shadow: 0 10px 28px rgba(45, 212, 168, 0.3);
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(1px); }
+    .changelog {
+      margin: 28px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .changelog li {
+      position: relative;
+      padding: 8px 0 8px 0;
+      padding-right: 18px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+    .changelog li::before {
+      content: "";
+      position: absolute;
+      right: 0;
+      top: 15px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .tip {
+      margin-top: 28px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.55;
+    }
+    .tip strong { color: var(--text); }
+    .footer {
+      margin-top: 22px;
+      text-align: center;
+      font-size: 0.8rem;
+      color: rgba(183, 212, 205, 0.7);
+    }
+    .footer a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <h1 class="brand">إيجاري</h1>
+    <p class="tagline">تطبيق إدارة الإيجار والعقارات — حمّله مباشرة على أندرويد</p>
+    <div class="version" id="version-badge">الإصدار 1.1.8</div>
+    <a
+      class="btn"
+      id="download-btn"
+      href="https://github.com/m7moud2/ejari-web/releases/latest/download/ejari-1.1.8.apk"
+    >
+      تحميل التطبيق (APK)
+    </a>
+    <ul class="changelog">
+      <li>إصلاح تسجيل الدخول وإنشاء الحساب على أندرويد</li>
+      <li>تحسين المحادثات والدعم داخل التطبيق</li>
+      <li>استقرار أفضل لوضع العرض التجريبي</li>
+    </ul>
+    <div class="tip">
+      <strong>تثبيت:</strong>
+      فعّل «مصادر غير معروفة / تثبيت تطبيقات غير معروفة» من إعدادات الأمان،
+      ثم افتح ملف الـ APK واضغط تثبيت.
+    </div>
+    <p class="footer">
+      آخر الإصدارات على
+      <a href="https://github.com/m7moud2/ejari-web/releases" target="_blank" rel="noopener">GitHub Releases</a>
+    </p>
+  </main>
+  <script>
+    // Keep button pointing at the latest release asset when available.
+    (async () => {
+      try {
+        const res = await fetch(
+          "https://api.github.com/repos/m7moud2/ejari-web/releases/latest"
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        const tag = (data.tag_name || "").replace(/^v/, "");
+        const asset =
+          (data.assets || []).find((a) => /\.apk$/i.test(a.name)) ||
+          (data.assets || [])[0];
+        if (tag) {
+          document.getElementById("version-badge").textContent =
+            "الإصدار " + tag;
+        }
+        if (asset && asset.browser_download_url) {
+          document.getElementById("download-btn").href =
+            asset.browser_download_url;
+        }
+      } catch (_) {
+        /* keep static fallback links */
+      }
+    })();
+  </script>
+</body>
+</html>

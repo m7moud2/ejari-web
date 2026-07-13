@@ -32,7 +32,10 @@ migrate_working_dir/
 /build/
 
 # Local release APKs / bundles (do not commit binaries)
-/releases/
+# Keep releases/README.md and releases/index.html tracked.
+/releases/*.apk
+/releases/*.aab
+/releases/*.ipa
 
 # Symbolication related
 app.*.symbols

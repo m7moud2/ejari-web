@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../services/app_version_service.dart';
 import '../theme/app_theme.dart';
 
 class AppUpdateScreen extends StatelessWidget {
@@ -16,15 +16,8 @@ class AppUpdateScreen extends StatelessWidget {
     this.updateMessage = 'إصدار جديد متاح مع تحسينات وميزات جديدة!',
   });
 
-  Future<void> _openStore() async {
-    // Replace with actual store URLs
-    const playStoreUrl =
-        'https://play.google.com/store/apps/details?id=com.example.ejari_mobile';
-    final Uri url = Uri.parse(playStoreUrl);
-
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    }
+  Future<void> _openDownload() async {
+    await AppVersionService.openUpdateDownload();
   }
 
   @override
@@ -111,7 +104,7 @@ class AppUpdateScreen extends StatelessWidget {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton.icon(
-                    onPressed: _openStore,
+                    onPressed: _openDownload,
                     icon: const Icon(Icons.download),
                     label: const Text(
                       'تحديث الآن',
