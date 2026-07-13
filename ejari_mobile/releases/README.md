@@ -9,7 +9,7 @@
 | صفحة التحميل (GitHub Pages) | `https://m7moud2.github.io/ejari-web/docs/download/` |
 | صفحة الترويج | `https://m7moud2.github.io/ejari-web/promo/` |
 | أحدث إصدار مباشرة | `https://github.com/m7moud2/ejari-web/releases/latest` |
-| تحميل APK مباشرة | `https://github.com/m7moud2/ejari-web/releases/download/v1.2.1/ejari-1.2.1.apk` |
+| تحميل APK مباشرة | `https://github.com/m7moud2/ejari-web/releases/download/v1.2.2/ejari-1.2.2.apk` |
 
 > GitHub Pages مفعّل من فرع `main` (جذر المستودع). صفحة التحميل بعد الدفع: `/docs/download/`.
 
@@ -45,11 +45,11 @@ git push origin main
 cd ejari_mobile
 
 flutter build apk --release --dart-define=DEMO_MODE=false
-cp build/app/outputs/flutter-apk/app-release.apk releases/ejari-1.2.1.apk
+cp build/app/outputs/flutter-apk/app-release.apk releases/ejari-1.2.2.apk
 
-gh release create v1.2.1 releases/ejari-1.2.1.apk \
+gh release create v1.2.2 releases/ejari-1.2.2.apk \
   --repo m7moud2/ejari-web \
-  --title "Ejari 1.2.1" \
+  --title "Ejari 1.2.2" \
   --notes "$(cat <<'EOF'
 ## ما الجديد
 - محفظة المستأجر وتذكيرات الدفع
@@ -98,7 +98,7 @@ gh api repos/m7moud2/ejari-web/releases --paginate \
 
 > ملاحظة: العدد يعدّ التحميلات عبر روابط GitHub Releases فقط (وهي روابط أزرار التحميل الحالية).
 
-## تثبيت APK (عملاء حقيقيون — v1.2.0+)
+## تثبيت APK (عملاء حقيقيون — v1.2.2+)
 
 1. فعّل **مصادر غير معروفة** على جهاز Android.
 2. افتح رابط التحميل من الهاتف واضغط **تحميل**.
@@ -112,7 +112,7 @@ gh api repos/m7moud2/ejari-web/releases --paginate \
 
 | الملف | الوصف |
 |-------|--------|
-| `ejari-1.2.1.apk` | أحدث إنتاج — محفظة + إقامة قصيرة + Firebase |
+| `ejari-1.2.2.apk` | أحدث إنتاج — محفظة + إقامة قصيرة + Firebase |
 | `index.html` | صفحة تحميل عربية للمشاركة |
 
 ## Firebase
