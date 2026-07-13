@@ -132,11 +132,23 @@ files = [
 patterns = [
     (re.compile(r"https://github\.com/m7moud2/ejari-web/releases/download/v[\d.]+/ejari-[\d.]+\.apk"), direct),
     (re.compile(r"https://github\.com/m7moud2/ejari-web/releases/latest/download/ejari-[\d.]+\.apk"), direct),
+    # Keep URL-encoded GitHub download paths in QR data in sync.
+    (
+        re.compile(
+            r"https%3A%2F%2Fgithub\.com%2Fm7moud2%2Fejari-web%2Freleases%2Fdownload%2Fv[\d.]+%2Fejari-[\d.]+\.apk"
+        ),
+        direct.replace(":", "%3A")
+        .replace("/", "%2F")
+        .replace("?", "%3F")
+        .replace("=", "%3D"),
+    ),
     (re.compile(r"ejari-[\d.]+\.apk"), f"ejari-{version}.apk"),
     (re.compile(r"const APP_VERSION = '[^']+'"), f"const APP_VERSION = '{version}'"),
     (re.compile(r"الإصدار [\d.]+"), f"الإصدار {version}"),
     (re.compile(r"Ejari [\d.]+"), f"Ejari {version}"),
-    (re.compile(r"\bv[\d.]+\b"), f"v{version}"),
+    # App version tags only — never touch third-party paths like qrserver.com/v1/
+    (re.compile(r"(?<!qrserver\.com)/v\d+(?:\.\d+)+\b"), f"/v{version}"),
+    (re.compile(r"(?<![A-Za-z0-9./])v\d+(?:\.\d+)+\b"), f"v{version}"),
 ]
 
 # Safer targeted version display replacements for remaining hardcoded versions
