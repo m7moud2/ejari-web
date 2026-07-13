@@ -155,11 +155,33 @@ class _OwnerViewingsPanelState extends State<OwnerViewingsPanel> {
     }
 
     if (_items.isEmpty) {
-      return const EjariSurfaceCard(
+      return EjariSurfaceCard(
         elevated: false,
-        child: Text(
-          'لا توجد طلبات معاينة حالياً.',
-          style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'لا توجد طلبات معاينة حالياً.',
+              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+            ),
+            if (widget.maxItems <= 8) ...[
+              const SizedBox(height: 8),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const OwnerViewingsScreen(),
+                    ),
+                  ),
+                  icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                  label: const Text('فتح صفحة المعاينات',
+                      style: TextStyle(fontSize: 11)),
+                ),
+              ),
+            ],
+          ],
         ),
       );
     }

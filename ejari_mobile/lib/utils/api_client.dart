@@ -74,6 +74,7 @@ class ApiClient {
   static Future<http.Response> get(String path) async {
     if (AppConfig.demoMode) return _demoResponse(path);
     final baseUrl = await getBaseUrl();
+    if (baseUrl.isEmpty) return _demoResponse(path);
     final uri = Uri.parse('$baseUrl$path');
     final headers = await _getHeaders();
 
@@ -88,6 +89,7 @@ class ApiClient {
       String path, Map<String, dynamic> body) async {
     if (AppConfig.demoMode) return _demoResponse(path, method: 'POST');
     final baseUrl = await getBaseUrl();
+    if (baseUrl.isEmpty) return _demoResponse(path, method: 'POST');
     final uri = Uri.parse('$baseUrl$path');
     final headers = await _getHeaders();
 
@@ -106,6 +108,7 @@ class ApiClient {
       String path, Map<String, dynamic> body) async {
     if (AppConfig.demoMode) return _demoResponse(path, method: 'PUT');
     final baseUrl = await getBaseUrl();
+    if (baseUrl.isEmpty) return _demoResponse(path, method: 'PUT');
     final uri = Uri.parse('$baseUrl$path');
     final headers = await _getHeaders();
 
@@ -123,6 +126,7 @@ class ApiClient {
   static Future<http.Response> delete(String path) async {
     if (AppConfig.demoMode) return _demoResponse(path, method: 'DELETE');
     final baseUrl = await getBaseUrl();
+    if (baseUrl.isEmpty) return _demoResponse(path, method: 'DELETE');
     final uri = Uri.parse('$baseUrl$path');
     final headers = await _getHeaders();
 

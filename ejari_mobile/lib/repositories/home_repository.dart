@@ -3,11 +3,13 @@ import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import '../services/firestore_property_service.dart';
 import '../services/trust_score_service.dart';
+import '../services/viewing_appointment_service.dart';
 import '../utils/rental_schedule_utils.dart';
 import '../utils/account_id_service.dart';
 import '../services/maintenance_service.dart';
 import '../models/home_stats_model.dart';
 import '../models/booking_status.dart';
+import '../models/viewing_appointment.dart';
 
 class HomeRepository {
   Future<HomeStatsModel> fetchHomeStats(String role) async {
@@ -261,6 +263,12 @@ class HomeRepository {
     final propertyPerformance =
         await DataService.getOwnerPropertyPerformance(ownerId);
     final topPerf = propertyPerformance.isNotEmpty ? propertyPerformance.first : null;
+    final viewings = await ViewingAppointmentService.getForOwner(ownerId);
+    final pendingViewings = viewings
+        .where((a) =>
+            a.status == ViewingStatus.requested ||
+            a.status == ViewingStatus.rescheduled)
+        .length;
 
     return {
       'userName': user?['name'] ?? 'المالك',
@@ -279,6 +287,7 @@ class HomeRepository {
       'pendingProperties':
           properties.where((p) => p['status'] == 'pending').length,
       'pendingBookings': pending,
+      'pendingViewings': pendingViewings,
       'monthlyRevenue': revenue,
       'todayIncome': todayIncome.round(),
       'smartPricingHint': properties.isNotEmpty
@@ -326,7 +335,12 @@ class HomeRepository {
       'subscriptionEndDate': sub['end_date'],
       'daysUntilSubscriptionExpiry': daysUntilExpiry,
       'subscriptionExpiringSoon': subscriptionExpiringSoon,
-      'contextualAction': _ownerContextualAction(pending, nearSubLimit),
+      'contextualAction': _ownerContextualAction(
+        pendingBookings: pending,
+        pendingViewings: pendingViewings,
+        overdueCount: overdue.length,
+        nearLimit: nearSubLimit,
+      ),
       'banner': nearSubLimit
           ? 'تنبيه: اقتربت من حد الباقة — ${sub['properties_used']}/${sub['properties_limit'] == -1 ? '∞' : sub['properties_limit']} عقار'
           : 'باقتك: ${sub['plan_name']}${sub['plan_id'] == 'gold' ? ' ⭐' : ''} — '
@@ -359,13 +373,34 @@ class HomeRepository {
     return null;
   }
 
-  Map<String, dynamic>? _ownerContextualAction(int pending, bool nearLimit) {
-    if (pending > 0) {
+  Map<String, dynamic>? _ownerContextualAction({
+    required int pendingBookings,
+    required int pendingViewings,
+    required int overdueCount,
+    required bool nearLimit,
+  }) {
+    if (pendingViewings > 0) {
+      return {
+        'title': 'طلبات معاينة بانتظارك',
+        'subtitle': '$pendingViewings معاينة تحتاج موافقة أو جدولة',
+        'icon': 'viewings',
+        'badge': pendingViewings,
+      };
+    }
+    if (overdueCount > 0) {
+      return {
+        'title': 'تذكيرات تحصيل',
+        'subtitle': '$overdueCount مستأجر متأخر — أرسل تذكيراً من التحصيل',
+        'icon': 'collection',
+        'badge': overdueCount,
+      };
+    }
+    if (pendingBookings > 0) {
       return {
         'title': 'طلبات بانتظارك',
-        'subtitle': '$pending حجز يحتاج مراجعتك',
+        'subtitle': '$pendingBookings حجز يحتاج مراجعتك',
         'icon': 'requests',
-        'badge': pending,
+        'badge': pendingBookings,
       };
     }
     if (nearLimit) {

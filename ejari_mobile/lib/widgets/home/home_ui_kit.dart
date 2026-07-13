@@ -162,6 +162,7 @@ class HomeQuickLookTile {
   final String? hint;
   final IconData icon;
   final Color color;
+  final VoidCallback? onTap;
 
   const HomeQuickLookTile({
     required this.label,
@@ -169,6 +170,7 @@ class HomeQuickLookTile {
     this.hint,
     required this.icon,
     required this.color,
+    this.onTap,
   });
 }
 
@@ -190,59 +192,73 @@ class HomeQuickLookRow extends StatelessWidget {
           final compact = constraints.maxWidth < 340;
           return Row(
             children: items.map((tile) {
+              final content = Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: compact ? 32 : 36,
+                    height: compact ? 32 : 36,
+                    decoration: BoxDecoration(
+                      color: tile.color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(tile.icon,
+                        color: tile.color, size: compact ? 16 : 18),
+                  ),
+                  const SizedBox(height: 5),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      tile.value,
+                      style: TextStyle(
+                        fontSize: compact ? 12 : 13,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    tile.label,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: compact ? 8 : 9,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  if (tile.hint != null && !compact)
+                    Text(
+                      tile.hint!,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 8,
+                        color: tile.color.withOpacity(0.85),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                ],
+              );
               return Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 2),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: compact ? 32 : 36,
-                        height: compact ? 32 : 36,
-                        decoration: BoxDecoration(
-                          color: tile.color.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Icon(tile.icon, color: tile.color, size: compact ? 16 : 18),
-                      ),
-                      const SizedBox(height: 5),
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          tile.value,
-                          style: TextStyle(
-                            fontSize: compact ? 12 : 13,
-                            fontWeight: FontWeight.w900,
-                            color: AppTheme.textPrimary,
+                  child: tile.onTap == null
+                      ? content
+                      : Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: tile.onTap,
+                            borderRadius: BorderRadius.circular(10),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: content,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        tile.label,
-                        textAlign: TextAlign.center,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: compact ? 8 : 9,
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                      if (tile.hint != null && !compact)
-                        Text(
-                          tile.hint!,
-                          textAlign: TextAlign.center,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 8,
-                            color: tile.color.withOpacity(0.85),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                    ],
-                  ),
                 ),
               );
             }).toList(),

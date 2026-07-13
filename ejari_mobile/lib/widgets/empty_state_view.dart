@@ -8,6 +8,8 @@ class EmptyStateView extends StatelessWidget {
   final String? subtitle;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final IconData actionIcon;
+  final bool compact;
 
   const EmptyStateView({
     super.key,
@@ -16,29 +18,34 @@ class EmptyStateView extends StatelessWidget {
     this.subtitle,
     this.actionLabel,
     this.onAction,
+    this.actionIcon = Icons.refresh_rounded,
+    this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final pad = compact ? 16.0 : 32.0;
+    final iconSize = compact ? 36.0 : 56.0;
+    final titleSize = compact ? 14.0 : 18.0;
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(pad),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: EdgeInsets.all(compact ? 12 : 20),
               decoration: BoxDecoration(
                 color: AppTheme.primaryColor.withOpacity(0.08),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 56, color: AppTheme.primaryColor),
+              child: Icon(icon, size: iconSize, color: AppTheme.primaryColor),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: compact ? 12 : 20),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 18,
+              style: TextStyle(
+                fontSize: titleSize,
                 fontWeight: FontWeight.w900,
                 color: AppTheme.textPrimary,
               ),
@@ -48,23 +55,26 @@ class EmptyStateView extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 subtitle!,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppTheme.textSecondary,
-                  fontSize: 14,
+                  fontSize: compact ? 11 : 14,
                   height: 1.4,
                 ),
                 textAlign: TextAlign.center,
               ),
             ],
             if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: 20),
+              SizedBox(height: compact ? 12 : 20),
               ElevatedButton.icon(
                 onPressed: onAction,
-                icon: const Icon(Icons.refresh_rounded),
+                icon: Icon(actionIcon, size: compact ? 16 : 20),
                 label: Text(actionLabel!),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor,
                   foregroundColor: Colors.white,
+                  padding: compact
+                      ? const EdgeInsets.symmetric(horizontal: 14, vertical: 8)
+                      : null,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                   ),

@@ -62,8 +62,10 @@ class PropertyProvider extends ChangeNotifier {
       _saleProperties =
           properties.where((p) => p['listingMode'] == 'for_sale').toList();
     } catch (e) {
-      _errorMessage = 'Failed to load properties: $e';
-      debugPrint(_errorMessage);
+      _errorMessage = e is String
+          ? e
+          : 'تعذر تحميل العقارات. تحقق من الاتصال وحاول مرة أخرى';
+      debugPrint('PropertyProvider: $_errorMessage');
     } finally {
       _setLoading(false);
     }

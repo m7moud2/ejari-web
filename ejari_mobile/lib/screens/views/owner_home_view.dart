@@ -43,8 +43,6 @@ class OwnerHomeView extends StatelessWidget {
     final trustData = stats['trustData'] is Map
         ? Map<String, dynamic>.from(stats['trustData'] as Map)
         : null;
-    final vacantCount =
-        (stats['vacantBeds'] as List?)?.length ?? 0;
 
     return RefreshIndicator(
       color: AppTheme.accentColor,
@@ -86,15 +84,33 @@ class OwnerHomeView extends StatelessWidget {
                     HomeQuickLookTile(
                       label: 'تحصيل معلّق',
                       value: '${stats['pendingCollection'] ?? 0}',
+                      hint: (stats['lateInstallments'] as num?)?.toInt() != null &&
+                              (stats['lateInstallments'] as num).toInt() > 0
+                          ? '${stats['lateInstallments']} متأخر'
+                          : 'افتح التحصيل',
                       icon: Icons.pending_actions_rounded,
                       color: const Color(0xFF2D6A5A),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const OwnerCollectionScreen(),
+                        ),
+                      ),
                     ),
                     HomeQuickLookTile(
-                      label: 'أماكن فاضية',
-                      value: '$vacantCount',
-                      hint: vacantCount > 0 ? 'متاحة' : 'ممتلئ',
-                      icon: Icons.bed_outlined,
+                      label: 'معاينات',
+                      value: '${stats['pendingViewings'] ?? 0}',
+                      hint: ((stats['pendingViewings'] as num?)?.toInt() ?? 0) > 0
+                          ? 'بانتظارك'
+                          : 'لا جديد',
+                      icon: Icons.visibility_rounded,
                       color: AppTheme.accentColor,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const OwnerViewingsScreen(),
+                        ),
+                      ),
                     ),
                   ]),
                   const SizedBox(height: AppTheme.spaceSm),
@@ -534,27 +550,33 @@ class OwnerHomeView extends StatelessWidget {
     final action =
         Map<String, dynamic>.from(stats['contextualAction'] as Map? ?? {});
     final badge = action['badge'];
-    final isRequests = action['icon'] == 'requests';
+    final iconKey = action['icon']?.toString() ?? 'requests';
+
+    IconData iconData;
+    Widget page;
+    switch (iconKey) {
+      case 'viewings':
+        iconData = Icons.visibility_rounded;
+        page = const OwnerViewingsScreen();
+      case 'collection':
+        iconData = Icons.receipt_long_rounded;
+        page = const OwnerCollectionScreen();
+      case 'subscription':
+        iconData = Icons.workspace_premium_rounded;
+        page = const ListingPlansScreen();
+      default:
+        iconData = Icons.inbox_rounded;
+        page = const OwnerBookingRequestsScreen();
+    }
 
     return Material(
       color: AppTheme.accentColor.withOpacity(0.12),
       borderRadius: BorderRadius.circular(AppTheme.cardRadius),
       child: InkWell(
-        onTap: () {
-          if (isRequests) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const OwnerBookingRequestsScreen(),
-              ),
-            );
-          } else {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ListingPlansScreen()),
-            );
-          }
-        },
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => page),
+        ),
         borderRadius: BorderRadius.circular(AppTheme.cardRadius),
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -563,22 +585,30 @@ class OwnerHomeView extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Icon(
-                isRequests
-                    ? Icons.inbox_rounded
-                    : Icons.workspace_premium_rounded,
-                color: AppTheme.primaryColor,
-                size: 20,
-              ),
+              Icon(iconData, color: AppTheme.primaryColor, size: 20),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  action['title']?.toString() ?? '',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 13,
-                    color: AppTheme.textPrimary,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      action['title']?.toString() ?? '',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 13,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    if ((action['subtitle']?.toString() ?? '').isNotEmpty)
+                      Text(
+                        action['subtitle'].toString(),
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: AppTheme.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                  ],
                 ),
               ),
               if (badge != null)
@@ -598,6 +628,23 @@ class OwnerHomeView extends StatelessWidget {
                     ),
                   ),
                 ),
+              const SizedBox(width: 6),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: const Text(
+                  'افتح',
+                  style: TextStyle(
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
             ],
           ),
         ),

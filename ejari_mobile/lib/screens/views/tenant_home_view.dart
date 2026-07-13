@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/home_provider.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/ejari_section.dart';
+import '../../widgets/empty_state_view.dart';
 import '../../widgets/home/home_ui_kit.dart';
 import '../my_contracts_screen.dart';
 import '../my_bookings_screen.dart';
@@ -778,10 +779,18 @@ class _TenantHomeViewState extends State<TenantHomeView> {
     return SizedBox(
       height: 240,
       child: items.isEmpty
-          ? const Center(
-              child: Text(
-                'لا توجد بيانات حالياً',
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+          ? EmptyStateView(
+              compact: true,
+              icon: Icons.home_work_outlined,
+              title: 'لا عقارات هنا حالياً',
+              subtitle: 'افتح الاستكشاف وابحث بالمنطقة أو نوع الوحدة.',
+              actionLabel: 'استكشف العقارات',
+              actionIcon: Icons.search_rounded,
+              onAction: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const SearchResultsScreen(query: ''),
+                ),
               ),
             )
           : ListView.separated(

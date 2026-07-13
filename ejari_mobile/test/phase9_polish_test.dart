@@ -42,15 +42,15 @@ void main() {
   });
 
   group('Phase 9 — release UX wiring', () {
-    test('changelog lists 1.2.2 next-step and favorites polish', () {
+    test('changelog lists 1.2.3 track and owner polish', () {
       final latest = ChangelogScreen.releases.first;
-      expect(latest.version, '1.2.2');
+      expect(latest.version, '1.2.3');
       expect(
-        latest.items.any((i) => i.contains('التالي')),
+        latest.items.any((i) => i.contains('معاينة') || i.contains('تابع')),
         isTrue,
       );
       expect(
-        latest.items.any((i) => i.contains('المفضلة')),
+        latest.items.any((i) => i.contains('المالك') || i.contains('تحصيل')),
         isTrue,
       );
     });

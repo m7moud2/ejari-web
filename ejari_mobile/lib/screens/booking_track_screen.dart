@@ -20,6 +20,7 @@ import '../widgets/skeleton_list_loader.dart';
 import 'booking_qr_screen.dart';
 import 'chat_details_screen.dart';
 import 'contract_view_screen.dart';
+import 'my_viewings_screen.dart';
 import 'owner_rating_screen.dart';
 import 'payment_screen.dart';
 
@@ -411,32 +412,64 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
         icon = Icons.logout_rounded;
       case 'star':
         icon = Icons.star_rounded;
+      case 'visibility':
+      case 'event':
+        icon = Icons.visibility_rounded;
       default:
         icon = Icons.hourglass_top_rounded;
     }
 
-    final actionable =
-        next.$3 == 'pay' ||
+    final actionable = next.$3 == 'pay' ||
+        next.$3 == 'viewing' ||
         next.$3 == 'qr_checkin' ||
         next.$3 == 'checkout' ||
         next.$3 == 'rate';
 
-    return SizedBox(
-      width: double.infinity,
-      height: AppTheme.ctaHeight + 4,
-      child: ElevatedButton.icon(
-        onPressed: actionable ? () => _runPrimaryAction(booking, next.$3) : null,
-        icon: Icon(icon, size: 22),
-        label: Text(
-          next.$2,
-          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+    final helper = switch (next.$3) {
+      'pay' => 'ادفع المتبقي الآن لإصدار العقد وتفعيل الحجز.',
+      'viewing' => 'افتح مواعيد المعاينة لطلب موعد أو متابعة الموعد الحالي.',
+      'qr_checkin' => 'اعرض رمز QR عند الوصول لتسجيل الدخول.',
+      'checkout' => 'سجّل الخروج بعد انتهاء الإقامة.',
+      'rate' => 'قيّم تجربتك مع المالك بعد الإقامة.',
+      'wait' => 'المالك يراجع طلبك — ستصلك إشعارات بأي تحديث.',
+      _ => null,
+    };
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: AppTheme.ctaHeight + 4,
+          child: ElevatedButton.icon(
+            onPressed:
+                actionable ? () => _runPrimaryAction(booking, next.$3) : null,
+            icon: Icon(icon, size: 22),
+            label: Text(
+              next.$2,
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+              disabledBackgroundColor: AppTheme.primaryColor.withOpacity(0.45),
+              disabledForegroundColor: Colors.white,
+            ),
+          ),
         ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppTheme.primaryColor,
-          disabledBackgroundColor: AppTheme.primaryColor.withOpacity(0.45),
-          disabledForegroundColor: Colors.white,
-        ),
-      ),
+        if (helper != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            helper,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 11,
+              height: 1.35,
+              color: AppTheme.textSecondary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -447,6 +480,12 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
     switch (key) {
       case 'pay':
         await _openPayment(booking);
+      case 'viewing':
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MyViewingsScreen()),
+        );
+        if (mounted) _load();
       case 'qr_checkin':
         await Navigator.push(
           context,

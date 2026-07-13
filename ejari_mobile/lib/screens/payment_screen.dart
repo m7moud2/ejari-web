@@ -238,6 +238,69 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return 'دفع آمن وموثق';
   }
 
+  Widget _buildPaymentStageStrip() {
+    final stages = widget.itemType == 'booking'
+        ? const ['عربون', 'متبقي', 'تأكيد']
+        : const ['الملخص', 'الدفع', 'تأكيد'];
+    int activeIndex;
+    if (widget.paymentStage == 'deposit' ||
+        (widget.paymentStage == 'full' && _splitDepositNow)) {
+      activeIndex = 0;
+    } else if (widget.paymentStage == 'remaining') {
+      activeIndex = 1;
+    } else {
+      activeIndex = stages.length - 1;
+    }
+
+    return Row(
+      children: List.generate(stages.length * 2 - 1, (i) {
+        if (i.isOdd) {
+          return Expanded(
+            child: Container(
+              height: 2,
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              color: Colors.white.withOpacity(0.25),
+            ),
+          );
+        }
+        final idx = i ~/ 2;
+        final active = idx <= activeIndex;
+        return Column(
+          children: [
+            Container(
+              width: 22,
+              height: 22,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: active
+                    ? AppTheme.accentColor
+                    : Colors.white.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                '${idx + 1}',
+                style: TextStyle(
+                  color: active ? AppTheme.primaryColor : Colors.white70,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              stages[idx],
+              style: TextStyle(
+                color: active ? Colors.white : Colors.white60,
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        );
+      }),
+    );
+  }
+
   Future<void> _processPayment() async {
     if (!_validateFields()) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -598,6 +661,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     color: Colors.white,
                   ),
                 ),
+                const SizedBox(height: 8),
+                _buildPaymentStageStrip(),
                 const SizedBox(height: 4),
                 Text(
                   _getItemTitle(),

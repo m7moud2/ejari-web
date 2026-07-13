@@ -215,6 +215,7 @@ class _SearchResultsScreenState extends State<SearchResultsScreen> {
                                 subtitle:
                                     'حاول استخدام كلمات مفتاحية مختلفة أو افتح الفلتر المتقدم.',
                                 actionLabel: 'تعديل البحث',
+                                actionIcon: Icons.tune_rounded,
                                 onAction: () => Navigator.pop(context),
                               ),
                             ],

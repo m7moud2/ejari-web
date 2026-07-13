@@ -40,29 +40,30 @@ class DefaultFirebaseOptions {
     }
   }
 
+  // Project IDs must match android/app/google-services.json + iOS plist.
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyBxVVVTRFiPaLvTkXFCh-rYVPSC4ImagbY',
     appId: '1:1041631611064:web:757c9f9bc4cfc959ab4c4d',
     messagingSenderId: '1041631611064',
-    projectId: 'ejari-ejari-1',
-    authDomain: 'ejari-ejari-1.firebaseapp.com',
-    storageBucket: 'ejari-ejari-1.firebasestorage.app',
+    projectId: 'ejari-elite-1',
+    authDomain: 'ejari-elite-1.firebaseapp.com',
+    storageBucket: 'ejari-elite-1.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDDus2ib_4CL4nvPmlUY2vFFrBP9gBS6j4',
     appId: '1:1041631611064:android:2d10902716ce6ccfab4c4d',
     messagingSenderId: '1041631611064',
-    projectId: 'ejari-ejari-1',
-    storageBucket: 'ejari-ejari-1.firebasestorage.app',
+    projectId: 'ejari-elite-1',
+    storageBucket: 'ejari-elite-1.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBpCIVsfA37PSXwOCaz1aLtd5mXx347T6c',
     appId: '1:1041631611064:ios:fdfee2c4e527a654ab4c4d',
     messagingSenderId: '1041631611064',
-    projectId: 'ejari-ejari-1',
-    storageBucket: 'ejari-ejari-1.firebasestorage.app',
+    projectId: 'ejari-elite-1',
+    storageBucket: 'ejari-elite-1.firebasestorage.app',
     iosBundleId: 'com.ejari.app',
   );
 
@@ -70,8 +71,8 @@ class DefaultFirebaseOptions {
     apiKey: 'AIzaSyBpCIVsfA37PSXwOCaz1aLtd5mXx347T6c',
     appId: '1:1041631611064:ios:f2c8ce9dc6c6869bab4c4d',
     messagingSenderId: '1041631611064',
-    projectId: 'ejari-ejari-1',
-    storageBucket: 'ejari-ejari-1.firebasestorage.app',
+    projectId: 'ejari-elite-1',
+    storageBucket: 'ejari-elite-1.firebasestorage.app',
     iosBundleId: 'com.example.ejariMobile',
   );
 
@@ -79,8 +80,8 @@ class DefaultFirebaseOptions {
     apiKey: 'AIzaSyBxVVVTRFiPaLvTkXFCh-rYVPSC4ImagbY',
     appId: '1:1041631611064:web:3180c6250c8a17bbab4c4d',
     messagingSenderId: '1041631611064',
-    projectId: 'ejari-ejari-1',
-    authDomain: 'ejari-ejari-1.firebaseapp.com',
-    storageBucket: 'ejari-ejari-1.firebasestorage.app',
+    projectId: 'ejari-elite-1',
+    authDomain: 'ejari-elite-1.firebaseapp.com',
+    storageBucket: 'ejari-elite-1.firebasestorage.app',
   );
 }

@@ -273,13 +273,27 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
                           SliverToBoxAdapter(child: _buildFeaturedSection()),
                         SliverToBoxAdapter(child: _buildResultsHeader()),
                         if (_filteredProperties.isEmpty)
-                          const SliverFillRemaining(
+                          SliverFillRemaining(
                             hasScrollBody: false,
                             child: EmptyStateView(
                               icon: Icons.apartment_outlined,
-                              title: 'لا توجد عقارات متاحة',
+                              title: 'لا توجد عقارات مطابقة',
                               subtitle:
-                                  'جرّب تغيير الفلاتر أو البحث أو اسحب للأسفل للتحديث.',
+                                  'جرّب مسح الفلاتر أو تغيير البحث أو المنطقة.',
+                              actionLabel: 'مسح الفلاتر',
+                              actionIcon: Icons.filter_alt_off_rounded,
+                              onAction: () {
+                                setState(() {
+                                  _hubFilter = 'الكل';
+                                  _selectedGovernorate = 'الكل';
+                                  _coastalOnly = false;
+                                  _durationIntentId = null;
+                                  _searchQuery = '';
+                                  _searchController.clear();
+                                  _sort = _ExploreSort.newest;
+                                  _visibleCount = _pageSize;
+                                });
+                              },
                             ),
                           )
                         else
