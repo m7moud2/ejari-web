@@ -7,8 +7,8 @@ import 'package:flutter/foundation.dart';
 /// API_BASE_URL.
 class AppConfig {
   /// Keep in sync with pubspec.yaml `version` (name part).
-  static const String appVersion = '1.1.9';
-  static const int buildNumber = 10;
+  static const String appVersion = '1.1.10';
+  static const int buildNumber = 11;
 
   static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL');
   static const String _demoModeValue = String.fromEnvironment('DEMO_MODE');

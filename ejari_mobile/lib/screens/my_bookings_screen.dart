@@ -23,6 +23,7 @@ import '../utils/safe_parse.dart';
 import '../services/check_in_out_service.dart';
 import '../services/live_sync_service.dart';
 import 'booking_qr_screen.dart';
+import 'booking_track_screen.dart';
 import 'owner_rating_screen.dart';
 
 class MyBookingsScreen extends StatefulWidget {
@@ -417,72 +418,103 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         padding: EdgeInsets.zero,
         child: Column(
         children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(16)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.bookmark, color: statusColor, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          statusText,
-                          style: TextStyle(
-                            color: statusColor,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      dateStr,
-                      style: const TextStyle(
-                          color: AppTheme.textSecondary, fontSize: 12),
-                    ),
-                  ],
+          // Header — tap opens full track screen
+          InkWell(
+            onTap: () {
+              final id = booking['id']?.toString();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BookingTrackScreen(
+                    bookingId: id,
+                    booking: booking,
+                  ),
                 ),
-                if (nextAction != null) ...[
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                          color: AppTheme.primaryColor.withOpacity(0.18)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(nextAction.$1,
-                            size: 16, color: AppTheme.primaryColor),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'الخطوة التالية: ${nextAction.$2}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: AppTheme.primaryColor,
+              ).then((_) => _loadBookings());
+            },
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(16)),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.1),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.bookmark, color: statusColor, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            statusText,
+                            style: TextStyle(
+                              color: statusColor,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            dateStr,
+                            style: const TextStyle(
+                                color: AppTheme.textSecondary, fontSize: 12),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.chevron_left_rounded,
+                              size: 18, color: AppTheme.textSecondary),
+                        ],
+                      ),
+                    ],
                   ),
+                  if (nextAction != null) ...[
+                    const SizedBox(height: 10),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                            color: AppTheme.primaryColor.withOpacity(0.18)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(nextAction.$1,
+                              size: 16, color: AppTheme.primaryColor),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'الخطوة التالية: ${nextAction.$2}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
+                          ),
+                          const Text(
+                            'تابع حجزك',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.accentColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
 

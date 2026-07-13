@@ -112,6 +112,7 @@ class BookingStatus {
     }
   }
 
+  /// Compact 6-step timeline (legacy / list cards).
   static List<Map<String, dynamic>> defaultTimeline(String currentStatus) {
     final current = normalize(currentStatus);
     final steps = <Map<String, dynamic>>[
@@ -167,21 +168,129 @@ class BookingStatus {
       final stepStatus = step['status']?.toString() ?? '';
       final stepIdx = order.indexOf(stepStatus);
       final done = currentIdx >= 0 && stepIdx >= 0 && stepIdx <= currentIdx;
-      final active = stepStatus == current ||
+      final isActive = stepStatus == current ||
           (current == pending && stepStatus == submitted) ||
           (current == viewingScheduled && stepStatus == depositPaid) ||
           (current == confirmed && stepStatus == paid);
       return {
         ...step,
-        'done': done || active,
-        'active': active,
+        'done': done || isActive,
+        'active': isActive,
       };
     }).toList();
   }
 
-  static List<Map<String, dynamic>> buildTimeline(
+  /// Full 10-step tenant tracking timeline for BookingTrackScreen.
+  static List<Map<String, dynamic>> detailedTrackTimeline(
     Map<String, dynamic> booking,
   ) {
+    final current = normalize(booking['status']?.toString());
+    final checkedIn = booking['checkedInAt'] != null;
+    final checkedOut = booking['checkedOutAt'] != null;
+
+    if (current == rejected) {
+      return [
+        {'id': 'submitted', 'label': 'طلب مُرسل', 'done': true},
+        {'id': 'rejected', 'label': 'مرفوض', 'done': true, 'failed': true, 'active': true},
+      ];
+    }
+    if (current == cancelled) {
+      return [
+        {'id': 'submitted', 'label': 'طلب مُرسل', 'done': true},
+        {'id': 'cancelled', 'label': 'ملغي', 'done': true, 'failed': true, 'active': true},
+      ];
+    }
+    if (current == depositRefunded) {
+      return [
+        {'id': 'submitted', 'label': 'طلب مُرسل', 'done': true},
+        {'id': 'deposit', 'label': 'دفع العربون / المقدم', 'done': true},
+        {
+          'id': 'refund',
+          'label': 'استرداد التأمين / تقييم',
+          'done': true,
+          'active': true,
+        },
+      ];
+    }
+    if (current == disputed) {
+      return [
+        {'id': 'submitted', 'label': 'طلب مُرسل', 'done': true},
+        {'id': 'deposit', 'label': 'دفع العربون / المقدم', 'done': true},
+        {
+          'id': 'disputed',
+          'label': 'نزاع — مراجعة إدارية',
+          'done': true,
+          'failed': true,
+          'active': true,
+        },
+      ];
+    }
+
+    // Index of the current step (0..9). Steps before it are done.
+    int progress;
+    if (current == completed) {
+      progress = 9;
+    } else if (checkedOut) {
+      progress = 9;
+    } else if (checkedIn) {
+      progress = 7; // الإقامة جارية
+    } else if (current == active) {
+      progress = 6; // تسجيل الدخول
+    } else if (current == paid || current == confirmed) {
+      progress = 5; // QR جاهز
+    } else if (current == approved) {
+      progress = 3; // إكمال الدفع
+    } else if (current == depositPaid || current == viewingScheduled) {
+      progress = 2; // موافقة المالك
+    } else {
+      progress = 0; // طلب مُرسل
+    }
+
+    final labels = <String>[
+      'طلب مُرسل',
+      'دفع العربون / المقدم',
+      'موافقة المالك',
+      'إكمال الدفع',
+      'العقد جاهز',
+      'QR جاهز للدخول',
+      'تسجيل الدخول (Check-in)',
+      'الإقامة جارية',
+      'تسجيل الخروج (Check-out)',
+      'استرداد التأمين / تقييم',
+    ];
+    final ids = <String>[
+      'submitted',
+      'deposit',
+      'owner_approval',
+      'full_payment',
+      'contract',
+      'qr',
+      'check_in',
+      'stay',
+      'check_out',
+      'refund_rate',
+    ];
+
+    final allDone = current == completed;
+    return List.generate(labels.length, (i) {
+      final done = allDone || i < progress;
+      final isCurrent = !allDone && i == progress;
+      return {
+        'id': ids[i],
+        'label': labels[i],
+        'done': done,
+        'active': isCurrent,
+      };
+    });
+  }
+
+  static List<Map<String, dynamic>> buildTimeline(
+    Map<String, dynamic> booking, {
+    bool detailed = false,
+  }) {
+    if (detailed) {
+      return detailedTrackTimeline(booking);
+    }
     final history = booking['statusHistory'];
     if (history is List && history.isNotEmpty) {
       return history
@@ -189,5 +298,37 @@ class BookingStatus {
           .toList();
     }
     return defaultTimeline(booking['status']?.toString() ?? submitted);
+  }
+
+  /// Next tenant action: (icon, Arabic label, actionKey).
+  static (String icon, String label, String key)? nextActionForBooking(
+    Map<String, dynamic> booking,
+  ) {
+    final status = normalize(booking['status']?.toString());
+    switch (status) {
+      case submitted:
+      case pending:
+      case corporatePending:
+        return ('hourglass', 'انتظر موافقة المالك', 'wait');
+      case approved:
+        return ('payments', 'ادفع الآن', 'pay');
+      case depositPaid:
+      case viewingScheduled:
+        return ('hourglass', 'بانتظار موافقة المالك', 'wait');
+      case paid:
+      case confirmed:
+      case active:
+        if (booking['checkedInAt'] == null) {
+          return ('qr', 'اعرض QR / سجّل دخول', 'qr_checkin');
+        }
+        if (booking['checkedOutAt'] == null) {
+          return ('logout', 'سجّل خروج', 'checkout');
+        }
+        return ('star', 'قيّم', 'rate');
+      case completed:
+        return ('star', 'قيّم', 'rate');
+      default:
+        return null;
+    }
   }
 }

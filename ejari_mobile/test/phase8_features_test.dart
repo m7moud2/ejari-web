@@ -22,8 +22,8 @@ void main() {
 
   group('Phase 8 — production prep', () {
     test('AppConfig has version and demo label', () {
-      expect(AppConfig.appVersion, '1.1.9');
-      expect(AppConfig.buildNumber, 10);
+      expect(AppConfig.appVersion, '1.1.10');
+      expect(AppConfig.buildNumber, 11);
       expect(AppConfig.environmentLabel, 'وضع العرض');
       expect(AppConfig.demoMode, isTrue);
     });
@@ -50,7 +50,7 @@ void main() {
 
     test('AppVersionService checkForUpdates returns null when offline/API fails',
         () async {
-      expect(AppVersionService.fullVersion, '1.1.9+10');
+      expect(AppVersionService.fullVersion, '1.1.10+11');
       // Without a live GitHub release (or when network fails), returns null.
       final latest = await AppVersionService.checkForUpdates();
       // May be null (no release / network) or a newer tag if already published.

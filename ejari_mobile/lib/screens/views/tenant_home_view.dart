@@ -6,6 +6,7 @@ import '../../widgets/ejari_section.dart';
 import '../../widgets/home/home_ui_kit.dart';
 import '../my_contracts_screen.dart';
 import '../my_bookings_screen.dart';
+import '../booking_track_screen.dart';
 import '../tenant_installments_screen.dart';
 import '../search_results_screen.dart';
 import '../payment_screen.dart';
@@ -474,10 +475,22 @@ class _TenantHomeViewState extends State<TenantHomeView> {
     switch (icon) {
       case 'booking':
         iconData = Icons.event_available_rounded;
-        onTap = () => Navigator.push(
+        onTap = () {
+          final bookingId = stats['bookingId']?.toString() ?? '';
+          if (bookingId.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BookingTrackScreen(bookingId: bookingId),
+              ),
+            );
+          } else {
+            Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
             );
+          }
+        };
         break;
       case 'kyc':
         iconData = Icons.verified_user_rounded;

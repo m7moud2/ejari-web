@@ -8,6 +8,16 @@ class ChangelogScreen extends StatelessWidget {
   static const List<({String version, String date, List<String> items})>
       releases = [
     (
+      version: '1.1.10',
+      date: 'يوليو 2026',
+      items: [
+        'شاشة «تابع حجزك» بمسار ١٠ خطوات وتفاصيل الدفع والضمان',
+        'ربط البانر وحجوزاتي وتأكيد الحجز والإشعارات بمتابعة الحجز',
+        'استكشف: بحث، فلاتر (شقق/غرف/أسرّة/بيع)، ترتيب، ومميز',
+        'تحديث مباشر وسحب للتحديث وهياكل تحميل للمتابعة والاستكشاف',
+      ],
+    ),
+    (
       version: '1.1.9',
       date: 'يوليو 2026',
       items: [

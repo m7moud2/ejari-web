@@ -3,8 +3,8 @@ import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
 import 'booking_qr_screen.dart';
+import 'booking_track_screen.dart';
 import 'contract_view_screen.dart';
-import 'my_bookings_screen.dart';
 import 'receipt_screen.dart';
 import '../models/payment_receipt.dart';
 
@@ -181,12 +181,17 @@ class BookingConfirmationScreen extends StatelessWidget {
               _nextStepTile(
                 context,
                 icon: Icons.calendar_month_rounded,
-                title: 'متابعة الحجز',
-                subtitle: 'حالة الطلب، الدفعات، والتذكيرات',
+                title: 'تابع حجزك',
+                subtitle: 'المسار التفصيلي، الدفع، وQR',
                 color: AppTheme.accentColor,
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => BookingTrackScreen(
+                      bookingId: booking['id']?.toString(),
+                      booking: booking,
+                    ),
+                  ),
                 ),
               ),
               if (receipt != null) ...[

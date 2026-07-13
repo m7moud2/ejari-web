@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../navigation/app_navigator.dart';
+import '../screens/booking_track_screen.dart';
 import '../screens/my_bookings_screen.dart';
 import '../screens/owner_booking_requests_screen.dart';
 import '../screens/payment_screen.dart';
@@ -182,7 +183,12 @@ class DeepLinkService {
     }
 
     await AppNavigator.push(
-      MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+      MaterialPageRoute(
+        builder: (_) => BookingTrackScreen(
+          bookingId: id,
+          booking: booking,
+        ),
+      ),
     );
   }
 

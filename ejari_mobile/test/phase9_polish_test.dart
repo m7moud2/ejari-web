@@ -42,15 +42,15 @@ void main() {
   });
 
   group('Phase 9 — release UX wiring', () {
-    test('changelog lists 1.1.9 tenant IA cleanup', () {
+    test('changelog lists 1.1.10 booking track and explore', () {
       final latest = ChangelogScreen.releases.first;
-      expect(latest.version, '1.1.9');
+      expect(latest.version, '1.1.10');
       expect(
-        latest.items.any((i) => i.contains('تنظيف واجهة المستأجر')),
+        latest.items.any((i) => i.contains('تابع حجزك')),
         isTrue,
       );
       expect(
-        latest.items.any((i) => i.contains('حجوزاتي')),
+        latest.items.any((i) => i.contains('استكشف')),
         isTrue,
       );
     });

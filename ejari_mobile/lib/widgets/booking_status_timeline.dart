@@ -5,12 +5,19 @@ import '../theme/app_theme.dart';
 /// Vertical timeline showing booking lifecycle progress.
 class BookingStatusTimeline extends StatelessWidget {
   final Map<String, dynamic> booking;
+  final bool detailed;
+  final String title;
 
-  const BookingStatusTimeline({super.key, required this.booking});
+  const BookingStatusTimeline({
+    super.key,
+    required this.booking,
+    this.detailed = false,
+    this.title = 'مسار الحجز',
+  });
 
   @override
   Widget build(BuildContext context) {
-    final steps = BookingStatus.buildTimeline(booking);
+    final steps = BookingStatus.buildTimeline(booking, detailed: detailed);
 
     return Container(
       width: double.infinity,
@@ -36,10 +43,10 @@ class BookingStatusTimeline extends StatelessWidget {
                     color: AppTheme.primaryColor, size: 18),
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'مسار الحجز',
-                  style: TextStyle(
+                  title,
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: AppTheme.textPrimary,
