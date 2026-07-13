@@ -72,9 +72,16 @@ void main() async {
   // Web demo deep links: ?booking=demo_req_1&property=shared_egy1
   DeepLinkService.enqueueAll(DeepLinkService.parseWebLaunchTargets());
 
+  // Always seed demo accounts so release builds can fall back locally when
+  // Firebase Auth is unavailable / not configured.
+  try {
+    await AuthService.initDemoAccounts();
+  } catch (e) {
+    debugPrint('Demo accounts seed skipped: $e');
+  }
+
   if (AppConfig.demoMode) {
     try {
-      await AuthService.initDemoAccounts();
       await DataService.initProperties();
       await DataService.initDemoBookings();
       await DataService.initDemoReceipts();

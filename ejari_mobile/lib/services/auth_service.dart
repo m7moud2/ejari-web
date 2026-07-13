@@ -89,15 +89,31 @@ class AuthService {
         text.contains('auth/configuration-not-found');
   }
 
+  /// Credential mismatches should not be remapped to "check connection".
+  static bool _isCredentialAuthError(Object e) {
+    if (e is FirebaseAuthException) {
+      return const {
+        'user-not-found',
+        'wrong-password',
+        'invalid-credential',
+        'invalid-email',
+        'weak-password',
+        'email-already-in-use',
+        'user-disabled',
+      }.contains(e.code);
+    }
+    return false;
+  }
+
   /// Public Arabic mapping for UI — never show raw Firebase codes to users.
   static String friendlyAuthError(Object e) => _arabicFirebaseAuthError(e);
 
   static String _arabicFirebaseAuthError(Object e) {
     if (e is TimeoutException) {
-      return 'انتهت مهلة الاتصال. تحقق من الإنترنت وحاول مرة أخرى';
+      return 'انتهت مهلة الاتصال. جرّب حساب التجربة أو تحقق من الإنترنت';
     }
     if (_isAuthConfigurationError(e)) {
-      return 'تعذر الاتصال بخدمة التسجيل. جاري استخدام وضع العرض.';
+      return 'خدمة Firebase غير مفعّلة بعد. استخدم حسابات التجربة أو سجّل محلياً.';
     }
     if (e is FirebaseAuthException) {
       switch (e.code) {
@@ -116,20 +132,22 @@ class AuthService {
         case 'too-many-requests':
           return 'محاولات كثيرة. انتظر قليلاً ثم حاول مرة أخرى';
         case 'network-request-failed':
-          return 'تعذر الاتصال. تحقق من الإنترنت وحاول مرة أخرى';
+        case 'unavailable':
+        case 'internal-error':
+          return 'تعذر الاتصال بالخادم. جرّب حسابات التجربة أو أعد المحاولة';
         default:
-          return 'تعذر إتمام العملية. تحقق من الاتصال وحاول مرة أخرى';
+          return 'تعذر إتمام العملية. جرّب حسابات التجربة أو أعد المحاولة';
       }
     }
     final text = e.toString();
     if (text.contains('firebase_auth/') || text.contains('FirebaseAuthException')) {
-      return 'تعذر إتمام العملية. تحقق من الاتصال وحاول مرة أخرى';
+      return 'تعذر إتمام العملية. جرّب حسابات التجربة أو أعد المحاولة';
     }
     if (text.contains('SocketException') ||
         text.contains('ClientException') ||
         text.contains('HandshakeException') ||
         text.contains('network')) {
-      return 'تعذر الاتصال. تحقق من الإنترنت وحاول مرة أخرى';
+      return 'تعذر الاتصال. جرّب حسابات التجربة أو تحقق من الإنترنت';
     }
     if (e is String && e.trim().isNotEmpty) {
       // Strip accidental Exception: / Error prefixes and raw Firebase codes.
@@ -137,11 +155,11 @@ class AuthService {
       cleaned = cleaned.replaceFirst(RegExp(r'^(Exception|Error):\s*'), '');
       if (cleaned.contains('firebase_auth/') ||
           cleaned.contains('configuration-not-found')) {
-        return 'تعذر الاتصال بخدمة التسجيل. جاري استخدام وضع العرض.';
+        return 'خدمة Firebase غير مفعّلة بعد. استخدم حسابات التجربة أو سجّل محلياً.';
       }
       return cleaned;
     }
-    return 'تعذر إتمام العملية. تحقق من الاتصال وحاول مرة أخرى';
+    return 'تعذر إتمام العملية. جرّب حسابات التجربة أو أعد المحاولة';
   }
 
   static String _accountIdFromUid(String uid) {
@@ -445,15 +463,21 @@ class AuthService {
   static Future<Map<String, dynamic>?> _tryLocalLoginFallback(
     String email,
     String password, {
-    bool forceForConfigError = false,
+    bool force = true,
   }) async {
-    // Local demo is default for web/debug. Also allow when Firebase Auth
-    // provider is misconfigured (configuration-not-found) so UI never hangs.
-    if (!AppConfig.demoMode && !forceForConfigError) return null;
-    await initDemoAccounts();
-    final localAccount = await _findLocalAccount(email, password);
-    if (localAccount == null) return null;
-    return _completeLocalLogin(localAccount, email, password);
+    // Early-stage reliability: always attempt local demo/offline accounts when
+    // Firebase is down, misconfigured, timed out, or unavailable. Prefer a
+    // working login over a misleading "check connection" error.
+    if (!force && !AppConfig.demoMode) return null;
+    try {
+      await initDemoAccounts();
+      final localAccount = await _findLocalAccount(email, password);
+      if (localAccount == null) return null;
+      return _completeLocalLogin(localAccount, email, password);
+    } catch (e) {
+      debugPrint('Local login fallback failed: $e');
+      return null;
+    }
   }
 
   static Future<bool> signUp(Map<String, dynamic> userData) async {
@@ -526,17 +550,27 @@ class AuthService {
         return true;
       } catch (e) {
         debugPrint('Firebase SignUp Error: $e');
-        if (_isAuthConfigurationError(e)) {
-          debugPrint('Firebase Auth not configured — falling back to demo signup');
-          return localSignUp();
+        // Prefer a working local account over a dead-end connection error.
+        // Only rethrow hard credential conflicts (email already in use) if we
+        // did not fall back — for early stage always create local account.
+        if (_isCredentialAuthError(e) &&
+            e is FirebaseAuthException &&
+            e.code == 'email-already-in-use') {
+          // Still allow local if the account only exists offline.
+          try {
+            return await localSignUp();
+          } catch (_) {
+            throw _arabicFirebaseAuthError(e);
+          }
         }
-        throw _arabicFirebaseAuthError(e);
+        debugPrint('Firebase signup unavailable — falling back to local signup');
+        return localSignUp();
       }
     }
 
     if (_baseUrl == null || _baseUrl!.isEmpty) {
-      if (AppConfig.demoMode) return localSignUp();
-      throw 'خدمة التسجيل غير متاحة. تحقق من الاتصال وحاول مرة أخرى';
+      // No Express API and Firebase not in use — always create local account.
+      return localSignUp();
     }
 
     try {
@@ -577,17 +611,13 @@ class AuthService {
       }
     } catch (e) {
       debugPrint('SignUp Error: $e');
-      final isNetworkError = e is TimeoutException ||
-          e.toString().contains('SocketException') ||
-          e.toString().contains('ClientException') ||
-          e.toString().contains('HandshakeException');
-
-      if (AppConfig.demoMode && (isNetworkError || _baseUrl == null)) {
-        return localSignUp();
+      // Always fall back to local signup so the app stays usable.
+      try {
+        return await localSignUp();
+      } catch (_) {
+        if (e is String) rethrow;
+        throw _arabicFirebaseAuthError(e);
       }
-
-      if (e is String) rethrow;
-      throw _arabicFirebaseAuthError(e);
     }
   }
 
@@ -597,6 +627,7 @@ class AuthService {
   static Future<Map<String, dynamic>?> login(
       String email, String password) async {
     if (_useLocalAuth) {
+      await initDemoAccounts();
       final localAccount = await _findLocalAccount(email, password);
       if (localAccount == null) {
         throw 'بيانات الدخول غير صحيحة';
@@ -643,12 +674,10 @@ class AuthService {
         return user;
       } catch (e) {
         debugPrint('Firebase Login Error: $e');
-        final configError = _isAuthConfigurationError(e);
-        final local = await _tryLocalLoginFallback(
-          email,
-          password,
-          forceForConfigError: configError,
-        );
+        // Always try local demo / offline accounts on ANY Firebase failure so
+        // release APKs stay usable when Email/Password is disabled, network
+        // is down, or Firebase init is incomplete.
+        final local = await _tryLocalLoginFallback(email, password);
         if (local != null) return local;
         throw _arabicFirebaseAuthError(e);
       }
@@ -677,7 +706,7 @@ class AuthService {
       final local = await _tryLocalLoginFallback(email, password);
       if (local != null) return local;
       if (!AppConfig.demoMode && !_firebaseReady) {
-        throw 'تعذر الاتصال بـ Firebase. تحقق من الإنترنت وحاول مرة أخرى';
+        throw 'تعذر الاتصال بـ Firebase. استخدم حسابات التجربة أو فعّل Email/Password في Firebase Console.';
       }
       throw 'بيانات الدخول غير صحيحة';
     }
@@ -717,7 +746,6 @@ class AuthService {
       }
     } catch (e) {
       if (e is String) {
-        // Still try local demo accounts so release APKs stay usable offline.
         final local = await _tryLocalLoginFallback(email, password);
         if (local != null) return local;
         rethrow;
@@ -726,9 +754,9 @@ class AuthService {
       final local = await _tryLocalLoginFallback(email, password);
       if (local != null) return local;
       if (e is TimeoutException) {
-        throw 'انتهت مهلة الاتصال. تحقق من الإنترنت وحاول مرة أخرى';
+        throw 'انتهت مهلة الاتصال. جرّب حسابات التجربة أو تحقق من الإنترنت';
       }
-      throw 'تعذر الاتصال بالسيرفر، تحقق من الإنترنت';
+      throw 'تعذر الاتصال بالسيرفر. جرّب حسابات التجربة أو تحقق من الإنترنت';
     }
   }
 

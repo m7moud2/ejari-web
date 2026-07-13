@@ -252,14 +252,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 .validate()) {
                                               setState(() => _isLoading = true);
                                               try {
+                                                // AuthService owns Firebase
+                                                // timeouts + local demo fallback.
                                                 final user =
                                                     await AuthService.login(
                                                   _emailController.text,
                                                   _passwordController.text,
-                                                ).timeout(
-                                                  AppConfig.authTimeout,
-                                                  onTimeout: () =>
-                                                      throw 'انتهت مهلة الاتصال. تحقق من الإنترنت وحاول مرة أخرى',
                                                 );
                                                 if (!mounted) return;
                                                 setState(
@@ -440,8 +438,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               ],
                             ),
                           ),
-                          if (AppConfig.demoMode) ...[
-                            const SizedBox(height: 16),
+                          // Early-stage: always offer seeded demo accounts so
+                          // users are never stuck when Firebase is unavailable.
+                          const SizedBox(height: 16),
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(14),
@@ -459,7 +458,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
-                                      'وضع التجربة: استخدم الحسابات الجاهزة للاستكشاف.',
+                                      'حسابات التجربة جاهزة حتى لو توقف Firebase: user@ejari.app / user123',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: AppTheme.textPrimary,
@@ -524,10 +523,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 await AuthService.login(
                                               account['email']!,
                                               account['password']!,
-                                            ).timeout(
-                                              AppConfig.authTimeout,
-                                              onTimeout: () =>
-                                                  throw 'انتهت مهلة الاتصال. تحقق من الإنترنت وحاول مرة أخرى',
                                             );
                                             if (!mounted) return;
                                             setState(() => _isLoading = false);
@@ -566,7 +561,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 );
                               }).toList(),
                             ),
-                          ],
                         ],
                       ),
                     ),

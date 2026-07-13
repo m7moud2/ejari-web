@@ -4,7 +4,6 @@ import '../services/auth_service.dart';
 import '../widgets/ejari_auth_header.dart';
 import '../widgets/ejari_section.dart';
 import '../widgets/image_upload_widget.dart';
-import '../config/app_config.dart';
 import 'role_picker_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -99,11 +98,8 @@ class _SignupScreenState extends State<SignupScreen> {
           'proof': _proofImage,
         };
       }
-      await AuthService.signUp(payload).timeout(
-        AppConfig.authTimeout,
-        onTimeout: () =>
-            throw 'انتهت مهلة الاتصال. تحقق من الإنترنت وحاول مرة أخرى',
-      );
+      // AuthService owns Firebase timeouts + local demo signup fallback.
+      await AuthService.signUp(payload);
 
       if (!mounted) return;
       setState(() => _isLoading = false);

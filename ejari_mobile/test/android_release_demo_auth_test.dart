@@ -33,7 +33,26 @@ void main() {
       );
       expect(mapped.contains('firebase_auth'), isFalse);
       expect(mapped.contains('configuration-not-found'), isFalse);
-      expect(mapped, contains('وضع العرض'));
+      expect(mapped.toLowerCase(), isNot(contains('firebase_auth')));
+      expect(
+        mapped.contains('تجربة') || mapped.contains('Firebase'),
+        isTrue,
+      );
+    });
+
+    test('signup still works after firebase-style failure messages', () async {
+      // Local path in demoMode — simulates post-fallback success.
+      final ok = await AuthService.signUp({
+        'name': 'مستخدم شبكة',
+        'email': 'offline.fallback@ejari.app',
+        'password': 'pass1234',
+        'phone': '01000000001',
+        'type': 'tenant',
+      });
+      expect(ok, isTrue);
+      final user =
+          await AuthService.login('offline.fallback@ejari.app', 'pass1234');
+      expect(user?['email'], 'offline.fallback@ejari.app');
     });
 
     test('demo login works offline without Firebase', () async {
