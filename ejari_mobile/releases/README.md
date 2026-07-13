@@ -7,99 +7,101 @@
 | الرابط | الاستخدام |
 |--------|-----------|
 | صفحة التحميل (GitHub Pages) | `https://m7moud2.github.io/ejari-web/docs/download/` |
+| صفحة الترويج | `https://m7moud2.github.io/ejari-web/promo/` |
 | أحدث إصدار مباشرة | `https://github.com/m7moud2/ejari-web/releases/latest` |
-| تحميل APK مباشرة | `https://github.com/m7moud2/ejari-web/releases/download/v1.1.8/ejari-1.1.8.apk` |
+| تحميل APK مباشرة | `https://github.com/m7moud2/ejari-web/releases/download/v1.2.1/ejari-1.2.1.apk` |
 
 > GitHub Pages مفعّل من فرع `main` (جذر المستودع). صفحة التحميل بعد الدفع: `/docs/download/`.
 
-## تثبيت APK (اختبار داخلي)
+## العملية القياسية بعد كل تحديث
 
-1. فعّل **مصادر غير معروفة** على جهاز Android (الإعدادات ← الأمان / تثبيت تطبيقات غير معروفة).
-2. افتح رابط التحميل من الهاتف واضغط **تحميل**.
-3. افتح ملف الـ APK واضغط **تثبيت**.
-4. بعد التثبيت، افتح التطبيق وسجّل الدخول بحساب تجريبي:
-   - مستأجر: `user@ejari.app` / `123456`
-   - مالك: `owner@ejari.app` / `123456`
-   - أدمن: `admin@ejari.app` / `123456`
+**أي تحديث للتطبيق يجب أن يصل إلى GitHub وإلى روابط التحميل العامة.**
 
-## نشر إصدار جديد (مهم للتحديثات)
+```bash
+# من مجلد ejari_mobile (أو المستودع الجذر):
+./scripts/publish_release.sh
+```
 
-عندما تبني APK جديد (مثلاً `1.1.9`):
+السكربت يقوم تلقائياً بـ:
+
+1. قراءة الإصدار من `pubspec.yaml`
+2. بناء APK: `flutter build apk --release --dart-define=DEMO_MODE=false`
+3. نسخ الملف إلى `releases/ejari-X.Y.Z.apk`
+4. إنشاء/تحديث GitHub Release عبر `gh release create`
+5. تحديث روابط التحميل في `promo/` و `docs/download/`
+
+ثم ادفع التغييرات:
+
+```bash
+cd ..   # جذر المستودع
+git add promo/ docs/download/ ejari_mobile/releases/ ejari_mobile/scripts/
+git commit -m "Publish Ejari X.Y.Z and update download links"
+git push origin main
+```
+
+### يدوياً (بدون السكربت)
 
 ```bash
 cd ejari_mobile
 
-# 1) ابنِ الـ APK وضعْه هنا باسم واضح
-# flutter build apk --release ...
-# cp build/app/outputs/flutter-apk/app-release.apk releases/ejari-1.1.9.apk
+flutter build apk --release --dart-define=DEMO_MODE=false
+cp build/app/outputs/flutter-apk/app-release.apk releases/ejari-1.2.1.apk
 
-# 2) سجّل الدخول إلى GitHub إن لزم
-gh auth login -h github.com
-
-# 3) أنشئ Release وارفق الـ APK
-gh release create v1.1.9 releases/ejari-1.1.9.apk \
+gh release create v1.2.1 releases/ejari-1.2.1.apk \
   --repo m7moud2/ejari-web \
-  --title "Ejari 1.1.9" \
+  --title "Ejari 1.2.1" \
   --notes "$(cat <<'EOF'
 ## ما الجديد
-- وصف التحديثات بالعربية هنا
+- محفظة المستأجر وتذكيرات الدفع
+- اكتشاف إقامة قصيرة وعروض
+- إصلاحات الحجوزات والمعاينة
+- Firebase Auth + Firestore
 
 EOF
 )"
 ```
 
-بعدها مباشرة:
-
-- رابط التحميل العام يتحدّث عبر `releases/latest`
-- التطبيق يتحقق من أحدث إصدار عبر GitHub Releases API ويفتح صفحة التحميل إن وُجد إصدار أحدث
-
-حدّث أيضاً في الكود قبل البناء:
+حدّث أيضاً قبل البناء:
 
 - `pubspec.yaml` → `version: X.Y.Z+N`
 - `lib/config/app_config.dart` → `appVersion` و `buildNumber`
+
+### مصادقة GitHub CLI
+
+إذا فشل `gh`:
+
+```bash
+gh auth login -h github.com
+# HTTPS → Login with a web browser
+# أو: GH_TOKEN=ghp_xxx gh release create ...
+```
+
+## تثبيت APK (عملاء حقيقيون — v1.2.0+)
+
+1. فعّل **مصادر غير معروفة** على جهاز Android.
+2. افتح رابط التحميل من الهاتف واضغط **تحميل**.
+3. ثبّت الـ APK وافتح التطبيق.
+4. من شاشة التسجيل: أنشئ حساباً ببريدك الحقيقي — البيانات تُحفظ على **Firebase** (مجاني).
+5. لا تعتمد على حسابات العرض (`user@ejari.app`) في نسخة الإنتاج.
+
+> وضع العرض يظهر فقط في نسخ التطوير أو عند البناء بـ `DEMO_MODE=true`.
 
 ## إصدار حالي
 
 | الملف | الوصف |
 |-------|--------|
-| `ejari-1.1.8.apk` | إصلاح تسجيل الدخول / إنشاء الحساب / المحادثات على أندرويد |
+| `ejari-1.2.1.apk` | أحدث إنتاج — محفظة + إقامة قصيرة + Firebase |
 | `index.html` | صفحة تحميل عربية للمشاركة |
 
-> ملفات `.apk` محلية ولا تُرفع إلى git (حجم كبير). تُرفع كـ **Release assets** عبر `gh release create`.
+## Firebase
+
+راجع [`../FIREBASE_SETUP_AR.md`](../FIREBASE_SETUP_AR.md).
 
 ## رفع Google Play (AAB)
 
-### 1. إعداد التوقيع
-
 ```bash
-cp android/key.properties.example android/key.properties
-# عدّل المسارات وكلمات المرور في key.properties
+flutter build appbundle --release --dart-define=DEMO_MODE=false
 ```
-
-### 2. بناء حزمة Play
-
-```bash
-flutter build appbundle --release \
-  --dart-define=API_BASE_URL=https://api.ejari.app/api \
-  --dart-define=DEMO_MODE=false
-```
-
-الملف الناتج: `build/app/outputs/bundle/release/app-release.aab`
-
-### 3. رفع Play Console
-
-1. ادخل [Google Play Console](https://play.google.com/console).
-2. **إنشاء تطبيق** ← اسم «إيجاري» ← فئة «عقارات».
-3. **الإصدار** ← **الإنتاج** (أو اختبار داخلي أولاً).
-4. **إنشاء إصدار جديد** ← ارفع `app-release.aab`.
-5. أكمل: لقطات شاشة، أيقونة، سياسة خصوصية، تصنيف المحتوى.
-6. **مراجعة ونشر**.
-
-### 4. ملاحظات مهمة
-
-- النسخة التجريبية (demo) تعرض شارة **«وضع العرض»** — لا تُرفع للإنتاج.
-- للإنتاج: `--dart-define=DEMO_MODE=false` و `API_BASE_URL` صحيح.
-- رقم الإصدار: `1.1.8+9` (versionName + versionCode).
 
 ## الدعم
 
