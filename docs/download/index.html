@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>تحميل إيجاري — Ejari</title>
-  <meta name="description" content="حمّل تطبيق إيجاري لإدارة الإيجار والعقارات على أندرويد" />
+  <title>تحميل إيجاري — Ejari 1.1.8</title>
+  <meta name="description" content="حمّل تطبيق إيجاري لإدارة الإيجار والعقارات على أندرويد — الإصدار 1.1.8" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f2f2a;
-      --bg-2: #1a4a42;
-      --accent: #2dd4a8;
-      --accent-dark: #0d9488;
-      --text: #f4faf8;
-      --muted: #b7d4cd;
+      --bg: #0F3A30;
+      --bg-2: #1a5244;
+      --accent: #B58D3D;
+      --accent-soft: rgba(181, 141, 61, 0.2);
+      --text: #f6f1e8;
+      --muted: #c5d4ce;
       --card: rgba(255, 255, 255, 0.08);
       --border: rgba(255, 255, 255, 0.14);
     }
@@ -20,11 +21,11 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: "Segoe UI", Tahoma, "Noto Sans Arabic", sans-serif;
+      font-family: "Cairo", "Segoe UI", Tahoma, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(ellipse at 20% 0%, #1f6b5c 0%, transparent 55%),
-        radial-gradient(ellipse at 90% 80%, #0b3d36 0%, transparent 50%),
+        radial-gradient(ellipse at 20% 0%, #1a5244 0%, transparent 55%),
+        radial-gradient(ellipse at 90% 80%, #0a2a22 0%, transparent 50%),
         linear-gradient(160deg, var(--bg), var(--bg-2));
       display: flex;
       align-items: center;
@@ -48,7 +49,7 @@
       color: var(--accent);
     }
     .tagline {
-      margin: 0 0 28px;
+      margin: 0 0 20px;
       color: var(--muted);
       font-size: 1rem;
       line-height: 1.6;
@@ -57,8 +58,8 @@
       display: inline-block;
       padding: 6px 14px;
       border-radius: 999px;
-      background: rgba(45, 212, 168, 0.15);
-      border: 1px solid rgba(45, 212, 168, 0.35);
+      background: var(--accent-soft);
+      border: 1px solid rgba(181, 141, 61, 0.45);
       color: var(--accent);
       font-weight: 700;
       font-size: 0.9rem;
@@ -69,21 +70,25 @@
       width: 100%;
       text-align: center;
       text-decoration: none;
-      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-      color: #062820;
+      background: linear-gradient(135deg, var(--accent), #9a7530);
+      color: #0F3A30;
       font-weight: 800;
-      font-size: 1.15rem;
+      font-size: 1.1rem;
       padding: 16px 20px;
       border-radius: 16px;
-      border: none;
-      cursor: pointer;
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
-      box-shadow: 0 10px 28px rgba(45, 212, 168, 0.3);
+      margin-bottom: 12px;
+      box-shadow: 0 10px 28px rgba(181, 141, 61, 0.28);
     }
-    .btn:hover { transform: translateY(-1px); }
-    .btn:active { transform: translateY(1px); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      box-shadow: none;
+      font-size: 0.98rem;
+      padding: 13px 18px;
+    }
     .changelog {
-      margin: 28px 0 0;
+      margin: 24px 0 0;
       padding: 0;
       list-style: none;
     }
@@ -106,7 +111,7 @@
       background: var(--accent);
     }
     .tip {
-      margin-top: 28px;
+      margin-top: 24px;
       padding: 14px 16px;
       border-radius: 14px;
       background: rgba(0, 0, 0, 0.22);
@@ -119,41 +124,59 @@
     .footer {
       margin-top: 22px;
       text-align: center;
-      font-size: 0.8rem;
-      color: rgba(183, 212, 205, 0.7);
+      font-size: 0.85rem;
+      color: rgba(197, 212, 206, 0.75);
+      line-height: 1.7;
     }
-    .footer a { color: var(--accent); }
+    .footer a { color: var(--accent); font-weight: 700; }
   </style>
 </head>
 <body>
   <main class="shell">
     <h1 class="brand">إيجاري</h1>
-    <p class="tagline">تطبيق إدارة الإيجار والعقارات — حمّله مباشرة على أندرويد</p>
+    <p class="tagline">نظام تشغيل الإيجار — حمّله مباشرة على أندرويد</p>
     <div class="version" id="version-badge">الإصدار 1.1.8</div>
     <a
       class="btn"
       id="download-btn"
-      href="https://github.com/m7moud2/ejari-web/releases/latest/download/ejari-1.1.8.apk"
+      href="https://github.com/m7moud2/ejari-web/releases/download/v1.1.8/ejari-1.1.8.apk"
     >
-      تحميل التطبيق (APK)
+      تحميل التطبيق لأندرويد
+    </a>
+    <a
+      class="btn btn-secondary"
+      href="https://m7moud2.github.io/ejari-web/promo/"
+    >
+      صفحة التعريف الكاملة
+    </a>
+    <a
+      class="btn btn-secondary"
+      href="https://github.com/m7moud2/ejari-web/releases/latest"
+      target="_blank"
+      rel="noopener"
+    >
+      أحدث الإصدارات على GitHub
     </a>
     <ul class="changelog">
-      <li>إصلاح تسجيل الدخول وإنشاء الحساب على أندرويد</li>
-      <li>تحسين المحادثات والدعم داخل التطبيق</li>
-      <li>استقرار أفضل لوضع العرض التجريبي</li>
+      <li>أسِرّة وغرف · يومي/أسبوعي/شهري · وديعة آمنة وQR</li>
+      <li>أدوار: مستأجر، مالك، فني، إدارة</li>
+      <li>درجات ثقة، محفظة، بوت دعم، اشتراكات للملاك</li>
+      <li>البيع = إعلانات مبوبة فقط (بدون عمولة بيع)</li>
     </ul>
     <div class="tip">
       <strong>تثبيت:</strong>
-      فعّل «مصادر غير معروفة / تثبيت تطبيقات غير معروفة» من إعدادات الأمان،
-      ثم افتح ملف الـ APK واضغط تثبيت.
+      فعّل «مصادر غير معروفة»، افتح ملف الـ APK، ثم اضغط تثبيت.
+      لو عندك نسخة قديمة: احذفها أولاً ثم ثبّت 1.1.8.
     </div>
     <p class="footer">
-      آخر الإصدارات على
-      <a href="https://github.com/m7moud2/ejari-web/releases" target="_blank" rel="noopener">GitHub Releases</a>
+      <a href="https://m7moud2.github.io/ejari-web/promo/">promo</a>
+      ·
+      <a href="https://m7moud2.github.io/ejari-web/promo/download.html">تعليمات التحميل</a>
+      ·
+      <a href="https://github.com/m7moud2/ejari-web/releases" target="_blank" rel="noopener">Releases</a>
     </p>
   </main>
   <script>
-    // Keep button pointing at the latest release asset when available.
     (async () => {
       try {
         const res = await fetch(
@@ -174,7 +197,7 @@
             asset.browser_download_url;
         }
       } catch (_) {
-        /* keep static fallback links */
+        /* keep static fallback */
       }
     })();
   </script>
