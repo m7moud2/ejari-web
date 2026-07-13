@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../config/app_config.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  FirebaseAuth? _auth;
   User? _user;
   bool _isLoading = false;
 
@@ -11,16 +13,27 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   AuthProvider() {
-    _auth.authStateChanges().listen((User? newUser) {
-      _user = newUser;
-      notifyListeners();
-    });
+    // Demo / offline builds must never touch Firebase — accessing
+    // FirebaseAuth.instance without initializeApp crashes Android release.
+    if (AppConfig.demoMode) return;
+    try {
+      if (Firebase.apps.isEmpty) return;
+      _auth = FirebaseAuth.instance;
+      _auth!.authStateChanges().listen((User? newUser) {
+        _user = newUser;
+        notifyListeners();
+      });
+    } catch (e) {
+      debugPrint('AuthProvider Firebase skipped: $e');
+    }
   }
 
   Future<bool> signInWithEmail(String email, String password) async {
+    final auth = _auth;
+    if (auth == null) return false;
     try {
       _setLoading(true);
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
+      await auth.signInWithEmailAndPassword(email: email, password: password);
       return true;
     } on FirebaseAuthException catch (e) {
       debugPrint('Auth Error: ${e.message}');
@@ -31,9 +44,11 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<bool> registerWithEmail(String email, String password) async {
+    final auth = _auth;
+    if (auth == null) return false;
     try {
       _setLoading(true);
-      await _auth.createUserWithEmailAndPassword(
+      await auth.createUserWithEmailAndPassword(
           email: email, password: password);
       return true;
     } on FirebaseAuthException catch (e) {
@@ -45,7 +60,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
-    await _auth.signOut();
+    await _auth?.signOut();
   }
 
   void _setLoading(bool value) {

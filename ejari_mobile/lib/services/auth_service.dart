@@ -65,11 +65,21 @@ class AuthService {
   static List<Map<String, String>> get demoAccounts =>
       List.unmodifiable(_demoAccounts);
 
-  static bool get _useLocalAuth => kDebugMode && AppConfig.demoMode;
+  /// Local SharedPreferences auth for demo — must work on Android release APKs
+  /// (kDebugMode is false in release; do not gate on it).
+  static bool get _useLocalAuth => AppConfig.demoMode;
   static bool get _useFirebaseAuth =>
       !AppConfig.demoMode &&
       _baseUrl == null &&
       Firebase.apps.isNotEmpty;
+
+  static bool get _firebaseReady {
+    try {
+      return Firebase.apps.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
 
   static Future<void> _saveAuthToken(
     String token, {
@@ -322,12 +332,56 @@ class AuthService {
   // ─────────────────────────────────────────────
   // SIGN UP
   // ─────────────────────────────────────────────
+  static Future<Map<String, dynamic>?> _completeLocalLogin(
+    Map<String, dynamic> localAccount,
+    String email,
+    String password,
+  ) async {
+    if (localAccount['isBlocked'] == true) {
+      final reason = localAccount['blockReason']?.toString();
+      throw reason != null && reason.isNotEmpty
+          ? 'تم حظر الحساب: $reason'
+          : 'تم حظر هذا الحساب من قبل الإدارة';
+    }
+    if (localAccount['isSuspended'] == true) {
+      final until = localAccount['suspendUntil']?.toString();
+      throw until != null ? 'الحساب معلّق حتى $until' : 'الحساب معلّق مؤقتاً';
+    }
+
+    final role = localAccount['role'] ?? localAccount['type'] ?? 'tenant';
+    final user = _withCompatibleIdentity({
+      ...localAccount,
+      'name': localAccount['name'] ?? 'مستخدم إيجاري',
+      'email': localAccount['email'] ?? email,
+      'role': role.toString(),
+      'type': role.toString(),
+      if (localAccount['password'] != null)
+        'password': localAccount['password'] ?? password,
+    });
+
+    await _storeLocalAccount(
+      user,
+      token: 'local-demo-token',
+    );
+    return user;
+  }
+
+  static Future<Map<String, dynamic>?> _tryLocalLoginFallback(
+    String email,
+    String password,
+  ) async {
+    await initDemoAccounts();
+    final localAccount = await _findLocalAccount(email, password);
+    if (localAccount == null) return null;
+    return _completeLocalLogin(localAccount, email, password);
+  }
+
   static Future<bool> signUp(Map<String, dynamic> userData) async {
     final registrationRoleFields = _publicRegistrationRoleFields(
       userData['requestedRole'] ?? userData['type'] ?? userData['role'],
     );
 
-    if (_useLocalAuth) {
+    Future<bool> localSignUp() async {
       final email = (userData['email'] ?? '').toString().trim().toLowerCase();
       final accountId = await AccountIdService.assignAccountIdForEmail(email);
       final fallbackUser = _buildLocalUser(
@@ -345,14 +399,20 @@ class AuthService {
       return true;
     }
 
+    if (_useLocalAuth) {
+      return localSignUp();
+    }
+
     if (_useFirebaseAuth) {
       try {
         final email = (userData['email'] ?? '').toString().trim();
         final password = (userData['password'] ?? '').toString();
-        final credential = await _firebaseAuth.createUserWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
+        final credential = await _firebaseAuth
+            .createUserWithEmailAndPassword(
+              email: email,
+              password: password,
+            )
+            .timeout(AppConfig.authTimeout);
         final profile = <String, dynamic>{
           'name': userData['name'] ?? '',
           'email': email.toLowerCase(),
@@ -363,10 +423,14 @@ class AuthService {
           'status': 'active',
         };
 
-        await _firestore.collection('users').doc(credential.user!.uid).set(
+        await _firestore
+            .collection('users')
+            .doc(credential.user!.uid)
+            .set(
               profile,
               SetOptions(merge: true),
-            );
+            )
+            .timeout(AppConfig.authTimeout);
         await _storeFirebaseSession(
           firebaseUser: credential.user!,
           profile: profile,
@@ -374,8 +438,13 @@ class AuthService {
         return true;
       } catch (e) {
         debugPrint('Firebase SignUp Error: $e');
-        rethrow;
+        // Fail open to local demo account so UI never hangs forever.
+        return localSignUp();
       }
+    }
+
+    if (_baseUrl == null || _baseUrl!.isEmpty) {
+      return localSignUp();
     }
 
     try {
@@ -392,7 +461,7 @@ class AuthService {
               'address': userData['address'] ?? 'العنوان غير محدد',
             }),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(AppConfig.authTimeout);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -422,22 +491,7 @@ class AuthService {
           e.toString().contains('HandshakeException');
 
       if (AppConfig.demoMode || isNetworkError || _baseUrl == null) {
-        final email = (userData['email'] ?? '').toString().trim().toLowerCase();
-        final accountId = await AccountIdService.assignAccountIdForEmail(email);
-        final fallbackUser = _buildLocalUser(
-          name: userData['name'] ?? '',
-          email: email,
-          role: registrationRoleFields['role'] as String,
-          password: userData['password'] ?? '',
-          offlineSignup: true,
-          accountId: accountId,
-        )..addAll(registrationRoleFields);
-
-        await _storeLocalAccount(
-          fallbackUser,
-          token: 'local-demo-token',
-        );
-        return true;
+        return localSignUp();
       }
 
       rethrow;
@@ -454,101 +508,56 @@ class AuthService {
       if (localAccount == null) {
         throw 'بيانات الدخول غير صحيحة';
       }
-      if (localAccount['isBlocked'] == true) {
-        final reason = localAccount['blockReason']?.toString();
-        throw reason != null && reason.isNotEmpty
-            ? 'تم حظر الحساب: $reason'
-            : 'تم حظر هذا الحساب من قبل الإدارة';
-      }
-      if (localAccount['isSuspended'] == true) {
-        final until = localAccount['suspendUntil']?.toString();
-        throw until != null
-            ? 'الحساب معلّق حتى $until'
-            : 'الحساب معلّق مؤقتاً';
-      }
-
-      final role = localAccount['role'] ?? localAccount['type'] ?? 'tenant';
-      final user = _withCompatibleIdentity({
-        ...localAccount,
-        'name': localAccount['name'] ?? 'مستخدم إيجاري',
-        'email': localAccount['email'] ?? email,
-        'role': role.toString(),
-        'type': role.toString(),
-        if (localAccount['password'] != null)
-          'password': localAccount['password'] ?? password,
-      });
-
-      await _storeLocalAccount(
-        user,
-        token: 'local-demo-token',
-      );
-      return user;
+      return _completeLocalLogin(localAccount, email, password);
     }
 
     if (_useFirebaseAuth) {
-      final credential = await _firebaseAuth.signInWithEmailAndPassword(
-        email: email.trim(),
-        password: password,
-      );
-      final firebaseUser = credential.user;
-      if (firebaseUser == null) {
-        throw 'تعذر تسجيل الدخول';
+      try {
+        final credential = await _firebaseAuth
+            .signInWithEmailAndPassword(
+              email: email.trim(),
+              password: password,
+            )
+            .timeout(AppConfig.authTimeout);
+        final firebaseUser = credential.user;
+        if (firebaseUser == null) {
+          throw 'تعذر تسجيل الدخول';
+        }
+
+        final profile = await _getFirebaseProfile(firebaseUser.uid)
+                .timeout(AppConfig.authTimeout) ??
+            <String, dynamic>{
+              'name': firebaseUser.displayName ?? 'مستخدم إيجاري',
+              'email': firebaseUser.email ?? email,
+              'role': 'tenant',
+              'type': 'tenant',
+            };
+
+        final role = (profile['role'] ?? profile['type'] ?? 'tenant').toString();
+        final firebaseUserData = <String, dynamic>{...profile};
+        if (_readIdentityValue(firebaseUserData, 'uid') == null) {
+          firebaseUserData['uid'] = firebaseUser.uid;
+        }
+        final user = _withCompatibleIdentity({
+          ...firebaseUserData,
+          'role': role,
+          'type': role,
+        });
+        await _storeFirebaseSession(
+          firebaseUser: firebaseUser,
+          profile: user,
+        );
+        return user;
+      } catch (e) {
+        debugPrint('Firebase Login Error: $e');
+        final local = await _tryLocalLoginFallback(email, password);
+        if (local != null) return local;
+        if (e is TimeoutException) {
+          throw 'انتهت مهلة الاتصال. تحقق من الإنترنت وحاول مرة أخرى';
+        }
+        if (e is String) rethrow;
+        throw 'تعذر تسجيل الدخول. حاول مرة أخرى';
       }
-
-      final profile = await _getFirebaseProfile(firebaseUser.uid) ?? <String, dynamic>{
-        'name': firebaseUser.displayName ?? 'مستخدم إيجاري',
-        'email': firebaseUser.email ?? email,
-        'role': 'tenant',
-        'type': 'tenant',
-      };
-
-      final role = (profile['role'] ?? profile['type'] ?? 'tenant').toString();
-      final firebaseUserData = <String, dynamic>{...profile};
-      if (_readIdentityValue(firebaseUserData, 'uid') == null) {
-        firebaseUserData['uid'] = firebaseUser.uid;
-      }
-      final user = _withCompatibleIdentity({
-        ...firebaseUserData,
-        'role': role,
-        'type': role,
-      });
-      await _storeFirebaseSession(
-        firebaseUser: firebaseUser,
-        profile: user,
-      );
-      return user;
-    }
-
-    if (_useLocalAuth) {
-      await initDemoAccounts();
-      final normalizedEmail = email.trim().toLowerCase();
-      final account = _demoAccounts.cast<Map<String, String>?>().firstWhere(
-            (user) =>
-                user?['email'] == normalizedEmail &&
-                user?['password'] == password,
-            orElse: () => null,
-          );
-
-      if (account == null) {
-        throw 'بيانات الدخول غير صحيحة';
-      }
-
-      final user = _withCompatibleIdentity({
-        'id': account['email'],
-        '_id': account['email'],
-        'name': account['name'],
-        'email': account['email'],
-        'role': account['role'],
-        'type': account['role'],
-      });
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_userRoleKey, account['role']!);
-      await prefs.setString(_userIdKey, account['email']!);
-      await prefs.setString(_currentUserEmailKey, account['email']!);
-      await prefs.setString(_userDataKey, jsonEncode(user));
-      await prefs.setBool(_guestModeKey, false);
-      await WalletService.init(userId: account['email']!);
-      return user;
     }
 
     // Debug/demo-only admin shortcut; never available in production builds.
@@ -570,6 +579,12 @@ class AuthService {
       return user;
     }
 
+    if (_baseUrl == null || _baseUrl!.isEmpty) {
+      final local = await _tryLocalLoginFallback(email, password);
+      if (local != null) return local;
+      throw 'بيانات الدخول غير صحيحة';
+    }
+
     try {
       final response = await http
           .post(
@@ -577,7 +592,7 @@ class AuthService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'email': email, 'password': password}),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(AppConfig.authTimeout);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -604,8 +619,18 @@ class AuthService {
         throw err['message'] ?? err['error'] ?? 'بيانات الدخول غير صحيحة';
       }
     } catch (e) {
-      if (e is String) rethrow;
+      if (e is String) {
+        // Still try local demo accounts so release APKs stay usable offline.
+        final local = await _tryLocalLoginFallback(email, password);
+        if (local != null) return local;
+        rethrow;
+      }
       debugPrint('Login Error: $e');
+      final local = await _tryLocalLoginFallback(email, password);
+      if (local != null) return local;
+      if (e is TimeoutException) {
+        throw 'انتهت مهلة الاتصال. تحقق من الإنترنت وحاول مرة أخرى';
+      }
       throw 'تعذر الاتصال بالسيرفر، تحقق من الإنترنت';
     }
   }
@@ -615,15 +640,20 @@ class AuthService {
   // ─────────────────────────────────────────────
   static Future<void> logout() async {
     if (!_useLocalAuth &&
-        Firebase.apps.isNotEmpty &&
+        _firebaseReady &&
         _firebaseAuth.currentUser != null) {
-      await _firebaseAuth.signOut();
+      try {
+        await _firebaseAuth.signOut().timeout(AppConfig.authTimeout);
+      } catch (e) {
+        debugPrint('Firebase signOut skipped: $e');
+      }
     }
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_userRoleKey);
     await ApiClient.clearToken();
     await prefs.remove(_userIdKey);
     await prefs.remove(_userDataKey);
+    await prefs.remove(_currentUserEmailKey);
     await prefs.remove(_guestModeKey);
   }
 
@@ -631,18 +661,22 @@ class AuthService {
   // IS LOGGED IN
   // ─────────────────────────────────────────────
   static Future<bool> isLoggedIn() async {
-    if (_useLocalAuth) {
-      final prefs = await SharedPreferences.getInstance();
-      final isGuest = prefs.getBool(_guestModeKey) ?? false;
-      if (isGuest) return false;
+    final prefs = await SharedPreferences.getInstance();
+    final isGuest = prefs.getBool(_guestModeKey) ?? false;
+    if (isGuest) return false;
+
+    if (_useLocalAuth || AppConfig.demoMode) {
       final token = await ApiClient.getToken() ?? '';
       final userData = prefs.getString(_userDataKey) ?? '';
       return token.isNotEmpty || userData.isNotEmpty;
     }
-    if (_firebaseAuth.currentUser != null) return true;
-    final prefs = await SharedPreferences.getInstance();
-    final isGuest = prefs.getBool(_guestModeKey) ?? false;
-    if (isGuest) return false;
+
+    try {
+      if (_firebaseReady && _firebaseAuth.currentUser != null) return true;
+    } catch (e) {
+      debugPrint('isLoggedIn Firebase check skipped: $e');
+    }
+
     final token = await ApiClient.getToken() ?? '';
     final userData = prefs.getString(_userDataKey) ?? '';
     return token.isNotEmpty || userData.isNotEmpty;
@@ -667,19 +701,25 @@ class AuthService {
   // GET CURRENT USER
   // ─────────────────────────────────────────────
   static Future<Map<String, dynamic>?> getCurrentUser() async {
-    if (_useLocalAuth) {
-      final prefs = await SharedPreferences.getInstance();
-      final raw = prefs.getString(_userDataKey);
-      if (raw != null && raw.isNotEmpty) {
-        try {
-          return _withCompatibleIdentity(jsonDecode(raw) as Map<String, dynamic>);
-        } catch (_) {}
-      }
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_userDataKey);
+    if (raw != null && raw.isNotEmpty) {
+      try {
+        return _withCompatibleIdentity(jsonDecode(raw) as Map<String, dynamic>);
+      } catch (_) {}
+    }
+
+    if (_useLocalAuth || AppConfig.demoMode) {
       return null;
     }
-    final current = _firebaseAuth.currentUser;
-    if (current != null) {
-      final profile = await _getFirebaseProfile(current.uid);
+
+    try {
+      if (!_firebaseReady) return null;
+      final current = _firebaseAuth.currentUser;
+      if (current == null) return null;
+
+      final profile = await _getFirebaseProfile(current.uid)
+          .timeout(AppConfig.authTimeout);
       if (profile != null) {
         final role = (profile['role'] ?? profile['type'] ?? 'tenant').toString();
         final firebaseUserData = <String, dynamic>{...profile};
@@ -700,15 +740,10 @@ class AuthService {
         'role': 'tenant',
         'type': 'tenant',
       });
+    } catch (e) {
+      debugPrint('getCurrentUser Firebase skipped: $e');
+      return null;
     }
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_userDataKey);
-    if (raw != null && raw.isNotEmpty) {
-      try {
-        return _withCompatibleIdentity(jsonDecode(raw) as Map<String, dynamic>);
-      } catch (_) {}
-    }
-    return null;
   }
 
   // ─────────────────────────────────────────────

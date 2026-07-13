@@ -41,10 +41,11 @@ void main() async {
   await initializeDateFormatting('ar');
   EjariErrorFallback.install();
 
-  // Safe Firebase Initialization
+  // Safe Firebase Initialization — never block UI forever
   if (!AppConfig.demoMode) {
     try {
-      await FirebaseService.initialize();
+      await FirebaseService.initialize()
+          .timeout(AppConfig.authTimeout);
     } catch (e) {
       debugPrint('Firebase init skipped/failed safely: $e');
     }
@@ -56,42 +57,54 @@ void main() async {
   try {
     await PushNotificationService.initialize(
       onNotificationTap: DeepLinkService.parseNotificationPayload,
-    );
+    ).timeout(AppConfig.authTimeout);
   } catch (e) {
     debugPrint('Push notifications skipped/failed safely: $e');
   }
 
   // Start live sync polling (demo)
-  await LiveSyncService.instance.start();
+  try {
+    await LiveSyncService.instance.start().timeout(AppConfig.authTimeout);
+  } catch (e) {
+    debugPrint('Live sync start skipped: $e');
+  }
 
   // Web demo deep links: ?booking=demo_req_1&property=shared_egy1
   DeepLinkService.enqueueAll(DeepLinkService.parseWebLaunchTargets());
 
   if (AppConfig.demoMode) {
-    await AuthService.initDemoAccounts();
-    await DataService.initProperties();
-    await DataService.initDemoBookings();
-    await DataService.initDemoReceipts();
-    await MaintenanceService.initDemoRequests();
-    await WalletService.init(userId: 'user@ejari.app');
-    await WalletService.init(userId: 'owner@ejari.app');
-    await WalletService.init(userId: 'tech@ejari.app');
-    await DataService.initDemoJoinRequests();
-    await OperationsFeedService.initDemoFeed();
-    await TenantScoreService.seedDemoScores();
-    await AntiFraudService.seedDemoProfiles();
-    await RosNotificationService.runSmartChecks('owner@ejari.app', 'owner');
-    await DataService.simulateOverduePaymentNotification();
-    await DemoFlowService.ensureFlowBooking();
-    await BedHierarchyService.seedDemoVacancyTracking('owner@ejari.app');
-    await SmartPricingService.saveDiscountScheduler(
-      ownerId: 'owner@ejari.app',
-      vacantDays: 3,
-      discountPercent: 10,
-      enabled: true,
-    );
-    await SmartPricingService.runAutoDiscountCron('owner@ejari.app');
-    await RosNotificationService.runSmartChecks('user@ejari.app', 'tenant');
+    try {
+      await AuthService.initDemoAccounts();
+      await DataService.initProperties();
+      await DataService.initDemoBookings();
+      await DataService.initDemoReceipts();
+      await MaintenanceService.initDemoRequests();
+      await WalletService.init(userId: 'user@ejari.app');
+      await WalletService.init(userId: 'owner@ejari.app');
+      await WalletService.init(userId: 'tech@ejari.app');
+      await DataService.initDemoJoinRequests();
+      await OperationsFeedService.initDemoFeed();
+      await TenantScoreService.seedDemoScores();
+      await AntiFraudService.seedDemoProfiles();
+      await RosNotificationService.runSmartChecks('owner@ejari.app', 'owner');
+      await DataService.simulateOverduePaymentNotification();
+      await DemoFlowService.ensureFlowBooking();
+      await BedHierarchyService.seedDemoVacancyTracking('owner@ejari.app');
+      await SmartPricingService.saveDiscountScheduler(
+        ownerId: 'owner@ejari.app',
+        vacantDays: 3,
+        discountPercent: 10,
+        enabled: true,
+      );
+      await SmartPricingService.runAutoDiscountCron('owner@ejari.app');
+      await RosNotificationService.runSmartChecks('user@ejari.app', 'tenant');
+    } catch (e) {
+      // Fail open: app must still show login/signup/chat UI.
+      debugPrint('Demo seed failed safely: $e');
+      try {
+        await AuthService.initDemoAccounts();
+      } catch (_) {}
+    }
   }
 
   // Load Saved Language Preference

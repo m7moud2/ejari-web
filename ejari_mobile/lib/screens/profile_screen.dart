@@ -828,15 +828,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _openSupportChat() async {
-    if (_userData == null || _userData!['email'] == null) return;
+    if (_userData == null || _userData!['email'] == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('سجّل الدخول أولاً لفتح شات الدعم'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+      return;
+    }
     final email = _userData!['email'].toString();
     final name = _userData!['name']?.toString() ?? 'مستخدم';
     if (!mounted) return;
-    await openSupportChat(
-      context,
-      userEmail: email,
-      userName: name,
-    );
+    try {
+      await openSupportChat(
+        context,
+        userEmail: email,
+        userName: name,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تعذر فتح شات الدعم. حاول مرة أخرى'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+    }
   }
 
   Future<void> _checkForUpdates() async {

@@ -8,6 +8,16 @@ class ChangelogScreen extends StatelessWidget {
   static const List<({String version, String date, List<String> items})>
       releases = [
     (
+      version: '1.1.8',
+      date: 'يوليو 2026',
+      items: [
+        'إصلاح تسجيل الدخول وإنشاء الحساب على أندرويد (وضع العرض)',
+        'شات الدعم يعمل بدون إنترنت في النسخة التجريبية',
+        'مهلة اتصال مع رسالة عربية وزر إعادة المحاولة',
+        'عدم تعليق الواجهة عند فشل Firebase',
+      ],
+    ),
+    (
       version: '1.1.7',
       date: 'يوليو 2026',
       items: [

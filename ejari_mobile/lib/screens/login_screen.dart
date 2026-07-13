@@ -256,6 +256,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                                     await AuthService.login(
                                                   _emailController.text,
                                                   _passwordController.text,
+                                                ).timeout(
+                                                  AppConfig.authTimeout,
+                                                  onTimeout: () =>
+                                                      throw 'انتهت مهلة الاتصال. تحقق من الإنترنت وحاول مرة أخرى',
                                                 );
                                                 if (!mounted) return;
                                                 setState(
@@ -285,16 +289,30 @@ class _LoginScreenState extends State<LoginScreen> {
                                                   );
                                                 }
                                               } catch (e) {
-                                                setState(
-                                                    () => _isLoading = false);
-                                                if (!mounted) return;
-                                                messenger.showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(e.toString()),
-                                                    backgroundColor:
-                                                        AppTheme.errorColor,
-                                                  ),
-                                                );
+                                                if (mounted) {
+                                                  setState(
+                                                      () => _isLoading = false);
+                                                  messenger.showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(
+                                                        e
+                                                            .toString()
+                                                            .replaceFirst(
+                                                                'Exception: ',
+                                                                ''),
+                                                      ),
+                                                      backgroundColor:
+                                                          AppTheme.errorColor,
+                                                      action: SnackBarAction(
+                                                        label: 'إعادة',
+                                                        textColor: Colors.white,
+                                                        onPressed: () {
+                                                          // User can tap دخول again.
+                                                        },
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
                                               }
                                             }
                                           },
@@ -508,6 +526,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 await AuthService.login(
                                               account['email']!,
                                               account['password']!,
+                                            ).timeout(
+                                              AppConfig.authTimeout,
+                                              onTimeout: () =>
+                                                  throw 'انتهت مهلة الاتصال. تحقق من الإنترنت وحاول مرة أخرى',
                                             );
                                             if (!mounted) return;
                                             setState(() => _isLoading = false);
@@ -528,7 +550,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                             setState(() => _isLoading = false);
                                             messenger.showSnackBar(
                                               SnackBar(
-                                                  content: Text(e.toString())),
+                                                content: Text(
+                                                  e.toString().replaceFirst(
+                                                      'Exception: ', ''),
+                                                ),
+                                                backgroundColor:
+                                                    AppTheme.errorColor,
+                                                action: SnackBarAction(
+                                                  label: 'إعادة',
+                                                  textColor: Colors.white,
+                                                  onPressed: () {},
+                                                ),
+                                              ),
                                             );
                                           }
                                         },

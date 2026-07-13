@@ -22,8 +22,8 @@ void main() {
 
   group('Phase 8 — production prep', () {
     test('AppConfig has version and demo label', () {
-      expect(AppConfig.appVersion, '1.1.7');
-      expect(AppConfig.buildNumber, 8);
+      expect(AppConfig.appVersion, '1.1.8');
+      expect(AppConfig.buildNumber, 9);
       expect(AppConfig.environmentLabel, 'وضع العرض');
       expect(AppConfig.demoMode, isTrue);
     });
@@ -49,7 +49,7 @@ void main() {
     });
 
     test('AppVersionService checkForUpdates placeholder returns null', () async {
-      expect(AppVersionService.fullVersion, '1.1.7+8');
+      expect(AppVersionService.fullVersion, '1.1.8+9');
       final latest = await AppVersionService.checkForUpdates();
       expect(latest, isNull);
     });

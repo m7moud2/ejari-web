@@ -42,11 +42,17 @@ void main() {
   });
 
   group('Phase 9 — release UX wiring', () {
-    test('changelog lists 1.1.7 features', () {
+    test('changelog lists 1.1.8 features', () {
       final latest = ChangelogScreen.releases.first;
-      expect(latest.version, '1.1.7');
-      expect(latest.items, contains('تقرير شهري PDF للمالك'));
-      expect(latest.items, contains('شاشة «ما الجديد» بالعربية'));
+      expect(latest.version, '1.1.8');
+      expect(
+        latest.items,
+        contains('إصلاح تسجيل الدخول وإنشاء الحساب على أندرويد (وضع العرض)'),
+      );
+      expect(
+        latest.items,
+        contains('شات الدعم يعمل بدون إنترنت في النسخة التجريبية'),
+      );
     });
 
     test('owner monthly report still exports', () async {

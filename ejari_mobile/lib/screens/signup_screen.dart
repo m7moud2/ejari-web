@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import '../widgets/ejari_auth_header.dart';
 import '../widgets/ejari_section.dart';
 import '../widgets/image_upload_widget.dart';
+import '../config/app_config.dart';
 import 'role_picker_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -98,7 +99,11 @@ class _SignupScreenState extends State<SignupScreen> {
           'proof': _proofImage,
         };
       }
-      await AuthService.signUp(payload);
+      await AuthService.signUp(payload).timeout(
+        AppConfig.authTimeout,
+        onTimeout: () =>
+            throw 'انتهت مهلة الاتصال. تحقق من الإنترنت وحاول مرة أخرى',
+      );
 
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -113,8 +118,15 @@ class _SignupScreenState extends State<SignupScreen> {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString()),
+          content: Text(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
           backgroundColor: AppTheme.errorColor,
+          action: SnackBarAction(
+            label: 'إعادة',
+            textColor: Colors.white,
+            onPressed: () => _submit(skipVerification: skipVerification),
+          ),
         ),
       );
     }

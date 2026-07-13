@@ -4,6 +4,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'support_chat_screen.dart';
 import '../services/auth_service.dart';
 import '../services/support_service.dart';
+import '../config/app_config.dart';
+import 'dart:async';
 
 class HelpCenterScreen extends StatefulWidget {
   const HelpCenterScreen({super.key});
@@ -93,18 +95,46 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   }
 
   Future<void> _openSupportChat() async {
-    final user = await AuthService.getCurrentUser();
-    if (user == null || user['email'] == null) return;
+    try {
+      final user = await AuthService.getCurrentUser()
+          .timeout(AppConfig.authTimeout);
+      final email = user?['email']?.toString();
+      if (email == null || email.isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('سجّل الدخول أولاً لفتح شات الدعم'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+        return;
+      }
 
-    final email = user['email'].toString();
-    final name = user['name']?.toString() ?? 'مستخدم';
-
-    if (!mounted) return;
-    await openSupportChat(
-      context,
-      userEmail: email,
-      userName: name,
-    );
+      final name = user?['name']?.toString() ?? 'مستخدم';
+      if (!mounted) return;
+      await openSupportChat(
+        context,
+        userEmail: email,
+        userName: name,
+      ).timeout(AppConfig.authTimeout);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e is TimeoutException
+                ? 'انتهت مهلة فتح الشات. حاول مرة أخرى'
+                : 'تعذر فتح شات الدعم. حاول مرة أخرى',
+          ),
+          backgroundColor: AppTheme.errorColor,
+          action: SnackBarAction(
+            label: 'إعادة',
+            textColor: Colors.white,
+            onPressed: _openSupportChat,
+          ),
+        ),
+      );
+    }
   }
 
   void _launchWhatsApp() async {
