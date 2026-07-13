@@ -14,8 +14,6 @@ import 'my_contracts_screen.dart';
 import 'help_center_screen.dart';
 import 'edit_profile_screen.dart';
 import 'notification_center_screen.dart';
-import '../main.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'rental_statement_screen.dart';
 import '../services/support_service.dart';
 import '../services/data_service.dart';
@@ -42,10 +40,10 @@ import 'corporate_command_center_screen.dart';
 import 'listing_plans_screen.dart';
 import 'subscriptions_screen.dart';
 import 'changelog_screen.dart';
-import 'app_update_screen.dart';
 import 'about_app_screen.dart';
+import 'account_id_screen.dart';
+import 'payment_reminders_screen.dart';
 import '../services/subscription_service.dart';
-import '../services/app_version_service.dart';
 import '../services/share_app_service.dart';
 import '../services/pdf_export_service.dart';
 import '../config/app_config.dart';
@@ -176,63 +174,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     subtitle: 'الملف والتوثيق ورقم الحساب',
                   ),
                   const SizedBox(height: AppTheme.spaceSm),
-                  _buildMenuCard([
-                    _buildEjariMenuItem('تعديل الملف الشخصي',
-                        Icons.person_outline, AppTheme.primaryColor, () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => const EditProfileScreen()));
-                    }),
-                    if (!_isAdmin)
-                      _buildEjariMenuItem(
-                        'توثيق الحساب',
-                        Icons.verified_user_outlined,
-                        AppTheme.accentColor,
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  const RequestVerificationScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    _buildEjariMenuItem('مركز الإشعارات',
-                        Icons.notifications_outlined, AppTheme.primaryColor,
-                        () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) =>
-                                  const NotificationCenterScreen()));
-                    }, isLast: _isOwner || _isTechnician
-                        ? false
-                        : !_isTenant && !_isAdmin),
-                    if (_isTenant)
-                      _buildEjariMenuItem('أصبح مالكاً',
-                          Icons.business_center_outlined, AppTheme.accentColor,
-                          _showBecomeOwnerDialog, isLast: true)
-                    else if (_isOwner || _isTechnician)
-                      _buildEjariMenuItem('طرق الدفع المحفوظة',
-                          Icons.payment_rounded, AppTheme.primaryColor, () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) =>
-                                    const PaymentMethodsScreen()));
-                      }, isLast: true)
-                    else if (_isAdmin)
-                      _buildEjariMenuItem('لوحة التحكم',
-                          Icons.dashboard_rounded, AppTheme.primaryColor, () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) =>
-                                    const AdminDashboardScreen()));
-                      }, isLast: true),
-                  ]),
+                  _buildMenuCard(_accountMenuItems()),
 
                   const SizedBox(height: AppTheme.spaceXl),
 
@@ -270,11 +212,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: AppTheme.spaceXl),
                   ],
 
-                  // —— خدمات (tenant: maintenance + support chat once) ——
+                  // —— خدمات (tenant: maintenance + companies + support once) ——
                   if (_isTenant) ...[
                     const EjariSectionHeader(
                       title: 'خدمات',
-                      subtitle: 'صيانة ودعم فني',
+                      subtitle: 'صيانة وشركات ودعم',
                     ),
                     const SizedBox(height: AppTheme.spaceSm),
                     _buildMenuCard([
@@ -299,7 +241,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       }),
                       _buildEjariMenuItem('شات الدعم الفني',
                           Icons.support_agent_rounded, AppTheme.primaryColor,
-                          _openSupportChat, isLast: true),
+                          _openSupportChat),
+                      _buildEjariMenuItem(
+                          'أصبح مالكاً',
+                          Icons.business_center_outlined,
+                          AppTheme.accentColor,
+                          _showBecomeOwnerDialog,
+                          isLast: true),
                     ]),
                     const SizedBox(height: AppTheme.spaceXl),
                   ] else if (!_isAdmin) ...[
@@ -331,8 +279,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: AppTheme.spaceSm),
                   _buildMenuCard([
-                    _buildEjariMenuItem('اللغة', Icons.language_rounded,
-                        AppTheme.borderColor, _toggleLanguage),
                     _buildEjariMenuItem('الإعدادات', Icons.settings_outlined,
                         AppTheme.primaryColor, () {
                       Navigator.push(
@@ -359,25 +305,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       AppTheme.accentColor,
                       () => ShareAppService.shareInvite(),
                     ),
-                    if (_isTenant)
-                      _buildEjariMenuItem(
-                        'عن التطبيق',
-                        Icons.info_outline_rounded,
-                        AppTheme.borderColor,
-                        () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const AboutAppScreen(),
-                            ),
-                          );
-                        },
-                      ),
                     _buildEjariMenuItem(
-                      'التحقق من التحديثات',
-                      Icons.system_update_alt_rounded,
+                      'عن التطبيق',
+                      Icons.info_outline_rounded,
                       AppTheme.borderColor,
-                      _checkForUpdates,
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AboutAppScreen(),
+                          ),
+                        );
+                      },
                     ),
                     _buildEjariMenuItem('تسجيل الخروج', Icons.logout_rounded,
                         AppTheme.errorColor, _logout, isLast: true),
@@ -489,6 +428,80 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
     );
+  }
+
+  List<Widget> _accountMenuItems() {
+    if (_isAdmin) {
+      return [
+        _buildEjariMenuItem('تعديل الملف الشخصي', Icons.person_outline,
+            AppTheme.primaryColor, () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const EditProfileScreen()));
+        }),
+        _buildEjariMenuItem('مركز الإشعارات', Icons.notifications_outlined,
+            AppTheme.primaryColor, () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const NotificationCenterScreen()));
+        }),
+        _buildEjariMenuItem('رقم الحساب', Icons.fingerprint_rounded,
+            AppTheme.accentColor, () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const AccountIdScreen()));
+        }),
+        _buildEjariMenuItem('لوحة التحكم', Icons.dashboard_rounded,
+            AppTheme.primaryColor, () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const AdminDashboardScreen()));
+        }, isLast: true),
+      ];
+    }
+
+    final items = <Widget>[
+      _buildEjariMenuItem('تعديل الملف الشخصي', Icons.person_outline,
+          AppTheme.primaryColor, () {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const EditProfileScreen()));
+      }),
+      _buildEjariMenuItem(
+        'توثيق الحساب',
+        Icons.verified_user_outlined,
+        AppTheme.accentColor,
+        () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const RequestVerificationScreen(),
+            ),
+          );
+        },
+      ),
+      _buildEjariMenuItem('مركز الإشعارات', Icons.notifications_outlined,
+          AppTheme.primaryColor, () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => const NotificationCenterScreen()));
+      }),
+      _buildEjariMenuItem('رقم الحساب', Icons.fingerprint_rounded,
+          AppTheme.accentColor, () {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (_) => const AccountIdScreen()));
+      }, isLast: _isTenant),
+    ];
+
+    if (_isOwner || _isTechnician) {
+      items.add(
+        _buildEjariMenuItem('طرق الدفع المحفوظة', Icons.payment_rounded,
+            AppTheme.primaryColor, () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const PaymentMethodsScreen()));
+        }, isLast: true),
+      );
+    }
+
+    return items;
   }
 
   List<Widget> _propertyMenuItems() {
@@ -604,7 +617,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             AppTheme.accentColor, _exportOwnerMonthlyReport, isLast: true),
       ];
     }
-    // Tenant finance: wallet (balance + reminders), payment methods
+    // Tenant finance: wallet, payment methods, dedicated reminders screen
     return [
       _buildEjariMenuItem('محفظتي', Icons.account_balance_wallet_outlined,
           AppTheme.primaryColor, () {
@@ -622,7 +635,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           AppTheme.accentColor, () {
         Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const TenantWalletScreen()));
+            MaterialPageRoute(
+                builder: (_) => const PaymentRemindersScreen()));
       }, isLast: true),
     ];
   }
@@ -847,24 +861,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _toggleLanguage() async {
-    final isArabic = localeNotifier.value.languageCode == 'ar';
-    final next = isArabic ? 'en' : 'ar';
-    localeNotifier.value = isArabic
-        ? const Locale('en', 'US')
-        : const Locale('ar', 'SA');
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('language_code', next);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          isArabic ? 'Language changed to English' : 'تم تغيير اللغة إلى العربية',
-        ),
-      ),
-    );
-  }
-
   Future<void> _openSupportChat() async {
     if (_userData == null || _userData!['email'] == null) {
       if (!mounted) return;
@@ -894,31 +890,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       );
     }
-  }
-
-  Future<void> _checkForUpdates() async {
-    final latest = await AppVersionService.checkForUpdates();
-    if (!mounted) return;
-    if (latest == null || latest == AppVersionService.currentVersion) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'أنت تستخدم أحدث إصدار (${AppVersionService.fullVersion})',
-          ),
-          backgroundColor: AppTheme.primaryColor,
-        ),
-      );
-      return;
-    }
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AppUpdateScreen(
-          currentVersion: AppVersionService.currentVersion,
-          latestVersion: latest,
-        ),
-      ),
-    );
   }
 
   Future<void> _logout() async {

@@ -2,13 +2,14 @@ import 'package:flutter/foundation.dart';
 
 /// Build-time configuration shared by the mobile app.
 ///
-/// Demo mode is the default for distributed APKs so login/signup/chat work
-/// offline without Firebase. Production builds must pass DEMO_MODE=false and
-/// API_BASE_URL.
+/// **Production (release APK):** uses real Firebase Auth + Firestore by default.
+/// **Debug / tests:** demo mode (local SharedPreferences) unless overridden.
+///
+/// Override with `--dart-define=DEMO_MODE=true|false`.
 class AppConfig {
   /// Keep in sync with pubspec.yaml `version` (name part).
-  static const String appVersion = '1.1.10';
-  static const int buildNumber = 11;
+  static const String appVersion = '1.2.1';
+  static const int buildNumber = 12;
 
   static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL');
   static const String _demoModeValue = String.fromEnvironment('DEMO_MODE');
@@ -42,25 +43,31 @@ class AppConfig {
   /// Auth / network wait before showing Arabic timeout + retry.
   static const Duration authTimeout = Duration(seconds: 8);
 
+  /// Demo = local SharedPreferences. Real = Firebase Auth + Firestore.
+  ///
+  /// Default: release → real Firebase; debug/tests → demo.
   static bool get demoMode {
     if (_demoModeValue == 'true') return true;
     if (_demoModeValue == 'false') return false;
-    // Demo-first until production cutover. Override with DEMO_MODE=false.
-    return true;
+    // Release APKs ship with real Firebase; debug/tests stay demo-first.
+    return !kReleaseMode;
   }
 
-  static bool get isProduction => !demoMode && !kDebugMode;
+  static bool get isProduction => !demoMode && kReleaseMode;
+
+  static bool get usesFirebaseBackend => !demoMode;
 
   static String get environmentLabel =>
       demoMode ? 'وضع العرض' : (isProduction ? 'إنتاج' : 'تطوير');
 
   static String get versionLabel => '$appVersion+$buildNumber';
 
+  /// Optional Express API. Empty when using Firebase-only (Spark free tier).
   static String get resolvedApiBaseUrl {
     final configured = apiBaseUrl.trim().replaceAll(RegExp(r'/$'), '');
     if (configured.isNotEmpty) return configured;
 
-    if (demoMode) {
+    if (demoMode || usesFirebaseBackend) {
       return '';
     }
 
@@ -70,9 +77,6 @@ class AppConfig {
       return 'http://10.64.120.170:5050/api';
     }
 
-    throw StateError(
-      'API_BASE_URL is required for release builds. '
-      'Build with --dart-define=API_BASE_URL=https://example.com/api',
-    );
+    return '';
   }
 }

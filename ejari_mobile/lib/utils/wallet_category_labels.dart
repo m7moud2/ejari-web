@@ -34,19 +34,26 @@ class WalletCategoryLabels {
     final type = tx['type']?.toString() ?? '';
     switch (filter) {
       case 'إيجار':
-        return category == 'rent' || category == 'income';
+        return category == 'rent';
       case 'عربون':
         return category == 'booking_deposit' ||
             category == 'deposit' ||
             type == 'escrow';
       case 'استرداد':
         return category == 'refund' || type == 'refund';
+      case 'شحن':
+        return category == 'topup' ||
+            (type == 'income' && category == 'topup') ||
+            (tx['title']?.toString().contains('شحن') ?? false);
       case 'إيداع':
         return tx['type'] == 'credit' ||
             type == 'income' ||
-            type == 'refund';
+            type == 'refund' ||
+            category == 'topup';
       case 'سحب':
-        return tx['type'] == 'expense' || category == 'withdrawal';
+        return tx['type'] == 'expense' ||
+            type == 'withdrawal' ||
+            category == 'withdrawal';
       default:
         return true;
     }

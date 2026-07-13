@@ -1,5 +1,6 @@
 import 'package:ejari_mobile/screens/home_screen.dart';
 import 'package:ejari_mobile/screens/my_bookings_screen.dart';
+import 'package:ejari_mobile/screens/payment_reminders_screen.dart';
 import 'package:ejari_mobile/screens/profile_screen.dart';
 import 'package:ejari_mobile/screens/properties_screen.dart';
 import 'package:ejari_mobile/screens/tenant_wallet_screen.dart';
@@ -107,10 +108,43 @@ void main() {
     expect(find.text('خدمات'), findsOneWidget);
     expect(find.text('عام'), findsOneWidget);
     expect(find.text('شات الدعم الفني'), findsOneWidget);
+    expect(find.text('تذكيرات الدفع'), findsOneWidget);
+    expect(find.text('رقم الحساب'), findsWidgets);
     expect(find.text('مركز المساعدة'), findsNothing);
     expect(find.text('خطط النشر'), findsNothing);
     expect(find.text('تحصيل الإيجارات'), findsNothing);
     expect(find.text('باقتي'), findsNothing);
     expect(find.text('عقاراتي'), findsNothing);
+  });
+
+  testWidgets('payment reminders opens dedicated screen not wallet',
+      (tester) async {
+    await tester.pumpWidget(shell(const ProfileScreen()));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    final remindersTile = find.text('تذكيرات الدفع');
+    await tester.scrollUntilVisible(remindersTile, 200);
+    await tester.pumpAndSettle();
+    await tester.tap(remindersTile, warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PaymentRemindersScreen), findsOneWidget);
+    expect(find.byType(TenantWalletScreen), findsNothing);
+  });
+
+  testWidgets('tenant wallet shows balance escrow and actions', (tester) async {
+    await tester.pumpWidget(shell(const TenantWalletScreen()));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+
+    expect(find.text('الرصيد المتاح'), findsOneWidget);
+    expect(find.text('مبالغ محجوزة (ضمان)'), findsOneWidget);
+    expect(find.text('طلب سحب'), findsOneWidget);
+    expect(find.text('شحن'), findsWidgets);
+    expect(find.text('طرق الدفع'), findsOneWidget);
+    expect(find.text('تذكيرات'), findsOneWidget);
+    expect(find.text('الدفعات القادمة'), findsOneWidget);
   });
 }

@@ -42,15 +42,15 @@ void main() {
   });
 
   group('Phase 9 — release UX wiring', () {
-    test('changelog lists 1.1.10 booking track and explore', () {
+    test('changelog lists 1.2.1 wallet and reminders', () {
       final latest = ChangelogScreen.releases.first;
-      expect(latest.version, '1.1.10');
+      expect(latest.version, '1.2.1');
       expect(
-        latest.items.any((i) => i.contains('تابع حجزك')),
+        latest.items.any((i) => i.contains('تذكيرات')),
         isTrue,
       );
       expect(
-        latest.items.any((i) => i.contains('استكشف')),
+        latest.items.any((i) => i.contains('محفظة')),
         isTrue,
       );
     });

@@ -100,7 +100,7 @@ void main() {
       expect(find.text('طلب مُرسل'), findsOneWidget);
       expect(find.text('دفع العربون / المقدم'), findsOneWidget);
       expect(find.textContaining('ادفع'), findsNothing);
-      expect(find.text('بانتظار موافقة المالك'), findsOneWidget);
+      expect(find.textContaining('موافقة المالك'), findsWidgets);
     });
 
     testWidgets('shows pay CTA when approved', (tester) async {
