@@ -25,6 +25,7 @@ import '../../widgets/trust_score_badge.dart';
 import '../subscriptions_screen.dart';
 import '../manage_properties_screen.dart';
 import '../sales_properties_screen.dart';
+import '../changelog_screen.dart';
 import '../../services/auth_service.dart';
 import '../../services/data_service.dart';
 import '../../services/pdf_export_service.dart';
@@ -300,6 +301,14 @@ class OwnerHomeView extends StatelessWidget {
           label: 'تقرير شهري PDF',
           icon: Icons.picture_as_pdf_rounded,
           onTap: () => _exportOwnerMonthlyReport(context),
+        ),
+        (
+          label: 'ما الجديد',
+          icon: Icons.new_releases_outlined,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ChangelogScreen()),
+          ),
         ),
         (
           label: 'إعلانات البيع',

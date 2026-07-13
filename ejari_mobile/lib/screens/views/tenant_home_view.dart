@@ -24,6 +24,7 @@ import '../help_center_screen.dart';
 import '../favorites_screen.dart';
 import '../for_sale_screen.dart';
 import '../properties_screen.dart';
+import '../changelog_screen.dart';
 import '../../services/demo_flow_service.dart';
 import '../../services/data_service.dart';
 
@@ -350,6 +351,14 @@ class _TenantHomeViewState extends State<TenantHomeView> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const HelpCenterScreen()),
+          ),
+        ),
+        (
+          label: 'ما الجديد',
+          icon: Icons.new_releases_outlined,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ChangelogScreen()),
           ),
         ),
         if (_showDemoLink)

@@ -175,7 +175,7 @@ class AdminHomeView extends StatelessWidget {
         (stats['disputedBookings'] as num?)?.toInt() ??
         (stats['openDisputes'] as num?)?.toInt() ??
         0;
-    final botEsc = (stats['botEscalations'] as num?)?.toInt() ?? 0;
+    final pendingProps = (stats['pendingProperties'] as num?)?.toInt() ?? 0;
 
     return Row(
       children: [
@@ -196,6 +196,22 @@ class AdminHomeView extends StatelessWidget {
         Expanded(
           child: _countAction(
             context,
+            label: 'عقارات معلّقة',
+            count: pendingProps,
+            icon: Icons.home_work_rounded,
+            color: AppTheme.borderColor,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AdminPropertiesScreen(),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: _countAction(
+            context,
             label: 'حجوزات متنازع',
             count: disputes,
             icon: Icons.gavel_rounded,
@@ -205,20 +221,6 @@ class AdminHomeView extends StatelessWidget {
               MaterialPageRoute(
                 builder: (_) => const AdminServiceRequestsScreen(),
               ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _countAction(
-            context,
-            label: 'تصعيدات البوت',
-            count: botEsc,
-            icon: Icons.smart_toy_rounded,
-            color: Colors.orange,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AdminSupportScreen()),
             ),
           ),
         ),
@@ -335,6 +337,13 @@ class AdminHomeView extends StatelessWidget {
           compact: true,
         ),
         EjariStatTile(
+          icon: Icons.home_work_outlined,
+          label: 'عقارات قيد المراجعة',
+          value: '${stats['pendingProperties'] ?? 0}',
+          accentColor: AppTheme.borderColor,
+          compact: true,
+        ),
+        EjariStatTile(
           icon: Icons.lock_rounded,
           label: 'الضمان',
           value: '${stats['escrowBalance'] ?? 0} ج.م',
@@ -386,6 +395,18 @@ class AdminHomeView extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (_) => const VerificationScreen(),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        _alert(
+          context,
+          '${stats['pendingProperties'] ?? 0} عقارات بانتظار الموافقة',
+          AppTheme.borderColor,
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const AdminPropertiesScreen(),
             ),
           ),
         ),

@@ -48,6 +48,7 @@ import 'app_update_screen.dart';
 import '../services/subscription_service.dart';
 import '../services/app_version_service.dart';
 import '../services/share_app_service.dart';
+import '../services/pdf_export_service.dart';
 import '../config/app_config.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -567,7 +568,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               context,
               MaterialPageRoute(
                   builder: (_) => const OwnerCollectionScreen()));
-        }, isLast: true),
+        }),
+        _buildEjariMenuItem('تقرير شهري PDF', Icons.picture_as_pdf_rounded,
+            AppTheme.accentColor, _exportOwnerMonthlyReport, isLast: true),
       ];
     }
     return [
@@ -584,6 +587,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
             MaterialPageRoute(builder: (_) => const RentalStatementScreen()));
       }, isLast: true),
     ];
+  }
+
+  Future<void> _exportOwnerMonthlyReport() async {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('جاري إنشاء التقرير الشهري...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+    try {
+      final ownerId = _userData?['email']?.toString() ?? 'owner@ejari.app';
+      final report = await DataService.exportOwnerMonthlyReport(ownerId);
+      await PdfExportService.shareOwnerMonthlyReportPdf(report);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم تصدير التقرير الشهري كـ PDF'),
+          backgroundColor: AppTheme.primaryColor,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تعذر تصدير التقرير: $e'),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+    }
   }
 
   Widget _buildAccountIdCard() {

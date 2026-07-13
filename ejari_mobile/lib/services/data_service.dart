@@ -3891,14 +3891,21 @@ class DataService {
           st != MaintenanceStatus.rejected;
     }).length;
 
-    final pendingPayments = (await getBookings())
+    final bookings = await getBookings();
+    final pendingPayments = bookings
         .where((b) =>
             b['status'] == 'deposit_paid' || b['status'] == 'pending')
         .length;
 
-    final disputedBookings = (await getBookings())
+    final disputedBookings = bookings
         .where((b) => b['status']?.toString() == 'disputed')
         .length;
+
+    final allProperties = await getAllProperties(approvedOnly: false);
+    final pendingProperties =
+        allProperties.where((p) => p['status'] == 'pending').length;
+    final pendingVerifications =
+        (base['pendingVerifications'] as num?)?.toInt() ?? 0;
 
     final botEscalations = await _countBotEscalations();
 
@@ -3913,8 +3920,8 @@ class DataService {
       'tenantsCount': tenants,
       'ownersCount': owners,
       'techniciansCount': technicians,
-      'pendingVerifications': base['pendingVerifications'] ?? 0,
-      'pendingProperties': (base['pendingVerifications'] as num?)?.toInt() ?? 0,
+      'pendingVerifications': pendingVerifications,
+      'pendingProperties': pendingProperties,
       'activeBookings': base['activeBookings'] ?? 0,
       'pendingPayments': pendingPayments,
       'escrowBalance': escrowBalance.round(),
@@ -3923,7 +3930,8 @@ class DataService {
       'platformRevenue': (base['totalRevenue'] as num?)?.round() ?? 0,
       'todayTransactions':
           (((base['totalRevenue'] as num?)?.toDouble() ?? 0) * 0.28).round(),
-      'systemAlerts': openDisputes + pendingPayments,
+      'systemAlerts':
+          openDisputes + pendingPayments + pendingProperties + pendingVerifications,
       'disputedBookings': disputedBookings,
       'botEscalations': botEscalations,
     };
