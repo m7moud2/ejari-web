@@ -3419,6 +3419,7 @@ class DataService {
         final st = MaintenanceStatus.normalize(r['status']);
         return st == MaintenanceStatus.inProgress ||
             st == MaintenanceStatus.enRoute ||
+            st == MaintenanceStatus.arrived ||
             st == MaintenanceStatus.assigned;
       });
       return MaintenanceService.toProviderView(active);

@@ -42,11 +42,14 @@ class _ProviderTimelineScreenState extends State<ProviderTimelineScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final embedded =
+        context.findAncestorWidgetOfExactType<IndexedStack>() != null;
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: const Text('جدول المهام'),
         backgroundColor: AppTheme.surfaceColor,
+        automaticallyImplyLeading: !embedded,
       ),
       body: _isLoading
           ? const Center(
@@ -54,7 +57,7 @@ class _ProviderTimelineScreenState extends State<ProviderTimelineScreen> {
           : _jobs.isEmpty
               ? _empty()
               : ListView.builder(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.fromLTRB(20, 20, 20, embedded ? 110 : 20),
                   itemCount: _jobs.length,
                   itemBuilder: (context, index) =>
                       _item(_jobs[index], isLast: index == _jobs.length - 1),
@@ -68,7 +71,8 @@ class _ProviderTimelineScreenState extends State<ProviderTimelineScreen> {
       MaintenanceStatus.paid || MaintenanceStatus.completed =>
         AppTheme.successColor,
       MaintenanceStatus.inProgress ||
-      MaintenanceStatus.enRoute =>
+      MaintenanceStatus.enRoute ||
+      MaintenanceStatus.arrived =>
         AppTheme.primaryColor,
       MaintenanceStatus.assigned => AppTheme.accentColor,
       _ => AppTheme.textSecondary,

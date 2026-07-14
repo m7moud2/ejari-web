@@ -8,6 +8,9 @@ import 'notification_badge.dart';
 /// Owner IA:
 /// الرئيسية → عقاراتي → إضافة → تحصيل → حسابي
 ///
+/// Technician IA:
+/// الرئيسية → المهام → الجدول → المحفظة → حسابي
+///
 /// Tenant IA (renting-focused):
 /// الرئيسية → استكشف → حجوزاتي → المحفظة → حسابي
 class EjariNavigationBar extends StatelessWidget {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../services/auth_service.dart';
+import '../services/maintenance_service.dart';
 import '../services/wallet_service.dart';
 import '../utils/wallet_category_labels.dart';
 import '../utils/safe_parse.dart';
@@ -34,7 +35,12 @@ class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
     final tx = await WalletService.getTransactions(userId: techId);
     setState(() {
       _stats = stats;
-      _jobs = jobs.where((j) => j['status'] == 'completed').toList();
+      _jobs = jobs.where((j) {
+        final s = (j['status'] ?? '').toString();
+        return s == 'completed' ||
+            s == MaintenanceStatus.completed ||
+            s == MaintenanceStatus.paid;
+      }).toList();
       _walletTx = tx
           .where((t) =>
               t['category'] == 'maintenance' ||
@@ -47,10 +53,13 @@ class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final embedded =
+        context.findAncestorWidgetOfExactType<IndexedStack>() != null;
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: const Text('المحفظة والأرباح'),
+        automaticallyImplyLeading: !embedded,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -59,7 +68,7 @@ class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
               color: AppTheme.primaryColor,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.fromLTRB(20, 20, 20, embedded ? 110 : 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

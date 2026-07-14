@@ -476,6 +476,114 @@ class MaintenanceService {
     await prefs.setBool(seedKey, true);
   }
 
+  /// Ensures the technician demo account always has visible arrived / in-progress
+  /// work after maintenance-status updates (ef11b96+).
+  static Future<void> ensureTechnicianHomeDemo() async {
+    final prefs = await SharedPreferences.getInstance();
+    const patchKey = 'demo_tech_home_patch_v1';
+    if (prefs.getBool(patchKey) == true) return;
+
+    final requests = await getAllRequests();
+    final now = DateTime.now();
+    var changed = false;
+
+    final hasActive = requests.any((r) {
+      final tech = r['technicianId']?.toString() ?? r['assignedTo']?.toString();
+      if (tech != 'tech@ejari.app') return false;
+      final s = MaintenanceStatus.normalize(r['status']);
+      return s == MaintenanceStatus.inProgress ||
+          s == MaintenanceStatus.arrived ||
+          s == MaintenanceStatus.enRoute ||
+          (s == MaintenanceStatus.assigned && r['techAccepted'] == true);
+    });
+
+    if (!hasActive) {
+      requests.add(_normalizeRequest({
+        'id': 'MNT-DEMO-ARRIVED',
+        'tenantId': 'user@ejari.app',
+        'userId': 'user@ejari.app',
+        'ownerId': 'owner@ejari.app',
+        'propertyId': 'egy1',
+        'propertyTitle': 'شقة المعادي الفاخرة',
+        'category': 'plumbing',
+        'priority': 'high',
+        'title': 'إصلاح صنبور — وصل الفني',
+        'description': 'تسريب في المطبخ — الفني وصل للموقع',
+        'status': MaintenanceStatus.arrived,
+        'createdAt': now.subtract(const Duration(hours: 6)).toIso8601String(),
+        'updatedAt': now.toIso8601String(),
+        'technicianId': 'tech@ejari.app',
+        'assignedTo': 'tech@ejari.app',
+        'techAccepted': true,
+        'estimatedCost': 180.0,
+        'paymentStatus': 'unpaid',
+        'timeline': [
+          {
+            'status': MaintenanceStatus.submitted,
+            'label': 'مُرسَل',
+            'at': now.subtract(const Duration(hours: 6)).toIso8601String(),
+          },
+          {
+            'status': MaintenanceStatus.assigned,
+            'label': 'مُعيَّن',
+            'at': now.subtract(const Duration(hours: 4)).toIso8601String(),
+          },
+          {
+            'status': MaintenanceStatus.arrived,
+            'label': 'وصل الفني',
+            'at': now.subtract(const Duration(minutes: 20)).toIso8601String(),
+          },
+        ],
+      }));
+      changed = true;
+    }
+
+    final hasNew = requests.any((r) {
+      final tech = r['technicianId']?.toString() ?? r['assignedTo']?.toString();
+      return tech == 'tech@ejari.app' &&
+          MaintenanceStatus.normalize(r['status']) == MaintenanceStatus.assigned &&
+          r['techAccepted'] != true;
+    });
+    if (!hasNew) {
+      requests.add(_normalizeRequest({
+        'id': 'MNT-DEMO-NEW',
+        'tenantId': 'user@ejari.app',
+        'userId': 'user@ejari.app',
+        'ownerId': 'owner@ejari.app',
+        'propertyId': 'egy2',
+        'propertyTitle': 'فيلا التجمع الخامس',
+        'category': 'electrical',
+        'priority': 'medium',
+        'title': 'فحص لوحة كهرباء',
+        'description': 'طلب جديد بانتظار قبول الفني',
+        'status': MaintenanceStatus.assigned,
+        'createdAt': now.subtract(const Duration(hours: 1)).toIso8601String(),
+        'updatedAt': now.toIso8601String(),
+        'technicianId': 'tech@ejari.app',
+        'assignedTo': 'tech@ejari.app',
+        'techAccepted': false,
+        'estimatedCost': 220.0,
+        'paymentStatus': 'unpaid',
+        'timeline': [
+          {
+            'status': MaintenanceStatus.submitted,
+            'label': 'مُرسَل',
+            'at': now.subtract(const Duration(hours: 2)).toIso8601String(),
+          },
+          {
+            'status': MaintenanceStatus.assigned,
+            'label': 'مُعيَّن',
+            'at': now.subtract(const Duration(hours: 1)).toIso8601String(),
+          },
+        ],
+      }));
+      changed = true;
+    }
+
+    if (changed) await _persist(requests);
+    await prefs.setBool(patchKey, true);
+  }
+
   static Future<String> createRequest({
     required String userId,
     required String propertyId,

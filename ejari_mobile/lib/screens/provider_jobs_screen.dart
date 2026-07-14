@@ -38,6 +38,15 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
 
   List<Map<String, dynamic>> get _filtered {
     if (_selectedFilter == 'all') return _jobs;
+    if (_selectedFilter == MaintenanceStatus.inProgress) {
+      // "تنفيذ" covers en-route / arrived / in-progress work.
+      return _jobs.where((j) {
+        final s = MaintenanceStatus.normalize(j['status']);
+        return s == MaintenanceStatus.inProgress ||
+            s == MaintenanceStatus.enRoute ||
+            s == MaintenanceStatus.arrived;
+      }).toList();
+    }
     return _jobs
         .where((j) =>
             MaintenanceStatus.normalize(j['status']) == _selectedFilter)
@@ -46,11 +55,14 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final embedded =
+        context.findAncestorWidgetOfExactType<IndexedStack>() != null;
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         title: const Text('مهام الصيانة'),
         backgroundColor: AppTheme.surfaceColor,
+        automaticallyImplyLeading: !embedded,
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadJobs),
         ],
@@ -80,7 +92,8 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
                 : _filtered.isEmpty
                     ? _empty()
                     : ListView.builder(
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.fromLTRB(
+                            16, 0, 16, embedded ? 110 : 16),
                         itemCount: _filtered.length,
                         itemBuilder: (_, i) => _jobCard(_filtered[i]),
                       ),
@@ -110,9 +123,12 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
 
   Widget _jobCard(Map<String, dynamic> job) {
     final status = MaintenanceStatus.normalize(job['status']?.toString());
+    final id = job['id']?.toString() ?? '';
     final color = switch (status) {
       MaintenanceStatus.assigned => AppTheme.accentColor,
-      MaintenanceStatus.enRoute || MaintenanceStatus.inProgress =>
+      MaintenanceStatus.enRoute ||
+      MaintenanceStatus.arrived ||
+      MaintenanceStatus.inProgress =>
         AppTheme.primaryColor,
       MaintenanceStatus.pendingClientConfirm => AppTheme.accentColor,
       MaintenanceStatus.paid => AppTheme.successColor,
@@ -120,54 +136,71 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
     };
 
     return EjariSurfaceCard(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(job['title'] ?? '',
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w900, fontSize: 17)),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(8),
+      padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: id.isEmpty
+              ? null
+              : () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TechJobScreen(requestId: id),
+                    ),
+                  ).then((_) => _loadJobs()),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(job['title'] ?? '',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w900, fontSize: 17)),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(MaintenanceStatus.labelAr(status),
+                          style: TextStyle(
+                              color: color,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800)),
+                    ),
+                  ],
                 ),
-                child: Text(MaintenanceStatus.labelAr(status),
-                    style: TextStyle(
-                        color: color,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          _info(Icons.person_outline, safeStr(job['tenantId'])),
-          _info(
-              Icons.location_on_outlined,
-              safeStr(
-                job['propertyTitle']?.toString().isNotEmpty == true
-                    ? job['propertyTitle']
-                    : job['propertyId'],
-                'موقع غير محدد',
-              )),
-          _info(Icons.payments_outlined,
-              '${job['estimatedCost'] ?? 0} ج.م تقديري'),
-          if (safeStr(job['description']).isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 6),
-              child: Text(safeStr(job['description']),
-                  style: const TextStyle(
-                      color: AppTheme.textSecondary, fontSize: 13)),
+                const SizedBox(height: 8),
+                _info(Icons.person_outline, safeStr(job['tenantId'])),
+                _info(
+                    Icons.location_on_outlined,
+                    safeStr(
+                      job['propertyTitle']?.toString().isNotEmpty == true
+                          ? job['propertyTitle']
+                          : job['propertyId'],
+                      'موقع غير محدد',
+                    )),
+                _info(Icons.payments_outlined,
+                    '${job['estimatedCost'] ?? 0} ج.م تقديري'),
+                if (safeStr(job['description']).isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Text(safeStr(job['description']),
+                        style: const TextStyle(
+                            color: AppTheme.textSecondary, fontSize: 13)),
+                  ),
+                const SizedBox(height: 14),
+                _actions(job, status),
+              ],
             ),
-          const SizedBox(height: 14),
-          _actions(job, status),
-        ],
+          ),
+        ),
       ),
     );
   }

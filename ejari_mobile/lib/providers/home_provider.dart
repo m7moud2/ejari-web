@@ -12,9 +12,17 @@ class HomeProvider extends ChangeNotifier {
   String errorMessage = '';
   HomeStatsModel stats = HomeStatsModel.empty();
 
-  Future<void> loadHomeData(String role) async {
-    isLoading = true;
-    hasError = false;
+  Future<void> loadHomeData(String role, {bool silent = false}) async {
+    // Keep existing content on screen while refreshing so role home views
+    // (especially technician) are not disposed mid-load.
+    final showBlockingLoader = !silent && !_hasAnyStats;
+    if (showBlockingLoader) {
+      isLoading = true;
+      hasError = false;
+      if (hasListeners) notifyListeners();
+    } else {
+      hasError = false;
+    }
 
     final cached = await HomeStatsCache.load(role);
     if (cached != null) {
@@ -28,7 +36,7 @@ class HomeProvider extends ChangeNotifier {
       loadedFromCache = false;
       await HomeStatsCache.save(role, stats);
     } catch (e) {
-      if (cached == null) {
+      if (cached == null && !_hasAnyStats) {
         hasError = true;
         errorMessage = e.toString();
       }
@@ -37,4 +45,10 @@ class HomeProvider extends ChangeNotifier {
       if (hasListeners) notifyListeners();
     }
   }
+
+  bool get _hasAnyStats =>
+      stats.tenantStats.isNotEmpty ||
+      stats.ownerStats.isNotEmpty ||
+      stats.techStats.isNotEmpty ||
+      stats.adminStats.isNotEmpty;
 }

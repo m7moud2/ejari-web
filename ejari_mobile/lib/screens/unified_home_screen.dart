@@ -70,11 +70,20 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
       backgroundColor: AppTheme.backgroundColor,
       body: Consumer<HomeProvider>(
         builder: (context, homeProvider, child) {
-          if (homeProvider.isLoading) {
+          final hasRoleStats = switch (userRole) {
+            'owner' => homeProvider.stats.ownerStats.isNotEmpty,
+            'technician' => true, // own loader; never block on HomeProvider
+            'admin' => homeProvider.stats.adminStats.isNotEmpty,
+            _ => homeProvider.stats.tenantStats.isNotEmpty,
+          };
+
+          // Only block on the first load — never unmount a role view while
+          // refreshing (that was remount-looping the technician home).
+          if (homeProvider.isLoading && !hasRoleStats) {
             return const SkeletonHomeLoader();
           }
 
-          if (homeProvider.hasError) {
+          if (homeProvider.hasError && !hasRoleStats) {
             return ErrorStateWidget(
               onRetry: _onRefresh,
               errorMessage: homeProvider.errorMessage,
@@ -87,6 +96,8 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               currentView = const OwnerHomeView();
               break;
             case 'technician':
+              // Owns its RefreshIndicator + data; wrapping again caused
+              // conflicts and blank job lists after provider reloads.
               currentView = const TechnicianHomeView();
               break;
             case 'admin':
@@ -95,6 +106,14 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
             case 'tenant':
             default:
               currentView = const TenantHomeView();
+          }
+
+          if (userRole == 'technician') {
+            return DecoratedBox(
+              decoration:
+                  const BoxDecoration(color: AppTheme.backgroundColor),
+              child: currentView,
+            );
           }
 
           return DecoratedBox(
