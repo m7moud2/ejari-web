@@ -68,7 +68,6 @@ dependencies:
   mobile_scanner: ^6.0.11
   pdf: ^3.11.3
   printing: ^5.14.3
-  geolocator: ^14.0.2
   permission_handler: ^12.0.3
 
 dev_dependencies:
@@ -82,6 +81,10 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^4.0.0
   flutter_launcher_icons: ^0.13.1
+
+# Pin Android geolocator plugin for Flutter < 3.27 Gradle compatibility.
+dependency_overrides:
+  geolocator_android: 4.6.1
 
 flutter_launcher_icons:
   android: "launcher_icon"
