@@ -6,6 +6,9 @@ import '../services/auth_service.dart';
 import '../services/maintenance_service.dart';
 import '../widgets/sla_timer_chip.dart';
 import '../utils/safe_parse.dart';
+import '../utils/auth_gate.dart';
+import 'create_maintenance_request_screen.dart';
+import 'maintenance_request_detail_screen.dart';
 import 'payment_screen.dart';
 
 class MyServiceRequestsScreen extends StatefulWidget {
@@ -29,7 +32,7 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
 
   Future<void> _load() async {
     final user = await AuthService.getCurrentUser();
-    final email = user?['email']?.toString() ?? 'user@ejari.app';
+    final email = safeStr(user?['email'], 'user@ejari.app');
     final requests = await MaintenanceService.getUserRequests(email);
     if (mounted) {
       setState(() {
@@ -39,15 +42,30 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
     }
   }
 
+  Future<void> _openCreate() async {
+    final ok = await AuthGate.requireLogin(context,
+        actionLabel: 'إنشاء طلب صيانة');
+    if (!ok || !mounted) return;
+    final created = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const CreateMaintenanceRequestScreen(),
+      ),
+    );
+    if (created == true || created == null) await _load();
+  }
+
   Color _statusColor(String status) {
     return switch (MaintenanceStatus.normalize(status)) {
       MaintenanceStatus.submitted => AppTheme.accentColor,
       MaintenanceStatus.assigned => AppTheme.primaryLight,
-      MaintenanceStatus.enRoute => AppTheme.primaryColor,
+      MaintenanceStatus.enRoute || MaintenanceStatus.arrived =>
+        AppTheme.primaryColor,
       MaintenanceStatus.inProgress => AppTheme.primaryColor,
-      MaintenanceStatus.pendingClientConfirm => AppTheme.accentColor,
-      MaintenanceStatus.completed || MaintenanceStatus.paid =>
-        AppTheme.successColor,
+      MaintenanceStatus.pendingClientConfirm ||
+      MaintenanceStatus.completed =>
+        AppTheme.accentColor,
+      MaintenanceStatus.paid => AppTheme.successColor,
       MaintenanceStatus.cancelled ||
       MaintenanceStatus.rejected ||
       MaintenanceStatus.disputed =>
@@ -69,10 +87,18 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         backgroundColor: AppTheme.surfaceColor,
-        title: const Text('تتبع طلبات الصيانة'),
+        title: const Text('طلبات الصيانة'),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _openCreate,
+        backgroundColor: AppTheme.primaryColor,
+        foregroundColor: Colors.white,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('طلب صيانة جديد',
+            style: TextStyle(fontWeight: FontWeight.w800)),
       ),
       body: _loading
           ? const Center(
@@ -87,7 +113,7 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
                   child: filtered.isEmpty
                       ? _empty()
                       : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
                           itemCount: filtered.length,
                           itemBuilder: (context, index) =>
                               _card(filtered[index]),
@@ -104,7 +130,8 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
       (MaintenanceStatus.submitted, 'مُرسَل'),
       (MaintenanceStatus.inProgress, 'جاري'),
       (MaintenanceStatus.pendingClientConfirm, 'تأكيد'),
-      (MaintenanceStatus.paid, 'مدفوع'),
+      (MaintenanceStatus.completed, 'دفع'),
+      (MaintenanceStatus.paid, 'مغلق'),
     ];
     return SizedBox(
       height: 40,
@@ -137,8 +164,22 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
     final color = _statusColor(status);
     final createdAt =
         DateTime.tryParse(request['createdAt']?.toString() ?? '');
+    final step = MaintenanceStatus.trackingStepIndex(status).clamp(0, 7);
 
-    return EjariSurfaceCard(
+    return GestureDetector(
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => MaintenanceRequestDetailScreen(
+              requestId: request['id'].toString(),
+              initialRequest: request,
+            ),
+          ),
+        );
+        await _load();
+      },
+      child: EjariSurfaceCard(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,10 +199,10 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(request['title'] ?? '',
+                    Text(safeStr(request['title'], 'طلب صيانة'),
                         style: const TextStyle(
                             fontWeight: FontWeight.w900, fontSize: 16)),
-                    Text(_categoryLabel(request['category']),
+                    Text(_categoryLabel(request['category']?.toString()),
                         style: const TextStyle(
                             color: AppTheme.textSecondary, fontSize: 12)),
                   ],
@@ -175,26 +216,30 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
           const SizedBox(height: 12),
           EjariStepIndicator(
             labels: const [
-              'إرسال',
+              'استلام',
               'تعيين',
+              'طريق',
+              'وصول',
               'تنفيذ',
               'تأكيد',
               'دفع',
+              'إغلاق',
             ],
-            activeIndex: MaintenanceStatus.stepIndex(status).clamp(0, 4),
+            activeIndex: step,
           ),
-          const SizedBox(height: 12),
-          _timeline(request),
-          if (createdAt != null)
+          if (createdAt != null) ...[
+            const SizedBox(height: 10),
             Text(
               'أُنشئ: ${DateFormat('yyyy/MM/dd hh:mm a').format(createdAt)}',
               style: const TextStyle(
                   color: AppTheme.textSecondary, fontSize: 11),
             ),
+          ],
           const SizedBox(height: 12),
           _actions(request, status),
         ],
       ),
+    ),
     );
   }
 
@@ -213,76 +258,41 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
     );
   }
 
-  Widget _timeline(Map<String, dynamic> request) {
-    final events = (request['timeline'] as List?) ?? [];
-    if (events.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('الجدول الزمني',
-            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
-        const SizedBox(height: 8),
-        ...events.take(5).map((e) {
-          final at = DateTime.tryParse(e['at']?.toString() ?? '');
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Row(
-              children: [
-                const Icon(Icons.circle, size: 8, color: AppTheme.accentColor),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    '${e['label'] ?? e['status']}${e['note']?.toString().isNotEmpty == true ? ' — ${e['note']}' : ''}',
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                ),
-                if (at != null)
-                  Text(DateFormat('MM/dd HH:mm').format(at),
-                      style: const TextStyle(
-                          fontSize: 10, color: AppTheme.textSecondary)),
-              ],
-            ),
-          );
-        }),
-      ],
-    );
-  }
-
   Widget _actions(Map<String, dynamic> request, String status) {
     if (status == MaintenanceStatus.pendingClientConfirm) {
+      return Row(
+        children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () => _dispute(request),
+              style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.errorColor),
+              child: const Text('نزاع'),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () => _confirmOnly(request),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor),
+              child: const Text('تأكيد'),
+            ),
+          ),
+        ],
+      );
+    }
+    if (status == MaintenanceStatus.completed) {
       final cost = (request['finalCost'] as num?)?.toDouble() ??
           (request['estimatedCost'] as num?)?.toDouble() ??
           0;
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text('التكلفة النهائية: $cost ج.م',
-              style: const TextStyle(
-                  fontWeight: FontWeight.w800, color: AppTheme.primaryColor)),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => _dispute(request),
-                  style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.errorColor),
-                  child: const Text('نزاع'),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _confirmAndPay(request, cost),
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor),
-                  child: const Text('تأكيد ودفع'),
-                ),
-              ),
-            ],
-          ),
-        ],
+      return ElevatedButton.icon(
+        onPressed: () => _pay(request, cost),
+        icon: const Icon(Icons.payments_rounded, size: 18),
+        label: Text('ادفع ${cost.toStringAsFixed(0)} ج.م'),
+        style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.accentColor,
+            foregroundColor: Colors.white),
       );
     }
     if (status == MaintenanceStatus.submitted ||
@@ -292,16 +302,32 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
         child: const Text('إلغاء الطلب'),
       );
     }
-    if ((status == MaintenanceStatus.paid ||
-            status == MaintenanceStatus.completed) &&
-        request['rating'] == null) {
+    if (status == MaintenanceStatus.paid && request['rating'] == null) {
       return ElevatedButton.icon(
         onPressed: () => _rateService(request),
         icon: const Icon(Icons.star_rounded),
         label: const Text('تقييم الخدمة'),
       );
     }
-    return const SizedBox.shrink();
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: TextButton.icon(
+        onPressed: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => MaintenanceRequestDetailScreen(
+                requestId: request['id'].toString(),
+                initialRequest: request,
+              ),
+            ),
+          );
+          await _load();
+        },
+        icon: const Icon(Icons.timeline_rounded, size: 18),
+        label: const Text('عرض التتبع'),
+      ),
+    );
   }
 
   String _categoryLabel(String? id) {
@@ -312,19 +338,72 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
   }
 
   Widget _empty() {
-    return const Center(child: Text('لا توجد طلبات صيانة'));
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.build_circle_outlined,
+                size: 72, color: AppTheme.primaryColor.withOpacity(0.45)),
+            const SizedBox(height: 14),
+            const Text(
+              'لا توجد طلبات صيانة بعد',
+              style: TextStyle(
+                  fontWeight: FontWeight.w800, fontSize: 16),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'اطلب صيانة معتمدة وتتبع الفني حتى الإغلاق',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppTheme.textSecondary),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: _openCreate,
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('طلب صيانة جديد',
+                  style: TextStyle(fontWeight: FontWeight.w800)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryColor,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _cancelRequest(Map<String, dynamic> request) async {
     final user = await AuthService.getCurrentUser();
     await MaintenanceService.cancelRequest(
       request['id'].toString(),
-      actor: user?['email']?.toString(),
+      actor: safeStr(user?['email']),
     );
     await _load();
   }
 
-  Future<void> _confirmAndPay(Map<String, dynamic> request, double cost) async {
+  Future<void> _confirmOnly(Map<String, dynamic> request) async {
+    final user = await AuthService.getCurrentUser();
+    final ok = await MaintenanceService.confirmCompletion(
+      request['id'].toString(),
+      safeStr(user?['email'], 'user@ejari.app'),
+    );
+    if (!mounted) return;
+    if (ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('تم التأكيد — يمكنك الدفع الآن'),
+          backgroundColor: AppTheme.primaryColor,
+        ),
+      );
+    }
+    await _load();
+  }
+
+  Future<void> _pay(Map<String, dynamic> request, double cost) async {
     final paid = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
@@ -371,7 +450,7 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
     final user = await AuthService.getCurrentUser();
     await MaintenanceService.disputeCompletion(
       request['id'].toString(),
-      user?['email']?.toString() ?? '',
+      safeStr(user?['email'], 'user@ejari.app'),
       controller.text.trim().isEmpty
           ? 'العميل لم يوافق على جودة العمل'
           : controller.text.trim(),

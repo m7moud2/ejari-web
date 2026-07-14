@@ -218,8 +218,10 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
 
     if (status == MaintenanceStatus.assigned ||
         status == MaintenanceStatus.enRoute ||
+        status == MaintenanceStatus.arrived ||
         status == MaintenanceStatus.inProgress ||
-        status == MaintenanceStatus.pendingClientConfirm) {
+        status == MaintenanceStatus.pendingClientConfirm ||
+        status == MaintenanceStatus.completed) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -236,6 +238,16 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
           if (status == MaintenanceStatus.enRoute)
             ElevatedButton(
               onPressed: () async {
+                await MaintenanceService.markArrived(id, _techId);
+                await _loadJobs();
+              },
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.accentColor),
+              child: const Text('وصلت للموقع'),
+            ),
+          if (status == MaintenanceStatus.arrived)
+            ElevatedButton(
+              onPressed: () async {
                 await MaintenanceService.startJob(id, _techId);
                 await _loadJobs();
               },
@@ -245,6 +257,17 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
             ElevatedButton(
               onPressed: () => _complete(id, job),
               child: const Text('إنهاء وطلب تأكيد'),
+            ),
+          if (status == MaintenanceStatus.pendingClientConfirm ||
+              status == MaintenanceStatus.completed)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8),
+              child: Text(
+                'بانتظار العميل…',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: AppTheme.textSecondary, fontWeight: FontWeight.w700),
+              ),
             ),
           const SizedBox(height: 8),
           OutlinedButton.icon(

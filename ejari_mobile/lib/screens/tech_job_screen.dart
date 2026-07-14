@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
 import '../services/maintenance_service.dart';
 import '../services/auth_service.dart';
+import '../utils/safe_parse.dart';
 import 'provider_wallet_screen.dart';
 
 class TechJobScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class TechJobScreen extends StatefulWidget {
 class _TechJobScreenState extends State<TechJobScreen> {
   Map<String, dynamic>? _job;
   bool _loading = true;
+  bool _busy = false;
   String _techId = '';
 
   @override
@@ -27,7 +29,7 @@ class _TechJobScreenState extends State<TechJobScreen> {
 
   Future<void> _load() async {
     final user = await AuthService.getCurrentUser();
-    _techId = user?['email']?.toString() ?? 'tech@ejari.app';
+    _techId = safeStr(user?['email'], 'tech@ejari.app');
     if (widget.requestId != null) {
       _job = await MaintenanceService.getRequest(widget.requestId!);
     } else {
@@ -43,12 +45,21 @@ class _TechJobScreenState extends State<TechJobScreen> {
   Color get _statusColor => switch (_status) {
         MaintenanceStatus.assigned => AppTheme.accentColor,
         MaintenanceStatus.enRoute => AppTheme.primaryLight,
+        MaintenanceStatus.arrived => AppTheme.primaryColor,
         MaintenanceStatus.inProgress => AppTheme.primaryColor,
         MaintenanceStatus.pendingClientConfirm => AppTheme.accentColor,
+        MaintenanceStatus.completed => AppTheme.accentColor,
         MaintenanceStatus.paid => AppTheme.successColor,
         MaintenanceStatus.disputed => AppTheme.errorColor,
         _ => AppTheme.textSecondary,
       };
+
+  Future<void> _run(Future<bool> Function() action) async {
+    setState(() => _busy = true);
+    await action();
+    await _load();
+    if (mounted) setState(() => _busy = false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,10 +76,12 @@ class _TechJobScreenState extends State<TechJobScreen> {
       );
     }
 
+    final step = MaintenanceStatus.stepIndex(_status).clamp(0, 7);
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: Text('مهمة ${_job!['id']}'),
+        title: Text('مهمة ${safeStr(_job!['id'])}'),
         backgroundColor: AppTheme.surfaceColor,
       ),
       body: SingleChildScrollView(
@@ -94,15 +107,16 @@ class _TechJobScreenState extends State<TechJobScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(_job!['title'] ?? '',
+                        Text(safeStr(_job!['title'], 'مهمة صيانة'),
                             style: const TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.w900)),
                         const SizedBox(height: 12),
-                        _row('العقار', _job!['propertyTitle'] ?? _job!['propertyId']),
-                        _row('العميل', _job!['tenantId'] ?? ''),
-                        _row('الوصف', _job!['description'] ?? ''),
+                        _row('العقار',
+                            safeStr(_job!['propertyTitle'] ?? _job!['propertyId'])),
+                        _row('العميل', safeStr(_job!['tenantId'])),
+                        _row('الوصف', safeStr(_job!['description'])),
                         const Divider(height: 24),
-                        _row('تقديري', '${_job!['estimatedCost']} ج.م'),
+                        _row('تقديري', '${_job!['estimatedCost'] ?? 0} ج.م'),
                         if ((_job!['finalCost'] as num?) != null &&
                             (_job!['finalCost'] as num) > 0)
                           _row('نهائي', '${_job!['finalCost']} ج.م'),
@@ -114,12 +128,14 @@ class _TechJobScreenState extends State<TechJobScreen> {
                     labels: const [
                       'تعيين',
                       'طريق',
+                      'وصول',
                       'تنفيذ',
                       'تأكيد',
                       'دفع',
+                      'إغلاق',
+                      '✓',
                     ],
-                    activeIndex:
-                        MaintenanceStatus.stepIndex(_status).clamp(0, 4),
+                    activeIndex: step,
                   ),
                   const SizedBox(height: 20),
                   _buildActions(),
@@ -150,49 +166,73 @@ class _TechJobScreenState extends State<TechJobScreen> {
     );
   }
 
-  Widget _buildActions() {
-    final id = _job!['id']?.toString() ?? '';
+  Widget _primaryBtn(String label, VoidCallback onPressed, {Color? color}) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _busy ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color ?? AppTheme.primaryColor,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+        ),
+        child: _busy
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                    color: Colors.white, strokeWidth: 2))
+            : Text(label, style: const TextStyle(fontWeight: FontWeight.w800)),
+      ),
+    );
+  }
 
-    if (_status == MaintenanceStatus.assigned) {
+  Widget _buildActions() {
+    final id = safeStr(_job!['id']);
+    final accepted = _job!['techAccepted'] == true;
+
+    if (_status == MaintenanceStatus.assigned && !accepted) {
       return Column(
         children: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () async {
-                await MaintenanceService.markEnRoute(id, _techId);
-                await _load();
-              },
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.accentColor),
-              child: const Text('في الطريق للعميل'),
-            ),
-          ),
+          _primaryBtn('قبول المهمة', () => _run(() async {
+                return MaintenanceService.acceptJob(id, _techId);
+              })),
           const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () async {
-                await MaintenanceService.startJob(id, _techId);
-                await _load();
-              },
-              child: const Text('بدء المهمة'),
-            ),
+          OutlinedButton(
+            onPressed: _busy
+                ? null
+                : () async {
+                    await MaintenanceService.rejectJob(
+                        id, _techId, 'غير متاح حالياً');
+                    await _load();
+                  },
+            style: OutlinedButton.styleFrom(
+                foregroundColor: AppTheme.errorColor),
+            child: const Text('رفض'),
           ),
         ],
       );
     }
 
+    if (_status == MaintenanceStatus.assigned && accepted) {
+      return _primaryBtn(
+        'في الطريق للعميل',
+        () => _run(() => MaintenanceService.markEnRoute(id, _techId)),
+        color: AppTheme.accentColor,
+      );
+    }
+
     if (_status == MaintenanceStatus.enRoute) {
-      return SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () async {
-            await MaintenanceService.startJob(id, _techId);
-            await _load();
-          },
-          child: const Text('بدء العمل الميداني'),
-        ),
+      return _primaryBtn(
+        'وصلت إلى موقع العميل',
+        () => _run(() => MaintenanceService.markArrived(id, _techId)),
+        color: AppTheme.accentColor,
+      );
+    }
+
+    if (_status == MaintenanceStatus.arrived) {
+      return _primaryBtn(
+        'بدء العمل الميداني',
+        () => _run(() => MaintenanceService.startJob(id, _techId)),
       );
     }
 
@@ -200,33 +240,31 @@ class _TechJobScreenState extends State<TechJobScreen> {
       return Column(
         children: [
           OutlinedButton.icon(
-            onPressed: () async {
-              await MaintenanceService.attachDemoPhotos(id);
-              if (!mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('تم إرفاق صور قبل/بعد')),
-              );
-              await _load();
-            },
+            onPressed: _busy
+                ? null
+                : () async {
+                    await MaintenanceService.attachDemoPhotos(id);
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('تم إرفاق صور قبل/بعد')),
+                    );
+                    await _load();
+                  },
             icon: const Icon(Icons.camera_alt),
             label: const Text('إرفاق صور'),
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => _complete(id),
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.accentColor),
-              child: const Text('إنهاء وطلب تأكيد العميل'),
-            ),
+          _primaryBtn(
+            'إنهاء وطلب تأكيد العميل',
+            () => _complete(id),
+            color: AppTheme.accentColor,
           ),
         ],
       );
     }
 
-    if (_status == MaintenanceStatus.pendingClientConfirm) {
+    if (_status == MaintenanceStatus.pendingClientConfirm ||
+        _status == MaintenanceStatus.completed) {
       return EjariSurfaceCard(
         elevated: false,
         child: Column(
@@ -234,9 +272,13 @@ class _TechJobScreenState extends State<TechJobScreen> {
             Icon(Icons.hourglass_top,
                 color: AppTheme.accentColor.withOpacity(0.8), size: 40),
             const SizedBox(height: 10),
-            const Text('بانتظار تأكيد العميل والدفع',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.w800)),
+            Text(
+              _status == MaintenanceStatus.completed
+                  ? 'بانتظار دفع العميل'
+                  : 'بانتظار تأكيد العميل',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
           ],
         ),
       );
@@ -268,7 +310,7 @@ class _TechJobScreenState extends State<TechJobScreen> {
       return EjariSurfaceCard(
         elevated: false,
         child: Text(
-          'نزاع مفتوح: ${_job!['disputeReason'] ?? 'قيد مراجعة الإدارة'}',
+          'نزاع مفتوح: ${safeStr(_job!['disputeReason'], 'قيد مراجعة الإدارة')}',
           style: const TextStyle(
               color: AppTheme.errorColor, fontWeight: FontWeight.w700),
         ),
@@ -282,13 +324,31 @@ class _TechJobScreenState extends State<TechJobScreen> {
     final controller = TextEditingController(
       text: (_job!['estimatedCost'] ?? 150).toString(),
     );
+    final noteController = TextEditingController();
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('التكلفة النهائية'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
+        title: const Text('إنهاء الخدمة'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'التكلفة النهائية',
+                suffixText: 'ج.م',
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: noteController,
+              decoration: const InputDecoration(
+                labelText: 'ملاحظة الإتمام (اختياري)',
+              ),
+              maxLines: 2,
+            ),
+          ],
         ),
         actions: [
           TextButton(
@@ -302,11 +362,15 @@ class _TechJobScreenState extends State<TechJobScreen> {
     );
     if (ok != true) {
       controller.dispose();
+      noteController.dispose();
       return;
     }
     final cost = double.tryParse(controller.text) ?? 150;
     controller.dispose();
+    noteController.dispose();
+    setState(() => _busy = true);
     await MaintenanceService.completeJob(id, _techId, cost);
     await _load();
+    if (mounted) setState(() => _busy = false);
   }
 }

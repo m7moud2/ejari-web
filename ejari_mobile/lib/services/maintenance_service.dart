@@ -12,6 +12,7 @@ class MaintenanceStatus {
   static const submitted = 'submitted';
   static const assigned = 'assigned';
   static const enRoute = 'en_route';
+  static const arrived = 'arrived';
   static const inProgress = 'in_progress';
   static const pendingClientConfirm = 'pending_client_confirm';
   static const completed = 'completed';
@@ -24,10 +25,23 @@ class MaintenanceStatus {
     submitted,
     assigned,
     enRoute,
+    arrived,
     inProgress,
     pendingClientConfirm,
     completed,
     paid,
+  ];
+
+  /// خطوات التتبع للمستأجر (8 مراحل بالعربية).
+  static const trackingStepsAr = [
+    'تم استلام الطلب',
+    'تم التعيين للفني',
+    'الفني في الطريق',
+    'وصل الفني',
+    'جاري التنفيذ',
+    'اكتملت الخدمة — أكّد',
+    'الدفع',
+    'تم الإغلاق',
   ];
 
   static String normalize(String? raw) {
@@ -40,6 +54,9 @@ class MaintenanceStatus {
       'assigned': assigned,
       'en_route': enRoute,
       'في_الطريق': enRoute,
+      'arrived': arrived,
+      'وصل': arrived,
+      'on_site': arrived,
       'in_progress': inProgress,
       'قيد_المعالجة': inProgress,
       'pending_client_confirm': pendingClientConfirm,
@@ -63,10 +80,11 @@ class MaintenanceStatus {
       submitted => 'مُرسَل',
       assigned => 'مُعيَّن',
       enRoute => 'في الطريق',
+      arrived => 'وصل الفني',
       inProgress => 'قيد التنفيذ',
       pendingClientConfirm => 'بانتظار تأكيدك',
-      completed => 'مكتمل',
-      paid => 'مدفوع',
+      completed => 'بانتظار الدفع',
+      paid => 'تم الإغلاق',
       cancelled => 'ملغي',
       rejected => 'مرفوض',
       disputed => 'نزاع',
@@ -79,6 +97,9 @@ class MaintenanceStatus {
     final idx = ordered.indexOf(n);
     return idx < 0 ? 0 : idx;
   }
+
+  /// فهرس خطوة التتبع (0–7) لواجهة المستأجر.
+  static int trackingStepIndex(String status) => stepIndex(status);
 
   /// مدة SLA حسب الأولوية (24h/48h للعاجل/مرتفع).
   static Duration slaDuration(String priority) {
@@ -245,6 +266,7 @@ class MaintenanceService {
     final ownerId = request['ownerId']?.toString() ?? '';
     final techId = request['technicianId']?.toString() ?? '';
     final refId = request['id']?.toString() ?? '';
+    const adminId = 'admin@ejari.app';
 
     if (tenantId.isNotEmpty && tenantId != actorEmail) {
       await DataService.addNotificationToUser(
@@ -264,6 +286,21 @@ class MaintenanceService {
         type: 'maintenance', refId: refId,
       );
     }
+    if (adminId != actorEmail) {
+      await DataService.addNotificationToUser(
+        adminId, title, body,
+        type: 'maintenance', refId: refId, adminFeed: true,
+      );
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> _readLocal() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_requestsKey);
+    if (raw == null) return [];
+    return (jsonDecode(raw) as List)
+        .map((r) => _normalizeRequest(r as Map<String, dynamic>))
+        .toList();
   }
 
   static Future<void> _addTimelineEvent(
@@ -456,38 +493,7 @@ class MaintenanceService {
     final ownerId = await _resolveOwnerId(propertyId);
     final now = DateTime.now().toIso8601String();
 
-    try {
-      String realPropertyId = propertyId;
-      if (propertyId == 'none' || propertyId.isEmpty) {
-        final props = await DataService.getAllProperties();
-        if (props.isNotEmpty) realPropertyId = props.first['id'] ?? 'none';
-      }
-
-      String backendPriority = 'متوسط';
-      if (priority == 'urgent') backendPriority = 'عاجل';
-      if (priority == 'high') backendPriority = 'مرتفع';
-      if (priority == 'low') backendPriority = 'منخفض';
-
-      final response = await ApiClient.post('/maintenance', {
-        'property': realPropertyId,
-        'type': category,
-        'priority': backendPriority,
-        'description': '$title\n$description',
-      });
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-        if (decoded['success'] == true) {
-          final normalized = _normalizeRequest(decoded['data'] as Map<String, dynamic>);
-          final requests = await getAllRequests();
-          requests.add(normalized);
-          await _persist(requests);
-          return normalized['id'];
-        }
-      }
-    } catch (e) {
-      debugPrint('CreateRequest API Error: $e. Falling back to local storage.');
-    }
-
+    // الديمو يعتمد SharedPreferences — نحفظ محلياً أولاً لضمان عمل إنشاء الطلب.
     final request = _normalizeRequest({
       'id': requestId,
       'tenantId': userId,
@@ -564,6 +570,7 @@ class MaintenanceService {
   }
 
   static Future<List<Map<String, dynamic>>> getAllRequests() async {
+    final local = await _readLocal();
     try {
       final response = await ApiClient.get('/maintenance');
       if (response.statusCode == 200) {
@@ -573,6 +580,8 @@ class MaintenanceService {
           final requests = rawList
               .map((r) => _normalizeRequest(r as Map<String, dynamic>))
               .toList();
+          // لا نستبدل التخزين المحلي بنتيجة فارغة من الـ API (وضع الديمو).
+          if (requests.isEmpty && local.isNotEmpty) return local;
           await _persist(requests);
           return requests;
         }
@@ -580,15 +589,7 @@ class MaintenanceService {
     } catch (e) {
       debugPrint('GetAllRequests API Error: $e. Using local cache.');
     }
-
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_requestsKey);
-    if (raw != null) {
-      return (jsonDecode(raw) as List)
-          .map((r) => _normalizeRequest(r as Map<String, dynamic>))
-          .toList();
-    }
-    return [];
+    return local;
   }
 
   static Future<List<Map<String, dynamic>>> getUserRequests(String userId) async {
@@ -733,12 +734,55 @@ class MaintenanceService {
     return ok;
   }
 
+  static Future<bool> markArrived(String requestId, String techId) async {
+    final ok = await _transition(
+      requestId,
+      MaintenanceStatus.arrived,
+      note: 'وصل الفني إلى موقع العميل',
+      actor: techId,
+    );
+    if (ok) {
+      final req = await getRequest(requestId);
+      final tenantId = req?['tenantId']?.toString() ?? '';
+      if (tenantId.isNotEmpty) {
+        await DataService.addNotificationToUser(
+          tenantId,
+          'وصل الفني 📍',
+          'فني الصيانة وصل إلى موقعك',
+          type: 'maintenance',
+          refId: requestId,
+        );
+      }
+    }
+    return ok;
+  }
+
   static Future<bool> startJob(String requestId, String techId) async {
     return _transition(
       requestId,
       MaintenanceStatus.inProgress,
       note: 'بدأ الفني العمل',
       actor: techId,
+    );
+  }
+
+  /// تأكيد المستأجر لإتمام الخدمة (قبل الدفع).
+  static Future<bool> confirmCompletion(
+    String requestId,
+    String tenantId,
+  ) async {
+    final req = await getRequest(requestId);
+    if (req == null) return false;
+    if (MaintenanceStatus.normalize(req['status']?.toString()) !=
+        MaintenanceStatus.pendingClientConfirm) {
+      return false;
+    }
+    return _transition(
+      requestId,
+      MaintenanceStatus.completed,
+      extra: {'clientConfirmed': true},
+      note: 'أكد العميل إتمام الخدمة',
+      actor: tenantId,
     );
   }
 
@@ -770,18 +814,36 @@ class MaintenanceService {
     return ok;
   }
 
+  /// دفع من محفظة المستأجر بعد التأكيد (أو تأكيد+دفع معاً للتوافق).
   static Future<Map<String, dynamic>> confirmAndPay({
     required String requestId,
     required String tenantId,
     bool useWallet = true,
     String method = 'wallet',
+    bool confirmIfNeeded = true,
   }) async {
-    final req = await getRequest(requestId);
+    var req = await getRequest(requestId);
     if (req == null) return {'success': false, 'message': 'الطلب غير موجود'};
 
-    if (MaintenanceStatus.normalize(req['status']) !=
-        MaintenanceStatus.pendingClientConfirm) {
-      return {'success': false, 'message': 'الطلب ليس بانتظار التأكيد'};
+    var status = MaintenanceStatus.normalize(req['status']?.toString());
+
+    if (confirmIfNeeded && status == MaintenanceStatus.pendingClientConfirm) {
+      final confirmed = await confirmCompletion(requestId, tenantId);
+      if (!confirmed) {
+        return {'success': false, 'message': 'تعذّر تأكيد إتمام الخدمة'};
+      }
+      req = await getRequest(requestId);
+      if (req == null) return {'success': false, 'message': 'الطلب غير موجود'};
+      status = MaintenanceStatus.normalize(req['status']?.toString());
+    }
+
+    if (status != MaintenanceStatus.completed) {
+      return {
+        'success': false,
+        'message': status == MaintenanceStatus.pendingClientConfirm
+            ? 'يرجى تأكيد إتمام الخدمة أولاً'
+            : 'الطلب ليس بانتظار الدفع',
+      };
     }
 
     final amount = (req['finalCost'] as num?)?.toDouble() ??
@@ -806,17 +868,9 @@ class MaintenanceService {
 
     await _transition(
       requestId,
-      MaintenanceStatus.completed,
-      extra: {'clientConfirmed': true},
-      note: 'أكد العميل إتمام العمل',
-      actor: tenantId,
-      notify: false,
-    );
-    await _transition(
-      requestId,
       MaintenanceStatus.paid,
-      extra: {'paymentStatus': 'paid'},
-      note: 'تم الدفع',
+      extra: {'paymentStatus': 'paid', 'clientConfirmed': true},
+      note: 'تم الدفع وإغلاق الطلب',
       actor: tenantId,
     );
 
@@ -980,8 +1034,12 @@ class MaintenanceService {
         earnings += (j['finalCost'] as num?)?.toDouble() ?? 0;
         completed++;
       }
-      if ([MaintenanceStatus.assigned, MaintenanceStatus.enRoute, MaintenanceStatus.inProgress]
-          .contains(st)) {
+      if ([
+        MaintenanceStatus.assigned,
+        MaintenanceStatus.enRoute,
+        MaintenanceStatus.arrived,
+        MaintenanceStatus.inProgress,
+      ].contains(st)) {
         active++;
       }
       if (st == MaintenanceStatus.assigned) newRequests++;
@@ -1040,13 +1098,14 @@ class MaintenanceService {
   static String _providerStatusMap(dynamic status) {
     final n = MaintenanceStatus.normalize(status?.toString());
     if (n == MaintenanceStatus.assigned) return 'pending';
-    if (n == MaintenanceStatus.enRoute || n == MaintenanceStatus.inProgress) {
+    if (n == MaintenanceStatus.enRoute ||
+        n == MaintenanceStatus.arrived ||
+        n == MaintenanceStatus.inProgress) {
       return 'in_progress';
     }
     if (n == MaintenanceStatus.pendingClientConfirm) return 'in_progress';
-    if (n == MaintenanceStatus.paid || n == MaintenanceStatus.completed) {
-      return 'completed';
-    }
+    if (n == MaintenanceStatus.completed) return 'completed';
+    if (n == MaintenanceStatus.paid) return 'completed';
     if (n == MaintenanceStatus.rejected || n == MaintenanceStatus.cancelled) {
       return 'cancelled';
     }
@@ -1061,6 +1120,8 @@ class MaintenanceService {
     return switch (legacyStatus) {
       'accepted' => acceptJob(jobId, techId),
       'cancelled' => rejectJob(jobId, techId, 'رفض من الفني'),
+      'en_route' => markEnRoute(jobId, techId),
+      'arrived' => markArrived(jobId, techId),
       'in_progress' => startJob(jobId, techId),
       'completed' => completeJob(
           jobId,

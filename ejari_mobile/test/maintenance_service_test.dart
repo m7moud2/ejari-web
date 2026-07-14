@@ -15,6 +15,23 @@ void main() {
     });
   });
 
+  group('MaintenanceStatus', () {
+    test('normalize maps aliases including arrived', () {
+      expect(MaintenanceStatus.normalize('pending'), MaintenanceStatus.submitted);
+      expect(MaintenanceStatus.normalize('en_route'), MaintenanceStatus.enRoute);
+      expect(MaintenanceStatus.normalize('arrived'), MaintenanceStatus.arrived);
+      expect(MaintenanceStatus.normalize('وصل'), MaintenanceStatus.arrived);
+      expect(MaintenanceStatus.normalize('waiting_for_confirmation'),
+          MaintenanceStatus.pendingClientConfirm);
+    });
+
+    test('tracking steps are 8 Arabic stages', () {
+      expect(MaintenanceStatus.trackingStepsAr.length, 8);
+      expect(MaintenanceStatus.trackingStepIndex(MaintenanceStatus.arrived), 3);
+      expect(MaintenanceStatus.trackingStepIndex(MaintenanceStatus.paid), 7);
+    });
+  });
+
   group('MaintenanceService lifecycle', () {
     test('createRequest starts at submitted with timeline', () async {
       final id = await MaintenanceService.createRequest(
@@ -34,7 +51,7 @@ void main() {
       expect((req['timeline'] as List).isNotEmpty, isTrue);
     });
 
-    test('full flow assign → complete → pay', () async {
+    test('full flow assign → arrive → complete → confirm → pay', () async {
       final id = await MaintenanceService.createRequest(
         userId: 'user@ejari.app',
         propertyId: 'egy1',
@@ -47,17 +64,38 @@ void main() {
       await MaintenanceService.assignTechnician(id, 'tech@ejari.app');
       await MaintenanceService.acceptJob(id, 'tech@ejari.app');
       await MaintenanceService.markEnRoute(id, 'tech@ejari.app');
-      await MaintenanceService.startJob(id, 'tech@ejari.app');
-      await MaintenanceService.completeJob(id, 'tech@ejari.app', 300);
 
       var req = await MaintenanceService.getRequest(id);
       expect(MaintenanceStatus.normalize(req!['status']),
+          MaintenanceStatus.enRoute);
+
+      await MaintenanceService.markArrived(id, 'tech@ejari.app');
+      req = await MaintenanceService.getRequest(id);
+      expect(MaintenanceStatus.normalize(req!['status']),
+          MaintenanceStatus.arrived);
+
+      await MaintenanceService.startJob(id, 'tech@ejari.app');
+      await MaintenanceService.completeJob(id, 'tech@ejari.app', 300);
+
+      req = await MaintenanceService.getRequest(id);
+      expect(MaintenanceStatus.normalize(req!['status']),
           MaintenanceStatus.pendingClientConfirm);
+
+      final confirmed = await MaintenanceService.confirmCompletion(
+        id,
+        'user@ejari.app',
+      );
+      expect(confirmed, isTrue);
+
+      req = await MaintenanceService.getRequest(id);
+      expect(MaintenanceStatus.normalize(req!['status']),
+          MaintenanceStatus.completed);
 
       final pay = await MaintenanceService.confirmAndPay(
         requestId: id,
         tenantId: 'user@ejari.app',
         useWallet: true,
+        confirmIfNeeded: false,
       );
       expect(pay['success'], isTrue);
 
@@ -68,6 +106,31 @@ void main() {
       final techBalance =
           await WalletService.getBalance(userId: 'tech@ejari.app');
       expect(techBalance, greaterThan(0));
+    });
+
+    test('confirmAndPay from pending_client_confirm still works', () async {
+      final id = await MaintenanceService.createRequest(
+        userId: 'user@ejari.app',
+        propertyId: 'egy1',
+        category: 'ac',
+        priority: 'high',
+        title: 'تكييف',
+        description: 'لا يبرد',
+      );
+      await MaintenanceService.assignTechnician(id, 'tech@ejari.app');
+      await MaintenanceService.acceptJob(id, 'tech@ejari.app');
+      await MaintenanceService.markEnRoute(id, 'tech@ejari.app');
+      await MaintenanceService.markArrived(id, 'tech@ejari.app');
+      await MaintenanceService.startJob(id, 'tech@ejari.app');
+      await MaintenanceService.completeJob(id, 'tech@ejari.app', 200);
+
+      final pay = await MaintenanceService.confirmAndPay(
+        requestId: id,
+        tenantId: 'user@ejari.app',
+      );
+      expect(pay['success'], isTrue);
+      final req = await MaintenanceService.getRequest(id);
+      expect(MaintenanceStatus.normalize(req!['status']), MaintenanceStatus.paid);
     });
 
     test('reject job sets rejected status', () async {
@@ -85,6 +148,31 @@ void main() {
       final req = await MaintenanceService.getRequest(id);
       expect(MaintenanceStatus.normalize(req!['status']),
           MaintenanceStatus.rejected);
+    });
+
+    test('dispute after completion', () async {
+      final id = await MaintenanceService.createRequest(
+        userId: 'user@ejari.app',
+        propertyId: 'egy1',
+        category: 'plumbing',
+        priority: 'urgent',
+        title: 'تسريب',
+        description: 'عاجل',
+      );
+      await MaintenanceService.assignTechnician(id, 'tech@ejari.app');
+      await MaintenanceService.acceptJob(id, 'tech@ejari.app');
+      await MaintenanceService.markEnRoute(id, 'tech@ejari.app');
+      await MaintenanceService.markArrived(id, 'tech@ejari.app');
+      await MaintenanceService.startJob(id, 'tech@ejari.app');
+      await MaintenanceService.completeJob(id, 'tech@ejari.app', 180);
+      await MaintenanceService.disputeCompletion(
+        id,
+        'user@ejari.app',
+        'الجودة غير مرضية',
+      );
+      final req = await MaintenanceService.getRequest(id);
+      expect(MaintenanceStatus.normalize(req!['status']),
+          MaintenanceStatus.disputed);
     });
   });
 

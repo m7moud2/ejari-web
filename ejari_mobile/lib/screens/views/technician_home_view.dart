@@ -41,6 +41,7 @@ class _TechnicianHomeViewState extends State<TechnicianHomeView> {
           final s = MaintenanceStatus.normalize(j['status']);
           return s == MaintenanceStatus.inProgress ||
               s == MaintenanceStatus.enRoute ||
+              s == MaintenanceStatus.arrived ||
               (s == MaintenanceStatus.assigned && j['techAccepted'] == true);
         })
         .toList();

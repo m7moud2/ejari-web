@@ -5,6 +5,7 @@ import '../services/maintenance_service.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import '../widgets/camera_capture_widget.dart';
+import '../utils/safe_parse.dart';
 
 class CreateMaintenanceRequestScreen extends StatefulWidget {
   const CreateMaintenanceRequestScreen({super.key});
@@ -36,33 +37,47 @@ class _CreateMaintenanceRequestScreenState
   }
 
   Future<void> _loadProperties() async {
-    final bookings = await DataService.getBookings();
-    final props = bookings
-        .map((b) => {
-              'id': b['propertyId']?.toString() ?? b['id']?.toString() ?? '',
-              'title': b['title']?.toString() ?? 'عقار محجوز',
-            })
-        .where((p) => p['id'].toString().isNotEmpty)
-        .toList();
+    try {
+      final bookings = await DataService.getBookings();
+      final props = bookings
+          .map((b) => {
+                'id': safeStr(b['propertyId'] ?? b['id']),
+                'title': safeStr(b['title'], 'عقار محجوز'),
+              })
+          .where((p) => p['id']!.isNotEmpty)
+          .toList();
 
-    if (props.isEmpty) {
-      final all = await DataService.getAllProperties();
-      props.addAll(all
-          .take(5)
-          .map((p) => {
-                'id': p['id']?.toString() ?? '',
-                'title': p['title']?.toString() ?? 'عقار',
-              }));
-    }
+      if (props.isEmpty) {
+        final all = await DataService.getAllProperties();
+        props.addAll(all.take(5).map((p) => {
+              'id': safeStr(p['id']),
+              'title': safeStr(p['title'], 'عقار'),
+            }));
+      }
 
-    if (mounted) {
-      setState(() {
-        _properties = props;
-        if (props.isNotEmpty) {
-          _selectedPropertyId = props.first['id']?.toString();
-          _selectedPropertyTitle = props.first['title']?.toString() ?? '';
-        }
-      });
+      if (props.isEmpty) {
+        props.add({'id': 'demo-address', 'title': 'عنواني الحالي (تجريبي)'});
+      }
+
+      if (mounted) {
+        setState(() {
+          _properties = props;
+          if (props.isNotEmpty) {
+            _selectedPropertyId = props.first['id'];
+            _selectedPropertyTitle = props.first['title'] ?? '';
+          }
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _properties = [
+            {'id': 'demo-address', 'title': 'عنواني الحالي (تجريبي)'},
+          ];
+          _selectedPropertyId = 'demo-address';
+          _selectedPropertyTitle = 'عنواني الحالي (تجريبي)';
+        });
+      }
     }
   }
 
@@ -104,33 +119,29 @@ class _CreateMaintenanceRequestScreenState
                 ),
               ),
               const SizedBox(height: 20),
-              const EjariSectionHeader(title: 'العقار المرتبط'),
+              const EjariSectionHeader(title: 'العقار / العنوان'),
               const SizedBox(height: 10),
-              if (_properties.isEmpty)
-                const Text('لا توجد عقارات — أضف حجزاً أولاً',
-                    style: TextStyle(color: AppTheme.textSecondary))
-              else
-                DropdownButtonFormField<String>(
-                  value: _selectedPropertyId,
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.home_work_outlined),
-                    labelText: 'اختر العقار',
-                  ),
-                  items: _properties
-                      .map((p) => DropdownMenuItem(
-                            value: p['id']?.toString(),
-                            child: Text(p['title']?.toString() ?? ''),
-                          ))
-                      .toList(),
-                  onChanged: (v) => setState(() {
-                    _selectedPropertyId = v;
-                    _selectedPropertyTitle = _properties
-                        .firstWhere((p) => p['id'] == v,
-                            orElse: () => {'title': ''})['title']
-                        ?.toString() ?? '';
-                  }),
-                  validator: (v) => v == null ? 'اختر العقار' : null,
+              DropdownButtonFormField<String>(
+                value: _selectedPropertyId,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.home_work_outlined),
+                  labelText: 'اختر العقار أو العنوان',
                 ),
+                items: _properties
+                    .map((p) => DropdownMenuItem<String>(
+                          value: p['id'],
+                          child: Text(safeStr(p['title'])),
+                        ))
+                    .toList(),
+                onChanged: (v) => setState(() {
+                  _selectedPropertyId = v;
+                  _selectedPropertyTitle = _properties
+                          .firstWhere((p) => p['id'] == v,
+                              orElse: () => {'title': ''})['title'] ??
+                      '';
+                }),
+                validator: (v) => v == null ? 'اختر العقار' : null,
+              ),
               const SizedBox(height: 20),
               const EjariSectionHeader(title: 'نوع المشكلة'),
               const SizedBox(height: 10),
@@ -159,11 +170,11 @@ class _CreateMaintenanceRequestScreenState
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(category['icon'],
+                          Text(safeStr(category['icon']),
                               style: const TextStyle(fontSize: 18)),
                           const SizedBox(width: 6),
                           Text(
-                            category['name'],
+                            safeStr(category['name']),
                             style: TextStyle(
                               color: isSelected
                                   ? Colors.white
@@ -210,11 +221,11 @@ class _CreateMaintenanceRequestScreenState
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(entry.value['name'],
+                              Text(safeStr(entry.value['name']),
                                   style: const TextStyle(
                                       fontWeight: FontWeight.w800)),
                               Text(
-                                'وقت الاستجابة: ${entry.value['responseTime']}',
+                                'وقت الاستجابة: ${safeStr(entry.value['responseTime'])}',
                                 style: const TextStyle(
                                     color: AppTheme.textSecondary,
                                     fontSize: 12),
@@ -234,7 +245,8 @@ class _CreateMaintenanceRequestScreenState
                   labelText: 'عنوان المشكلة',
                   prefixIcon: Icon(Icons.title),
                 ),
-                validator: (v) => v!.isEmpty ? 'مطلوب' : null,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -245,7 +257,8 @@ class _CreateMaintenanceRequestScreenState
                   alignLabelWithHint: true,
                 ),
                 maxLines: 4,
-                validator: (v) => v!.isEmpty ? 'مطلوب' : null,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
               ),
               const SizedBox(height: 12),
               ListTile(
@@ -360,33 +373,55 @@ class _CreateMaintenanceRequestScreenState
     }
 
     final user = await AuthService.getCurrentUser();
-    if (user == null) return;
+    if (user == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('يرجى تسجيل الدخول أولاً'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+      return;
+    }
 
     setState(() => _submitting = true);
 
-    await MaintenanceService.createRequest(
-      userId: user['email'],
-      propertyId: _selectedPropertyId ?? 'none',
-      propertyTitle: _selectedPropertyTitle,
-      category: _selectedCategory!,
-      priority: _selectedPriority,
-      title: _titleController.text,
-      description: _descriptionController.text,
-      scheduledAt: _preferredTime?.toIso8601String(),
-      images: _attachedImages.isEmpty ? null : _attachedImages,
-      lat: 30.0444 + (DateTime.now().millisecond % 100) / 10000,
-      lng: 31.2357 + (DateTime.now().microsecond % 100) / 10000,
-    );
-
-    if (mounted) {
-      setState(() => _submitting = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم إرسال الطلب — بانتظار التعيين ✅'),
-          backgroundColor: AppTheme.primaryColor,
-        ),
+    try {
+      await MaintenanceService.createRequest(
+        userId: safeStr(user['email'], 'user@ejari.app'),
+        propertyId: _selectedPropertyId ?? 'none',
+        propertyTitle: _selectedPropertyTitle,
+        category: _selectedCategory!,
+        priority: _selectedPriority,
+        title: _titleController.text.trim(),
+        description: _descriptionController.text.trim(),
+        scheduledAt: _preferredTime?.toIso8601String(),
+        images: _attachedImages.isEmpty ? null : _attachedImages,
+        lat: 30.0444 + (DateTime.now().millisecond % 100) / 10000,
+        lng: 31.2357 + (DateTime.now().microsecond % 100) / 10000,
       );
-      Navigator.pop(context, true);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('تم إرسال الطلب — بانتظار التعيين ✅'),
+            backgroundColor: AppTheme.primaryColor,
+          ),
+        );
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تعذّر الإرسال: $e'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
