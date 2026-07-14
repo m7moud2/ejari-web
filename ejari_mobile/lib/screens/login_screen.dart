@@ -188,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const EjariAuthHeader(
                             title: 'مرحباً بعودتك',
                             subtitle:
-                                'سجّل الدخول لمتابعة حجوزاتك وعقودك بأمان',
+                                'سجّل الدخول لمتابعة الحجوزات، المحفظة، الضمان، والصيانة من مكان واحد',
                           ),
                           const SizedBox(height: 28),
                           EjariAuthFormCard(

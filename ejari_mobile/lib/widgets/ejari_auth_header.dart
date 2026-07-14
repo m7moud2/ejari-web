@@ -129,7 +129,7 @@ class EjariAuthHeader extends StatelessWidget {
                     ),
                   ),
                   child: const Text(
-                    'إيجار بثقة',
+                    'إيجار أوضح • ثقة أكبر',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w800,
