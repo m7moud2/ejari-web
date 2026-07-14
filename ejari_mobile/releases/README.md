@@ -6,10 +6,10 @@
 
 | الرابط | الاستخدام |
 |--------|-----------|
-| صفحة التحميل (GitHub Pages) | `https://m7moud2.github.io/ejari-web/docs/download/` |
+| صفحة التحميل (GitHub Pages) | `https://m7moud2.github.io/ejari-web/promo/` |
 | صفحة الترويج | `https://m7moud2.github.io/ejari-web/promo/` |
 | أحدث إصدار مباشرة | `https://github.com/m7moud2/ejari-web/releases/latest` |
-| تحميل APK مباشرة | `https://github.com/m7moud2/ejari-web/releases/download/v1.2.3/ejari-1.2.3.apk` |
+| تحميل APK مباشرة | `https://github.com/m7moud2/ejari-web/releases/download/v1.3.0/ejari-1.3.0.apk` |
 
 > GitHub Pages مفعّل من فرع `main` (جذر المستودع). صفحة التحميل بعد الدفع: `/docs/download/`.
 
@@ -45,11 +45,11 @@ git push origin main
 cd ejari_mobile
 
 flutter build apk --release --dart-define=DEMO_MODE=false
-cp build/app/outputs/flutter-apk/app-release.apk releases/ejari-1.2.3.apk
+cp build/app/outputs/flutter-apk/app-release.apk releases/ejari-1.3.0.apk
 
-gh release create v1.2.3 releases/ejari-1.2.3.apk \
+gh release create v1.3.0 releases/ejari-1.3.0.apk \
   --repo m7moud2/ejari-web \
-  --title "Ejari 1.2.3" \
+  --title "Ejari 1.3.0" \
   --notes "$(cat <<'EOF'
 ## ما الجديد
 - محفظة المستأجر وتذكيرات الدفع
@@ -87,15 +87,15 @@ gh auth login -h github.com
 صفحات العرض:
 - https://m7moud2.github.io/ejari-web/promo/
 - https://m7moud2.github.io/ejari-web/promo/download.html
-- https://m7moud2.github.io/ejari-web/docs/download/
+- https://m7moud2.github.io/ejari-web/promo/
 
 للتحقق يدويًا:
 
 ```bash
-curl -sS "https://firestore.googleapis.com/v1/projects/keyo-elite-1/databases/(default)/documents/public_stats/downloads"
+curl -sS "https://firestore.googleapis.com/v1.3.0/projects/keyo-elite-1/databases/(default)/documents/public_stats/downloads"
 ```
 
-## تثبيت APK (عملاء حقيقيون — v1.2.3+)
+## تثبيت APK (عملاء حقيقيون — v1.3.0+)
 
 1. فعّل **مصادر غير معروفة** على جهاز Android.
 2. افتح رابط التحميل من الهاتف واضغط **تحميل**.
@@ -109,7 +109,7 @@ curl -sS "https://firestore.googleapis.com/v1/projects/keyo-elite-1/databases/(d
 
 | الملف | الوصف |
 |-------|--------|
-| `ejari-1.2.3.apk` | أحدث إنتاج — محفظة + إقامة قصيرة + Firebase |
+| `ejari-1.3.0.apk` | أحدث إنتاج — محفظة + إقامة قصيرة + Firebase |
 | `index.html` | صفحة تحميل عربية للمشاركة |
 
 ## Firebase

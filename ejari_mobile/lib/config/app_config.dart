@@ -8,8 +8,8 @@ import 'package:flutter/foundation.dart';
 /// Override with `--dart-define=DEMO_MODE=true|false`.
 class AppConfig {
   /// Keep in sync with pubspec.yaml `version` (name part).
-  static const String appVersion = '1.2.4';
-  static const int buildNumber = 15;
+  static const String appVersion = '1.3.0';
+  static const int buildNumber = 16;
 
   static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL');
   static const String _demoModeValue = String.fromEnvironment('DEMO_MODE');
@@ -17,7 +17,7 @@ class AppConfig {
   /// Public invite / download landing page (GitHub Pages or Releases).
   static const String inviteUrl = String.fromEnvironment(
     'INVITE_URL',
-    defaultValue: 'https://m7moud2.github.io/ejari-web/docs/download/',
+    defaultValue: 'https://m7moud2.github.io/ejari-web/promo/',
   );
 
   /// Fallback when GitHub Pages is not enabled yet.

@@ -50,7 +50,7 @@ APK_PATH="$MOBILE_DIR/releases/${APK_NAME}"
 DIRECT_URL="https://github.com/${REPO}/releases/download/${TAG}/${APK_NAME}"
 LATEST_URL="https://github.com/${REPO}/releases/latest"
 PROMO_URL="https://m7moud2.github.io/ejari-web/promo/"
-DOWNLOAD_PAGE="https://m7moud2.github.io/ejari-web/docs/download/"
+DOWNLOAD_PAGE="https://m7moud2.github.io/ejari-web/promo/"
 
 echo "==> Version: ${VERSION_NAME}+${BUILD_NUMBER}  tag=${TAG}"
 
@@ -67,11 +67,11 @@ fi
 DEFAULT_NOTES="$(cat <<EOF
 ## ما الجديد في ${VERSION_NAME}
 
-- تفعيل الموقع عند الفتح لعرض أقرب الوحدات («قربك الآن»)
-- فلاتر احترافية: كل المحافظات والمدن، مدة، سعر، مرافق، وترتيب
-- رئيسية المستأجر: قربك · عروض ساخنة · إقامات قصيرة
-- ربط العروض بمدة الحجز ومعاينة أوضح من تفاصيل العقار
-- بيانات تجريبية أغنى عبر المحافظات مع إحداثيات
+- نظام الإيجار المتدرج (يومي، أسبوعي، شهري، سنوي) مع سياسات مرنة
+- نظام باقات واشتراكات متكامل للملاك (مجاني، برونزي، فضي، ذهبي)
+- واجهات مخصصة ومنفصلة بالكامل للملاك والمستأجرين
+- دعم وتصنيف عقارات البيع والإيجار
+- إعادة تصميم شاملة واحترافية للواجهات (UI/UX)
 
 ## التحميل
 
