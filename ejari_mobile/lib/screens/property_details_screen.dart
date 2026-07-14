@@ -721,96 +721,55 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               message:
                                   'جرّب الجولة الافتراضية والمقارنة بين عقارين من هنا.',
                             ),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: InkWell(
-                                    onTap: _openVirtualTour,
-                                    borderRadius: BorderRadius.circular(
-                                        AppTheme.cardRadius - 4),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: AppTheme.spaceMd,
-                                        vertical: AppTheme.spaceSm,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.accentColor
-                                            .withOpacity(0.12),
-                                        borderRadius: BorderRadius.circular(
-                                            AppTheme.cardRadius - 4),
-                                        border: Border.all(
-                                          color: AppTheme.accentColor
-                                              .withOpacity(0.25),
-                                        ),
-                                      ),
-                                      child: const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.threed_rotation,
-                                              color: AppTheme.accentColor,
-                                              size: 18),
-                                          SizedBox(width: AppTheme.spaceXs),
-                                          Text(
-                                            'جولة افتراضية 360°',
-                                            style: TextStyle(
-                                              color: AppTheme.accentColor,
-                                              fontWeight: FontWeight.w800,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final stackVertically =
+                                    constraints.maxWidth < 360;
+                                final tourBtn = _buildDetailActionButton(
+                                  icon: Icons.threed_rotation,
+                                  label: 'جولة افتراضية 360°',
+                                  foreground: AppTheme.accentColor,
+                                  background:
+                                      AppTheme.accentColor.withOpacity(0.12),
+                                  borderColor:
+                                      AppTheme.accentColor.withOpacity(0.25),
+                                  onTap: _openVirtualTour,
+                                );
+                                final mapBtn = _buildDetailActionButton(
+                                  icon: Icons.map_outlined,
+                                  label: 'الموقع على الخريطة',
+                                  foreground: AppTheme.primaryColor,
+                                  background:
+                                      AppTheme.primaryColor.withOpacity(0.08),
+                                  borderColor:
+                                      AppTheme.primaryColor.withOpacity(0.15),
+                                  onTap: () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const MapSearchScreen(),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: InkWell(
-                                    onTap: () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const MapSearchScreen(),
-                                      ),
-                                    ),
-                                    borderRadius: BorderRadius.circular(
-                                        AppTheme.cardRadius - 4),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: AppTheme.spaceMd,
-                                        vertical: AppTheme.spaceSm,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.primaryColor
-                                            .withOpacity(0.08),
-                                        borderRadius: BorderRadius.circular(
-                                            AppTheme.cardRadius - 4),
-                                        border: Border.all(
-                                          color: AppTheme.primaryColor
-                                              .withOpacity(0.15),
-                                        ),
-                                      ),
-                                      child: const Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(Icons.map_outlined,
-                                              color: AppTheme.primaryColor,
-                                              size: 18),
-                                          SizedBox(width: AppTheme.spaceXs),
-                                          Text(
-                                            'الموقع على الخريطة',
-                                            style: TextStyle(
-                                              color: AppTheme.primaryColor,
-                                              fontWeight: FontWeight.w800,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
+                                );
+                                if (stackVertically) {
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      tourBtn,
+                                      const SizedBox(height: 8),
+                                      mapBtn,
+                                    ],
+                                  );
+                                }
+                                return Row(
+                                  children: [
+                                    Expanded(child: tourBtn),
+                                    const SizedBox(width: 8),
+                                    Expanded(child: mapBtn),
+                                  ],
+                                );
+                              },
                             ),
                             const SizedBox(height: AppTheme.spaceMd),
                             const EjariSectionHeader(
@@ -1505,6 +1464,51 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDetailActionButton({
+    required IconData icon,
+    required String label,
+    required Color foreground,
+    required Color background,
+    required Color borderColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppTheme.cardRadius - 4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppTheme.spaceSm,
+          vertical: AppTheme.spaceSm,
+        ),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(AppTheme.cardRadius - 4),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: foreground, size: 18),
+            const SizedBox(width: AppTheme.spaceXs),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: foreground,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

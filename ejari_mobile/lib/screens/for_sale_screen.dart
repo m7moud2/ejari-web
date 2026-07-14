@@ -272,24 +272,37 @@ class _ForSaleScreenState extends State<ForSaleScreen> {
                 // FOR SALE badge
                 Positioned(
                   top: 14,
+                  left: 14,
                   right: 14,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                        color: AppTheme.borderColor,
-                        borderRadius: BorderRadius.circular(12)),
-                    child: const Row(
-                      children: [
-                        Icon(Icons.campaign_rounded,
-                            color: AppTheme.borderColor, size: 14),
-                        SizedBox(width: 4),
-                        Text(kSaleAdBadgeLabel,
-                            style: TextStyle(
-                                color: AppTheme.textPrimary,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 11)),
-                      ],
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                            color: AppTheme.borderColor,
+                            borderRadius: BorderRadius.circular(12)),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.campaign_rounded,
+                                color: AppTheme.textPrimary, size: 14),
+                            SizedBox(width: 4),
+                            Text(
+                              kSaleAdBadgeLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                  color: AppTheme.textPrimary,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),

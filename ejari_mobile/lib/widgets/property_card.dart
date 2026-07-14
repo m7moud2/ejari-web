@@ -98,12 +98,12 @@ class _PropertyCardState extends State<PropertyCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image Stack
+            // Image Stack — corner Wraps avoid stacked Positioned overlaps
             Stack(
               children: [
                 Hero(
                   tag: widget.id,
-                child: ClipRRect(
+                  child: ClipRRect(
                     borderRadius:
                         const BorderRadius.vertical(top: Radius.circular(24)),
                     child: PropertyImage(
@@ -125,220 +125,240 @@ class _PropertyCardState extends State<PropertyCard> {
                   ),
                 ),
 
+                // Top-left: favorite + status chips
                 Positioned(
-                  bottom: 60,
-                  left: 15,
-                  child: _buildBadge(
-                    isSaleListing({'listingMode': widget.listingMode})
-                        ? kSaleAdBadgeLabel
-                        : listingTypeFromProperty({
-                            'listingMode': widget.listingMode,
-                          }).arabicLabel,
-                    isSaleListing({'listingMode': widget.listingMode})
-                        ? AppTheme.borderColor
-                        : AppTheme.primaryColor,
-                    isSaleListing({'listingMode': widget.listingMode})
-                        ? Icons.campaign_rounded
-                        : Icons.key_rounded,
-                  ),
-                ),
-
-                // Superior/Ejari Badge
-                if (widget.listingMode != null &&
-                    widget.listingMode != 'commission')
-                  Positioned(
-                    top: 15,
-                    right: 15,
-                    child: _buildBadge(
-                        'إيجاري ${widget.listingMode!.toUpperCase()}',
-                        AppTheme.primaryColor,
-                        Icons.workspace_premium_rounded),
-                  )
-                else
-                  Positioned(
-                    top: 15,
-                    right: 15,
-                    child: _buildBadge(
-                        'سوبريور', AppTheme.primaryColor, Icons.star_rounded),
-                  ),
-
-                // Commission Indicator (If applicable)
-                if (widget.listingMode == 'commission')
-                  Positioned(
-                    top: 15,
-                    left: 60, // Next to favorite
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardTheme.color ??
-                            Theme.of(context).cardColor.withOpacity(0.9),
-          borderRadius: BorderRadius.circular(14),
+                  top: 12,
+                  left: 12,
+                  right: 100,
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: _toggleFavorite,
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardTheme.color ??
+                                Theme.of(context).cardColor.withOpacity(0.9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            _isFavorite
+                                ? Icons.favorite
+                                : Icons.favorite_border_rounded,
+                            color: AppTheme.errorColor,
+                            size: 22,
+                          ),
+                        ),
                       ),
-                      child: const Text('عمولة مرنة',
-                          style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.textSecondary)),
-                    ),
-                  ),
-
-                // Favorite Button
-                Positioned(
-                  top: 15,
-                  left: 15,
-                  child: GestureDetector(
-                    onTap: _toggleFavorite,
-                    child: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                          color: Theme.of(context).cardTheme.color ??
-                              Theme.of(context).cardColor.withOpacity(0.9),
-                          shape: BoxShape.circle),
-                      child: Icon(
-                        _isFavorite
-                            ? Icons.favorite
-                            : Icons.favorite_border_rounded,
-                        color: AppTheme.errorColor,
-                        size: 22,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Verified Badge
-                if (widget.isVerified)
-                  Positioned(
-                    top: 15,
-                    left: 65,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor,
-                          borderRadius: BorderRadius.circular(14),
-                        boxShadow: const [],
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.verified_rounded,
-                              color: Colors.white, size: 14),
-                          SizedBox(width: 4),
-                          Text('موثق إيجاري',
-                              style: TextStyle(
+                      if (widget.isVerified)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.verified_rounded,
+                                  color: Colors.white, size: 14),
+                              SizedBox(width: 4),
+                              Text(
+                                'موثق إيجاري',
+                                style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 10,
-                                  fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
-                  ),
-                // Real Data Badge
-                if (!widget.isDemo)
-                  Positioned(
-                    bottom: 60,
-                    right: 15,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.white, width: 1),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.check_circle_rounded,
-                              color: Colors.white, size: 12),
-                          SizedBox(width: 4),
-                          Text('متاحة فعلياً',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                // Demo Badge
-                if (widget.isDemo)
-                  Positioned(
-                    bottom: 60,
-                    right: 15,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppTheme.borderColor.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.white, width: 1),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.science_rounded,
-                              color: Colors.white, size: 12),
-                          SizedBox(width: 4),
-                          Text('تجريبي',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                // Commission Badge
-                if (widget.listingMode == 'commission' || widget.id == '1')
-                  Positioned(
-                    bottom: 60,
-                    left: 15,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                          color: AppTheme.primaryColor,
-                          borderRadius: BorderRadius.circular(12)),
-                      child: const Text('بدون عمولة %0',
-                          style: TextStyle(
-                              color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      if (widget.listingMode == 'commission' &&
+                          !widget.isVerified)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardTheme.color ??
+                                Theme.of(context).cardColor.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Text(
+                            'عمولة مرنة',
+                            style: TextStyle(
                               fontSize: 10,
-                              fontWeight: FontWeight.bold)),
-                    ),
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
+                ),
+
+                // Top-right: listing quality badge
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: widget.listingMode != null &&
+                          widget.listingMode != 'commission'
+                      ? _buildBadge(
+                          'إيجاري ${widget.listingMode!.toUpperCase()}',
+                          AppTheme.primaryColor,
+                          Icons.workspace_premium_rounded,
+                        )
+                      : _buildBadge(
+                          'سوبريور',
+                          AppTheme.primaryColor,
+                          Icons.star_rounded,
+                        ),
+                ),
+
+                // Mid-bottom: listing / offer / availability badges
+                Positioned(
+                  left: 12,
+                  right: 12,
+                  bottom: 56,
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          _buildBadge(
+                            isSaleListing({'listingMode': widget.listingMode})
+                                ? kSaleAdBadgeLabel
+                                : listingTypeFromProperty({
+                                    'listingMode': widget.listingMode,
+                                  }).arabicLabel,
+                            isSaleListing({'listingMode': widget.listingMode})
+                                ? AppTheme.borderColor
+                                : AppTheme.primaryColor,
+                            isSaleListing({'listingMode': widget.listingMode})
+                                ? Icons.campaign_rounded
+                                : Icons.key_rounded,
+                          ),
+                          if (widget.listingMode == 'commission' ||
+                              widget.id == '1')
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryColor,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Text(
+                                'بدون عمولة %0',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      if (widget.isDemo)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.borderColor.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colors.white, width: 1),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.science_rounded,
+                                  color: Colors.white, size: 12),
+                              SizedBox(width: 4),
+                              Text(
+                                'تجريبي',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor.withOpacity(0.9),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colors.white, width: 1),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.check_circle_rounded,
+                                  color: Colors.white, size: 12),
+                              SizedBox(width: 4),
+                              Text(
+                                'متاحة فعلياً',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
 
                 // Price Tag
                 Positioned(
-                  bottom: 15,
-                  right: 15,
+                  bottom: 12,
+                  right: 12,
                   child: Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                        color: Theme.of(context).cardTheme.color ??
-                            Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(16)),
+                      color: Theme.of(context).cardTheme.color ??
+                          Theme.of(context).cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Row(
                         children: [
-                          Text(widget.price,
-                              style: const TextStyle(
-                                  color: AppTheme.primaryColor,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold)),
+                          Text(
+                            widget.price,
+                            style: const TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           Text(
                             isSaleListing({'listingMode': widget.listingMode})
                                 ? ' ج.م'
                                 : ' ${context.tr('price_egp')}',
                             style: const TextStyle(
-                                color: AppTheme.primaryColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold)),
+                              color: AppTheme.primaryColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                     ),
