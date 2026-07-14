@@ -46,7 +46,8 @@ service cloud.firestore {
         'requestedRole',
         'verificationStatus',
         'createdAt',
-        'status'
+        'status',
+        'accountId'
       ]);
     }
 
@@ -96,7 +97,10 @@ service cloud.firestore {
              validUserCreateRoleFields() &&
              validUserCreateVerificationStatus() &&
              validUserCreateTimestamps() &&
-             validUserCreateStatus();
+             validUserCreateStatus() &&
+             (!('accountId' in request.resource.data) ||
+              (request.resource.data.accountId is string &&
+               request.resource.data.accountId.matches('EJR-[0-9]{6}')));
     }
 
     function validUserUpdate(userId) {
@@ -415,6 +419,21 @@ service cloud.firestore {
       allow read: if isNotificationRecipient();
       allow create: if false;
       allow update: if validNotificationRecipientUpdate();
+      allow delete: if false;
+    }
+
+    // Public APK download counter for promo / GitHub Pages (unauthenticated, +1 only).
+    match /public_stats/downloads {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['total']) &&
+                       request.resource.data.total is int &&
+                       (request.resource.data.total == 0 ||
+                        request.resource.data.total == 1);
+      allow update: if request.resource.data.diff(resource.data)
+                         .affectedKeys()
+                         .hasOnly(['total']) &&
+                       request.resource.data.total is int &&
+                       request.resource.data.total == resource.data.total + 1;
       allow delete: if false;
     }
 

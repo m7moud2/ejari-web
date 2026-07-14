@@ -76,27 +76,24 @@ gh auth login -h github.com
 # أو: GH_TOKEN=ghp_xxx gh release create ...
 ```
 
-## عدّاد التحميلات (GitHub)
+## عدّاد التحميلات (لحظي)
 
-العداد المعروض على صفحات التحميل يأخذ الرقم الرسمي من GitHub Releases API (`assets[].download_count`) — يزيد تلقائيًا كلما نُزّل ملف الـ APK من رابط الإصدار.
+العداد على صفحات التحميل يعدّ **نقرات زر التحميل** فوراً، ويُحفظ في Firebase Firestore (`public_stats/downloads.total`).
+
+- عند الضغط: +1 فوري في الواجهة ثم مزامنة للخادم
+- نفس المتصفح خلال 30 ثانية لا يُحسب مرتين (`sessionStorage`)
+- لا يعتمد على `download_count` من GitHub (متأخر ومضلّل)
 
 صفحات العرض:
 - https://m7moud2.github.io/ejari-web/promo/
 - https://m7moud2.github.io/ejari-web/promo/download.html
 - https://m7moud2.github.io/ejari-web/docs/download/
 
-للتحقق يدويًا (Admin):
+للتحقق يدويًا:
 
 ```bash
-# آخر إصدار
-gh api repos/m7moud2/ejari-web/releases/latest --jq '.assets[] | {name, download_count}'
-
-# كل الإصدارات (مجموع كل ملفات APK التابعة لإيجاري)
-gh api repos/m7moud2/ejari-web/releases --paginate \
-  --jq '[.[] | .assets[] | select(.name|test("\\.apk$";"i")) | select(.name|test("^keyo";"i")|not) | .download_count] | add'
+curl -sS "https://firestore.googleapis.com/v1/projects/keyo-elite-1/databases/(default)/documents/public_stats/downloads"
 ```
-
-> ملاحظة: العدد يعدّ التحميلات عبر روابط GitHub Releases فقط (وهي روابط أزرار التحميل الحالية).
 
 ## تثبيت APK (عملاء حقيقيون — v1.2.3+)
 
