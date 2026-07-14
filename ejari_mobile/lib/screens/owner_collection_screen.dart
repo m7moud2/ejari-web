@@ -27,12 +27,18 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final allowed = await AuthGate.requireRole(
-        context,
-        allowedRoles: const ['owner'],
-        deniedMessage: 'صفحة التحصيل متاحة للمالك فقط.',
-      );
-      if (allowed) _load();
+      // Tab shell already role-gates owner screens; only gate pushed routes.
+      final embedded =
+          context.findAncestorWidgetOfExactType<IndexedStack>() != null;
+      if (!embedded) {
+        final allowed = await AuthGate.requireRole(
+          context,
+          allowedRoles: const ['owner'],
+          deniedMessage: 'صفحة التحصيل متاحة للمالك فقط.',
+        );
+        if (!allowed) return;
+      }
+      _load();
     });
   }
 

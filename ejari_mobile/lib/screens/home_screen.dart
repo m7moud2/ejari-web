@@ -49,6 +49,9 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
   String _currentRole = 'tenant';
   int _unreadNotifications = 0;
+  bool _roleReady = false;
+  List<Widget>? _cachedScreens;
+  String? _cachedRole;
 
   @override
   void initState() {
@@ -59,10 +62,36 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadRole() async {
     final role = await AuthService.getUserRole();
     final unread = await DataService.getUnreadNotificationCount();
+    if (!mounted) return;
     setState(() {
+      if (_currentRole != role) {
+        // Role change rebuilds the tab stack — reset to home tab.
+        _currentIndex = 0;
+        _cachedScreens = null;
+        _cachedRole = null;
+      }
       _currentRole = role;
       _unreadNotifications = unread;
+      _roleReady = true;
     });
+  }
+
+  Future<void> _refreshBadgeOnly() async {
+    final unread = await DataService.getUnreadNotificationCount();
+    if (!mounted) return;
+    setState(() => _unreadNotifications = unread);
+  }
+
+  void _onDestinationSelected(int index) {
+    if (_currentRole == 'admin') {
+      _handleAdminNav(context, index);
+      return;
+    }
+    if (_currentIndex == index) return;
+    setState(() => _currentIndex = index);
+    // Never re-fetch role here — it remounted the IndexedStack and
+    // broke owner tab switching after the tenant IA cleanup.
+    _refreshBadgeOnly();
   }
 
   void _handleAdminNav(BuildContext context, int index) {
@@ -95,58 +124,70 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<Widget> get _screens {
-    switch (_currentRole) {
-      case 'technician':
-        return const [
-          UnifiedHomeScreen(),
-          ProviderJobsScreen(),
-          ProviderTimelineScreen(),
-          ProviderWalletScreen(),
-          ProfileScreen(),
-        ];
-      case 'owner':
-        return const [
-          UnifiedHomeScreen(),
-          ManagePropertiesScreen(),
-          AddPropertyScreen(),
-          OwnerCollectionScreen(),
-          ProfileScreen(),
-        ];
-      default:
-        // Tenant IA: home → explore → bookings → wallet → profile
-        return const [
-          UnifiedHomeScreen(),
-          PropertiesScreen(),
-          MyBookingsScreen(),
-          TenantWalletScreen(),
-          ProfileScreen(),
-        ];
+    if (_cachedScreens != null && _cachedRole == _currentRole) {
+      return _cachedScreens!;
     }
+    final screens = switch (_currentRole) {
+      'technician' => <Widget>[
+          const UnifiedHomeScreen(key: ValueKey('tech-home')),
+          const ProviderJobsScreen(key: ValueKey('tech-jobs')),
+          const ProviderTimelineScreen(key: ValueKey('tech-timeline')),
+          const ProviderWalletScreen(key: ValueKey('tech-wallet')),
+          const ProfileScreen(key: ValueKey('tech-profile')),
+        ],
+      // Owner IA: home → properties → add → collection → profile
+      'owner' => <Widget>[
+          const UnifiedHomeScreen(key: ValueKey('owner-home')),
+          const ManagePropertiesScreen(key: ValueKey('owner-properties')),
+          const AddPropertyScreen(key: ValueKey('owner-add')),
+          const OwnerCollectionScreen(key: ValueKey('owner-collection')),
+          const ProfileScreen(key: ValueKey('owner-profile')),
+        ],
+      // Tenant IA: home → explore → bookings → wallet → profile
+      _ => <Widget>[
+          const UnifiedHomeScreen(key: ValueKey('tenant-home')),
+          const PropertiesScreen(key: ValueKey('tenant-explore')),
+          const MyBookingsScreen(key: ValueKey('tenant-bookings')),
+          const TenantWalletScreen(key: ValueKey('tenant-wallet')),
+          const ProfileScreen(key: ValueKey('tenant-profile')),
+        ],
+    };
+    _cachedRole = _currentRole;
+    _cachedScreens = screens;
+    return screens;
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!_roleReady) {
+      return const Scaffold(
+        backgroundColor: AppTheme.backgroundColor,
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final screens = _screens;
+    final safeIndex = _currentIndex.clamp(0, screens.length - 1);
+
     return Scaffold(
+      // Floating pill nav sits above body; keep extendBody for the look,
+      // but raise the bar so taps are not swallowed by nested Scaffolds.
       extendBody: true,
       backgroundColor: AppTheme.backgroundColor,
       body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
+        index: safeIndex,
+        sizing: StackFit.expand,
+        children: screens,
       ),
-      bottomNavigationBar: EjariNavigationBar(
-        currentIndex: _currentIndex,
-        role: _currentRole,
-        profileBadgeCount: _unreadNotifications,
-        onTap: (index) {
-          if (_currentRole == 'admin') {
-            _handleAdminNav(context, index);
-            return;
-          }
-          setState(() {
-            _currentIndex = index;
-          });
-          _loadRole();
-        },
+      bottomNavigationBar: Material(
+        elevation: 12,
+        color: Colors.transparent,
+        child: EjariNavigationBar(
+          currentIndex: safeIndex,
+          role: _currentRole,
+          profileBadgeCount: _unreadNotifications,
+          onTap: _onDestinationSelected,
+        ),
       ),
     );
   }

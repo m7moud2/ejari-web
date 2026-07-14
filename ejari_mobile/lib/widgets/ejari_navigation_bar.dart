@@ -5,6 +5,9 @@ import 'notification_badge.dart';
 
 /// Role-aware bottom navigation — max 5 destinations.
 ///
+/// Owner IA:
+/// الرئيسية → عقاراتي → إضافة → تحصيل → حسابي
+///
 /// Tenant IA (renting-focused):
 /// الرئيسية → استكشف → حجوزاتي → المحفظة → حسابي
 class EjariNavigationBar extends StatelessWidget {
@@ -56,14 +59,16 @@ class EjariNavigationBar extends StatelessWidget {
               ),
             ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(28),
-            child: NavigationBar(
+          child: Material(
+            color: Colors.transparent,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: NavigationBar(
               height: 76,
               backgroundColor: Colors.transparent,
               surfaceTintColor: Colors.transparent,
               indicatorColor: AppTheme.accentColor.withOpacity(0.35),
-              selectedIndex: currentIndex.clamp(0, 4),
+              selectedIndex: currentIndex.clamp(0, 4).toInt(),
               labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
               onDestinationSelected: onTap,
               destinations: _isAdmin
@@ -235,6 +240,7 @@ class EjariNavigationBar extends StatelessWidget {
                               ),
                               _profileDestination,
                             ],
+            ),
             ),
           ),
         ),

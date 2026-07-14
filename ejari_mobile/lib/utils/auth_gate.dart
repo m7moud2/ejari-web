@@ -76,6 +76,9 @@ class AuthGate {
 
   /// Returns true if the current user has one of [allowedRoles].
   /// Shows a snackbar and pops the route when access is denied.
+  ///
+  /// Never pops when the screen is embedded in an [IndexedStack] tab shell —
+  /// popping would dismiss [HomeScreen] itself and make bottom nav look dead.
   static Future<bool> requireRole(
     BuildContext context, {
     required List<String> allowedRoles,
@@ -88,7 +91,11 @@ class AuthGate {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(deniedMessage)),
     );
-    Navigator.maybePop(context);
+    final embeddedInTabs =
+        context.findAncestorWidgetOfExactType<IndexedStack>() != null;
+    if (!embeddedInTabs) {
+      Navigator.maybePop(context);
+    }
     return false;
   }
 }

@@ -28,12 +28,18 @@ class _ManagePropertiesScreenState extends State<ManagePropertiesScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final allowed = await AuthGate.requireRole(
-        context,
-        allowedRoles: const ['owner'],
-        deniedMessage: 'إدارة العقارات متاحة للمالك فقط.',
-      );
-      if (allowed) _loadProperties();
+      // Tab shell already role-gates owner screens; only gate pushed routes.
+      final embedded =
+          context.findAncestorWidgetOfExactType<IndexedStack>() != null;
+      if (!embedded) {
+        final allowed = await AuthGate.requireRole(
+          context,
+          allowedRoles: const ['owner'],
+          deniedMessage: 'إدارة العقارات متاحة للمالك فقط.',
+        );
+        if (!allowed) return;
+      }
+      _loadProperties();
     });
   }
 
