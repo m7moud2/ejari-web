@@ -51,10 +51,8 @@ class AppConfig {
   static bool get demoMode {
     if (_demoModeValue == 'true') return true;
     if (_demoModeValue == 'false') return false;
-    // Local web (`flutter run` / web-server) must work without Console setup.
-    if (kIsWeb) return true;
-    // Debug + profile stay demo-first; only release APK uses Firebase.
-    return !kReleaseMode;
+    // Default to Firebase mode now since it is configured!
+    return false;
   }
 
   static bool get isProduction => !demoMode && kReleaseMode;

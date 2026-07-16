@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "349888023290",
+    "project_id": "ejari-mobile-d9f8e",
+    "storage_bucket": "ejari-mobile-d9f8e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:349888023290:android:1abe87d3a6207194541743",
+        "android_client_info": {
+          "package_name": "com.ejari.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAx7ay3v8mv1f5vFvDeavp3VUU4CE36RyE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

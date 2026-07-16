@@ -40,48 +40,52 @@ class DefaultFirebaseOptions {
     }
   }
 
-  // Project IDs must match android/app/google-services.json + iOS plist.
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBxVVVTRFiPaLvTkXFCh-rYVPSC4ImagbY',
-    appId: '1:1041631611064:web:757c9f9bc4cfc959ab4c4d',
-    messagingSenderId: '1041631611064',
-    projectId: 'ejari-elite-1',
-    authDomain: 'ejari-elite-1.firebaseapp.com',
-    storageBucket: 'ejari-elite-1.firebasestorage.app',
+    apiKey: 'AIzaSyBlSUWsnkPU2x6_16Gu8-2u29xN9x03Blo',
+    appId: '1:349888023290:web:dfd919ca651687bf541743',
+    messagingSenderId: '349888023290',
+    projectId: 'ejari-mobile-d9f8e',
+    authDomain: 'ejari-mobile-d9f8e.firebaseapp.com',
+    storageBucket: 'ejari-mobile-d9f8e.firebasestorage.app',
+    measurementId: 'G-ZV234WN4YX',
   );
 
+  // Project IDs must match android/app/google-services.json + iOS plist.
+
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDDus2ib_4CL4nvPmlUY2vFFrBP9gBS6j4',
-    appId: '1:1041631611064:android:2d10902716ce6ccfab4c4d',
-    messagingSenderId: '1041631611064',
-    projectId: 'ejari-elite-1',
-    storageBucket: 'ejari-elite-1.firebasestorage.app',
+    apiKey: 'AIzaSyAx7ay3v8mv1f5vFvDeavp3VUU4CE36RyE',
+    appId: '1:349888023290:android:1abe87d3a6207194541743',
+    messagingSenderId: '349888023290',
+    projectId: 'ejari-mobile-d9f8e',
+    storageBucket: 'ejari-mobile-d9f8e.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBpCIVsfA37PSXwOCaz1aLtd5mXx347T6c',
-    appId: '1:1041631611064:ios:fdfee2c4e527a654ab4c4d',
-    messagingSenderId: '1041631611064',
-    projectId: 'ejari-elite-1',
-    storageBucket: 'ejari-elite-1.firebasestorage.app',
+    apiKey: 'AIzaSyCC7ZKZERElgRWkKpbfpMoJqErPhYU0V-A',
+    appId: '1:349888023290:ios:0f2cea65fe5c801a541743',
+    messagingSenderId: '349888023290',
+    projectId: 'ejari-mobile-d9f8e',
+    storageBucket: 'ejari-mobile-d9f8e.firebasestorage.app',
     iosBundleId: 'com.ejari.app',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBpCIVsfA37PSXwOCaz1aLtd5mXx347T6c',
-    appId: '1:1041631611064:ios:f2c8ce9dc6c6869bab4c4d',
-    messagingSenderId: '1041631611064',
-    projectId: 'ejari-elite-1',
-    storageBucket: 'ejari-elite-1.firebasestorage.app',
+    apiKey: 'AIzaSyCC7ZKZERElgRWkKpbfpMoJqErPhYU0V-A',
+    appId: '1:349888023290:ios:dfbde025d3425283541743',
+    messagingSenderId: '349888023290',
+    projectId: 'ejari-mobile-d9f8e',
+    storageBucket: 'ejari-mobile-d9f8e.firebasestorage.app',
     iosBundleId: 'com.example.ejariMobile',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBxVVVTRFiPaLvTkXFCh-rYVPSC4ImagbY',
-    appId: '1:1041631611064:web:3180c6250c8a17bbab4c4d',
-    messagingSenderId: '1041631611064',
-    projectId: 'ejari-elite-1',
-    authDomain: 'ejari-elite-1.firebaseapp.com',
-    storageBucket: 'ejari-elite-1.firebasestorage.app',
+    apiKey: 'AIzaSyBlSUWsnkPU2x6_16Gu8-2u29xN9x03Blo',
+    appId: '1:349888023290:web:d6e0f02a0faf335d541743',
+    messagingSenderId: '349888023290',
+    projectId: 'ejari-mobile-d9f8e',
+    authDomain: 'ejari-mobile-d9f8e.firebaseapp.com',
+    storageBucket: 'ejari-mobile-d9f8e.firebasestorage.app',
+    measurementId: 'G-4C3B71P52D',
   );
+
 }
