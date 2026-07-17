@@ -8,6 +8,8 @@ import '../utils/safe_parse.dart';
 import 'contract_screen.dart';
 import 'rental_statement_screen.dart';
 import 'tenant_installments_screen.dart';
+import '../widgets/empty_state_view.dart';
+import 'properties_screen.dart';
 
 class MyContractsScreen extends StatefulWidget {
   const MyContractsScreen({super.key});
@@ -649,28 +651,19 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
   }
 
   Widget _buildEmptyState() {
-    return const EjariSurfaceCard(
-      child: Column(
-        children: [
-          Icon(Icons.description_outlined,
-              size: 72, color: AppTheme.primaryColor),
-          SizedBox(height: AppTheme.spaceMd),
-          Text(
-            'لا توجد عقود حتى الآن',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w900,
-              color: AppTheme.textPrimary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: AppTheme.spaceXs),
-          Text(
-            'ستظهر العقود بعد إتمام الدفع والمراجعة والتوقيع.',
-            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
-            textAlign: TextAlign.center,
-          ),
-        ],
+    return EjariSurfaceCard(
+      child: EmptyStateView(
+        icon: Icons.description_outlined,
+        title: 'لا توجد عقود حتى الآن',
+        subtitle: 'ستظهر العقود بعد إتمام الدفع والمراجعة والتوقيع.',
+        actionLabel: 'ابدأ بحجز عقار',
+        actionIcon: Icons.home_work_outlined,
+        onAction: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const PropertiesScreen()),
+          );
+        },
       ),
     );
   }

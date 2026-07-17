@@ -7,7 +7,9 @@ import '../theme/app_theme.dart';
 import '../utils/safe_parse.dart';
 import '../widgets/ejari_section.dart';
 import '../widgets/skeleton_list_loader.dart';
+import '../widgets/empty_state_view.dart';
 import 'payment_screen.dart';
+import 'my_bookings_screen.dart';
 
 /// قائمة تذكيرات الدفع للمستأجر — مستقلة عن المحفظة.
 class PaymentRemindersScreen extends StatefulWidget {
@@ -402,40 +404,18 @@ class _EmptyReminders extends StatelessWidget {
             ? 'لا توجد دفعات قادمة خلال الـ 60 يوماً القادمة'
             : 'لا توجد تذكيرات دفع حالياً';
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppTheme.screenPadding),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.check_circle_outline_rounded,
-              size: 64,
-              color: AppTheme.primaryColor.withOpacity(0.45),
-            ),
-            const SizedBox(height: AppTheme.spaceMd),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: 16,
-                color: AppTheme.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'ستظهر هنا أقساط الإيجار والعربون المستحقة من حجوزاتك.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppTheme.textSecondary,
-                fontSize: 13,
-                height: 1.5,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return EmptyStateView(
+      icon: Icons.check_circle_outline_rounded,
+      title: message,
+      subtitle: 'ستظهر هنا أقساط الإيجار والعربون المستحقة من حجوزاتك.',
+      actionLabel: 'عرض حجوزاتي',
+      actionIcon: Icons.calendar_month_rounded,
+      onAction: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+        );
+      },
     );
   }
 }

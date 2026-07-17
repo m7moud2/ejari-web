@@ -8,6 +8,8 @@ import '../services/live_sync_service.dart';
 import '../services/viewing_appointment_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/viewing_widgets.dart';
+import '../widgets/empty_state_view.dart';
+import 'properties_screen.dart';
 
 /// مواعيد المعاينة للمستأجر.
 class MyViewingsScreen extends StatefulWidget {
@@ -141,14 +143,23 @@ class _MyViewingsScreenState extends State<MyViewingsScreen> {
               onRefresh: _load,
               child: _items.isEmpty
                   ? ListView(
-                      children: const [
-                        SizedBox(height: 120),
-                        Center(
-                          child: Text(
-                            'لا توجد مواعيد معاينة بعد.\nاطلب معاينة من صفحة العقار.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: AppTheme.textSecondary),
-                          ),
+                      children: [
+                        const SizedBox(height: 48),
+                        EmptyStateView(
+                          icon: Icons.event_available_outlined,
+                          title: 'لا توجد مواعيد معاينة بعد',
+                          subtitle:
+                              'اطلب معاينة من صفحة العقار وسيظهر الموعد هنا مع إمكانية الإلغاء.',
+                          actionLabel: 'استكشف العقارات',
+                          actionIcon: Icons.search_rounded,
+                          onAction: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PropertiesScreen(),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     )

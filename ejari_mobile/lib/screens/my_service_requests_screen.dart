@@ -10,6 +10,7 @@ import '../utils/auth_gate.dart';
 import 'create_maintenance_request_screen.dart';
 import 'maintenance_request_detail_screen.dart';
 import 'payment_screen.dart';
+import '../widgets/empty_state_view.dart';
 
 class MyServiceRequestsScreen extends StatefulWidget {
   const MyServiceRequestsScreen({super.key});
@@ -338,41 +339,13 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
   }
 
   Widget _empty() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.build_circle_outlined,
-                size: 72, color: AppTheme.primaryColor.withOpacity(0.45)),
-            const SizedBox(height: 14),
-            const Text(
-              'لا توجد طلبات صيانة بعد',
-              style: TextStyle(
-                  fontWeight: FontWeight.w800, fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'اطلب صيانة معتمدة وتتبع الفني حتى الإغلاق',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: AppTheme.textSecondary),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: _openCreate,
-              icon: const Icon(Icons.add_rounded),
-              label: const Text('طلب صيانة جديد',
-                  style: TextStyle(fontWeight: FontWeight.w800)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.primaryColor,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-              ),
-            ),
-          ],
-        ),
-      ),
+    return EmptyStateView(
+      icon: Icons.build_circle_outlined,
+      title: 'لا توجد طلبات صيانة بعد',
+      subtitle: 'اطلب صيانة معتمدة وتتبع الفني حتى الإغلاق',
+      actionLabel: 'طلب صيانة جديد',
+      actionIcon: Icons.add_rounded,
+      onAction: _openCreate,
     );
   }
 

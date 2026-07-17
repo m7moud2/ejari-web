@@ -9,6 +9,7 @@ import '../provider_jobs_screen.dart';
 import '../provider_timeline_screen.dart';
 import '../provider_wallet_screen.dart';
 import '../tech_job_screen.dart';
+import '../../widgets/empty_state_view.dart';
 
 class TechnicianHomeView extends StatefulWidget {
   const TechnicianHomeView({super.key});
@@ -239,12 +240,17 @@ class _TechnicianHomeViewState extends State<TechnicianHomeView> {
           ),
           const SizedBox(height: 8),
           if (_activeJobs.isEmpty)
-            const EjariSurfaceCard(
-              elevated: false,
-              child: Text(
-                'لا مهام جارية',
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
-              ),
+            EmptyStateView(
+              compact: true,
+              icon: Icons.engineering_outlined,
+              title: 'لا مهام جارية',
+              subtitle: 'عند قبول طلب جديد سيظهر هنا مع حالة التقدم.',
+              actionLabel: 'عرض كل المهام',
+              actionIcon: Icons.list_alt_rounded,
+              onAction: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProviderJobsScreen()),
+              ).then((_) => _load()),
             )
           else
             ..._activeJobs.map(_jobTile),
@@ -261,11 +267,18 @@ class _TechnicianHomeViewState extends State<TechnicianHomeView> {
           ),
           const SizedBox(height: 8),
           if (_newJobs.isEmpty)
-            const EjariSurfaceCard(
-              elevated: false,
-              child: Text(
-                'لا طلبات جديدة',
-                style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+            EmptyStateView(
+              compact: true,
+              icon: Icons.inbox_outlined,
+              title: 'لا طلبات جديدة',
+              subtitle: 'تابع الجدول الزمني لاستقبال مهام الصيانة القادمة.',
+              actionLabel: 'افتح الجدول',
+              actionIcon: Icons.calendar_month_rounded,
+              onAction: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ProviderTimelineScreen(),
+                ),
               ),
             )
           else

@@ -9,6 +9,7 @@ import '../widgets/ejari_section.dart';
 import 'add_property_screen.dart';
 import 'owner_property_performance_screen.dart';
 import '../widgets/property_image.dart';
+import '../widgets/empty_state_view.dart';
 
 class ManagePropertiesScreen extends StatefulWidget {
   const ManagePropertiesScreen({super.key});
@@ -443,32 +444,19 @@ class _ManagePropertiesScreenState extends State<ManagePropertiesScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.home_work_outlined,
-              size: 80, color: AppTheme.primaryColor),
-          const SizedBox(height: 16),
-          const Text(
-            'لم تقم بإضافة عقارات بعد',
-            style: TextStyle(fontSize: 18, color: AppTheme.textSecondary),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const AddPropertyScreen()),
-              );
-              _loadProperties();
-            },
-            icon: const Icon(Icons.add),
-            label: const Text('إضافة عقار جديد'),
-          ),
-        ],
-      ),
+    return EmptyStateView(
+      icon: Icons.home_work_outlined,
+      title: 'لم تقم بإضافة عقارات بعد',
+      subtitle: 'أضف أول وحدة لبدء استقبال الحجوزات والتحصيل.',
+      actionLabel: 'إضافة عقار جديد',
+      actionIcon: Icons.add_rounded,
+      onAction: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AddPropertyScreen()),
+        );
+        _loadProperties();
+      },
     );
   }
 }

@@ -9,6 +9,7 @@ import 'property_details_screen.dart';
 import 'booking_screen.dart';
 import 'comparison_screen.dart';
 import 'search_results_screen.dart';
+import '../widgets/empty_state_view.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -419,44 +420,23 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.favorite_border,
-                size: 80, color: AppTheme.primaryColor),
-            const SizedBox(height: 16),
-            const Text(
-              'لا توجد عناصر في المفضلة',
-              style: TextStyle(fontSize: 18, color: AppTheme.textSecondary),
+    return EmptyStateView(
+      icon: Icons.favorite_border,
+      title: 'لا توجد عناصر في المفضلة',
+      subtitle: 'احفظ عقارات الساحل أو الإقامة القصيرة للمقارنة لاحقاً',
+      actionLabel: 'استكشف الساحل',
+      actionIcon: Icons.beach_access_rounded,
+      onAction: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const SearchResultsScreen(
+              query: '',
+              filters: {'shortStayOnly': true, 'coastalOnly': true},
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'احفظ عقارات الساحل أو الإقامة القصيرة للمقارنة لاحقاً',
-              style: TextStyle(fontSize: 14, color: AppTheme.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const SearchResultsScreen(
-                      query: '',
-                      filters: {'shortStayOnly': true, 'coastalOnly': true},
-                    ),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.beach_access_rounded),
-              label: const Text('استكشف الساحل'),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

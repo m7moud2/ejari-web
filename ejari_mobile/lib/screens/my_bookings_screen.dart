@@ -25,6 +25,8 @@ import '../services/live_sync_service.dart';
 import 'booking_qr_screen.dart';
 import 'booking_track_screen.dart';
 import 'owner_rating_screen.dart';
+import '../widgets/empty_state_view.dart';
+import 'properties_screen.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -239,28 +241,20 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   }
 
   Widget _buildEmptyState() {
-    return const EjariSurfaceCard(
-      child: Column(
-        children: [
-          Icon(Icons.calendar_today_outlined,
-              size: 80, color: AppTheme.primaryColor),
-          SizedBox(height: AppTheme.spaceMd),
-          Text(
-            'لا توجد حجوزات حالياً',
-            style: TextStyle(fontSize: 18, color: AppTheme.textSecondary),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: AppTheme.spaceXs),
-          Text(
+    return EjariSurfaceCard(
+      child: EmptyStateView(
+        icon: Icons.calendar_today_outlined,
+        title: 'لا توجد حجوزات حالياً',
+        subtitle:
             'أول ما تعمل حجز أو تدفع عربون، هتظهر الحالة هنا بشكل واضح، ومعها المتبقي أو الاسترداد لو حصل تغيير.',
-            style: TextStyle(
-              fontSize: 12,
-              color: AppTheme.textSecondary,
-              height: 1.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+        actionLabel: 'استكشف العقارات',
+        actionIcon: Icons.search_rounded,
+        onAction: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const PropertiesScreen()),
+          );
+        },
       ),
     );
   }

@@ -4,6 +4,7 @@ import '../widgets/ejari_navigation_bar.dart';
 import 'add_property_screen.dart';
 import 'properties_screen.dart';
 import 'profile_screen.dart';
+import '../config/app_config.dart';
 import '../theme/app_theme.dart';
 import '../widgets/property_card.dart';
 import 'booking_screen.dart';
@@ -903,22 +904,22 @@ class _HomeContentState extends State<HomeContent> {
                 ),
               ],
             ),
-            child: const Column(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  'قريباً',
+                const Text(
+                  'متاح الآن',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 17,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-                SizedBox(height: 2),
+                const SizedBox(height: 2),
                 Text(
-                  'الإطلاق الرسمي',
-                  style: TextStyle(
+                  'الإصدار ${AppConfig.appVersion}',
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,

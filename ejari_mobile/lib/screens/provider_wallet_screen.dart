@@ -6,6 +6,8 @@ import '../services/maintenance_service.dart';
 import '../services/wallet_service.dart';
 import '../utils/wallet_category_labels.dart';
 import '../utils/safe_parse.dart';
+import '../widgets/empty_state_view.dart';
+import 'provider_jobs_screen.dart';
 
 class ProviderWalletScreen extends StatefulWidget {
   const ProviderWalletScreen({super.key});
@@ -79,26 +81,21 @@ class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
                             fontSize: 18, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
                     if (_walletTx.isEmpty && _jobs.isEmpty)
-                      const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 40),
-                          child: Column(
-                            children: [
-                              Icon(Icons.handyman_outlined,
-                                  size: 56, color: AppTheme.primaryColor),
-                              SizedBox(height: 12),
-                              Text('لا توجد أرباح بعد',
-                                  style: TextStyle(
-                                      color: AppTheme.textSecondary,
-                                      fontWeight: FontWeight.w700)),
-                              SizedBox(height: 6),
-                              Text('أكمل مهمة صيانة لتظهر أرباحك هنا',
-                                  style: TextStyle(
-                                      color: AppTheme.textSecondary,
-                                      fontSize: 12)),
-                            ],
-                          ),
-                        ),
+                      EmptyStateView(
+                        compact: true,
+                        icon: Icons.handyman_outlined,
+                        title: 'لا توجد أرباح بعد',
+                        subtitle: 'أكمل مهمة صيانة لتظهر أرباحك هنا',
+                        actionLabel: 'عرض المهام',
+                        actionIcon: Icons.work_outline_rounded,
+                        onAction: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ProviderJobsScreen(),
+                            ),
+                          ).then((_) => _loadData());
+                        },
                       )
                     else ...[
                       ..._walletTx.map(_buildWalletTxItem),
