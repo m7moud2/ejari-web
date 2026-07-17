@@ -9,6 +9,7 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const xss = require('xss-clean');
 const mongoSanitize = require('express-mongo-sanitize');
+const fileUpload = require('express-fileupload');
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.use(cors());
 app.use(helmet());
 app.use(xss());
 app.use(mongoSanitize());
+app.use(fileUpload());
 app.use(morgan('dev'));
 
 // Rate limiting
@@ -37,13 +39,20 @@ app.use('/api/properties', require('./routes/propertyRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
 app.use('/api/maintenance', require('./routes/maintenanceRoutes'));
+app.use('/api/ai', require('./routes/aiRoutes'));
+app.use('/api/integrations', require('./routes/integrationsRoutes'));
 
 // Error handling
 app.use(require('./middleware/error'));
 
+const seedData = require('./utils/seeder');
+
 // Database connection
 mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('تم الاتصال بقاعدة البيانات بنجاح'))
+    .then(async () => {
+        console.log('تم الاتصال بقاعدة البيانات بنجاح');
+        await seedData();
+    })
     .catch((err) => console.error('خطأ في الاتصال بقاعدة البيانات:', err));
 
 const PORT = process.env.PORT || 5000;

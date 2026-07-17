@@ -267,9 +267,9 @@ file:///Users/mahmoudabdelkawy/ejari-web1/index.html
 ## 📞 معلومات التواصل
 
 للاستفسارات أو الدعم:
-- 📧 **البريد**: info@ejari.com
+- 📧 **البريد**: info@ejari.app
 - 📱 **الهاتف**: +20 123 456 789
-- 🌐 **الموقع**: www.ejari.com
+- 🌐 **الموقع**: www.ejari.app
 
 ---
 

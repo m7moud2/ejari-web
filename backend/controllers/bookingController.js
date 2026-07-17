@@ -142,54 +142,76 @@ exports.updateBookingStatus = asyncHandler(async (req, res, next) => {
         data: booking
     });
 });
-const createBooking = async (req, res) => {
-    try {
-        const {
-            propertyId,
-            startDate,
-            duration,
-            durationUnit,
-            totalAmount
-        } = req.body;
-
-        // التحقق من توفر العقار
-        const property = await Property.findById(propertyId);
-        if (!property) {
-            return res.status(404).json({
-                success: false,
-                message: 'العقار غير موجود'
-            });
-        }
-
-        // التحقق من توفر الفترة
-        const isAvailable = await checkAvailability(propertyId, startDate, duration, durationUnit);
-        if (!isAvailable) {
-            return res.status(400).json({
-                success: false,
-                message: 'العقار غير متاح في هذه الفترة'
-            });
-        }
-
-        // إنشاء الحجز
-        const booking = await Booking.create({
-            property: propertyId,
-            user: req.user._id,
-            startDate,
-            endDate: calculateEndDate(startDate, duration, durationUnit),
-            duration,
-            durationUnit,
-            totalAmount,
-            status: 'pending'
+// @desc      الحصول على تفاصيل حجز معين
+// exports.getBooking
+exports.getBooking = asyncHandler(async (req, res, next) => {
+    const booking = await Booking.findById(req.params.id)
+        .populate({
+            path: 'property',
+            select: 'title location price images owner'
+        })
+        .populate({
+            path: 'user',
+            select: 'name email phone'
         });
 
-        res.status(201).json({
-            success: true,
-            data: booking
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        });
+    if (!booking) {
+        return next(new ErrorResponse('الحجز غير موجود', 404));
     }
-};
+
+    // التحقق من الصلاحيات (المستأجر، المالك، أو الأدمن)
+    if (
+        booking.user._id.toString() !== req.user.id &&
+        booking.property.owner.toString() !== req.user.id &&
+        req.user.role !== 'admin'
+    ) {
+        return next(new ErrorResponse('غير مصرح لك بعرض هذا الحجز', 401));
+    }
+
+    res.status(200).json({
+        success: true,
+        data: booking
+    });
+});
+
+// @desc      حذف حجز
+// exports.deleteBooking
+exports.deleteBooking = asyncHandler(async (req, res, next) => {
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+        return next(new ErrorResponse('الحجز غير موجود', 404));
+    }
+
+    // التحقق من الصلاحيات (الأدمن فقط)
+    if (req.user.role !== 'admin') {
+        return next(new ErrorResponse('غير مصرح لك بحذف هذا الحجز', 403));
+    }
+
+    await booking.deleteOne();
+
+    res.status(200).json({
+        success: true,
+        data: {}
+    });
+});
+
+// @desc      الحصول على حجوزات عقار معين
+// exports.getBookingsByProperty
+exports.getBookingsByProperty = asyncHandler(async (req, res, next) => {
+    const bookings = await Booking.find({ property: req.params.propertyId })
+        .populate({
+            path: 'property',
+            select: 'title'
+        })
+        .populate({
+            path: 'user',
+            select: 'name email phone'
+        });
+
+    res.status(200).json({
+        success: true,
+        count: bookings.length,
+        data: bookings
+    });
+});

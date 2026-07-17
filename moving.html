@@ -227,7 +227,7 @@
                     <input type="number" class="form-control" id="newFloor" min="0" required>
                 </div>
                 <div class="form-group">
-                    <label>هل تحتاج أونش رفع؟</label>
+                    <label>هل تحتاج أونش رفڿ</label>
                     <select class="form-control" id="needCrane">
                         <option value="no">لا</option>
                         <option value="yes">نعم</option>
@@ -291,7 +291,23 @@
         }
 
         function confirmBooking() {
-            alert('تم تأكيد الحجز! سيتواصل معك فريق النقل خلال 24 ساعة.');
+            const priceElement = document.getElementById('estimatedPrice');
+            const price = parseFloat(priceElement.getAttribute('data-price')) || 0;
+            if (price === 0) {
+                alert('الرجاء حساب التكلفة أولاً');
+                return;
+            }
+            const booking = {
+                id: Date.now(),
+                itemTitle: 'خدمة نقل عفش وأثاث',
+                price: price,
+                totalCost: price,
+                serviceFee: 0,
+                type: 'service',
+                image: 'images/home5.jpg'
+            };
+            localStorage.setItem('currentBooking', JSON.stringify(booking));
+            window.location.href = 'payment.html';
         }
 
         // Close dropdown when clicking outside

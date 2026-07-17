@@ -70,7 +70,7 @@
                 <i class="fas fa-phone-alt"></i>
                 تواصل مع المالك
             </button>
-            <button class="btn btn-outline">
+            <button class="btn btn-outline favorite-btn" data-property-id="">
                 <i class="far fa-heart"></i>
                 إضافة للمفضلة
             </button>
@@ -230,6 +230,118 @@
     <script src="js/auto-translator.js"></script>
     <script src="js/localization.js"></script>
     <script>
+        function getPropertyDataset() {
+            const local = JSON.parse(localStorage.getItem('ejari_properties')) || [];
+            if (local.length) return local;
+            try {
+                return JSON.parse(localStorage.getItem('ejari_seed_properties')) || [];
+            } catch (_) {
+                return [];
+            }
+        }
+
+        function findPropertyByIdOrFallback(id) {
+            const dataset = getPropertyDataset();
+            if (!dataset.length) return null;
+            const byId = dataset.find(p => String(p.id) === String(id) || String(p._id) === String(id));
+            return byId || dataset[0];
+        }
+
+        function normalizePropertyForDetails(property) {
+            if (!property) return null;
+            const image = property.image || property.images?.[0] || 'images/home1.jpg';
+            const locationText = [
+                property.location?.address || property.address || '',
+                property.location?.city || property.city || ''
+            ].filter(Boolean).join('، ');
+            return {
+                id: property.id || property._id || 'PRO-000',
+                title: property.title || 'عقار مميز',
+                status: property.status || 'available',
+                rooms: property.rooms || property.features?.bedrooms || 2,
+                bathrooms: property.bathrooms || property.features?.bathrooms || 1,
+                area: property.area_sqm || property.features?.area || 120,
+                parking: property.parking || property.features?.parking ? 1 : 0,
+                features: property.amenities || property.featuresList || [],
+                description: property.description || 'وصف غير متوفر',
+                price: property.price_egp_monthly || property.price || 0,
+                address: locationText || 'غير محدد',
+                image,
+                images: property.images?.length ? property.images : [image],
+                ownerName: property.owner?.name || 'مالك موثوق',
+                ownerPhone: property.owner?.phone || 'غير متوفر',
+                ownerEmail: property.owner?.email || 'غير متوفر',
+                coordinates: property.location?.coordinates?.coordinates || property.coordinates || null,
+            };
+        }
+
+        function renderPropertyDetails(property) {
+            const data = normalizePropertyForDetails(property);
+            if (!data) return;
+
+            document.title = `${data.title} | إيجاري`;
+            document.querySelector('.property-nav-info h1').textContent = data.title;
+            document.querySelector('.property-id').textContent = `رقم العقار: #${data.id}`;
+            const statusBadge = document.querySelector('.status-badge');
+            statusBadge.textContent = data.status === 'available' ? 'متاح للإيجار' : 'مؤجر';
+            statusBadge.style.backgroundColor = data.status === 'available' ? '#10b981' : '#f59e0b';
+
+            document.querySelector('.main-image img').src = data.image;
+            const thumbs = document.querySelector('.thumbnails');
+            thumbs.innerHTML = data.images.map((img, idx) => `<img src="${img}" alt="صورة ${idx + 1}" class="${idx === 0 ? 'active' : ''}" onclick="DetailsManager.changeMainImage('${img}')">`).join('');
+
+            document.querySelector('.property-specs').innerHTML = `
+                <div class="spec-item"><i class="fas fa-ruler-combined"></i><div class="spec-details"><span class="value">${data.area}</span><span class="label">متر مربع</span></div></div>
+                <div class="spec-item"><i class="fas fa-bed"></i><div class="spec-details"><span class="value">${data.rooms}</span><span class="label">غرف نوم</span></div></div>
+                <div class="spec-item"><i class="fas fa-bath"></i><div class="spec-details"><span class="value">${data.bathrooms}</span><span class="label">حمام</span></div></div>
+                <div class="spec-item"><i class="fas fa-car"></i><div class="spec-details"><span class="value">${data.parking}</span><span class="label">موقف سيارات</span></div></div>
+            `;
+
+            document.querySelector('.features-list').innerHTML = (data.features.length ? data.features : ['مفروش', 'أمن 24 ساعة', 'موقع مميز']).map(f => `<li><i class="fas fa-check"></i> ${f}</li>`).join('');
+            document.querySelector('.property-description p').textContent = data.description;
+            document.querySelector('.financial-details').innerHTML = `
+                <div class="financial-item"><span class="label">الإيجار الشهري</span><span class="value"><span class="price-amount" data-price="${data.price}">${data.price.toLocaleString()}</span> ج.م</span></div>
+                <div class="financial-item"><span class="label">العربون المقترح</span><span class="value"><span class="price-amount" data-price="${Math.round(data.price * 0.1)}">${Math.round(data.price * 0.1).toLocaleString()}</span> ج.م</span></div>
+                <div class="financial-item"><span class="label">الدفعة الأولى</span><span class="value"><span class="price-amount" data-price="${Math.round(data.price * 1.1)}">${Math.round(data.price * 1.1).toLocaleString()}</span> ج.م</span></div>
+                <div class="total-price" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #e5e7eb; display: flex; justify-content: space-between; font-weight: bold; font-size: 1.2rem;">
+                    <span>الدفع عند الحجز</span>
+                    <span style="color: #10b981;"><span class="price-amount" data-price="${Math.round(data.price * 0.1)}">${Math.round(data.price * 0.1).toLocaleString()}</span> ج.م</span>
+                </div>
+            `;
+            document.querySelector('.address').innerHTML = `<i class="fas fa-map-marker-alt"></i> ${data.address}`;
+            document.querySelector('.owner-details h4').textContent = data.ownerName;
+            document.querySelector('.owner-details span').textContent = 'مالك عقار موثوق';
+            document.querySelector('.owner-details .rating span').textContent = '(4.8)';
+            document.querySelector('.owner-info .btn').onclick = () => location.href = 'contact.html';
+            const favoriteBtn = document.querySelector('.favorite-btn');
+            if (favoriteBtn) {
+                favoriteBtn.dataset.propertyId = data.id;
+                favoriteBtn.dataset.propertyTitle = data.title;
+                favoriteBtn.closest('.quick-actions')?.setAttribute('data-property-id', data.id);
+                favoriteBtn.onclick = (e) => {
+                    e.preventDefault();
+                    if (window.refreshFavoriteButtons) {
+                        const favs = JSON.parse(localStorage.getItem('ejari_favorites')) || [];
+                        const exists = favs.find(item => String(item.id) === String(data.id));
+                        const updated = exists ? favs.filter(item => String(item.id) !== String(data.id)) : [{ id: data.id, title: data.title, image: data.image, price: data.price, savedAt: new Date().toISOString() }, ...favs];
+                        localStorage.setItem('ejari_favorites', JSON.stringify(updated));
+                        window.dispatchEvent(new CustomEvent('ejari:favorites-updated', { detail: updated }));
+                        window.refreshFavoriteButtons();
+                    }
+                };
+            }
+            const mapPlaceholder = document.querySelector('.map-placeholder');
+            if (data.coordinates && window.EjariAPI && window.EjariAPI.mountLeafletMap) {
+                const mapBox = document.createElement('div');
+                mapBox.id = 'property-detail-map';
+                mapBox.style.cssText = 'height:300px;border-radius:10px;overflow:hidden;';
+                mapPlaceholder.parentElement.replaceChild(mapBox, mapPlaceholder);
+                window.EjariAPI.mountLeafletMap('property-detail-map', [{ lat: Number(data.coordinates[1]), lng: Number(data.coordinates[0]), title: data.title, price: data.price }], { center: { lat: Number(data.coordinates[1]), lng: Number(data.coordinates[0]) }, zoom: 14 });
+            } else {
+                mapPlaceholder.innerHTML = '<i class="fas fa-map-marked-alt" style="font-size: 3rem; margin-bottom: 1rem;"></i><span>خريطة الموقع</span>';
+            }
+        }
+
         // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             const settingsBtn = document.getElementById('settingsBtn');
@@ -252,23 +364,41 @@
             dropdown.classList.toggle('active');
         }
 
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(location.search);
+            const id = params.get('id');
+            renderPropertyDetails(findPropertyByIdOrFallback(id));
+        });
+
         // Book Now Function
         function bookNow() {
+            const params = new URLSearchParams(location.search);
+            const id = params.get('id');
+            const property = normalizePropertyForDetails(findPropertyByIdOrFallback(id));
             const booking = {
                 id: Date.now(),
-                itemTitle: 'شقة فاخرة في المعادي',
-                price: 12000,
-                totalCost: 42000,
-                serviceFee: 6000,
-                deposit: 24000,
+                itemTitle: property.title,
+                price: property.price,
+                totalCost: Math.round(property.price * 0.1),
+                serviceFee: Math.round(property.price * 0.05),
+                deposit: Math.round(property.price * 0.1),
+                totalRent: property.price,
                 type: 'property',
-                location: 'المعادي، القاهرة',
+                location: property.address,
                 startDate: new Date().toISOString(),
                 duration: 1,
                 durationUnit: 'months',
-                image: 'images/home1.jpg',
-                propertyId: 123,
-                ownerId: 2
+                image: property.image,
+                propertyId: property.id,
+                ownerId: property.ownerId || property.owner?.id || 2,
+                paymentMode: 'deposit_then_monthly',
+                installmentPlan: {
+                    monthsCount: 12,
+                    rentPerMonth: property.price,
+                    depositAmount: Math.round(property.price * 0.1),
+                    remainingBalance: Math.max(0, property.price * 12 - Math.round(property.price * 0.1)),
+                    dueNow: Math.round(property.price * 0.1)
+                }
             };
 
             // Save to localStorage

@@ -198,7 +198,7 @@ subscriptions.html
 2. استخدم حسابات التجربة:
    - **مستأجر:** `ahmed@test.com`
    - **مالك:** `owner@test.com`
-   - **مدير:** `admin@ejari.com`
+   - **مدير:** `admin@ejari.app`
 
 ### للنشر:
 1. ارفع جميع الملفات إلى خادم ويب
@@ -211,9 +211,9 @@ subscriptions.html
 ## 📞 **الدعم الفني**
 
 للاستفسارات أو المساعدة:
-- 📧 البريد الإلكتروني: support@ejari.com
+- 📧 البريد الإلكتروني: support@ejari.app
 - 📱 الهاتف: +966 XX XXX XXXX
-- 🌐 الموقع: www.ejari.com
+- 🌐 الموقع: www.ejari.app
 
 ---
 

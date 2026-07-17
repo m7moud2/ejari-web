@@ -1,0 +1,100 @@
+/* Property Reels - TikTok-style vertical scrolling */
+
+.reels-container {
+    height: 100vh;
+    width: 100vw;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    background: #000;
+}
+
+.reel-slide {
+    height: 100vh;
+    width: 100vw;
+    scroll-snap-align: start;
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    background-size: cover;
+    background-position: center;
+}
+
+.reel-gradient-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    z-index: 1;
+}
+
+.reel-content {
+    position: relative;
+    z-index: 2;
+    padding: 2rem;
+    color: white;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.reel-info h2 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--elite-gold);
+}
+
+.reel-info p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 1rem;
+}
+
+.reel-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.reel-action-btn {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(5px);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255,255,255,0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.reel-action-btn:hover {
+    background: var(--elite-gold);
+    color: var(--elite-navy);
+    transform: scale(1.1);
+}
+
+.reel-price-tag {
+    background: var(--elite-gold);
+    color: var(--elite-navy);
+    padding: 0.5rem 1rem;
+    border-radius: 30px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+/* Animations */
+.reel-info {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}

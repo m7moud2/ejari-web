@@ -41,6 +41,12 @@ const AutoTranslator = {
         'حجز خدمة نظافة': 'Book Cleaning',
         'تواصل للمبيعات': 'Contact Sales',
         'إنشاء عقد الآن': 'Create Contract Now',
+        'مركز التنبيهات': 'Notification Hub',
+        'تحديد الكل كمقروء': 'Mark All as Read',
+        'لا توجد تنبيهات حالياً': 'No notifications currently',
+        'مشاركة العقار': 'Share Property',
+        'حالة الفرش': 'Furnishing Status',
+        'بدون فرش': 'Unfurnished',
 
         // Services
         'الصيانة المنزلية': 'Home Maintenance',

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إيجاري إيليت | ريلز العقارات</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/design-system.css">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: var(--elite-black);
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .reels-container {
+            height: 100vh;
+            width: 100vw;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+            scrollbar-width: none;
+        }
+
+        .reels-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .reel-slide {
+            height: 100vh;
+            width: 100vw;
+            scroll-snap-align: start;
+            position: relative;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .reel-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 40%, rgba(0,0,0,0.4) 100%);
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .reel-content {
+            position: absolute;
+            bottom: 40px;
+            right: 20px;
+            left: 80px;
+            z-index: 10;
+            color: white;
+            pointer-events: auto;
+        }
+
+        .reel-info h2 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .reel-info p {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .reel-tag {
+            background: var(--gold-gradient);
+            color: var(--elite-navy);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        .reel-actions {
+            position: absolute;
+            bottom: 40px;
+            left: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            pointer-events: auto;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+            background: var(--elite-gold);
+            color: var(--elite-navy);
+        }
+
+        .action-label {
+            font-size: 0.75rem;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        .top-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .back-btn {
+            color: white;
+            font-size: 1.5rem;
+            text-decoration: none;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .brand-logo {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--elite-gold);
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .book-now-btn {
+            background: var(--gold-gradient);
+            color: var(--elite-navy);
+            padding: 10px 25px;
+            border-radius: 30px;
+            font-weight: 800;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-nav">
+        <a href="index.html" class="back-btn"><i class="fas fa-chevron-right"></i></a>
+        <div class="brand-logo">EJARI ELITE 💎</div>
+        <div style="width: 24px;"></div> <!-- Spacer -->
+    </div>
+
+    <div class="reels-container" id="reelsContainer">
+        
+        <!-- Reel 1 -->
+        <div class="reel-slide">
+            <video loop muted playsinline poster="images/home1.jpg">
+                <source src="https://assets.mixkit.co/videos/preview/mixkit-modern-apartment-interior-design-2321-large.mp4" type="video/mp4">
+            </video>
+            <div class="reel-overlay"></div>
+            <div class="reel-content">
+                <span class="reel-tag">إيليت بريميوم</span>
+                <h2>فيلا مودرن - التجمع الخامس</h2>
+                <p><i class="fas fa-map-marker-alt"></i> القاهرة الجديدة، منطقة الجولف</p>
+                <div style="font-size: 1.4rem; font-weight: 800; margin-bottom: 15px;">45,000 ج.م <small>/ شهر</small></div>
+                <a href="property-details.html?id=102" class="book-now-btn">احجز المعاينة الآن</a>
+            </div>
+            <div class="reel-actions">
+                <div class="action-btn"><i class="fas fa-heart"></i><div class="action-label">1.2k</div></div>
+                <div class="action-btn"><i class="fas fa-comment"></i><div class="action-label">85</div></div>
+                <div class="action-btn"><i class="fas fa-share"></i><div class="action-label">مشاركة</div></div>
+                <div class="action-btn" style="background: var(--elite-gold); color: var(--elite-navy);"><i class="fas fa-info-circle"></i></div>
+            </div>
+        </div>
+
+        <!-- Reel 2 -->
+        <div class="reel-slide">
+            <video loop muted playsinline poster="images/home2.jpg">
+                <source src="https://assets.mixkit.co/videos/preview/mixkit-luxury-penthouse-apartment-view-through-the-window-at-night-44284-large.mp4" type="video/mp4">
+            </video>
+            <div class="reel-overlay"></div>
+            <div class="reel-content">
+                <span class="reel-tag">إطلالة ساحرة</span>
+                <h2>بينتهاوس سكاي لوفت</h2>
+                <p><i class="fas fa-map-marker-alt"></i> المعادي، كورنيش النيل</p>
+                <div style="font-size: 1.4rem; font-weight: 800; margin-bottom: 15px;">35,000 ج.م <small>/ شهر</small></div>
+                <a href="property-details.html?id=101" class="book-now-btn">احجز المعاينة الآن</a>
+            </div>
+            <div class="reel-actions">
+                <div class="action-btn"><i class="fas fa-heart"></i><div class="action-label">950</div></div>
+                <div class="action-btn"><i class="fas fa-comment"></i><div class="action-label">42</div></div>
+                <div class="action-btn"><i class="fas fa-share"></i><div class="action-label">مشاركة</div></div>
+            </div>
+        </div>
+
+        <!-- Reel 3 -->
+        <div class="reel-slide">
+            <video loop muted playsinline poster="images/home3.jpg">
+                <source src="https://assets.mixkit.co/videos/preview/mixkit-living-room-interior-with-a-view-of-the-city-44280-large.mp4" type="video/mp4">
+            </video>
+            <div class="reel-overlay"></div>
+            <div class="reel-content">
+                <span class="reel-tag">فرصة استثمارية</span>
+                <h2>ستوديو كوزي إيليت</h2>
+                <p><i class="fas fa-map-marker-alt"></i> إيجاري، وسط المدينة</p>
+                <div style="font-size: 1.4rem; font-weight: 800; margin-bottom: 15px;">5,500 ج.م <small>/ شهر</small></div>
+                <a href="property-details.html?id=103" class="book-now-btn">احجز المعاينة الآن</a>
+            </div>
+            <div class="reel-actions">
+                <div class="action-btn"><i class="fas fa-heart"></i><div class="action-label">520</div></div>
+                <div class="action-btn"><i class="fas fa-comment"></i><div class="action-label">12</div></div>
+                <div class="action-btn"><i class="fas fa-share"></i><div class="action-label">مشاركة</div></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        const observerOptions = {
+            threshold: 0.7
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const video = entry.target.querySelector('video');
+                if (entry.isIntersecting) {
+                    video.play().catch(e => console.log("Auto-play blocked"));
+                } else {
+                    video.pause();
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reel-slide').forEach(slide => {
+            observer.observe(slide);
+        });
+
+        // Click to play/pause
+        document.querySelectorAll('.reel-slide').forEach(slide => {
+            slide.addEventListener('click', () => {
+                const video = slide.querySelector('video');
+                if (video.paused) {
+                    video.play();
+                } else {
+                    video.pause();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

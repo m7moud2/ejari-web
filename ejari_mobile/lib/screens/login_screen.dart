@@ -94,23 +94,22 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _signInWithGoogle() async {
-    if (!AppConfig.demoMode) {
+    try {
+      setState(() => _isLoading = true);
+      
+      final userData = await AuthService.signInWithGoogle();
+      
       if (mounted) {
+        setState(() => _isLoading = false);
+        _handleSocialSuccess(userData['name'] ?? 'مستخدم جوجل');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تسجيل Google غير متاح حالياً')),
+          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
         );
       }
-      return;
-    }
-
-    try {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('تسجيل Google متاح في نسخة التجربة')));
-      }
-      await Future.delayed(const Duration(milliseconds: 800));
-      _handleSocialSuccess('مستخدم إيجاري (جوجل)');
-    } catch (e) {
       debugPrint('Google Sign-In Error: $e');
     }
   }

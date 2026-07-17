@@ -258,9 +258,24 @@
         function submitBooking(e) {
             e.preventDefault();
             const packageType = document.getElementById('selectedPackage').value;
-            alert(`تم تأكيد حجز باقة ${packageType}! سيتواصل معك فريق التنظيف قريباً.`);
-            e.target.reset();
-            document.getElementById('bookingForm').style.display = 'none';
+
+            let title = 'خدمة تنظيف';
+            let price = 0;
+            if (packageType === 'basic') { title = 'تنظيف أساسي'; price = 300; }
+            else if (packageType === 'comprehensive') { title = 'تنظيف شامل'; price = 600; }
+            else if (packageType === 'premium') { title = 'تنظيف + تعقيم'; price = 900; }
+
+            const booking = {
+                id: Date.now(),
+                itemTitle: title,
+                price: price,
+                totalCost: price,
+                serviceFee: 0,
+                type: 'service',
+                image: 'images/home3.jpg'
+            };
+            localStorage.setItem('currentBooking', JSON.stringify(booking));
+            window.location.href = 'payment.html';
         }
 
         // Close dropdown when clicking outside

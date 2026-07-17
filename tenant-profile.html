@@ -530,6 +530,116 @@
     <script src="js/localization.js"></script>
     <script src="js/session.js"></script>
     <script>
+        function getCurrentTenant() {
+            return JSON.parse(localStorage.getItem('ejari_user')) || JSON.parse(localStorage.getItem('currentUser')) || {
+                name: 'أحمد محمد',
+                email: 'ahmed@example.com',
+                phone: '+20 100 000 0000',
+                address: 'القاهرة',
+                avatar: 'images/tenant-2.jpg',
+                points: 0,
+                role: 'tenant'
+            };
+        }
+
+        function getStoredBookings() {
+            const all = JSON.parse(localStorage.getItem('ejari_bookings')) || [];
+            const localCurrent = JSON.parse(localStorage.getItem('currentBooking'));
+            if (localCurrent) {
+                all.unshift({
+                    ...localCurrent,
+                    status: localCurrent.status || 'pending',
+                    userId: getCurrentTenant().id || 1,
+                    paymentStatus: localCurrent.paymentStatus || 'pending',
+                });
+            }
+            return all;
+        }
+
+        function getStoredFavorites() {
+            return JSON.parse(localStorage.getItem('ejari_favorites')) || [];
+        }
+
+        function renderTenantProfile() {
+            const user = getCurrentTenant();
+            const fullName = user.name || 'مستخدم إيجاري';
+            const parts = fullName.split(' ');
+            const firstName = parts.shift() || fullName;
+            const lastName = parts.join(' ') || ' ';
+
+            const avatar = document.querySelector('.profile-avatar');
+            if (avatar) {
+                avatar.innerHTML = `<img src="${user.avatar || 'images/tenant-2.jpg'}" alt="${fullName}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+            }
+            const nameEl = document.querySelector('#userName');
+            if (nameEl) nameEl.textContent = fullName;
+            const emailEl = document.querySelector('#userEmail');
+            if (emailEl) emailEl.textContent = user.email || 'غير متوفر';
+            const phoneEl = document.querySelector('#userPhone');
+            if (phoneEl) phoneEl.textContent = user.phone || 'غير متوفر';
+            const formFirst = document.querySelector('#personal input[value="أحمد"]');
+            const formLast = document.querySelector('#personal input[value="محمد"]');
+            if (formFirst) formFirst.value = firstName;
+            if (formLast) formLast.value = lastName;
+            const stats = document.querySelectorAll('.stats-grid .stat-value');
+            const userBookings = getStoredBookings().filter(b => String(b.userId) === String(user.id));
+            if (stats[0]) stats[0].textContent = userBookings.filter(b => String(b.status) === 'active').length;
+            if (stats[1]) stats[1].textContent = userBookings.filter(b => String(b.status) === 'completed').length;
+            if (stats[2]) stats[2].textContent = getStoredFavorites().length;
+
+            renderBookingsTab(user);
+            renderFavoritesTab();
+        }
+
+        function renderBookingsTab(user) {
+            const list = document.querySelector('#bookings .booking-list');
+            if (!list) return;
+            const bookings = getStoredBookings().filter(b => String(b.userId) === String(user.id) || !b.userId);
+            if (!bookings.length) {
+                list.innerHTML = '<li class="booking-item"><div class="booking-info"><h3>لا توجد حجوزات بعد</h3><div class="booking-meta"><span>ابدأ بالحجز من صفحة العقارات</span></div></div></li>';
+                return;
+            }
+            list.innerHTML = bookings.map(b => `
+                <li class="booking-item">
+                    <div class="booking-info">
+                        <h3>${b.itemTitle || 'حجز'}</h3>
+                        <div class="booking-meta">
+                            <span><i class="fas fa-calendar"></i> من ${b.startDate ? new Date(b.startDate).toLocaleDateString('ar-EG') : '—'} ${b.durationUnit ? `لمدة ${b.duration} ${b.durationUnit}` : ''}</span>
+                            <span><i class="fas fa-money-bill"></i> ${Number(b.totalCost || b.price || 0).toLocaleString()} ج.م</span>
+                        </div>
+                    </div>
+                    <span class="status-badge ${b.status === 'active' ? 'status-active' : 'status-pending'}">${b.status === 'active' ? 'نشط' : 'قيد المراجعة'}</span>
+                </li>
+            `).join('');
+        }
+
+        function renderFavoritesTab() {
+            const list = document.querySelector('#favorites .info-card');
+            if (!list) return;
+            const favorites = getStoredFavorites();
+            if (!favorites.length) {
+                list.innerHTML = '<h2><i class="fas fa-heart"></i> العقارات المفضلة</h2><p style="color: #6b7280;">لا توجد عقارات في المفضلة حالياً</p>';
+                return;
+            }
+            list.innerHTML = `
+                <h2><i class="fas fa-heart"></i> العقارات المفضلة</h2>
+                <div class="favorites-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;">
+                    ${favorites.map(f => `
+                        <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;">
+                            <img src="${f.image || 'images/home1.jpg'}" alt="${f.title}" style="width:100%;height:140px;object-fit:cover;">
+                            <div style="padding:1rem;">
+                                <h3 style="margin-bottom:.5rem;">${f.title}</h3>
+                                <p style="color:#6b7280;margin-bottom:.5rem;">${Number(f.price || 0).toLocaleString()} ج.م</p>
+                                <a href="property-details.html?id=${f.id}" class="btn-secondary" style="display:inline-flex;text-decoration:none;padding:.6rem 1rem;">التفاصيل</a>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        window.addEventListener('ejari:favorites-updated', renderFavoritesTab);
+
         function switchTab(tabName) {
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
@@ -543,6 +653,8 @@
             document.getElementById(tabName).classList.add('active');
             event.target.classList.add('active');
         }
+
+        document.addEventListener('DOMContentLoaded', renderTenantProfile);
 
         // Handle form submissions
         document.getElementById('personalInfoForm').addEventListener('submit', (e) => {

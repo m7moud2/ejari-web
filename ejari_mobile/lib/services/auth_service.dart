@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -1185,6 +1186,71 @@ class AuthService {
         user['accountId'] = accountId;
         await prefs.setString('user_$email', jsonEncode(user));
       } catch (_) {}
+    }
+  }
+
+  /// Sign In with Google
+  static Future<Map<String, dynamic>> signInWithGoogle() async {
+    if (AppConfig.demoMode) {
+      return {
+        'id': 'demo_google_id',
+        'name': 'مستخدم جوجل تجريبي',
+        'email': 'social_user@ejari.app',
+        'type': 'tenant',
+        'role': 'tenant',
+      };
+    }
+
+    try {
+      final GoogleSignInAccount? gUser = await GoogleSignIn().signIn();
+      if (gUser == null) {
+        throw Exception('تم إلغاء تسجيل الدخول بجوجل');
+      }
+
+      final GoogleSignInAuthentication gAuth = await gUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: gAuth.accessToken,
+        idToken: gAuth.idToken,
+      );
+
+      final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
+      final user = userCredential.user;
+
+      if (user != null) {
+        final doc = await _firestore.collection('users').doc(user.uid).get();
+        Map<String, dynamic> data;
+        String role = 'tenant';
+
+        if (doc.exists) {
+          data = doc.data() as Map<String, dynamic>;
+          role = data['type'] ?? data['role'] ?? 'tenant';
+        } else {
+          final String generatedId = await AccountIdService.generateNextAccountId();
+          data = {
+            'id': user.uid,
+            'name': user.displayName ?? gUser.displayName ?? 'مستخدم جوجل',
+            'email': user.email ?? gUser.email,
+            'type': 'tenant',
+            'role': 'tenant',
+            'accountId': generatedId,
+            'createdAt': FieldValue.serverTimestamp(),
+          };
+          await _firestore.collection('users').doc(user.uid).set(data);
+        }
+
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_userTokenKey, await user.getIdToken() ?? 'mock_firebase_token');
+        await prefs.setString(_userRoleKey, role);
+        await prefs.setString(_userIdKey, user.uid);
+        await prefs.setString(_currentUserEmailKey, user.email ?? gUser.email ?? '');
+        await prefs.setString(_userDataKey, jsonEncode(data));
+
+        return data;
+      }
+      throw Exception('فشل تسجيل الدخول بجوجل');
+    } catch (e) {
+      if (kDebugMode) print('Google Sign-In Error: $e');
+      throw Exception('خطأ في تسجيل الدخول بجوجل: $e');
     }
   }
 

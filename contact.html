@@ -4,24 +4,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تواصل معنا - إيجاري</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/business-pitch.css">
-    <link rel="stylesheet" href="css/localization.css">
+    <title>تواصل مع إيجاري إيليت | الدعم الفني والمبيعات</title>
+    
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/components/modal.css">
+    <link rel="stylesheet" href="css/components/notifications.css">
+    <link rel="stylesheet" href="css/business-pitch.css">
+    <link rel="stylesheet" href="css/localization.css">
+    
+    <!-- Theme Toggle Script -->
+    <script src="js/theme-toggle.js" defer></script>
     <style>
+
         .contact-hero {
-            background: linear-gradient(135deg, #111827 0%, #4b5563 100%);
-            padding: 4rem 0;
+            position: relative;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%), url('images/hero-bg-premium.jpg') center/cover no-repeat;
+            padding: 100px 0;
             color: white;
             text-align: center;
             margin-bottom: 4rem;
+            margin-top: 70px;
+        }
+
+        .contact-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="1" fill="rgba(212, 175, 55, 0.2)"/></svg>');
+            opacity: 0.5;
+            z-index: 1;
         }
 
         .contact-hero h1 {
             font-size: 2.5rem;
             margin-bottom: 1rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .contact-hero p {
+            position: relative;
+            z-index: 2;
         }
 
         .contact-grid {
@@ -143,31 +175,51 @@
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar">
+    <header class="navbar">
         <div class="container">
             <div class="logo">
-                <a href="index.html">إيجاري</a>
+                <a href="index.html"
+                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-home" style="color: var(--elite-gold);"></i>
+                    إيجاري إيليت
+                </a>
             </div>
-            <ul class="nav-links">
-                <li><a href="index.html">الرئيسية</a></li>
-                <li><a href="properties.html">عقارات</a></li>
-                <li><a href="cars.html">سيارات</a></li>
-                <li><a href="contact.html" class="active">تواصل معنا</a></li>
-            </ul>
-            <!-- Settings (Country & Language) -->
-            <div class="settings-container">
-                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
-                    <i class="fas fa-globe"></i>
-                    <span id="countrySelector">🇸🇦 السعودية</span>
+
+            <nav class="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="properties.html">عقارات</a></li>
+                    <li><a href="cars.html">سيارات</a></li>
+                    <li><a href="services.html">الخدمات</a></li>
+                    <li><a href="contact.html" class="active">تواصل معنا</a></li>
+                </ul>
+            </nav>
+
+            <div class="nav-icons">
+                <!-- Theme Toggle -->
+                <button class="settings-btn" id="themeToggle" title="تبديل المظهر">
+                    <i class="fas fa-moon"></i>
+                    <i class="fas fa-sun" style="display:none;"></i>
                 </button>
-                <div id="settingsDropdownContainer"></div>
-            </div>
-            <div class="auth-buttons">
-                <button class="btn btn-outline" onclick="location.href='login.html'">تسجيل دخول</button>
-                <button class="btn btn-primary" onclick="location.href='signup.html'">إنشاء حساب</button>
+
+                <div class="settings-container">
+                    <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                        <i class="fas fa-globe"></i>
+                        <span>🇸🇦 السعودية</span>
+                    </button>
+                </div>
+
+                <div class="auth-buttons" id="authButtons">
+                    <a href="signup.html" class="btn btn-elite">إنشاء حساب</a>
+                    <a href="login.html" class="btn btn-outline">تسجيل الدخول</a>
+                </div>
+
+                <button class="menu-btn" onclick="toggleMobileMenu()" aria-label="القائمة">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
         </div>
-    </nav>
+    </header>
 
     <!-- Hero Section -->
     <section class="contact-hero">
@@ -207,7 +259,27 @@
                     </div>
                     <div class="info-content">
                         <h3>راسلنا</h3>
-                        <p>info@ejari.com<br>support@ejari.com</p>
+                        <p>info@ejari.app<br>support@ejari.app</p>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fab fa-facebook-f"></i>
+                    </div>
+                    <div class="info-content">
+                        <h3>تابعنا على فيسبوك</h3>
+                        <p><a href="https://www.facebook.com/people/%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-EjariApp/61591649755623/" target="_blank" rel="noopener">إيجاري - Facebook</a></p>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fab fa-linkedin-in"></i>
+                    </div>
+                    <div class="info-content">
+                        <h3>تابعنا على لينكدإن</h3>
+                        <p><a href="https://www.linkedin.com/company/%E2%80%8E%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-ejariapp/?viewAsMember=true" target="_blank" rel="noopener">إيجاري - LinkedIn</a></p>
                     </div>
                 </div>
 
@@ -247,7 +319,7 @@
                         <label>الرسالة</label>
                         <textarea class="form-control" rows="5" required placeholder="اكتب رسالتك هنا..."></textarea>
                     </div>
-                    <button type="submit" class="btn-submit">
+                    <button type="submit" class="btn-elite">
                         <i class="fas fa-paper-plane"></i> إرسال الرسالة
                     </button>
                 </form>
@@ -281,9 +353,16 @@
                 <div class="footer-section">
                     <h3>تواصل معنا</h3>
                     <ul>
-                        <li>info@ejari.com</li>
+                        <li>info@ejari.app</li>
                         <li>+20 123 456 789</li>
                         <li>القاهرة، مصر</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>تابعنا</h3>
+                    <ul>
+                        <li><a href="https://www.facebook.com/people/%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-EjariApp/61591649755623/" target="_blank" rel="noopener"><i class="fab fa-facebook-f"></i> فيسبوك</a></li>
+                        <li><a href="https://www.linkedin.com/company/%E2%80%8E%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-ejariapp/?viewAsMember=true" target="_blank" rel="noopener"><i class="fab fa-linkedin-in"></i> لينكدإن</a></li>
                     </ul>
                 </div>
             </div>

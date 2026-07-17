@@ -253,8 +253,18 @@
     <script>
         function submitBooking(e) {
             e.preventDefault();
-            alert('تم تأكيد حجزك! سيتواصل معك الفني قريباً.');
-            e.target.reset();
+            const serviceType = e.target.querySelector('select').value || 'صيانة عامة';
+            const booking = {
+                id: Date.now(),
+                itemTitle: 'صيانة - ' + serviceType,
+                price: 50,
+                totalCost: 50,
+                serviceFee: 0,
+                type: 'service',
+                image: 'images/home1.jpg'
+            };
+            localStorage.setItem('currentBooking', JSON.stringify(booking));
+            window.location.href = 'payment.html';
         }
 
         // Close dropdown when clicking outside

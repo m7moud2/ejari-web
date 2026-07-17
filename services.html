@@ -4,20 +4,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>خدمات إيجاري - حلول متكاملة</title>
+    <title>خدمات إيجاري إيليت | حلول متكاملة</title>
+    
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Core CSS -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/components/modal.css">
+    <link rel="stylesheet" href="css/components/notifications.css">
     <link rel="stylesheet" href="css/business-pitch.css">
     <link rel="stylesheet" href="css/localization.css">
+    
+    <!-- Theme Toggle Script -->
+    <script src="js/theme-toggle.js" defer></script>
     <style>
+
         .services-hero {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            padding: 5rem 0;
+            position: relative;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.9) 100%), url('images/hero-bg-premium.jpg') center/cover no-repeat;
+            padding: 100px 0;
             color: white;
             text-align: center;
-            position: relative;
             overflow: hidden;
+            margin-top: 70px;
         }
 
         .services-hero::before {
@@ -27,8 +39,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: url('data:image/svg+xml,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
-            opacity: 0.3;
+            background: url('data:image/svg+xml,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="1" fill="rgba(212, 175, 55, 0.2)"/></svg>');
+            opacity: 0.5;
+            z-index: 1;
+        }
+        
+        .services-hero .container {
+            position: relative;
+            z-index: 2;
         }
 
         .service-category {
@@ -222,31 +240,51 @@
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar">
+    <header class="navbar">
         <div class="container">
             <div class="logo">
-                <a href="index.html">إيجاري</a>
+                <a href="index.html"
+                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-home" style="color: var(--elite-gold);"></i>
+                    إيجاري إيليت
+                </a>
             </div>
-            <ul class="nav-links">
-                <li><a href="index.html">الرئيسية</a></li>
-                <li><a href="properties.html">عقارات</a></li>
-                <li><a href="services.html" class="active">الخدمات</a></li>
-                <li><a href="partners.html">شركاء النجاح</a></li>
-            </ul>
-            <!-- Settings (Country & Language) -->
-            <div class="settings-container">
-                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
-                    <i class="fas fa-globe"></i>
-                    <span id="countrySelector">🇸🇦 السعودية</span>
+
+            <nav class="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="properties.html">عقارات</a></li>
+                    <li><a href="cars.html">سيارات</a></li>
+                    <li><a href="services.html" class="active">الخدمات</a></li>
+                    <li><a href="contact.html">تواصل معنا</a></li>
+                </ul>
+            </nav>
+
+            <div class="nav-icons">
+                <!-- Theme Toggle -->
+                <button class="settings-btn" id="themeToggle" title="تبديل المظهر">
+                    <i class="fas fa-moon"></i>
+                    <i class="fas fa-sun" style="display:none;"></i>
                 </button>
-                <div id="settingsDropdownContainer"></div>
-            </div>
-            <div class="auth-buttons">
-                <button class="btn btn-outline" onclick="location.href='login.html'">تسجيل دخول</button>
-                <button class="btn btn-primary" onclick="location.href='signup.html'">إنشاء حساب</button>
+
+                <div class="settings-container">
+                    <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                        <i class="fas fa-globe"></i>
+                        <span>🇸🇦 السعودية</span>
+                    </button>
+                </div>
+
+                <div class="auth-buttons" id="authButtons">
+                    <a href="signup.html" class="btn btn-elite">إنشاء حساب</a>
+                    <a href="login.html" class="btn btn-outline">تسجيل الدخول</a>
+                </div>
+
+                <button class="menu-btn" onclick="toggleMobileMenu()" aria-label="القائمة">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
         </div>
-    </nav>
+    </header>
 
     <!-- Hero Section -->
     <section class="services-hero">
@@ -283,7 +321,7 @@
                             </ul>
                             <div class="service-price"><span class="price-amount" data-price="12">150</span>
                             </div>
-                            <button class="btn-service" onclick="location.href='create-contract.html'">إنشاء عقد
+                            <button class="btn-elite" onclick="location.href='create-contract.html'">إنشاء عقد
                                 الآن</button>
                         </div>
                     </div>
@@ -306,7 +344,7 @@
                             <div class="service-price">تبدأ من <span class="price-amount" data-price="40">500</span>
                                 <span>/ سنوياً</span>
                             </div>
-                            <button class="btn-service" onclick="location.href='insurance.html'">طلب عرض سعر</button>
+                            <button class="btn-elite" onclick="location.href='insurance.html'">طلب عرض سعر</button>
                         </div>
                     </div>
 
@@ -325,7 +363,7 @@
                             </ul>
                             <div class="service-price">2% <span>من قيمة
                                     الإيجار</span></div>
-                            <button class="btn-service" onclick="location.href='rent-guarantee.html'">اشترك
+                            <button class="btn-elite" onclick="location.href='rent-guarantee.html'">اشترك
                                 الآن</button>
                         </div>
                     </div>
@@ -354,7 +392,7 @@
                             </ul>
                             <div class="service-price">رسوم زيارة <span class="price-amount" data-price="4">50</span>
                             </div>
-                            <button class="btn-service" onclick="location.href='maintenance.html'">حجز موعد
+                            <button class="btn-elite" onclick="location.href='maintenance.html'">حجز موعد
                                 صيانة</button>
                         </div>
                     </div>
@@ -376,7 +414,7 @@
                             <div class="service-price">خصم 10%
                                 <span>لعملاء إيجاري</span>
                             </div>
-                            <button class="btn-service" onclick="location.href='moving.html'">احسب التكلفة</button>
+                            <button class="btn-elite" onclick="location.href='moving.html'">احسب التكلفة</button>
                         </div>
                     </div>
 
@@ -396,7 +434,7 @@
                             </ul>
                             <div class="service-price">تبدأ من <span class="price-amount" data-price="24">300</span>
                             </div>
-                            <button class="btn-service" onclick="location.href='cleaning.html'">حجز خدمة نظافة</button>
+                            <button class="btn-elite" onclick="location.href='cleaning.html'">حجز خدمة نظافة</button>
                         </div>
                     </div>
                 </div>
@@ -439,7 +477,7 @@
                 <div class="footer-section">
                     <h3>تواصل معنا</h3>
                     <ul>
-                        <li>info@ejari.com</li>
+                        <li>info@ejari.app</li>
                         <li>+20 123 456 789</li>
                     </ul>
                 </div>

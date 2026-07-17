@@ -1,83 +1,138 @@
 /**
  * Auth Manager - Ejari
- * Handles login, signup, and session management
+ * Handles login, signup, and session management using Express API backend
  */
 
+const API_BASE_URL = 'http://localhost:5050/api';
+
 const AuthManager = {
-    // Login function with validation
-    login: function (email, password) {
+    // Login function with API call
+    login: async function (email, password) {
         // Validation
         if (!email || !password) {
             alert('الرجاء إدخال البريد الإلكتروني وكلمة المرور');
             return false;
         }
 
-        // Get all users from localStorage
-        const users = JSON.parse(localStorage.getItem('ejari_users')) || [];
+        try {
+            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
 
-        // Find user by email
-        const user = users.find(u => u.email === email);
+            const result = await response.json();
 
-        if (!user) {
-            alert('البريد الإلكتروني غير مسجل. يرجى إنشاء حساب جديد.');
+            if (!response.ok || !result.success) {
+                alert(result.error || 'بيانات الدخول غير صحيحة. يرجى المحاولة مرة أخرى.');
+                return false;
+            }
+
+            // Save token
+            localStorage.setItem('ejari_token', result.token);
+
+            // Fetch user details
+            const userResponse = await fetch(`${API_BASE_URL}/auth/me`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${result.token}`
+                }
+            });
+
+            const userResult = await userResponse.json();
+
+            if (!userResponse.ok || !userResult.success) {
+                alert('فشل جلب بيانات الملف الشخصي.');
+                return false;
+            }
+
+            // Save user session
+            localStorage.setItem('ejari_user', JSON.stringify(userResult.data));
+
+            // Redirect based on role
+            this.redirectUser(userResult.data.role);
+            return true;
+        } catch (error) {
+            console.error('Login Error:', error);
+            alert('حدث خطأ أثناء الاتصال بالخادم. الرجاء التأكد من تشغيل السيرفر.');
             return false;
         }
-
-        // Check password
-        if (user.password !== password) {
-            alert('كلمة المرور غير صحيحة. يرجى المحاولة مرة أخرى.');
-            return false;
-        }
-
-        // Save user session
-        localStorage.setItem('ejari_user', JSON.stringify(user));
-        localStorage.setItem('ejari_token', 'token_' + user.id + '_' + Date.now());
-
-        // Redirect based on role
-        this.redirectUser(user.role);
-        return true;
     },
 
-    signup: function (userData) {
-        // Get existing users
-        const users = JSON.parse(localStorage.getItem('ejari_users')) || [];
+    signup: async function (userData) {
+        try {
+            // Note: Our backend schema also requires address. We will send a default empty address if not provided.
+            const registerData = {
+                name: userData.name,
+                email: userData.email,
+                password: userData.password,
+                role: userData.role || 'tenant',
+                phone: userData.phone || '',
+                address: userData.address || 'القاهرة، مصر'
+            };
 
-        // Check if email already exists
-        if (users.find(u => u.email === userData.email)) {
-            alert('البريد الإلكتروني مسجل بالفعل. يرجى تسجيل الدخول.');
+            const response = await fetch(`${API_BASE_URL}/auth/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(registerData)
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                alert(result.error || 'فشل إنشاء حساب جديد. يرجى المحاولة لاحقاً.');
+                return false;
+            }
+
+            // Save token
+            localStorage.setItem('ejari_token', result.token);
+
+            // Fetch user details
+            const userResponse = await fetch(`${API_BASE_URL}/auth/me`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${result.token}`
+                }
+            });
+
+            const userResult = await userResponse.json();
+
+            if (!userResponse.ok || !userResult.success) {
+                alert('فشل جلب بيانات الملف الشخصي بعد التسجيل.');
+                return false;
+            }
+
+            // Save user session
+            localStorage.setItem('ejari_user', JSON.stringify(userResult.data));
+
+            // Redirect
+            this.redirectUser(userResult.data.role);
+            return true;
+        } catch (error) {
+            console.error('Signup Error:', error);
+            alert('حدث خطأ أثناء الاتصال بالخادم. الرجاء التأكد من تشغيل السيرفر.');
             return false;
         }
-
-        // Create new user
-        const newUser = {
-            id: Date.now(),
-            name: userData.name,
-            email: userData.email,
-            password: userData.password,
-            phone: userData.phone || '',
-            role: userData.role || 'tenant',
-            avatar: userData.role === 'owner' ? 'images/owner-avatar.jpg' : 'images/tenant-2.jpg',
-            status: 'active',
-            verificationStatus: 'unverified',
-            points: 0,
-            pointsHistory: [],
-            createdAt: new Date().toISOString()
-        };
-
-        // Add to users array
-        users.push(newUser);
-        localStorage.setItem('ejari_users', JSON.stringify(users));
-
-        // Auto login
-        localStorage.setItem('ejari_user', JSON.stringify(newUser));
-        localStorage.setItem('ejari_token', 'token_' + newUser.id + '_' + Date.now());
-
-        // Redirect
-        this.redirectUser(newUser.role);
-        return true;
     },
 
-    logout: function () {
+    logout: async function () {
+        try {
+            const token = localStorage.getItem('ejari_token');
+            if (token) {
+                await fetch(`${API_BASE_URL}/auth/logout`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Logout Error:', error);
+        }
         localStorage.removeItem('ejari_user');
         localStorage.removeItem('ejari_token');
         window.location.href = 'login.html';
@@ -112,11 +167,11 @@ const AuthManager = {
     }
 };
 
-// Handle login form
+// Handle login form submission
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
-        loginForm.addEventListener('submit', (e) => {
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
@@ -127,22 +182,21 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الدخول...';
             btn.disabled = true;
 
-            setTimeout(() => {
-                const success = AuthManager.login(email, password);
-                if (!success) {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }
-            }, 1000);
+            const success = await AuthManager.login(email, password);
+            if (!success) {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         });
     }
 
-    // Handle signup form
+    // Handle signup form (if present in the page context)
     const signupForm = document.getElementById('signupForm');
-    if (signupForm) {
-        signupForm.addEventListener('submit', (e) => {
+    const nameInput = document.getElementById('name');
+    if (signupForm && nameInput) {
+        signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const name = document.getElementById('name').value;
+            const name = nameInput.value;
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const phone = document.getElementById('phone').value;
@@ -153,13 +207,11 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التسجيل...';
             btn.disabled = true;
 
-            setTimeout(() => {
-                const success = AuthManager.signup({ name, email, password, phone, role });
-                if (!success) {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }
-            }, 1000);
+            const success = await AuthManager.signup({ name, email, password, phone, role });
+            if (!success) {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         });
     }
 });

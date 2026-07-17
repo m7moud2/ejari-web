@@ -14,26 +14,79 @@ const DashboardEngine = {
         payments: []
     },
 
-    init: function () {
-        this.loadData();
+    init: async function () {
         this.checkAuth();
+        await this.loadData();
         this.renderCommonElements();
         this.routeDashboard();
     },
 
     // --- Data Management ---
-    loadData: function () {
+    loadData: async function () {
         this.data.users = JSON.parse(localStorage.getItem('ejari_users')) || this.seedUsers();
-        this.data.properties = JSON.parse(localStorage.getItem('ejari_properties')) || this.seedProperties();
-        this.data.bookings = JSON.parse(localStorage.getItem('ejari_bookings')) || [];
-        this.data.maintenanceRequests = JSON.parse(localStorage.getItem('ejari_maintenance')) || [];
+        
+        const token = localStorage.getItem('ejari_token');
+        const API_BASE_URL = 'http://localhost:5050/api';
+
+        try {
+            // 1. Fetch properties
+            const propertiesResponse = await fetch(`${API_BASE_URL}/properties`, { method: 'GET' });
+            const propertiesResult = await propertiesResponse.json();
+            if (propertiesResponse.ok && propertiesResult.success) {
+                this.data.properties = propertiesResult.data;
+            } else {
+                this.data.properties = JSON.parse(localStorage.getItem('ejari_properties')) || this.seedProperties();
+            }
+
+            if (!this.data.properties || this.data.properties.length === 0) {
+                try {
+                    const localSeed = await fetch('egary_apartments_mock_data.json');
+                    if (localSeed.ok) {
+                        this.data.properties = await localSeed.json();
+                        localStorage.setItem('ejari_seed_properties', JSON.stringify(this.data.properties));
+                    }
+                } catch (_) {}
+            }
+
+            // If not logged in, we skip protected data
+            if (!token) return;
+
+            // 2. Fetch bookings
+            const bookingsResponse = await fetch(`${API_BASE_URL}/bookings`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const bookingsResult = await bookingsResponse.json();
+            if (bookingsResponse.ok && bookingsResult.success) {
+                this.data.bookings = bookingsResult.data;
+            } else {
+                this.data.bookings = [];
+            }
+
+            // 3. Fetch maintenance requests
+            const maintenanceResponse = await fetch(`${API_BASE_URL}/maintenance`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const maintenanceResult = await maintenanceResponse.json();
+            if (maintenanceResponse.ok && maintenanceResult.success) {
+                this.data.maintenanceRequests = maintenanceResult.data;
+            } else {
+                this.data.maintenanceRequests = [];
+            }
+        } catch (error) {
+            console.error('Error loading dashboard data:', error);
+            this.data.properties = JSON.parse(localStorage.getItem('ejari_properties')) || JSON.parse(localStorage.getItem('ejari_seed_properties')) || this.seedProperties();
+            this.data.bookings = [];
+            this.data.maintenanceRequests = [];
+        }
     },
 
     seedUsers: function () {
         return [
             { id: 1, name: 'أحمد محمد', role: 'tenant', email: 'ahmed@test.com', avatar: 'images/tenant-2.jpg', plan: 'gold', status: 'active' },
             { id: 2, name: 'شركة العقارات الحديثة', role: 'owner', email: 'owner@test.com', avatar: 'images/owner-avatar.jpg', plan: 'premium', status: 'active' },
-            { id: 99, name: 'Admin', role: 'admin', email: 'admin@ejari.com', avatar: 'images/logo.png', status: 'active' }
+            { id: 99, name: 'Admin', role: 'admin', email: 'admin@ejari.app', avatar: 'images/logo.png', status: 'active' }
         ];
     },
 
@@ -171,111 +224,309 @@ const DashboardEngine = {
         };
     },
 
-    // --- CHAT LOGIC ---
-    openChat: function (userName) {
+    // --- EJARI AI ASSISTANT LOGIC ---
+    openChat: function (userName = 'المساعد الذكي') {
         if (!document.getElementById('chatModal')) {
             const chatHTML = `
-                <div id="chatModal" style="display: none; position: fixed; bottom: 20px; right: 20px; width: 350px; height: 450px; background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); z-index: 5000; flex-direction: column; overflow: hidden; border: 1px solid #e2e8f0;">
-                    <div style="background: #3b82f6; color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <div style="width: 10px; height: 10px; background: #4ade80; border-radius: 50%;"></div>
-                            <span id="chat-user-name" style="font-weight: bold;">User</span>
+                <div id="chatModal" style="display: none; position: fixed; bottom: 30px; right: 30px; width: 380px; height: 550px; background: var(--elite-navy); border-radius: 24px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); z-index: 5000; flex-direction: column; overflow: hidden; border: 1px solid var(--elite-gold);">
+                    <!-- Chat Header -->
+                    <div style="background: linear-gradient(135deg, var(--elite-navy), #1a237e); color: white; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(197, 160, 89, 0.3);">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 45px; height: 45px; background: rgba(197, 160, 89, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--elite-gold);">
+                                <i class="fas fa-brain" style="color: var(--elite-gold);"></i>
+                            </div>
+                            <div>
+                                <div style="font-weight: bold; font-size: 1rem;">إيجاري AI</div>
+                                <div style="font-size: 0.75rem; color: var(--elite-accent); display: flex; align-items: center; gap: 4px;">
+                                    <span style="width: 8px; height: 8px; background: var(--elite-accent); border-radius: 50%; display: inline-block;"></span> متصل الآن
+                                </div>
+                            </div>
                         </div>
-                        <button onclick="document.getElementById('chatModal').style.display='none'" style="background: none; border: none; color: white; cursor: pointer;"><i class="fas fa-times"></i></button>
+                        <button onclick="document.getElementById('chatModal').style.display='none'" style="background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem; opacity: 0.7;"><i class="fas fa-times"></i></button>
                     </div>
-                    <div id="chat-messages" style="flex: 1; padding: 1rem; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 0.5rem;"></div>
-                    <div style="padding: 1rem; border-top: 1px solid #e2e8f0; display: flex; gap: 0.5rem;">
-                        <input type="text" id="chat-input" placeholder="اكتب رسالتك..." style="flex: 1; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 20px; outline: none;">
-                        <button onclick="DashboardEngine.sendMessage()" style="background: #3b82f6; color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer;"><i class="fas fa-paper-plane"></i></button>
+
+                    <!-- Messages Container -->
+                    <div id="chat-messages" style="flex: 1; padding: 1.5rem; overflow-y: auto; background: #0a192f; display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="align-self: flex-start; background: rgba(255,255,255,0.05); color: white; padding: 1rem; border-radius: 18px 18px 18px 0; max-width: 85%; border: 1px solid rgba(255,255,255,0.1); font-size: 0.95rem;">
+                            أهلاً بك يا ${this.currentUser.name.split(' ')[0]}! أنا مساعدك الذكي في إيجاري إيليت. كيف يمكنني مساعدتك اليوم؟
+                        </div>
+                        
+                        <!-- Smart Suggestion Bubbles -->
+                        <div id="chat-suggestions" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                            <button onclick="DashboardEngine.sendSmartMessage('كيف أبدأ؟')" style="background: rgba(197, 160, 89, 0.1); border: 1px solid var(--elite-gold); color: var(--elite-gold); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; cursor: pointer;">كيف أبدأ؟</button>
+                            <button onclick="DashboardEngine.sendSmartMessage('ما هي العمولات؟')" style="background: rgba(197, 160, 89, 0.1); border: 1px solid var(--elite-gold); color: var(--elite-gold); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; cursor: pointer;">ما هي العمولات؟</button>
+                            <button onclick="DashboardEngine.sendSmartMessage('حالة توثيق حسابي')" style="background: rgba(197, 160, 89, 0.1); border: 1px solid var(--elite-gold); color: var(--elite-gold); padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; cursor: pointer;">حالة التوثيق</button>
+                        </div>
+                    </div>
+
+                    <!-- Typing Indicator (Hidden) -->
+                    <div id="typing-indicator" style="display: none; padding: 0 1.5rem 1rem; color: var(--elite-accent); font-size: 0.8rem; font-style: italic;">
+                        إيجاري AI يكتب الآن...
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div style="padding: 1.5rem; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(197, 160, 89, 0.2); display: flex; gap: 0.75rem;">
+                        <input type="text" id="chat-input" placeholder="اسألني أي شيء..." style="flex: 1; padding: 0.75rem 1.2rem; border: 1px solid rgba(197, 160, 89, 0.3); border-radius: 30px; outline: none; background: rgba(255,255,255,0.05); color: white;">
+                        <button onclick="DashboardEngine.sendChatMessage()" style="background: var(--elite-gold); color: var(--elite-navy); border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;"><i class="fas fa-paper-plane"></i></button>
                     </div>
                 </div>
             `;
             document.body.insertAdjacentHTML('beforeend', chatHTML);
 
             document.getElementById('chat-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') DashboardEngine.sendMessage();
+                if (e.key === 'Enter') DashboardEngine.sendChatMessage();
             });
         }
 
-        document.getElementById('chat-user-name').textContent = userName;
-        document.getElementById('chat-messages').innerHTML = `
-            <div style="align-self: flex-start; background: #e2e8f0; padding: 0.5rem 1rem; border-radius: 12px 12px 12px 0; max-width: 80%;">مرحباً، كيف يمكنني مساعدتك؟</div>
-        `;
         document.getElementById('chatModal').style.display = 'flex';
     },
 
-    sendMessage: function () {
+    sendSmartMessage: function (text) {
+        document.getElementById('chat-input').value = text;
+        this.sendChatMessage();
+    },
+
+    sendChatMessage: async function () {
         const input = document.getElementById('chat-input');
         const msg = input.value.trim();
         if (!msg) return;
 
         const container = document.getElementById('chat-messages');
-        container.innerHTML += `<div style="align-self: flex-end; background: #3b82f6; color: white; padding: 0.5rem 1rem; border-radius: 12px 12px 0 12px; max-width: 80%;">${msg}</div>`;
+        const suggestions = document.getElementById('chat-suggestions');
+        if (suggestions) suggestions.style.display = 'none';
+
+        // رسالة المستخدم
+        container.innerHTML += `
+            <div style="align-self: flex-end; background: var(--elite-gold); color: var(--elite-navy); padding: 1rem; border-radius: 18px 18px 0 18px; max-width: 85%; font-weight: 500; font-size: 0.95rem; margin-bottom: 0.75rem;">
+                ${msg}
+            </div>
+        `;
         input.value = '';
         container.scrollTop = container.scrollHeight;
 
-        setTimeout(() => {
-            container.innerHTML += `<div style="align-self: flex-start; background: #e2e8f0; padding: 0.5rem 1rem; border-radius: 12px 12px 12px 0; max-width: 80%;">شكراً لتواصلك. سأقوم بالرد عليك في أقرب وقت ممكن.</div>`;
-            container.scrollTop = container.scrollHeight;
-        }, 1000);
+        // مؤشر التفكير
+        const typing = document.getElementById('typing-indicator');
+        typing.style.display = 'block';
+
+        try {
+            const API_BASE_URL = 'http://localhost:5050/api';
+            const response = await fetch(`${API_BASE_URL}/ai/chat`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            });
+
+            typing.style.display = 'none';
+
+            if (!response.ok) throw new Error('AI server error');
+            const result = await response.json();
+            const { reply, matchedProperties } = result.data;
+
+            // فقاعة رد الذكاء الاصطناعي
+            container.innerHTML += `
+                <div style="align-self: flex-start; background: rgba(255,255,255,0.05); color: white; padding: 1rem; border-radius: 18px 18px 18px 0; max-width: 85%; border: 1px solid rgba(255,255,255,0.1); font-size: 0.95rem; margin-bottom: 0.75rem; line-height: 1.6;">
+                    <span style="color: var(--elite-gold); font-weight: 700; font-size: 0.8rem; display: block; margin-bottom: 0.4rem;">✨ إيجاري كونسيرج</span>
+                    ${reply}
+                </div>
+            `;
+
+            // كروت العقارات المقترحة
+            if (matchedProperties && matchedProperties.length > 0) {
+                const cardsHTML = matchedProperties.map(p => `
+                    <div onclick="window.open('property-details.html?id=${p._id || p.id}', '_blank')"
+                         style="min-width: 175px; background: rgba(255,255,255,0.07); border-radius: 16px; border: 1px solid rgba(197,160,89,0.25); overflow: hidden; cursor: pointer; transition: all 0.25s ease; flex-shrink: 0;"
+                         onmouseover="this.style.transform='translateY(-4px)'; this.style.borderColor='rgba(197,160,89,0.6)'; this.style.boxShadow='0 12px 30px rgba(0,0,0,0.4)'"
+                         onmouseout="this.style.transform='none'; this.style.borderColor='rgba(197,160,89,0.25)'; this.style.boxShadow='none'">
+                        <img src="${p.images?.[0] || 'images/home1.jpg'}" alt="${p.title}"
+                             style="width: 100%; height: 110px; object-fit: cover;" onerror="this.src='images/home1.jpg'">
+                        <div style="padding: 0.75rem;">
+                            <div style="font-size: 0.78rem; font-weight: 700; color: white; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.title}</div>
+                            <div style="font-size: 0.82rem; color: var(--elite-gold); font-weight: 700; margin-bottom: 4px;">${(p.price || 0).toLocaleString('ar-EG')} ج.م</div>
+                            <div style="font-size: 0.7rem; color: #94a3b8;">
+                                🛏 ${p.features?.bedrooms || 0} &nbsp;🚿 ${p.features?.bathrooms || 0} &nbsp;📐 ${p.features?.area || 0}م²
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                container.innerHTML += `
+                    <div style="display: flex; gap: 12px; overflow-x: auto; padding: 4px 0 12px 0; margin-bottom: 0.5rem; scrollbar-width: thin; scrollbar-color: rgba(197,160,89,0.3) transparent;">
+                        ${cardsHTML}
+                    </div>
+                `;
+            }
+
+        } catch (error) {
+            typing.style.display = 'none';
+            container.innerHTML += `
+                <div style="align-self: flex-start; background: rgba(248,113,113,0.08); color: #fca5a5; padding: 1rem; border-radius: 18px 18px 18px 0; max-width: 85%; border: 1px solid rgba(248,113,113,0.2); font-size: 0.9rem; margin-bottom: 0.75rem;">
+                    ⚠️ تعذّر الاتصال بالمساعد الذكي. يرجى التأكد من تشغيل الخادم والمحاولة مجدداً.
+                </div>
+            `;
+        }
+
+        container.scrollTop = container.scrollHeight;
     },
 
-    // --- CONTRACT LOGIC ---
-    downloadContract: function (bookingId) {
-        // Try to find booking, fallback to mock if testing
+    // --- DIGITAL SIGNATURE & CONTRACT LOGIC ---
+    // This provides a high-end "Signing" experience for the demo
+    initSignaturePad: function () {
+        const canvas = document.getElementById('signature-pad');
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
+
+        // Set line style
+        ctx.strokeStyle = '#0a192f';
+        ctx.lineWidth = 3;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+
+        const getPos = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (e.clientX || e.touches[0].clientX) - rect.left,
+                y: (e.clientY || e.touches[0].clientY) - rect.top
+            };
+        };
+
+        const startDrawing = (e) => {
+            drawing = true;
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        };
+
+        const draw = (e) => {
+            if (!drawing) return;
+            e.preventDefault();
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        };
+
+        const stopDrawing = () => {
+            drawing = false;
+        };
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        canvas.addEventListener('touchend', stopDrawing);
+
+        window.clearSignature = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        };
+    },
+
+    openSignModal: function (bookingId) {
+        if (!document.getElementById('signModal')) {
+            const modalHTML = `
+                <div id="signModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 6000; align-items: center; justify-content: center; padding: 20px;">
+                    <div style="background: white; width: 100%; max-width: 500px; border-radius: 30px; overflow: hidden; animation: fadeInUp 0.5s ease;">
+                        <div style="background: var(--elite-navy); color: white; padding: 2rem; text-align: center;">
+                            <h2 style="color: var(--elite-gold);">التوقيع الرقمي المعتمد</h2>
+                            <p style="opacity: 0.8; font-size: 0.9rem;">يرجى رسم توقيعك في المربع أدناه</p>
+                        </div>
+                        <div style="padding: 2rem; text-align: center;">
+                            <canvas id="signature-pad" width="400" height="200" style="border: 2px dashed #cbd5e1; border-radius: 12px; cursor: crosshair; background: #f8fafc; touch-action: none;"></canvas>
+                            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                                <button onclick="clearSignature()" style="flex: 1; padding: 1rem; border: 1px solid #cbd5e1; background: none; border-radius: 12px; cursor: pointer;">مسح التوقيع</button>
+                                <button onclick="DashboardEngine.processSigning('${bookingId}')" style="flex: 2; padding: 1rem; background: var(--elite-navy); color: var(--elite-gold); border: none; border-radius: 12px; font-weight: bold; cursor: pointer; border: 1px solid var(--elite-gold);">حفظ وتوليد العقد</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        document.getElementById('signModal').style.display = 'flex';
+        this.initSignaturePad();
+    },
+
+    processSigning: function (bookingId) {
+        const canvas = document.getElementById('signature-pad');
+        const signatureData = canvas.toDataURL();
+        
+        // Hide modal
+        document.getElementById('signModal').style.display = 'none';
+        
+        // Open the contract with the real signature
+        this.renderFinalContract(bookingId, signatureData);
+    },
+
+    renderFinalContract: function (bookingId, signatureData) {
+        // Find data
         const booking = this.data.bookings.find(b => b.id == bookingId) ||
-            this.data.properties.find(p => p.id == bookingId) ||
-            { itemTitle: 'عقار تجريبي', totalCost: 5000, startDate: new Date() };
+            { itemTitle: 'عقار إيليت المميز', totalCost: 12000, startDate: new Date() };
 
         const contractWindow = window.open('', '_blank');
         contractWindow.document.write(`
             <html dir="rtl">
             <head>
-                <title>عقد إيجار - ${booking.itemTitle || booking.title}</title>
+                <title>عقد إيجاري إيليت الموثق</title>
                 <style>
-                    body { font-family: 'Arial', sans-serif; padding: 40px; line-height: 1.6; }
-                    .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
-                    .section { margin-bottom: 20px; }
-                    .signature-box { margin-top: 50px; display: flex; justify-content: space-between; }
-                    .sign-place { width: 200px; height: 100px; border-bottom: 1px solid #000; text-align: center; }
+                    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
+                    body { font-family: 'Cairo', sans-serif; padding: 60px; line-height: 1.8; color: #0a192f; }
+                    .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 8rem; color: rgba(0,0,0,0.03); z-index: -1; white-space: nowrap; }
+                    .header { text-align: center; border-bottom: 3px double #c5a059; padding-bottom: 20px; margin-bottom: 40px; }
+                    .ejari-seal { width: 100px; height: 100px; border: 4px solid #c5a059; border-radius: 50%; color: #c5a059; display: flex; align-items: center; justify-content: center; font-weight: 800; margin: 0 auto 20px; font-size: 0.8rem; text-align: center; }
+                    .section { margin-bottom: 30px; background: #fff; padding: 20px; border-right: 5px solid #c5a059; }
+                    .signature-box { margin-top: 60px; display: flex; justify-content: space-between; align-items: center; }
+                    .sign-place { text-align: center; flex: 1; }
+                    .sign-img { max-height: 80px; border-bottom: 2px solid #0a192f; padding-bottom: 10px; }
                 </style>
             </head>
             <body>
+                <div class="watermark">EJARI ELITE</div>
                 <div class="header">
-                    <h1>عقد إيجار موحد</h1>
-                    <p>رقم العقد: ${booking.id || Date.now()}</p>
+                    <div class="ejari-seal">EJARI<br>CERTIFIED</div>
+                    <h1>عقد إيجار رقمي موثق</h1>
+                    <p>هذا العقد معتمد من منصة إيجاري ومحمي بتقنية Blockchain (محاكاة)</p>
                 </div>
                 
                 <div class="section">
-                    <h3>أولاً: بيانات العقار</h3>
-                    <p>الوحدة: ${booking.itemTitle || booking.title}</p>
-                    <p>القيمة الإيجارية: ${booking.price ? booking.price.toLocaleString() : '12,000'} ج.م</p>
-                    <p>تاريخ البدء: ${new Date().toLocaleDateString('ar-EG')}</p>
+                    <h3>1. أطراف التعاقد</h3>
+                    <p>الطرف الأول (المؤجر): شركة إيجاري إيليت لإدارة الأصول</p>
+                    <p>الطرف الثاني (المستأجر): ${this.currentUser.name}</p>
                 </div>
 
                 <div class="section">
-                    <h3>ثانياً: الشروط والأحكام</h3>
-                    <p>1. يلتزم الطرف الثاني بدفع القيمة الإيجارية في المواعيد المحددة.</p>
-                    <p>2. يلتزم الطرف الثاني بالمحافظة على العين المؤجرة.</p>
-                    <p>3. يعتبر هذا العقد سنداً تنفيذياً ملزماً للطرفين.</p>
+                    <h3>2. موضوع التعاقد</h3>
+                    <p>العقار/الخدمة: ${booking.itemTitle || 'فيلا السكينة - التجمع الخامس'}</p>
+                    <p>القيمة: ${parseInt(booking.totalCost || 12000).toLocaleString()} ج.م</p>
+                </div>
+
+                <div class="section">
+                    <h3>3. الإقرارات</h3>
+                    <p>يقر الطرفان بصحة البيانات وبالتزامهم ببنود العقد الإلكتروني الموحد.</p>
                 </div>
 
                 <div class="signature-box">
                     <div class="sign-place">
-                        <p>توقيع المالك</p>
-                        <img src="images/signature-mock.png" style="max-height: 60px; opacity: 0.5;" alt="(توقيع إلكتروني)">
+                        <p>ختم المنصة</p>
+                        <i style="color: #c5a059;">(ختم رقمي مشفر)</i>
                     </div>
                     <div class="sign-place">
                         <p>توقيع المستأجر</p>
-                        ${booking.signature ? `<img src="${booking.signature}" style="max-height: 60px;">` : '(تم التوقيع إلكترونياً)'}
+                        <img src="${signatureData}" class="sign-img" alt="Signature">
+                        <p style="font-size: 0.7rem; color: #64748b;">توقيع إلكتروني موثق من عنوان IP: 192.168.1.1</p>
                     </div>
                 </div>
 
-                <script>window.print();</script>
+                <script>setTimeout(() => window.print(), 500);</script>
             </body>
             </html>
         `);
         contractWindow.document.close();
+    },
+
+    downloadContract: function (bookingId) {
+        this.openSignModal(bookingId);
     },
 
     // --- TENANT LOGIC ---
@@ -441,7 +692,22 @@ const DashboardEngine = {
         const container = document.getElementById('tenant-bookings-list');
         if (!container) return;
 
-        const myBookings = this.data.bookings.filter(b => b.userId === this.currentUser.id);
+        // Backend bookings are already filtered by the server for the logged-in user, but support local fallback just in case
+        const myBookings = this.data.bookings.filter(b => !b.user || b.user._id === this.currentUser._id || b.user === this.currentUser.id || b.userId === this.currentUser.id);
+        const localBooking = JSON.parse(localStorage.getItem('currentBooking')) || null;
+        if (myBookings.length === 0 && localBooking) {
+            myBookings.push({
+                ...localBooking,
+                status: localBooking.status || 'pending',
+                userId: this.currentUser.id,
+                property: {
+                    title: localBooking.itemTitle,
+                    images: [localBooking.itemImage || 'images/home1.jpg'],
+                    location: { address: localBooking.location || '' },
+                    price: localBooking.totalCost || localBooking.price || 0
+                }
+            });
+        }
 
         if (myBookings.length === 0) {
             const emptyHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: white; border-radius: 12px;"><h3>لا توجد حجوزات نشطة</h3><p style="color: #6b7280; margin-bottom: 1rem;">لم تقم بأي عمليات حجز حتى الآن.</p><a href="properties.html" class="btn-primary" style="display: inline-block; text-decoration: none;">تصفح العقارات</a></div>';
@@ -452,24 +718,30 @@ const DashboardEngine = {
             return;
         }
 
-        const bookingsHTML = myBookings.map(booking => `
+        const bookingsHTML = myBookings.map(booking => {
+            const propImage = (booking.property?.images && booking.property.images[0]) || booking.itemImage || 'images/home1.jpg';
+            const propTitle = booking.property?.title || booking.itemTitle || 'عقار إيليت';
+            const propLocation = booking.property?.location?.address || booking.location || 'القاهرة';
+            const propPrice = booking.property?.price || booking.totalCost || booking.price || 0;
+            const bId = booking.id || booking._id;
+            return `
             <div class="booking-item">
-                <img src="${booking.itemImage || 'images/home1.jpg'}" class="booking-img" alt="Item">
+                <img src="${propImage}" class="booking-img" alt="Item">
                 <div class="booking-info">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                        <span class="status-badge active">نشط</span>
+                        <span class="status-badge active">${booking.status || 'نشط'}</span>
                         <span style="font-size: 0.85rem; color: #64748b;">${booking.type === 'car' ? 'تأجير سيارة' : 'إيجار عقار'}</span>
                     </div>
-                    <h4>${booking.itemTitle}</h4>
-                    <p><i class="fas fa-map-marker-alt"></i> ${booking.location}</p>
-                    <p class="date"><i class="far fa-calendar-alt"></i> ينتهي في: ${this.calculateEndDate(booking.startDate, booking.duration, booking.durationUnit)}</p>
+                    <h4>${propTitle}</h4>
+                    <p><i class="fas fa-map-marker-alt"></i> ${propLocation}</p>
+                    <p class="date"><i class="far fa-calendar-alt"></i> ينتهي في: ${this.calculateEndDate(booking.startDate, booking.duration || 1, booking.durationUnit || 'months')}</p>
                 </div>
                 <div style="text-align: left;">
-                    <div style="font-weight: bold; margin-bottom: 0.5rem;">${parseInt(booking.totalCost).toLocaleString()} ج.م</div>
-                    <button class="btn-primary" style="font-size: 0.85rem; padding: 0.5rem 1rem;" onclick="DashboardEngine.downloadContract(${booking.id})">تحميل العقد</button>
+                    <div style="font-weight: bold; margin-bottom: 0.5rem;">${parseInt(propPrice).toLocaleString()} ج.م</div>
+                    <button class="btn-primary" style="font-size: 0.85rem; padding: 0.5rem 1rem;" onclick="DashboardEngine.downloadContract('${bId}')">تحميل العقد</button>
                 </div>
             </div>
-        `).join('');
+        `; }).join('');
 
         container.innerHTML = bookingsHTML;
 
@@ -479,7 +751,11 @@ const DashboardEngine = {
         const maintenanceSelect = document.getElementById('m-property');
         if (maintenanceSelect) {
             maintenanceSelect.innerHTML = '<option value="">اختر العقار...</option>' +
-                myBookings.map(b => `<option value="${b.itemTitle}">${b.itemTitle}</option>`).join('');
+                myBookings.map(b => {
+                    const propId = b.property?._id || b.property || '';
+                    const propTitle = b.property?.title || b.itemTitle || '';
+                    return `<option value="${propId}">${propTitle}</option>`;
+                }).join('');
         }
     },
 
@@ -507,28 +783,51 @@ const DashboardEngine = {
     },
 
     setupTenantActions: function () {
-        window.submitMaintenance = (e) => {
+        window.submitMaintenance = async (e) => {
             e.preventDefault();
-            const property = document.getElementById('m-property').value;
+            const propertyId = document.getElementById('m-property').value;
             const type = document.getElementById('m-type').value;
             const desc = document.getElementById('m-desc').value;
 
-            const newReq = {
-                id: Date.now(),
-                title: `صيانة ${type === 'plumbing' ? 'سباكة' : type === 'electricity' ? 'كهرباء' : 'تكييف'}`,
-                property: property,
-                type: type,
-                desc: desc,
-                status: 'pending',
-                date: new Date().toISOString()
-            };
+            if (!propertyId || !type || !desc) {
+                alert('اليجاء اختيار العقار وتحديد نوع ووصف الصيانة');
+                return;
+            }
 
-            this.data.maintenanceRequests.push(newReq);
-            localStorage.setItem('ejari_maintenance', JSON.stringify(this.data.maintenanceRequests));
+            const token = localStorage.getItem('ejari_token');
+            const API_BASE_URL = 'http://localhost:5050/api';
 
-            this.renderTenantMaintenance();
-            document.getElementById('maintenanceModal').style.display = 'none';
-            alert('تم إرسال طلب الصيانة بنجاح. سيتم التواصل معك قريباً.');
+            try {
+                const response = await fetch(`${API_BASE_URL}/maintenance`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        property: propertyId,
+                        type: type,
+                        description: desc
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || !result.success) {
+                    alert(result.error || 'فشل إرسال طلب الصيانة');
+                    return;
+                }
+
+                alert('تم إرسال طلب الصيانة بنجاح. سيتم التواصل معك قريباً.');
+                document.getElementById('maintenanceModal').style.display = 'none';
+
+                // Reload data
+                await this.loadData();
+                this.renderTenantMaintenance();
+            } catch (error) {
+                console.error(error);
+                alert('حدث خطأ أثناء الاتصال بالخادم لإرسال طلب الصيانة.');
+            }
         };
 
         // --- OPEN TENANT VERIFICATION MODAL ---
@@ -1221,24 +1520,27 @@ const DashboardEngine = {
         const container = document.getElementById('owner-properties-list');
         if (!container) return;
 
-        const myProps = this.data.properties.filter(p => p.ownerId === this.currentUser.id);
+        const myProps = this.data.properties.filter(p => {
+            const ownerId = p.ownerId || p.owner?.id || p.owner?._id || p.owner;
+            return String(ownerId) === String(this.currentUser.id) || String(ownerId) === String(this.currentUser._id);
+        });
 
         if (myProps.length === 0) {
-            container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #9ca3af;">لا توجد عقارات مضافة. ابدأ بإضافة عقارك الأول!</div>';
+            container.innerHTML = '<div style="padding: 2rem; text-align: center; color: #9ca3af;">لا توجد عقارات مضافة بعد. ابدأ بإضافة عقارك الأول أو استورد البيانات التجريبية.</div>';
             return;
         }
 
         container.innerHTML = myProps.map(prop => `
             <div class="property-row">
-                <img src="${prop.image || 'images/home1.jpg'}" class="prop-img">
+                <img src="${prop.image || prop.images?.[0] || 'images/home1.jpg'}" class="prop-img">
                 <div class="prop-info">
                     <h4>${prop.title}</h4>
-                    <p><i class="fas fa-map-marker-alt"></i> ${prop.location}</p>
-                    ${prop.address ? `<p style="font-size: 0.85rem; color: #64748b; margin-top: 0.25rem;"><i class="fas fa-home"></i> ${prop.address}</p>` : ''}
+                    <p><i class="fas fa-map-marker-alt"></i> ${prop.location?.city || prop.location || 'مصر'}</p>
+                    ${prop.address || prop.location?.address ? `<p style="font-size: 0.85rem; color: #64748b; margin-top: 0.25rem;"><i class="fas fa-home"></i> ${prop.address || prop.location?.address}</p>` : ''}
                     ${prop.gps ? `<p style="font-size: 0.75rem; color: #10b981; margin-top: 0.25rem;"><i class="fas fa-map-pin"></i> GPS متاح</p>` : ''}
                 </div>
-                <div class="status-badge ${prop.status === 'active' ? 'active' : 'rented'}">${prop.status === 'active' ? 'متاح' : 'مؤجر'}</div>
-                <div style="font-weight: bold; margin: 0 1rem;">${prop.price.toLocaleString()} ج.م</div>
+                <div class="status-badge ${prop.status === 'active' || prop.status === 'available' ? 'active' : 'rented'}">${prop.status === 'active' || prop.status === 'available' ? 'متاح' : 'مؤجر'}</div>
+                <div style="font-weight: bold; margin: 0 1rem;">${Number(prop.price || prop.price_egp_monthly || 0).toLocaleString()} ج.م</div>
                 <div class="prop-actions">
                     <button class="btn-icon" onclick="DashboardEngine.openEditPropertyModal(${prop.id})"><i class="fas fa-edit"></i></button>
                     <button class="btn-icon delete" onclick="DashboardEngine.deleteProperty(${prop.id})"><i class="fas fa-trash"></i></button>
@@ -1257,10 +1559,10 @@ const DashboardEngine = {
         document.getElementById('edit-p-id').value = prop.id;
         document.getElementById('edit-p-title').value = prop.title;
         document.getElementById('edit-p-price').value = prop.price;
-        document.getElementById('edit-p-location').value = prop.location;
-        document.getElementById('edit-p-address').value = prop.address || '';
+        document.getElementById('edit-p-location').value = prop.location?.city || prop.location || '';
+        document.getElementById('edit-p-address').value = prop.address || prop.location?.address || '';
         document.getElementById('edit-p-gps').value = prop.gps || '';
-        document.getElementById('edit-p-status').value = prop.status;
+        document.getElementById('edit-p-status').value = prop.status || 'available';
 
         document.getElementById('editPropertyModal').style.display = 'flex';
     },

@@ -1,0 +1,3602 @@
+[
+  {
+    "id": 1,
+    "title": "شقة مميزة في المعادي",
+    "city": "القاهرة",
+    "area": "المعادي",
+    "address": "المعادي، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 1,
+    "area_sqm": 45,
+    "floor": 1,
+    "price_egp_monthly": 2500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "أمن وحراسة",
+      "مفروش"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home1.jpg"
+    ],
+    "owner": {
+      "name": "مالك 1",
+      "phone": "0100100000",
+      "email": "owner1@ejari.app"
+    },
+    "rating": 3.5,
+    "reviews_count": 5,
+    "status": "rented",
+    "lat": 30,
+    "lng": 31
+  },
+  {
+    "id": 2,
+    "title": "فيلا مميزة في التجمع الخامس",
+    "city": "الجيزة",
+    "area": "التجمع الخامس",
+    "address": "التجمع الخامس، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 2,
+    "area_sqm": 57,
+    "floor": 2,
+    "price_egp_monthly": 3250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "مصعد",
+      "تكييف مركزي"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home2.jpg"
+    ],
+    "owner": {
+      "name": "مالك 2",
+      "phone": "0100100001",
+      "email": "owner2@ejari.app"
+    },
+    "rating": 3.6,
+    "reviews_count": 6,
+    "status": "available",
+    "lat": 30.01,
+    "lng": 31.01
+  },
+  {
+    "id": 3,
+    "title": "مكتب مميزة في مدينة نصر",
+    "city": "الإسكندرية",
+    "area": "مدينة نصر",
+    "address": "مدينة نصر، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 3,
+    "area_sqm": 69,
+    "floor": 3,
+    "price_egp_monthly": 4000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "مفروش",
+      "موقف سيارات"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home3.jpg"
+    ],
+    "owner": {
+      "name": "مالك 3",
+      "phone": "0100100002",
+      "email": "owner3@ejari.app"
+    },
+    "rating": 3.7,
+    "reviews_count": 7,
+    "status": "available",
+    "lat": 30.02,
+    "lng": 31.02
+  },
+  {
+    "id": 4,
+    "title": "استوديو مميزة في الشيخ زايد",
+    "city": "القليوبية",
+    "area": "الشيخ زايد",
+    "address": "الشيخ زايد، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 1,
+    "area_sqm": 81,
+    "floor": 4,
+    "price_egp_monthly": 4750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "تكييف مركزي",
+      "إنترنت"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home4.jpg"
+    ],
+    "owner": {
+      "name": "مالك 4",
+      "phone": "0100100003",
+      "email": "owner4@ejari.app"
+    },
+    "rating": 3.8,
+    "reviews_count": 8,
+    "status": "available",
+    "lat": 30.03,
+    "lng": 31.03
+  },
+  {
+    "id": 5,
+    "title": "شقة مميزة في الدقي",
+    "city": "القاهرة",
+    "area": "الدقي",
+    "address": "الدقي، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 2,
+    "area_sqm": 93,
+    "floor": 5,
+    "price_egp_monthly": 5500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "موقف سيارات",
+      "شرفة"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home5.jpg"
+    ],
+    "owner": {
+      "name": "مالك 5",
+      "phone": "0100100004",
+      "email": "owner5@ejari.app"
+    },
+    "rating": 3.9,
+    "reviews_count": 9,
+    "status": "available",
+    "lat": 30.04,
+    "lng": 31.04
+  },
+  {
+    "id": 6,
+    "title": "فيلا مميزة في حدائق الأهرام",
+    "city": "الجيزة",
+    "area": "حدائق الأهرام",
+    "address": "حدائق الأهرام، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 3,
+    "area_sqm": 105,
+    "floor": 6,
+    "price_egp_monthly": 6250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "إنترنت",
+      "صيانة دورية"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home6.jpg"
+    ],
+    "owner": {
+      "name": "مالك 6",
+      "phone": "0100100005",
+      "email": "owner6@ejari.app"
+    },
+    "rating": 4,
+    "reviews_count": 10,
+    "status": "available",
+    "lat": 30.05,
+    "lng": 31.05
+  },
+  {
+    "id": 7,
+    "title": "مكتب مميزة في سموحة",
+    "city": "الإسكندرية",
+    "area": "سموحة",
+    "address": "سموحة، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 1,
+    "area_sqm": 117,
+    "floor": 7,
+    "price_egp_monthly": 7000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "شرفة",
+      "أمن وحراسة"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home7.jpg"
+    ],
+    "owner": {
+      "name": "مالك 7",
+      "phone": "0100100006",
+      "email": "owner7@ejari.app"
+    },
+    "rating": 4.1,
+    "reviews_count": 11,
+    "status": "available",
+    "lat": 30.06,
+    "lng": 31.06
+  },
+  {
+    "id": 8,
+    "title": "استوديو مميزة في لوران",
+    "city": "القليوبية",
+    "area": "لوران",
+    "address": "لوران، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 2,
+    "area_sqm": 129,
+    "floor": 8,
+    "price_egp_monthly": 7750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "صيانة دورية",
+      "مصعد"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home1.jpg"
+    ],
+    "owner": {
+      "name": "مالك 8",
+      "phone": "0100100007",
+      "email": "owner8@ejari.app"
+    },
+    "rating": 4.2,
+    "reviews_count": 12,
+    "status": "available",
+    "lat": 30.07,
+    "lng": 31.07
+  },
+  {
+    "id": 9,
+    "title": "شقة مميزة في بنها",
+    "city": "القاهرة",
+    "area": "بنها",
+    "address": "بنها، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 3,
+    "area_sqm": 141,
+    "floor": 1,
+    "price_egp_monthly": 8500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "أمن وحراسة",
+      "مفروش"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home2.jpg"
+    ],
+    "owner": {
+      "name": "مالك 9",
+      "phone": "0100100008",
+      "email": "owner9@ejari.app"
+    },
+    "rating": 4.3,
+    "reviews_count": 13,
+    "status": "available",
+    "lat": 30.08,
+    "lng": 31.08
+  },
+  {
+    "id": 10,
+    "title": "فيلا مميزة في شبرا",
+    "city": "الجيزة",
+    "area": "شبرا",
+    "address": "شبرا، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 1,
+    "area_sqm": 153,
+    "floor": 2,
+    "price_egp_monthly": 9250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "مصعد",
+      "تكييف مركزي"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home3.jpg"
+    ],
+    "owner": {
+      "name": "مالك 10",
+      "phone": "0100100009",
+      "email": "owner10@ejari.app"
+    },
+    "rating": 4.4,
+    "reviews_count": 14,
+    "status": "rented",
+    "lat": 30.09,
+    "lng": 31.09
+  },
+  {
+    "id": 11,
+    "title": "مكتب مميزة في المعادي",
+    "city": "الإسكندرية",
+    "area": "المعادي",
+    "address": "المعادي، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 2,
+    "area_sqm": 45,
+    "floor": 3,
+    "price_egp_monthly": 10000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "مفروش",
+      "موقف سيارات"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home4.jpg"
+    ],
+    "owner": {
+      "name": "مالك 11",
+      "phone": "0100100010",
+      "email": "owner11@ejari.app"
+    },
+    "rating": 4.5,
+    "reviews_count": 15,
+    "status": "available",
+    "lat": 30.1,
+    "lng": 31.1
+  },
+  {
+    "id": 12,
+    "title": "استوديو مميزة في التجمع الخامس",
+    "city": "القليوبية",
+    "area": "التجمع الخامس",
+    "address": "التجمع الخامس، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 3,
+    "area_sqm": 57,
+    "floor": 4,
+    "price_egp_monthly": 10750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "تكييف مركزي",
+      "إنترنت"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home5.jpg"
+    ],
+    "owner": {
+      "name": "مالك 12",
+      "phone": "0100100011",
+      "email": "owner12@ejari.app"
+    },
+    "rating": 4.6,
+    "reviews_count": 16,
+    "status": "available",
+    "lat": 30.11,
+    "lng": 31.11
+  },
+  {
+    "id": 13,
+    "title": "شقة مميزة في مدينة نصر",
+    "city": "القاهرة",
+    "area": "مدينة نصر",
+    "address": "مدينة نصر، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 1,
+    "area_sqm": 69,
+    "floor": 5,
+    "price_egp_monthly": 11500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "موقف سيارات",
+      "شرفة"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home6.jpg"
+    ],
+    "owner": {
+      "name": "مالك 13",
+      "phone": "0100100012",
+      "email": "owner13@ejari.app"
+    },
+    "rating": 4.7,
+    "reviews_count": 17,
+    "status": "available",
+    "lat": 30.12,
+    "lng": 31.12
+  },
+  {
+    "id": 14,
+    "title": "فيلا مميزة في الشيخ زايد",
+    "city": "الجيزة",
+    "area": "الشيخ زايد",
+    "address": "الشيخ زايد، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 2,
+    "area_sqm": 81,
+    "floor": 6,
+    "price_egp_monthly": 12250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "إنترنت",
+      "صيانة دورية"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home7.jpg"
+    ],
+    "owner": {
+      "name": "مالك 14",
+      "phone": "0100100013",
+      "email": "owner14@ejari.app"
+    },
+    "rating": 4.8,
+    "reviews_count": 18,
+    "status": "available",
+    "lat": 30.13,
+    "lng": 31.13
+  },
+  {
+    "id": 15,
+    "title": "مكتب مميزة في الدقي",
+    "city": "الإسكندرية",
+    "area": "الدقي",
+    "address": "الدقي، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 3,
+    "area_sqm": 93,
+    "floor": 7,
+    "price_egp_monthly": 13000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "شرفة",
+      "أمن وحراسة"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home1.jpg"
+    ],
+    "owner": {
+      "name": "مالك 15",
+      "phone": "0100100014",
+      "email": "owner15@ejari.app"
+    },
+    "rating": 4.9,
+    "reviews_count": 19,
+    "status": "available",
+    "lat": 30.14,
+    "lng": 31.14
+  },
+  {
+    "id": 16,
+    "title": "استوديو مميزة في حدائق الأهرام",
+    "city": "القليوبية",
+    "area": "حدائق الأهرام",
+    "address": "حدائق الأهرام، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 1,
+    "area_sqm": 105,
+    "floor": 8,
+    "price_egp_monthly": 13750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "صيانة دورية",
+      "مصعد"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home2.jpg"
+    ],
+    "owner": {
+      "name": "مالك 16",
+      "phone": "0100100015",
+      "email": "owner16@ejari.app"
+    },
+    "rating": 3.5,
+    "reviews_count": 20,
+    "status": "available",
+    "lat": 30.15,
+    "lng": 31.15
+  },
+  {
+    "id": 17,
+    "title": "شقة مميزة في سموحة",
+    "city": "القاهرة",
+    "area": "سموحة",
+    "address": "سموحة، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 2,
+    "area_sqm": 117,
+    "floor": 1,
+    "price_egp_monthly": 14500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "أمن وحراسة",
+      "مفروش"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home3.jpg"
+    ],
+    "owner": {
+      "name": "مالك 17",
+      "phone": "0100100016",
+      "email": "owner17@ejari.app"
+    },
+    "rating": 3.6,
+    "reviews_count": 21,
+    "status": "available",
+    "lat": 30.16,
+    "lng": 31.16
+  },
+  {
+    "id": 18,
+    "title": "فيلا مميزة في لوران",
+    "city": "الجيزة",
+    "area": "لوران",
+    "address": "لوران، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 3,
+    "area_sqm": 129,
+    "floor": 2,
+    "price_egp_monthly": 15250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "مصعد",
+      "تكييف مركزي"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home4.jpg"
+    ],
+    "owner": {
+      "name": "مالك 18",
+      "phone": "0100100017",
+      "email": "owner18@ejari.app"
+    },
+    "rating": 3.7,
+    "reviews_count": 22,
+    "status": "available",
+    "lat": 30.17,
+    "lng": 31.17
+  },
+  {
+    "id": 19,
+    "title": "مكتب مميزة في بنها",
+    "city": "الإسكندرية",
+    "area": "بنها",
+    "address": "بنها، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 1,
+    "area_sqm": 141,
+    "floor": 3,
+    "price_egp_monthly": 16000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "مفروش",
+      "موقف سيارات"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home5.jpg"
+    ],
+    "owner": {
+      "name": "مالك 19",
+      "phone": "0100100018",
+      "email": "owner19@ejari.app"
+    },
+    "rating": 3.8,
+    "reviews_count": 23,
+    "status": "rented",
+    "lat": 30.18,
+    "lng": 31.18
+  },
+  {
+    "id": 20,
+    "title": "استوديو مميزة في شبرا",
+    "city": "القليوبية",
+    "area": "شبرا",
+    "address": "شبرا، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 2,
+    "area_sqm": 153,
+    "floor": 4,
+    "price_egp_monthly": 16750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "تكييف مركزي",
+      "إنترنت"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home6.jpg"
+    ],
+    "owner": {
+      "name": "مالك 20",
+      "phone": "0100100019",
+      "email": "owner20@ejari.app"
+    },
+    "rating": 3.9,
+    "reviews_count": 24,
+    "status": "available",
+    "lat": 30.19,
+    "lng": 31.19
+  },
+  {
+    "id": 21,
+    "title": "شقة مميزة في المعادي",
+    "city": "القاهرة",
+    "area": "المعادي",
+    "address": "المعادي، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 3,
+    "area_sqm": 45,
+    "floor": 5,
+    "price_egp_monthly": 2500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "موقف سيارات",
+      "شرفة"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home7.jpg"
+    ],
+    "owner": {
+      "name": "مالك 21",
+      "phone": "0100100020",
+      "email": "owner21@ejari.app"
+    },
+    "rating": 4,
+    "reviews_count": 25,
+    "status": "available",
+    "lat": 30,
+    "lng": 31
+  },
+  {
+    "id": 22,
+    "title": "فيلا مميزة في التجمع الخامس",
+    "city": "الجيزة",
+    "area": "التجمع الخامس",
+    "address": "التجمع الخامس، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 1,
+    "area_sqm": 57,
+    "floor": 6,
+    "price_egp_monthly": 3250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "إنترنت",
+      "صيانة دورية"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home1.jpg"
+    ],
+    "owner": {
+      "name": "مالك 22",
+      "phone": "0100100021",
+      "email": "owner22@ejari.app"
+    },
+    "rating": 4.1,
+    "reviews_count": 26,
+    "status": "available",
+    "lat": 30.01,
+    "lng": 31.01
+  },
+  {
+    "id": 23,
+    "title": "مكتب مميزة في مدينة نصر",
+    "city": "الإسكندرية",
+    "area": "مدينة نصر",
+    "address": "مدينة نصر، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 2,
+    "area_sqm": 69,
+    "floor": 7,
+    "price_egp_monthly": 4000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "شرفة",
+      "أمن وحراسة"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home2.jpg"
+    ],
+    "owner": {
+      "name": "مالك 23",
+      "phone": "0100100022",
+      "email": "owner23@ejari.app"
+    },
+    "rating": 4.2,
+    "reviews_count": 27,
+    "status": "available",
+    "lat": 30.02,
+    "lng": 31.02
+  },
+  {
+    "id": 24,
+    "title": "استوديو مميزة في الشيخ زايد",
+    "city": "القليوبية",
+    "area": "الشيخ زايد",
+    "address": "الشيخ زايد، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 3,
+    "area_sqm": 81,
+    "floor": 8,
+    "price_egp_monthly": 4750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "صيانة دورية",
+      "مصعد"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home3.jpg"
+    ],
+    "owner": {
+      "name": "مالك 24",
+      "phone": "0100100023",
+      "email": "owner24@ejari.app"
+    },
+    "rating": 4.3,
+    "reviews_count": 28,
+    "status": "available",
+    "lat": 30.03,
+    "lng": 31.03
+  },
+  {
+    "id": 25,
+    "title": "شقة مميزة في الدقي",
+    "city": "القاهرة",
+    "area": "الدقي",
+    "address": "الدقي، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 1,
+    "area_sqm": 93,
+    "floor": 1,
+    "price_egp_monthly": 5500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "أمن وحراسة",
+      "مفروش"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home4.jpg"
+    ],
+    "owner": {
+      "name": "مالك 25",
+      "phone": "0100100024",
+      "email": "owner25@ejari.app"
+    },
+    "rating": 4.4,
+    "reviews_count": 29,
+    "status": "available",
+    "lat": 30.04,
+    "lng": 31.04
+  },
+  {
+    "id": 26,
+    "title": "فيلا مميزة في حدائق الأهرام",
+    "city": "الجيزة",
+    "area": "حدائق الأهرام",
+    "address": "حدائق الأهرام، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 2,
+    "area_sqm": 105,
+    "floor": 2,
+    "price_egp_monthly": 6250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "مصعد",
+      "تكييف مركزي"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home5.jpg"
+    ],
+    "owner": {
+      "name": "مالك 26",
+      "phone": "0100100025",
+      "email": "owner26@ejari.app"
+    },
+    "rating": 4.5,
+    "reviews_count": 30,
+    "status": "available",
+    "lat": 30.05,
+    "lng": 31.05
+  },
+  {
+    "id": 27,
+    "title": "مكتب مميزة في سموحة",
+    "city": "الإسكندرية",
+    "area": "سموحة",
+    "address": "سموحة، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 3,
+    "area_sqm": 117,
+    "floor": 3,
+    "price_egp_monthly": 7000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "مفروش",
+      "موقف سيارات"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home6.jpg"
+    ],
+    "owner": {
+      "name": "مالك 27",
+      "phone": "0100100026",
+      "email": "owner27@ejari.app"
+    },
+    "rating": 4.6,
+    "reviews_count": 31,
+    "status": "available",
+    "lat": 30.06,
+    "lng": 31.06
+  },
+  {
+    "id": 28,
+    "title": "استوديو مميزة في لوران",
+    "city": "القليوبية",
+    "area": "لوران",
+    "address": "لوران، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 1,
+    "area_sqm": 129,
+    "floor": 4,
+    "price_egp_monthly": 7750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "تكييف مركزي",
+      "إنترنت"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home7.jpg"
+    ],
+    "owner": {
+      "name": "مالك 28",
+      "phone": "0100100027",
+      "email": "owner28@ejari.app"
+    },
+    "rating": 4.7,
+    "reviews_count": 32,
+    "status": "rented",
+    "lat": 30.07,
+    "lng": 31.07
+  },
+  {
+    "id": 29,
+    "title": "شقة مميزة في بنها",
+    "city": "القاهرة",
+    "area": "بنها",
+    "address": "بنها، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 2,
+    "area_sqm": 141,
+    "floor": 5,
+    "price_egp_monthly": 8500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "موقف سيارات",
+      "شرفة"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home1.jpg"
+    ],
+    "owner": {
+      "name": "مالك 29",
+      "phone": "0100100028",
+      "email": "owner29@ejari.app"
+    },
+    "rating": 4.8,
+    "reviews_count": 33,
+    "status": "available",
+    "lat": 30.08,
+    "lng": 31.08
+  },
+  {
+    "id": 30,
+    "title": "فيلا مميزة في شبرا",
+    "city": "الجيزة",
+    "area": "شبرا",
+    "address": "شبرا، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 3,
+    "area_sqm": 153,
+    "floor": 6,
+    "price_egp_monthly": 9250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "إنترنت",
+      "صيانة دورية"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home2.jpg"
+    ],
+    "owner": {
+      "name": "مالك 30",
+      "phone": "0100100029",
+      "email": "owner30@ejari.app"
+    },
+    "rating": 4.9,
+    "reviews_count": 34,
+    "status": "available",
+    "lat": 30.09,
+    "lng": 31.09
+  },
+  {
+    "id": 31,
+    "title": "مكتب مميزة في المعادي",
+    "city": "الإسكندرية",
+    "area": "المعادي",
+    "address": "المعادي، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 1,
+    "area_sqm": 45,
+    "floor": 7,
+    "price_egp_monthly": 10000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "شرفة",
+      "أمن وحراسة"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home3.jpg"
+    ],
+    "owner": {
+      "name": "مالك 31",
+      "phone": "0100100030",
+      "email": "owner31@ejari.app"
+    },
+    "rating": 3.5,
+    "reviews_count": 35,
+    "status": "available",
+    "lat": 30.1,
+    "lng": 31.1
+  },
+  {
+    "id": 32,
+    "title": "استوديو مميزة في التجمع الخامس",
+    "city": "القليوبية",
+    "area": "التجمع الخامس",
+    "address": "التجمع الخامس، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 2,
+    "area_sqm": 57,
+    "floor": 8,
+    "price_egp_monthly": 10750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "صيانة دورية",
+      "مصعد"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home4.jpg"
+    ],
+    "owner": {
+      "name": "مالك 32",
+      "phone": "0100100031",
+      "email": "owner32@ejari.app"
+    },
+    "rating": 3.6,
+    "reviews_count": 36,
+    "status": "available",
+    "lat": 30.11,
+    "lng": 31.11
+  },
+  {
+    "id": 33,
+    "title": "شقة مميزة في مدينة نصر",
+    "city": "القاهرة",
+    "area": "مدينة نصر",
+    "address": "مدينة نصر، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 3,
+    "area_sqm": 69,
+    "floor": 1,
+    "price_egp_monthly": 11500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "أمن وحراسة",
+      "مفروش"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home5.jpg"
+    ],
+    "owner": {
+      "name": "مالك 33",
+      "phone": "0100100032",
+      "email": "owner33@ejari.app"
+    },
+    "rating": 3.7,
+    "reviews_count": 37,
+    "status": "available",
+    "lat": 30.12,
+    "lng": 31.12
+  },
+  {
+    "id": 34,
+    "title": "فيلا مميزة في الشيخ زايد",
+    "city": "الجيزة",
+    "area": "الشيخ زايد",
+    "address": "الشيخ زايد، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 1,
+    "area_sqm": 81,
+    "floor": 2,
+    "price_egp_monthly": 12250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "مصعد",
+      "تكييف مركزي"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home6.jpg"
+    ],
+    "owner": {
+      "name": "مالك 34",
+      "phone": "0100100033",
+      "email": "owner34@ejari.app"
+    },
+    "rating": 3.8,
+    "reviews_count": 38,
+    "status": "available",
+    "lat": 30.13,
+    "lng": 31.13
+  },
+  {
+    "id": 35,
+    "title": "مكتب مميزة في الدقي",
+    "city": "الإسكندرية",
+    "area": "الدقي",
+    "address": "الدقي، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 2,
+    "area_sqm": 93,
+    "floor": 3,
+    "price_egp_monthly": 13000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "مفروش",
+      "موقف سيارات"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home7.jpg"
+    ],
+    "owner": {
+      "name": "مالك 35",
+      "phone": "0100100034",
+      "email": "owner35@ejari.app"
+    },
+    "rating": 3.9,
+    "reviews_count": 39,
+    "status": "available",
+    "lat": 30.14,
+    "lng": 31.14
+  },
+  {
+    "id": 36,
+    "title": "استوديو مميزة في حدائق الأهرام",
+    "city": "القليوبية",
+    "area": "حدائق الأهرام",
+    "address": "حدائق الأهرام، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 3,
+    "area_sqm": 105,
+    "floor": 4,
+    "price_egp_monthly": 13750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "تكييف مركزي",
+      "إنترنت"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home1.jpg"
+    ],
+    "owner": {
+      "name": "مالك 36",
+      "phone": "0100100035",
+      "email": "owner36@ejari.app"
+    },
+    "rating": 4,
+    "reviews_count": 40,
+    "status": "available",
+    "lat": 30.15,
+    "lng": 31.15
+  },
+  {
+    "id": 37,
+    "title": "شقة مميزة في سموحة",
+    "city": "القاهرة",
+    "area": "سموحة",
+    "address": "سموحة، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 1,
+    "area_sqm": 117,
+    "floor": 5,
+    "price_egp_monthly": 14500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "موقف سيارات",
+      "شرفة"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home2.jpg"
+    ],
+    "owner": {
+      "name": "مالك 37",
+      "phone": "0100100036",
+      "email": "owner37@ejari.app"
+    },
+    "rating": 4.1,
+    "reviews_count": 41,
+    "status": "rented",
+    "lat": 30.16,
+    "lng": 31.16
+  },
+  {
+    "id": 38,
+    "title": "فيلا مميزة في لوران",
+    "city": "الجيزة",
+    "area": "لوران",
+    "address": "لوران، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 2,
+    "area_sqm": 129,
+    "floor": 6,
+    "price_egp_monthly": 15250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "إنترنت",
+      "صيانة دورية"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home3.jpg"
+    ],
+    "owner": {
+      "name": "مالك 38",
+      "phone": "0100100037",
+      "email": "owner38@ejari.app"
+    },
+    "rating": 4.2,
+    "reviews_count": 42,
+    "status": "available",
+    "lat": 30.17,
+    "lng": 31.17
+  },
+  {
+    "id": 39,
+    "title": "مكتب مميزة في بنها",
+    "city": "الإسكندرية",
+    "area": "بنها",
+    "address": "بنها، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 3,
+    "area_sqm": 141,
+    "floor": 7,
+    "price_egp_monthly": 16000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "شرفة",
+      "أمن وحراسة"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home4.jpg"
+    ],
+    "owner": {
+      "name": "مالك 39",
+      "phone": "0100100038",
+      "email": "owner39@ejari.app"
+    },
+    "rating": 4.3,
+    "reviews_count": 43,
+    "status": "available",
+    "lat": 30.18,
+    "lng": 31.18
+  },
+  {
+    "id": 40,
+    "title": "استوديو مميزة في شبرا",
+    "city": "القليوبية",
+    "area": "شبرا",
+    "address": "شبرا، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 1,
+    "area_sqm": 153,
+    "floor": 8,
+    "price_egp_monthly": 16750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "صيانة دورية",
+      "مصعد"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home5.jpg"
+    ],
+    "owner": {
+      "name": "مالك 40",
+      "phone": "0100100039",
+      "email": "owner40@ejari.app"
+    },
+    "rating": 4.4,
+    "reviews_count": 44,
+    "status": "available",
+    "lat": 30.19,
+    "lng": 31.19
+  },
+  {
+    "id": 41,
+    "title": "شقة مميزة في المعادي",
+    "city": "القاهرة",
+    "area": "المعادي",
+    "address": "المعادي، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 2,
+    "area_sqm": 45,
+    "floor": 1,
+    "price_egp_monthly": 2500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "أمن وحراسة",
+      "مفروش"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home6.jpg"
+    ],
+    "owner": {
+      "name": "مالك 41",
+      "phone": "0100100040",
+      "email": "owner41@ejari.app"
+    },
+    "rating": 4.5,
+    "reviews_count": 45,
+    "status": "available",
+    "lat": 30,
+    "lng": 31
+  },
+  {
+    "id": 42,
+    "title": "فيلا مميزة في التجمع الخامس",
+    "city": "الجيزة",
+    "area": "التجمع الخامس",
+    "address": "التجمع الخامس، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 3,
+    "area_sqm": 57,
+    "floor": 2,
+    "price_egp_monthly": 3250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "مصعد",
+      "تكييف مركزي"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home7.jpg"
+    ],
+    "owner": {
+      "name": "مالك 42",
+      "phone": "0100100041",
+      "email": "owner42@ejari.app"
+    },
+    "rating": 4.6,
+    "reviews_count": 46,
+    "status": "available",
+    "lat": 30.01,
+    "lng": 31.01
+  },
+  {
+    "id": 43,
+    "title": "مكتب مميزة في مدينة نصر",
+    "city": "الإسكندرية",
+    "area": "مدينة نصر",
+    "address": "مدينة نصر، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 1,
+    "area_sqm": 69,
+    "floor": 3,
+    "price_egp_monthly": 4000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "مفروش",
+      "موقف سيارات"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home1.jpg"
+    ],
+    "owner": {
+      "name": "مالك 43",
+      "phone": "0100100042",
+      "email": "owner43@ejari.app"
+    },
+    "rating": 4.7,
+    "reviews_count": 47,
+    "status": "available",
+    "lat": 30.02,
+    "lng": 31.02
+  },
+  {
+    "id": 44,
+    "title": "استوديو مميزة في الشيخ زايد",
+    "city": "القليوبية",
+    "area": "الشيخ زايد",
+    "address": "الشيخ زايد، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 2,
+    "area_sqm": 81,
+    "floor": 4,
+    "price_egp_monthly": 4750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "تكييف مركزي",
+      "إنترنت"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home2.jpg"
+    ],
+    "owner": {
+      "name": "مالك 44",
+      "phone": "0100100043",
+      "email": "owner44@ejari.app"
+    },
+    "rating": 4.8,
+    "reviews_count": 48,
+    "status": "available",
+    "lat": 30.03,
+    "lng": 31.03
+  },
+  {
+    "id": 45,
+    "title": "شقة مميزة في الدقي",
+    "city": "القاهرة",
+    "area": "الدقي",
+    "address": "الدقي، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 3,
+    "area_sqm": 93,
+    "floor": 5,
+    "price_egp_monthly": 5500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "موقف سيارات",
+      "شرفة"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home3.jpg"
+    ],
+    "owner": {
+      "name": "مالك 45",
+      "phone": "0100100044",
+      "email": "owner45@ejari.app"
+    },
+    "rating": 4.9,
+    "reviews_count": 49,
+    "status": "available",
+    "lat": 30.04,
+    "lng": 31.04
+  },
+  {
+    "id": 46,
+    "title": "فيلا مميزة في حدائق الأهرام",
+    "city": "الجيزة",
+    "area": "حدائق الأهرام",
+    "address": "حدائق الأهرام، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 1,
+    "area_sqm": 105,
+    "floor": 6,
+    "price_egp_monthly": 6250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "إنترنت",
+      "صيانة دورية"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home4.jpg"
+    ],
+    "owner": {
+      "name": "مالك 46",
+      "phone": "0100100045",
+      "email": "owner46@ejari.app"
+    },
+    "rating": 3.5,
+    "reviews_count": 50,
+    "status": "rented",
+    "lat": 30.05,
+    "lng": 31.05
+  },
+  {
+    "id": 47,
+    "title": "مكتب مميزة في سموحة",
+    "city": "الإسكندرية",
+    "area": "سموحة",
+    "address": "سموحة، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 2,
+    "area_sqm": 117,
+    "floor": 7,
+    "price_egp_monthly": 7000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "شرفة",
+      "أمن وحراسة"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home5.jpg"
+    ],
+    "owner": {
+      "name": "مالك 47",
+      "phone": "0100100046",
+      "email": "owner47@ejari.app"
+    },
+    "rating": 3.6,
+    "reviews_count": 51,
+    "status": "available",
+    "lat": 30.06,
+    "lng": 31.06
+  },
+  {
+    "id": 48,
+    "title": "استوديو مميزة في لوران",
+    "city": "القليوبية",
+    "area": "لوران",
+    "address": "لوران، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 3,
+    "area_sqm": 129,
+    "floor": 8,
+    "price_egp_monthly": 7750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "صيانة دورية",
+      "مصعد"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home6.jpg"
+    ],
+    "owner": {
+      "name": "مالك 48",
+      "phone": "0100100047",
+      "email": "owner48@ejari.app"
+    },
+    "rating": 3.7,
+    "reviews_count": 52,
+    "status": "available",
+    "lat": 30.07,
+    "lng": 31.07
+  },
+  {
+    "id": 49,
+    "title": "شقة مميزة في بنها",
+    "city": "القاهرة",
+    "area": "بنها",
+    "address": "بنها، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 1,
+    "area_sqm": 141,
+    "floor": 1,
+    "price_egp_monthly": 8500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "أمن وحراسة",
+      "مفروش"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home7.jpg"
+    ],
+    "owner": {
+      "name": "مالك 49",
+      "phone": "0100100048",
+      "email": "owner49@ejari.app"
+    },
+    "rating": 3.8,
+    "reviews_count": 53,
+    "status": "available",
+    "lat": 30.08,
+    "lng": 31.08
+  },
+  {
+    "id": 50,
+    "title": "فيلا مميزة في شبرا",
+    "city": "الجيزة",
+    "area": "شبرا",
+    "address": "شبرا، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 2,
+    "area_sqm": 153,
+    "floor": 2,
+    "price_egp_monthly": 9250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "مصعد",
+      "تكييف مركزي"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home1.jpg"
+    ],
+    "owner": {
+      "name": "مالك 50",
+      "phone": "0100100049",
+      "email": "owner50@ejari.app"
+    },
+    "rating": 3.9,
+    "reviews_count": 54,
+    "status": "available",
+    "lat": 30.09,
+    "lng": 31.09
+  },
+  {
+    "id": 51,
+    "title": "مكتب مميزة في المعادي",
+    "city": "الإسكندرية",
+    "area": "المعادي",
+    "address": "المعادي، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 3,
+    "area_sqm": 45,
+    "floor": 3,
+    "price_egp_monthly": 10000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "مفروش",
+      "موقف سيارات"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home2.jpg"
+    ],
+    "owner": {
+      "name": "مالك 51",
+      "phone": "0100100050",
+      "email": "owner51@ejari.app"
+    },
+    "rating": 4,
+    "reviews_count": 55,
+    "status": "available",
+    "lat": 30.1,
+    "lng": 31.1
+  },
+  {
+    "id": 52,
+    "title": "استوديو مميزة في التجمع الخامس",
+    "city": "القليوبية",
+    "area": "التجمع الخامس",
+    "address": "التجمع الخامس، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 1,
+    "area_sqm": 57,
+    "floor": 4,
+    "price_egp_monthly": 10750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "تكييف مركزي",
+      "إنترنت"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home3.jpg"
+    ],
+    "owner": {
+      "name": "مالك 52",
+      "phone": "0100100051",
+      "email": "owner52@ejari.app"
+    },
+    "rating": 4.1,
+    "reviews_count": 56,
+    "status": "available",
+    "lat": 30.11,
+    "lng": 31.11
+  },
+  {
+    "id": 53,
+    "title": "شقة مميزة في مدينة نصر",
+    "city": "القاهرة",
+    "area": "مدينة نصر",
+    "address": "مدينة نصر، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 2,
+    "area_sqm": 69,
+    "floor": 5,
+    "price_egp_monthly": 11500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "موقف سيارات",
+      "شرفة"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home4.jpg"
+    ],
+    "owner": {
+      "name": "مالك 53",
+      "phone": "0100100052",
+      "email": "owner53@ejari.app"
+    },
+    "rating": 4.2,
+    "reviews_count": 57,
+    "status": "available",
+    "lat": 30.12,
+    "lng": 31.12
+  },
+  {
+    "id": 54,
+    "title": "فيلا مميزة في الشيخ زايد",
+    "city": "الجيزة",
+    "area": "الشيخ زايد",
+    "address": "الشيخ زايد، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 3,
+    "area_sqm": 81,
+    "floor": 6,
+    "price_egp_monthly": 12250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "إنترنت",
+      "صيانة دورية"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home5.jpg"
+    ],
+    "owner": {
+      "name": "مالك 54",
+      "phone": "0100100053",
+      "email": "owner54@ejari.app"
+    },
+    "rating": 4.3,
+    "reviews_count": 58,
+    "status": "available",
+    "lat": 30.13,
+    "lng": 31.13
+  },
+  {
+    "id": 55,
+    "title": "مكتب مميزة في الدقي",
+    "city": "الإسكندرية",
+    "area": "الدقي",
+    "address": "الدقي، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 1,
+    "area_sqm": 93,
+    "floor": 7,
+    "price_egp_monthly": 13000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "شرفة",
+      "أمن وحراسة"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home6.jpg"
+    ],
+    "owner": {
+      "name": "مالك 55",
+      "phone": "0100100054",
+      "email": "owner55@ejari.app"
+    },
+    "rating": 4.4,
+    "reviews_count": 59,
+    "status": "rented",
+    "lat": 30.14,
+    "lng": 31.14
+  },
+  {
+    "id": 56,
+    "title": "استوديو مميزة في حدائق الأهرام",
+    "city": "القليوبية",
+    "area": "حدائق الأهرام",
+    "address": "حدائق الأهرام، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 2,
+    "area_sqm": 105,
+    "floor": 8,
+    "price_egp_monthly": 13750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "صيانة دورية",
+      "مصعد"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home7.jpg"
+    ],
+    "owner": {
+      "name": "مالك 56",
+      "phone": "0100100055",
+      "email": "owner56@ejari.app"
+    },
+    "rating": 4.5,
+    "reviews_count": 60,
+    "status": "available",
+    "lat": 30.15,
+    "lng": 31.15
+  },
+  {
+    "id": 57,
+    "title": "شقة مميزة في سموحة",
+    "city": "القاهرة",
+    "area": "سموحة",
+    "address": "سموحة، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 3,
+    "area_sqm": 117,
+    "floor": 1,
+    "price_egp_monthly": 14500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "أمن وحراسة",
+      "مفروش"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home1.jpg"
+    ],
+    "owner": {
+      "name": "مالك 57",
+      "phone": "0100100056",
+      "email": "owner57@ejari.app"
+    },
+    "rating": 4.6,
+    "reviews_count": 61,
+    "status": "available",
+    "lat": 30.16,
+    "lng": 31.16
+  },
+  {
+    "id": 58,
+    "title": "فيلا مميزة في لوران",
+    "city": "الجيزة",
+    "area": "لوران",
+    "address": "لوران، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 1,
+    "area_sqm": 129,
+    "floor": 2,
+    "price_egp_monthly": 15250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "مصعد",
+      "تكييف مركزي"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home2.jpg"
+    ],
+    "owner": {
+      "name": "مالك 58",
+      "phone": "0100100057",
+      "email": "owner58@ejari.app"
+    },
+    "rating": 4.7,
+    "reviews_count": 62,
+    "status": "available",
+    "lat": 30.17,
+    "lng": 31.17
+  },
+  {
+    "id": 59,
+    "title": "مكتب مميزة في بنها",
+    "city": "الإسكندرية",
+    "area": "بنها",
+    "address": "بنها، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 2,
+    "area_sqm": 141,
+    "floor": 3,
+    "price_egp_monthly": 16000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "مفروش",
+      "موقف سيارات"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home3.jpg"
+    ],
+    "owner": {
+      "name": "مالك 59",
+      "phone": "0100100058",
+      "email": "owner59@ejari.app"
+    },
+    "rating": 4.8,
+    "reviews_count": 63,
+    "status": "available",
+    "lat": 30.18,
+    "lng": 31.18
+  },
+  {
+    "id": 60,
+    "title": "استوديو مميزة في شبرا",
+    "city": "القليوبية",
+    "area": "شبرا",
+    "address": "شبرا، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 3,
+    "area_sqm": 153,
+    "floor": 4,
+    "price_egp_monthly": 16750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "تكييف مركزي",
+      "إنترنت"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home4.jpg"
+    ],
+    "owner": {
+      "name": "مالك 60",
+      "phone": "0100100059",
+      "email": "owner60@ejari.app"
+    },
+    "rating": 4.9,
+    "reviews_count": 64,
+    "status": "available",
+    "lat": 30.19,
+    "lng": 31.19
+  },
+  {
+    "id": 61,
+    "title": "شقة مميزة في المعادي",
+    "city": "القاهرة",
+    "area": "المعادي",
+    "address": "المعادي، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 1,
+    "area_sqm": 45,
+    "floor": 5,
+    "price_egp_monthly": 2500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "موقف سيارات",
+      "شرفة"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home5.jpg"
+    ],
+    "owner": {
+      "name": "مالك 61",
+      "phone": "0100100060",
+      "email": "owner61@ejari.app"
+    },
+    "rating": 3.5,
+    "reviews_count": 65,
+    "status": "available",
+    "lat": 30,
+    "lng": 31
+  },
+  {
+    "id": 62,
+    "title": "فيلا مميزة في التجمع الخامس",
+    "city": "الجيزة",
+    "area": "التجمع الخامس",
+    "address": "التجمع الخامس، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 2,
+    "area_sqm": 57,
+    "floor": 6,
+    "price_egp_monthly": 3250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "إنترنت",
+      "صيانة دورية"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home6.jpg"
+    ],
+    "owner": {
+      "name": "مالك 62",
+      "phone": "0100100061",
+      "email": "owner62@ejari.app"
+    },
+    "rating": 3.6,
+    "reviews_count": 66,
+    "status": "available",
+    "lat": 30.01,
+    "lng": 31.01
+  },
+  {
+    "id": 63,
+    "title": "مكتب مميزة في مدينة نصر",
+    "city": "الإسكندرية",
+    "area": "مدينة نصر",
+    "address": "مدينة نصر، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 3,
+    "area_sqm": 69,
+    "floor": 7,
+    "price_egp_monthly": 4000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "شرفة",
+      "أمن وحراسة"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home7.jpg"
+    ],
+    "owner": {
+      "name": "مالك 63",
+      "phone": "0100100062",
+      "email": "owner63@ejari.app"
+    },
+    "rating": 3.7,
+    "reviews_count": 67,
+    "status": "available",
+    "lat": 30.02,
+    "lng": 31.02
+  },
+  {
+    "id": 64,
+    "title": "استوديو مميزة في الشيخ زايد",
+    "city": "القليوبية",
+    "area": "الشيخ زايد",
+    "address": "الشيخ زايد، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 1,
+    "area_sqm": 81,
+    "floor": 8,
+    "price_egp_monthly": 4750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "صيانة دورية",
+      "مصعد"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home1.jpg"
+    ],
+    "owner": {
+      "name": "مالك 64",
+      "phone": "0100100063",
+      "email": "owner64@ejari.app"
+    },
+    "rating": 3.8,
+    "reviews_count": 68,
+    "status": "rented",
+    "lat": 30.03,
+    "lng": 31.03
+  },
+  {
+    "id": 65,
+    "title": "شقة مميزة في الدقي",
+    "city": "القاهرة",
+    "area": "الدقي",
+    "address": "الدقي، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 2,
+    "area_sqm": 93,
+    "floor": 1,
+    "price_egp_monthly": 5500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "أمن وحراسة",
+      "مفروش"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home2.jpg"
+    ],
+    "owner": {
+      "name": "مالك 65",
+      "phone": "0100100064",
+      "email": "owner65@ejari.app"
+    },
+    "rating": 3.9,
+    "reviews_count": 69,
+    "status": "available",
+    "lat": 30.04,
+    "lng": 31.04
+  },
+  {
+    "id": 66,
+    "title": "فيلا مميزة في حدائق الأهرام",
+    "city": "الجيزة",
+    "area": "حدائق الأهرام",
+    "address": "حدائق الأهرام، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 3,
+    "area_sqm": 105,
+    "floor": 2,
+    "price_egp_monthly": 6250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "مصعد",
+      "تكييف مركزي"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home3.jpg"
+    ],
+    "owner": {
+      "name": "مالك 66",
+      "phone": "0100100065",
+      "email": "owner66@ejari.app"
+    },
+    "rating": 4,
+    "reviews_count": 70,
+    "status": "available",
+    "lat": 30.05,
+    "lng": 31.05
+  },
+  {
+    "id": 67,
+    "title": "مكتب مميزة في سموحة",
+    "city": "الإسكندرية",
+    "area": "سموحة",
+    "address": "سموحة، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 1,
+    "area_sqm": 117,
+    "floor": 3,
+    "price_egp_monthly": 7000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "مفروش",
+      "موقف سيارات"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home4.jpg"
+    ],
+    "owner": {
+      "name": "مالك 67",
+      "phone": "0100100066",
+      "email": "owner67@ejari.app"
+    },
+    "rating": 4.1,
+    "reviews_count": 71,
+    "status": "available",
+    "lat": 30.06,
+    "lng": 31.06
+  },
+  {
+    "id": 68,
+    "title": "استوديو مميزة في لوران",
+    "city": "القليوبية",
+    "area": "لوران",
+    "address": "لوران، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 2,
+    "area_sqm": 129,
+    "floor": 4,
+    "price_egp_monthly": 7750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "تكييف مركزي",
+      "إنترنت"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home5.jpg"
+    ],
+    "owner": {
+      "name": "مالك 68",
+      "phone": "0100100067",
+      "email": "owner68@ejari.app"
+    },
+    "rating": 4.2,
+    "reviews_count": 72,
+    "status": "available",
+    "lat": 30.07,
+    "lng": 31.07
+  },
+  {
+    "id": 69,
+    "title": "شقة مميزة في بنها",
+    "city": "القاهرة",
+    "area": "بنها",
+    "address": "بنها، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 3,
+    "area_sqm": 141,
+    "floor": 5,
+    "price_egp_monthly": 8500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "موقف سيارات",
+      "شرفة"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home6.jpg"
+    ],
+    "owner": {
+      "name": "مالك 69",
+      "phone": "0100100068",
+      "email": "owner69@ejari.app"
+    },
+    "rating": 4.3,
+    "reviews_count": 73,
+    "status": "available",
+    "lat": 30.08,
+    "lng": 31.08
+  },
+  {
+    "id": 70,
+    "title": "فيلا مميزة في شبرا",
+    "city": "الجيزة",
+    "area": "شبرا",
+    "address": "شبرا، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 1,
+    "area_sqm": 153,
+    "floor": 6,
+    "price_egp_monthly": 9250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "إنترنت",
+      "صيانة دورية"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home7.jpg"
+    ],
+    "owner": {
+      "name": "مالك 70",
+      "phone": "0100100069",
+      "email": "owner70@ejari.app"
+    },
+    "rating": 4.4,
+    "reviews_count": 74,
+    "status": "available",
+    "lat": 30.09,
+    "lng": 31.09
+  },
+  {
+    "id": 71,
+    "title": "مكتب مميزة في المعادي",
+    "city": "الإسكندرية",
+    "area": "المعادي",
+    "address": "المعادي، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 2,
+    "area_sqm": 45,
+    "floor": 7,
+    "price_egp_monthly": 10000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "شرفة",
+      "أمن وحراسة"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home1.jpg"
+    ],
+    "owner": {
+      "name": "مالك 71",
+      "phone": "0100100070",
+      "email": "owner71@ejari.app"
+    },
+    "rating": 4.5,
+    "reviews_count": 75,
+    "status": "available",
+    "lat": 30.1,
+    "lng": 31.1
+  },
+  {
+    "id": 72,
+    "title": "استوديو مميزة في التجمع الخامس",
+    "city": "القليوبية",
+    "area": "التجمع الخامس",
+    "address": "التجمع الخامس، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 3,
+    "area_sqm": 57,
+    "floor": 8,
+    "price_egp_monthly": 10750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "صيانة دورية",
+      "مصعد"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home2.jpg"
+    ],
+    "owner": {
+      "name": "مالك 72",
+      "phone": "0100100071",
+      "email": "owner72@ejari.app"
+    },
+    "rating": 4.6,
+    "reviews_count": 76,
+    "status": "available",
+    "lat": 30.11,
+    "lng": 31.11
+  },
+  {
+    "id": 73,
+    "title": "شقة مميزة في مدينة نصر",
+    "city": "القاهرة",
+    "area": "مدينة نصر",
+    "address": "مدينة نصر، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 1,
+    "area_sqm": 69,
+    "floor": 1,
+    "price_egp_monthly": 11500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "أمن وحراسة",
+      "مفروش"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home3.jpg"
+    ],
+    "owner": {
+      "name": "مالك 73",
+      "phone": "0100100072",
+      "email": "owner73@ejari.app"
+    },
+    "rating": 4.7,
+    "reviews_count": 77,
+    "status": "rented",
+    "lat": 30.12,
+    "lng": 31.12
+  },
+  {
+    "id": 74,
+    "title": "فيلا مميزة في الشيخ زايد",
+    "city": "الجيزة",
+    "area": "الشيخ زايد",
+    "address": "الشيخ زايد، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 2,
+    "area_sqm": 81,
+    "floor": 2,
+    "price_egp_monthly": 12250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "مصعد",
+      "تكييف مركزي"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home4.jpg"
+    ],
+    "owner": {
+      "name": "مالك 74",
+      "phone": "0100100073",
+      "email": "owner74@ejari.app"
+    },
+    "rating": 4.8,
+    "reviews_count": 78,
+    "status": "available",
+    "lat": 30.13,
+    "lng": 31.13
+  },
+  {
+    "id": 75,
+    "title": "مكتب مميزة في الدقي",
+    "city": "الإسكندرية",
+    "area": "الدقي",
+    "address": "الدقي، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 3,
+    "area_sqm": 93,
+    "floor": 3,
+    "price_egp_monthly": 13000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "مفروش",
+      "موقف سيارات"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home5.jpg"
+    ],
+    "owner": {
+      "name": "مالك 75",
+      "phone": "0100100074",
+      "email": "owner75@ejari.app"
+    },
+    "rating": 4.9,
+    "reviews_count": 79,
+    "status": "available",
+    "lat": 30.14,
+    "lng": 31.14
+  },
+  {
+    "id": 76,
+    "title": "استوديو مميزة في حدائق الأهرام",
+    "city": "القليوبية",
+    "area": "حدائق الأهرام",
+    "address": "حدائق الأهرام، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 1,
+    "area_sqm": 105,
+    "floor": 4,
+    "price_egp_monthly": 13750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "تكييف مركزي",
+      "إنترنت"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home6.jpg"
+    ],
+    "owner": {
+      "name": "مالك 76",
+      "phone": "0100100075",
+      "email": "owner76@ejari.app"
+    },
+    "rating": 3.5,
+    "reviews_count": 80,
+    "status": "available",
+    "lat": 30.15,
+    "lng": 31.15
+  },
+  {
+    "id": 77,
+    "title": "شقة مميزة في سموحة",
+    "city": "القاهرة",
+    "area": "سموحة",
+    "address": "سموحة، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 2,
+    "area_sqm": 117,
+    "floor": 5,
+    "price_egp_monthly": 14500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "موقف سيارات",
+      "شرفة"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home7.jpg"
+    ],
+    "owner": {
+      "name": "مالك 77",
+      "phone": "0100100076",
+      "email": "owner77@ejari.app"
+    },
+    "rating": 3.6,
+    "reviews_count": 81,
+    "status": "available",
+    "lat": 30.16,
+    "lng": 31.16
+  },
+  {
+    "id": 78,
+    "title": "فيلا مميزة في لوران",
+    "city": "الجيزة",
+    "area": "لوران",
+    "address": "لوران، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 3,
+    "area_sqm": 129,
+    "floor": 6,
+    "price_egp_monthly": 15250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "إنترنت",
+      "صيانة دورية"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home1.jpg"
+    ],
+    "owner": {
+      "name": "مالك 78",
+      "phone": "0100100077",
+      "email": "owner78@ejari.app"
+    },
+    "rating": 3.7,
+    "reviews_count": 82,
+    "status": "available",
+    "lat": 30.17,
+    "lng": 31.17
+  },
+  {
+    "id": 79,
+    "title": "مكتب مميزة في بنها",
+    "city": "الإسكندرية",
+    "area": "بنها",
+    "address": "بنها، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 1,
+    "area_sqm": 141,
+    "floor": 7,
+    "price_egp_monthly": 16000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "شرفة",
+      "أمن وحراسة"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home2.jpg"
+    ],
+    "owner": {
+      "name": "مالك 79",
+      "phone": "0100100078",
+      "email": "owner79@ejari.app"
+    },
+    "rating": 3.8,
+    "reviews_count": 83,
+    "status": "available",
+    "lat": 30.18,
+    "lng": 31.18
+  },
+  {
+    "id": 80,
+    "title": "استوديو مميزة في شبرا",
+    "city": "القليوبية",
+    "area": "شبرا",
+    "address": "شبرا، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 2,
+    "area_sqm": 153,
+    "floor": 8,
+    "price_egp_monthly": 16750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "صيانة دورية",
+      "مصعد"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home3.jpg"
+    ],
+    "owner": {
+      "name": "مالك 80",
+      "phone": "0100100079",
+      "email": "owner80@ejari.app"
+    },
+    "rating": 3.9,
+    "reviews_count": 84,
+    "status": "available",
+    "lat": 30.19,
+    "lng": 31.19
+  },
+  {
+    "id": 81,
+    "title": "شقة مميزة في المعادي",
+    "city": "القاهرة",
+    "area": "المعادي",
+    "address": "المعادي، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 3,
+    "area_sqm": 45,
+    "floor": 1,
+    "price_egp_monthly": 2500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "أمن وحراسة",
+      "مفروش"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home4.jpg"
+    ],
+    "owner": {
+      "name": "مالك 81",
+      "phone": "0100100080",
+      "email": "owner81@ejari.app"
+    },
+    "rating": 4,
+    "reviews_count": 5,
+    "status": "available",
+    "lat": 30,
+    "lng": 31
+  },
+  {
+    "id": 82,
+    "title": "فيلا مميزة في التجمع الخامس",
+    "city": "الجيزة",
+    "area": "التجمع الخامس",
+    "address": "التجمع الخامس، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 1,
+    "area_sqm": 57,
+    "floor": 2,
+    "price_egp_monthly": 3250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "مصعد",
+      "تكييف مركزي"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home5.jpg"
+    ],
+    "owner": {
+      "name": "مالك 82",
+      "phone": "0100100081",
+      "email": "owner82@ejari.app"
+    },
+    "rating": 4.1,
+    "reviews_count": 6,
+    "status": "rented",
+    "lat": 30.01,
+    "lng": 31.01
+  },
+  {
+    "id": 83,
+    "title": "مكتب مميزة في مدينة نصر",
+    "city": "الإسكندرية",
+    "area": "مدينة نصر",
+    "address": "مدينة نصر، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 2,
+    "area_sqm": 69,
+    "floor": 3,
+    "price_egp_monthly": 4000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "مفروش",
+      "موقف سيارات"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home6.jpg"
+    ],
+    "owner": {
+      "name": "مالك 83",
+      "phone": "0100100082",
+      "email": "owner83@ejari.app"
+    },
+    "rating": 4.2,
+    "reviews_count": 7,
+    "status": "available",
+    "lat": 30.02,
+    "lng": 31.02
+  },
+  {
+    "id": 84,
+    "title": "استوديو مميزة في الشيخ زايد",
+    "city": "القليوبية",
+    "area": "الشيخ زايد",
+    "address": "الشيخ زايد، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 3,
+    "area_sqm": 81,
+    "floor": 4,
+    "price_egp_monthly": 4750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "تكييف مركزي",
+      "إنترنت"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home7.jpg"
+    ],
+    "owner": {
+      "name": "مالك 84",
+      "phone": "0100100083",
+      "email": "owner84@ejari.app"
+    },
+    "rating": 4.3,
+    "reviews_count": 8,
+    "status": "available",
+    "lat": 30.03,
+    "lng": 31.03
+  },
+  {
+    "id": 85,
+    "title": "شقة مميزة في الدقي",
+    "city": "القاهرة",
+    "area": "الدقي",
+    "address": "الدقي، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 1,
+    "area_sqm": 93,
+    "floor": 5,
+    "price_egp_monthly": 5500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "موقف سيارات",
+      "شرفة"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home1.jpg"
+    ],
+    "owner": {
+      "name": "مالك 85",
+      "phone": "0100100084",
+      "email": "owner85@ejari.app"
+    },
+    "rating": 4.4,
+    "reviews_count": 9,
+    "status": "available",
+    "lat": 30.04,
+    "lng": 31.04
+  },
+  {
+    "id": 86,
+    "title": "فيلا مميزة في حدائق الأهرام",
+    "city": "الجيزة",
+    "area": "حدائق الأهرام",
+    "address": "حدائق الأهرام، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 2,
+    "area_sqm": 105,
+    "floor": 6,
+    "price_egp_monthly": 6250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "إنترنت",
+      "صيانة دورية"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home2.jpg"
+    ],
+    "owner": {
+      "name": "مالك 86",
+      "phone": "0100100085",
+      "email": "owner86@ejari.app"
+    },
+    "rating": 4.5,
+    "reviews_count": 10,
+    "status": "available",
+    "lat": 30.05,
+    "lng": 31.05
+  },
+  {
+    "id": 87,
+    "title": "مكتب مميزة في سموحة",
+    "city": "الإسكندرية",
+    "area": "سموحة",
+    "address": "سموحة، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 3,
+    "area_sqm": 117,
+    "floor": 7,
+    "price_egp_monthly": 7000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "شرفة",
+      "أمن وحراسة"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home3.jpg"
+    ],
+    "owner": {
+      "name": "مالك 87",
+      "phone": "0100100086",
+      "email": "owner87@ejari.app"
+    },
+    "rating": 4.6,
+    "reviews_count": 11,
+    "status": "available",
+    "lat": 30.06,
+    "lng": 31.06
+  },
+  {
+    "id": 88,
+    "title": "استوديو مميزة في لوران",
+    "city": "القليوبية",
+    "area": "لوران",
+    "address": "لوران، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 1,
+    "area_sqm": 129,
+    "floor": 8,
+    "price_egp_monthly": 7750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "صيانة دورية",
+      "مصعد"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home4.jpg"
+    ],
+    "owner": {
+      "name": "مالك 88",
+      "phone": "0100100087",
+      "email": "owner88@ejari.app"
+    },
+    "rating": 4.7,
+    "reviews_count": 12,
+    "status": "available",
+    "lat": 30.07,
+    "lng": 31.07
+  },
+  {
+    "id": 89,
+    "title": "شقة مميزة في بنها",
+    "city": "القاهرة",
+    "area": "بنها",
+    "address": "بنها، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 2,
+    "area_sqm": 141,
+    "floor": 1,
+    "price_egp_monthly": 8500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "أمن وحراسة",
+      "مفروش"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home5.jpg"
+    ],
+    "owner": {
+      "name": "مالك 89",
+      "phone": "0100100088",
+      "email": "owner89@ejari.app"
+    },
+    "rating": 4.8,
+    "reviews_count": 13,
+    "status": "available",
+    "lat": 30.08,
+    "lng": 31.08
+  },
+  {
+    "id": 90,
+    "title": "فيلا مميزة في شبرا",
+    "city": "الجيزة",
+    "area": "شبرا",
+    "address": "شبرا، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 3,
+    "area_sqm": 153,
+    "floor": 2,
+    "price_egp_monthly": 9250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "مصعد",
+      "تكييف مركزي"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home6.jpg"
+    ],
+    "owner": {
+      "name": "مالك 90",
+      "phone": "0100100089",
+      "email": "owner90@ejari.app"
+    },
+    "rating": 4.9,
+    "reviews_count": 14,
+    "status": "available",
+    "lat": 30.09,
+    "lng": 31.09
+  },
+  {
+    "id": 91,
+    "title": "مكتب مميزة في المعادي",
+    "city": "الإسكندرية",
+    "area": "المعادي",
+    "address": "المعادي، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 1,
+    "area_sqm": 45,
+    "floor": 3,
+    "price_egp_monthly": 10000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "مفروش",
+      "موقف سيارات"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home7.jpg"
+    ],
+    "owner": {
+      "name": "مالك 91",
+      "phone": "0100100090",
+      "email": "owner91@ejari.app"
+    },
+    "rating": 3.5,
+    "reviews_count": 15,
+    "status": "rented",
+    "lat": 30.1,
+    "lng": 31.1
+  },
+  {
+    "id": 92,
+    "title": "استوديو مميزة في التجمع الخامس",
+    "city": "القليوبية",
+    "area": "التجمع الخامس",
+    "address": "التجمع الخامس، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 2,
+    "area_sqm": 57,
+    "floor": 4,
+    "price_egp_monthly": 10750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "تكييف مركزي",
+      "إنترنت"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home1.jpg"
+    ],
+    "owner": {
+      "name": "مالك 92",
+      "phone": "0100100091",
+      "email": "owner92@ejari.app"
+    },
+    "rating": 3.6,
+    "reviews_count": 16,
+    "status": "available",
+    "lat": 30.11,
+    "lng": 31.11
+  },
+  {
+    "id": 93,
+    "title": "شقة مميزة في مدينة نصر",
+    "city": "القاهرة",
+    "area": "مدينة نصر",
+    "address": "مدينة نصر، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 3,
+    "area_sqm": 69,
+    "floor": 5,
+    "price_egp_monthly": 11500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "موقف سيارات",
+      "شرفة"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home2.jpg"
+    ],
+    "owner": {
+      "name": "مالك 93",
+      "phone": "0100100092",
+      "email": "owner93@ejari.app"
+    },
+    "rating": 3.7,
+    "reviews_count": 17,
+    "status": "available",
+    "lat": 30.12,
+    "lng": 31.12
+  },
+  {
+    "id": 94,
+    "title": "فيلا مميزة في الشيخ زايد",
+    "city": "الجيزة",
+    "area": "الشيخ زايد",
+    "address": "الشيخ زايد، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 1,
+    "area_sqm": 81,
+    "floor": 6,
+    "price_egp_monthly": 12250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "إنترنت",
+      "صيانة دورية"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home3.jpg"
+    ],
+    "owner": {
+      "name": "مالك 94",
+      "phone": "0100100093",
+      "email": "owner94@ejari.app"
+    },
+    "rating": 3.8,
+    "reviews_count": 18,
+    "status": "available",
+    "lat": 30.13,
+    "lng": 31.13
+  },
+  {
+    "id": 95,
+    "title": "مكتب مميزة في الدقي",
+    "city": "الإسكندرية",
+    "area": "الدقي",
+    "address": "الدقي، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 2,
+    "area_sqm": 93,
+    "floor": 7,
+    "price_egp_monthly": 13000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "شرفة",
+      "أمن وحراسة"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home4.jpg"
+    ],
+    "owner": {
+      "name": "مالك 95",
+      "phone": "0100100094",
+      "email": "owner95@ejari.app"
+    },
+    "rating": 3.9,
+    "reviews_count": 19,
+    "status": "available",
+    "lat": 30.14,
+    "lng": 31.14
+  },
+  {
+    "id": 96,
+    "title": "استوديو مميزة في حدائق الأهرام",
+    "city": "القليوبية",
+    "area": "حدائق الأهرام",
+    "address": "حدائق الأهرام، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 3,
+    "area_sqm": 105,
+    "floor": 8,
+    "price_egp_monthly": 13750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "صيانة دورية",
+      "مصعد"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home5.jpg"
+    ],
+    "owner": {
+      "name": "مالك 96",
+      "phone": "0100100095",
+      "email": "owner96@ejari.app"
+    },
+    "rating": 4,
+    "reviews_count": 20,
+    "status": "available",
+    "lat": 30.15,
+    "lng": 31.15
+  },
+  {
+    "id": 97,
+    "title": "شقة مميزة في سموحة",
+    "city": "القاهرة",
+    "area": "سموحة",
+    "address": "سموحة، القاهرة",
+    "type": "apartment",
+    "rooms": 2,
+    "bathrooms": 1,
+    "area_sqm": 117,
+    "floor": 1,
+    "price_egp_monthly": 14500,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "أمن وحراسة",
+      "مفروش"
+    ],
+    "target_audience": [
+      "عائلات"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home6.jpg"
+    ],
+    "owner": {
+      "name": "مالك 97",
+      "phone": "0100100096",
+      "email": "owner97@ejari.app"
+    },
+    "rating": 4.1,
+    "reviews_count": 21,
+    "status": "available",
+    "lat": 30.16,
+    "lng": 31.16
+  },
+  {
+    "id": 98,
+    "title": "فيلا مميزة في لوران",
+    "city": "الجيزة",
+    "area": "لوران",
+    "address": "لوران، الجيزة",
+    "type": "villa",
+    "rooms": 3,
+    "bathrooms": 2,
+    "area_sqm": 129,
+    "floor": 2,
+    "price_egp_monthly": 15250,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "مصعد",
+      "تكييف مركزي"
+    ],
+    "target_audience": [
+      "عزاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home7.jpg"
+    ],
+    "owner": {
+      "name": "مالك 98",
+      "phone": "0100100097",
+      "email": "owner98@ejari.app"
+    },
+    "rating": 4.2,
+    "reviews_count": 22,
+    "status": "available",
+    "lat": 30.17,
+    "lng": 31.17
+  },
+  {
+    "id": 99,
+    "title": "مكتب مميزة في بنها",
+    "city": "الإسكندرية",
+    "area": "بنها",
+    "address": "بنها، الإسكندرية",
+    "type": "office",
+    "rooms": 4,
+    "bathrooms": 3,
+    "area_sqm": 141,
+    "floor": 3,
+    "price_egp_monthly": 16000,
+    "deposit_months": 1,
+    "furnished": true,
+    "features": [
+      "مفروش",
+      "موقف سيارات"
+    ],
+    "target_audience": [
+      "طلاب"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home1.jpg"
+    ],
+    "owner": {
+      "name": "مالك 99",
+      "phone": "0100100098",
+      "email": "owner99@ejari.app"
+    },
+    "rating": 4.3,
+    "reviews_count": 23,
+    "status": "available",
+    "lat": 30.18,
+    "lng": 31.18
+  },
+  {
+    "id": 100,
+    "title": "استوديو مميزة في شبرا",
+    "city": "القليوبية",
+    "area": "شبرا",
+    "address": "شبرا، القليوبية",
+    "type": "studio",
+    "rooms": 1,
+    "bathrooms": 1,
+    "area_sqm": 153,
+    "floor": 4,
+    "price_egp_monthly": 16750,
+    "deposit_months": 2,
+    "furnished": false,
+    "features": [
+      "تكييف مركزي",
+      "إنترنت"
+    ],
+    "target_audience": [
+      "موظفين"
+    ],
+    "available_from": "2026-07-01",
+    "images": [
+      "images/home2.jpg"
+    ],
+    "owner": {
+      "name": "مالك 100",
+      "phone": "0100100099",
+      "email": "owner100@ejari.app"
+    },
+    "rating": 4.4,
+    "reviews_count": 24,
+    "status": "rented",
+    "lat": 30.19,
+    "lng": 31.19
+  }
+]

@@ -230,9 +230,9 @@ function bookService(serviceName, price) {
 ## 📞 للدعم والاستفسارات
 
 للمزيد من المعلومات أو المساعدة:
-- 📧 البريد الإلكتروني: support@ejari.com
+- 📧 البريد الإلكتروني: support@ejari.app
 - 📱 الهاتف: +966 XX XXX XXXX
-- 🌐 الموقع: www.ejari.com
+- 🌐 الموقع: www.ejari.app
 
 ---
 
@@ -241,3 +241,26 @@ function bookService(serviceName, price) {
 **التاريخ:** 30 نوفمبر 2024  
 **الإصدار:** 1.0.0 (MVP)  
 **الحالة:** ✅ مكتمل ومستعد للإطلاق
+
+---
+
+## 🔌 API Integration Scaffold Added
+
+تمت إضافة طبقة تكامل مجانية وقابلة للتوسعة تشمل:
+
+- `js/api-integrations.js` للويب: `initMap()`، `addMarkers()`، `filterByMapBounds()`، `geocodeAddress()`، `searchLocation()`
+- `backend/services/apiIntegrations.js` للـ Node backend: خرائط، Geocoding، Cloudinary URL helpers، SendGrid mail helpers
+- `backend/routes/integrationsRoutes.js` و `backend/controllers/integrationsController.js`
+- `backend/seed.js` لزرع الشقق من JSON أو توليد بيانات افتراضية
+- `backend/.env.example` كمرجع لإعداد المتغيرات
+- `firebase.rules` لسياسات Firestore
+
+### Endpoints
+- `GET /api/integrations/map-config`
+- `GET /api/integrations/geocode?address=...`
+- `GET /api/integrations/search-location?q=...`
+
+### ملاحظات
+- Nominatim عليه Rate limit: طلب واحد/ثانية
+- SendGrid وCloudinary تم إعدادهم كـ scaffold؛ يعملان عند إضافة المتغيرات السرية المناسبة
+- إذا لم يكن ملف `egary_apartments_mock_data.json` موجودًا، `backend/seed.js` يولّد 100 شقة مبدئية تلقائيًا

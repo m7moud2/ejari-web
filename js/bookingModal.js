@@ -55,6 +55,7 @@ const BookingManager = {
             priceEl.textContent = LocalizationManager.formatPrice(this.basePriceSAR);
         } else {
             this.basePrice = parseInt(price) || 0;
+            this.basePriceSAR = this.basePrice;
             modal.querySelector('.base-price .price').textContent = this.basePrice.toLocaleString();
         }
 
@@ -132,6 +133,9 @@ const BookingManager = {
         const serviceFeeSAR = Math.round(rentCostSAR * 0.05);
         const totalCostSAR = rentCostSAR + insuranceSAR + serviceFeeSAR;
 
+        this.rentCostSAR = rentCostSAR;
+        this.insuranceSAR = insuranceSAR;
+        this.serviceFeeSAR = serviceFeeSAR;
         this.totalCost = totalCostSAR; // Store in SAR
 
         // Update UI with localization
@@ -186,18 +190,40 @@ const BookingManager = {
 
     confirmBooking: function () {
         // تجميع بيانات الحجز
+        const durationUnit = document.querySelector('.duration-tab.active').dataset.unit;
+        const durationValue = parseInt(document.getElementById('durationValue').value) || 1;
+        const isMonthlyStyle = durationUnit === 'months' || durationUnit === 'years';
+        const monthlyBase = this.itemType === 'car'
+            ? this.basePrice
+            : this.basePrice;
+        const monthsCount = durationUnit === 'years' ? durationValue * 12 : durationUnit === 'months' ? durationValue : 1;
+        const rentPerMonth = this.itemType === 'car' ? monthlyBase : this.basePrice;
+        const totalRent = this.itemType === 'car' ? this.totalCost : rentPerMonth * monthsCount;
+        const depositAmount = isMonthlyStyle ? Math.max(1000, Math.round(rentPerMonth * 0.1)) : this.insuranceSAR || 0;
+        const dueNow = isMonthlyStyle ? depositAmount : this.totalCost;
+        const remainingBalance = isMonthlyStyle ? Math.max(0, totalRent - depositAmount) : 0;
         const bookingData = {
             id: Date.now(),
             itemTitle: document.querySelector('.property-info h4').textContent,
             itemImage: document.querySelector('.property-summary img').src,
             location: document.querySelector('.property-info .location').textContent.trim(),
             startDate: document.getElementById('startDate').value,
-            duration: document.getElementById('durationValue').value,
-            durationUnit: document.querySelector('.duration-tab.active').dataset.unit,
-            rentCost: document.getElementById('rentCost').textContent,
-            insurance: document.getElementById('insurance').textContent,
-            serviceFee: document.getElementById('serviceFee').textContent,
-            totalCost: this.totalCost,
+            duration: durationValue,
+            durationUnit,
+            price: rentPerMonth,
+            serviceFee: this.serviceFeeSAR,
+            deposit: depositAmount,
+            totalCost: dueNow,
+            totalRent,
+            remainingBalance,
+            paymentMode: isMonthlyStyle ? 'deposit_then_monthly' : 'full',
+            installmentPlan: isMonthlyStyle ? {
+                monthsCount,
+                rentPerMonth,
+                depositAmount,
+                remainingBalance,
+                dueNow
+            } : null,
             status: 'pending',
             type: this.itemType
         };

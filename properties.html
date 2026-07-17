@@ -4,32 +4,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>العقارات - إيجاري</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/business-pitch.css">
-    <link rel="stylesheet" href="css/localization.css">
+    <title>جميع الوحدات العقارية | إيجاري إيليت - منصة العقارات المتميزة</title>
+
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/components/modal.css">
+    <link rel="stylesheet" href="css/components/notifications.css">
+    <link rel="stylesheet" href="css/business-pitch.css">
+    <link rel="stylesheet" href="css/localization.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-o9N1j7kGSt3GkR9Fz9eLxg2A7lXoWqZlX1p1Z9+0a4A=" crossorigin="" />
+    
+    <!-- Theme Toggle Script -->
+    <script src="js/theme-toggle.js" defer></script>
     <style>
         .properties-hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 4rem 0;
+            position: relative;
+            background: url('images/hero-bg-premium.jpg') center/cover no-repeat;
+            padding: 100px 0;
             color: white;
             text-align: center;
-            margin-bottom: 2rem;
+            margin-top: 70px;
+            overflow: hidden;
         }
 
-        .properties-hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
+        .properties-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.6) 100%);
+            z-index: 1;
+        }
+
+        .properties-hero .container {
+            position: relative;
+            z-index: 2;
         }
 
         .filters-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            margin-top: -3rem;
+            margin-top: -60px;
             position: relative;
             z-index: 10;
         }
@@ -164,31 +182,51 @@
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar">
+    <header class="navbar">
         <div class="container">
             <div class="logo">
-                <a href="index.html">إيجاري</a>
+                <a href="index.html"
+                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-home" style="color: var(--elite-gold);"></i>
+                    إيجاري إيليت
+                </a>
             </div>
-            <ul class="nav-links">
-                <li><a href="index.html">الرئيسية</a></li>
-                <li><a href="properties.html" class="active">عقارات</a></li>
-                <li><a href="cars.html">سيارات</a></li>
-                <li><a href="contact.html">تواصل معنا</a></li>
-            </ul>
-            <!-- Settings (Country & Language) -->
-            <div class="settings-container">
-                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
-                    <i class="fas fa-globe"></i>
-                    <span id="countrySelector">🇸🇦 السعودية</span>
+
+            <nav class="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="properties.html" class="active">عقارات</a></li>
+                    <li><a href="cars.html">سيارات</a></li>
+                    <li><a href="services.html">الخدمات</a></li>
+                    <li><a href="contact.html">تواصل معنا</a></li>
+                </ul>
+            </nav>
+
+            <div class="nav-icons">
+                <!-- Theme Toggle -->
+                <button class="settings-btn" id="themeToggle" title="تبديل المظهر">
+                    <i class="fas fa-moon"></i>
+                    <i class="fas fa-sun" style="display:none;"></i>
                 </button>
-                <div id="settingsDropdownContainer"></div>
-            </div>
-            <div class="auth-buttons">
-                <button class="btn btn-outline" onclick="location.href='login.html'">تسجيل دخول</button>
-                <button class="btn btn-primary" onclick="location.href='signup.html'">إنشاء حساب</button>
+
+                <div class="settings-container">
+                    <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                        <i class="fas fa-globe"></i>
+                        <span>🇸🇦 السعودية</span>
+                    </button>
+                </div>
+
+                <div class="auth-buttons" id="authButtons">
+                    <a href="signup.html" class="btn btn-elite">إنشاء حساب</a>
+                    <a href="login.html" class="btn btn-outline">تسجيل الدخول</a>
+                </div>
+
+                <button class="menu-btn" onclick="toggleMobileMenu()" aria-label="القائمة">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
         </div>
-    </nav>
+    </header>
 
     <!-- Hero Section -->
     <section class="properties-hero">
@@ -200,31 +238,31 @@
 
     <!-- Search & Filter -->
     <div class="container">
-        <div class="filters-container">
+        <div class="filters-container glass-card" style="padding: 2rem;">
             <div class="search-grid">
                 <div class="filter-group">
-                    <input type="text" placeholder="ابحث بالمنطقة، الحي، أو الشارع...">
+                    <input id="propertySearchInput" type="text" placeholder="ابحث بالمنطقة، الحي، أو الشارع..." class="elite-input">
                 </div>
                 <div class="filter-group">
-                    <select>
+                    <select id="propertyTypeFilter" class="elite-input">
                         <option value="">نوع العقار</option>
-                        <option>شقة</option>
-                        <option>فيلا</option>
-                        <option>مكتب</option>
+                        <option>شقة فاخرة</option>
+                        <option>فيلا سكنية</option>
+                        <option>مكتب إداري</option>
                         <option>محل تجاري</option>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <select>
+                    <select id="propertyPriceFilter" class="elite-input">
                         <option value="">السعر</option>
                         <option>أقل من 5,000</option>
-                        <option>5,000 - 10,000</option>
-                        <option>10,000 - 20,000</option>
-                        <option>أكثر من 20,000</option>
+                        <option>5,000 - 15,000</option>
+                        <option>15,000 - 30,000</option>
+                        <option>أكثر من 30,000</option>
                     </select>
                 </div>
                 <div class="filter-group">
-                    <select>
+                    <select id="propertyRoomsFilter" class="elite-input">
                         <option value="">الغرف</option>
                         <option>1 غرفة</option>
                         <option>2 غرفة</option>
@@ -232,28 +270,76 @@
                         <option>4+ غرف</option>
                     </select>
                 </div>
-                <button class="btn btn-primary" style="height: 100%;">
+                <button id="applyFiltersBtn" class="btn-elite" style="height: 50px;" type="button">
                     <i class="fas fa-search"></i> بحث
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- Map Toggle and Sorting -->
+    <div class="container" style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 1rem 2rem; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            <div style="display: flex; gap: 1rem;">
+                <button onclick="toggleView('grid')" id="grid-view-btn" class="active" style="background: var(--primary-color); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;">
+                    <i class="fas fa-th-large"></i> شبكة
+                </button>
+                <button onclick="toggleView('map')" id="map-view-btn" style="background: #f3f4f6; color: #1f2937; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;">
+                    <i class="fas fa-map-marked-alt"></i> خريطة ذكية
+                </button>
+            </div>
+            <div class="sort-dropdown">
+                <select style="border: none; background: none; color: #4b5563; font-family: 'Cairo';">
+                    <option>الأحدث أولاً</option>
+                    <option>السعر: من الأقل للأعلى</option>
+                    <option>السعر: من الأعلى للأقل</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Smart Map View (Hidden by default) -->
+    <div id="smart-map-view" style="display: none; height: 600px; margin-bottom: 3rem; background: #e2e8f0; border-radius: 24px; position: relative; overflow: hidden; box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);">
+        <div id="properties-map" style="width: 100%; height: 100%; min-height: 600px;"></div>
+
+        <!-- Dynamic Pins -->
+        <div class="map-pin" style="position: absolute; top: 150px; right: 250px;" onclick="showMapPreview(101)">
+            <div class="pin-price">12K</div>
+            <div class="pin-drop"></div>
+        </div>
+        <div class="map-pin" style="position: absolute; top: 350px; right: 550px;" onclick="showMapPreview(102)">
+            <div class="pin-price">45K</div>
+            <div class="pin-drop"></div>
+        </div>
+        <div class="map-pin" style="position: absolute; top: 100px; right: 400px;" onclick="showMapPreview(103)">
+            <div class="pin-price">32K</div>
+            <div class="pin-drop"></div>
+        </div>
+
+        <!-- Map Preview Card -->
+        <div id="map-preview-card" style="display: none; position: absolute; bottom: 30px; right: 30px; width: 300px; background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); overflow: hidden; animation: fadeInUp 0.4s ease;">
+            <img id="map-preview-img" src="images/home1.jpg" style="width: 100%; height: 150px; object-fit: cover;">
+            <div style="padding: 1.5rem;">
+                <h4 id="map-preview-title" style="margin-bottom: 5px;">شقة فاخرة</h4>
+                <p id="map-preview-price" style="color: var(--primary-color); font-weight: bold;"></p>
+                <button onclick="viewFromMap()" style="width: 100%; margin-top: 1rem; background: var(--primary-color); color: white; border: none; padding: 0.6rem; border-radius: 8px; cursor: pointer;">عرض التفاصيل</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Properties Grid -->
-    <section class="properties-section section-padding">
+    <section id="properties-grid-section" class="properties-section section-padding">
         <div class="container">
             <div class="section-header"
                 style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <h2>أحدث العقارات المضافة</h2>
-                <div class="view-options">
-                    <span style="color: #6b7280;">عرض 1-12 من 150 عقار</span>
-                </div>
+            </div>
             </div>
 
             <div class="properties-grid"
                 style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;">
                 <!-- Property Card 1 -->
-                <div class="property-card">
+                <div class="property-card" data-property-id="101" data-type="شقة فاخرة" data-price="12000" data-rooms="3" data-area="المعادي">
                     <div class="card-img">
                         <img src="images/home1.jpg" alt="شقة فاخرة">
                         <span class="card-badge">مميز</span>
@@ -279,13 +365,13 @@
                                 onclick="openBookingModal('شقة فاخرة في المعادي', 12000, 'images/home1.jpg', 'property')">حجز
                                 الآن</button>
                             <button class="btn-details"
-                                onclick="window.location.href='property-details.html'">التفاصيل</button>
+                                onclick="window.location.href='property-details.html?id=101'">التفاصيل</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Property Card 2 -->
-                <div class="property-card">
+                <div class="property-card" data-property-id="102" data-type="فيلا سكنية" data-price="45000" data-rooms="5" data-area="التجمع الخامس">
                     <div class="card-img">
                         <img src="images/home2.jpg" alt="فيلا مودرن">
                         <span class="card-badge" style="background: #10b981;">جديد</span>
@@ -311,13 +397,13 @@
                                 onclick="openBookingModal('فيلا مودرن بالتجمع', 45000, 'images/home2.jpg', 'property')">حجز
                                 الآن</button>
                             <button class="btn-details"
-                                onclick="window.location.href='property-details.html'">التفاصيل</button>
+                                onclick="window.location.href='property-details.html?id=102'">التفاصيل</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Property Card 3 -->
-                <div class="property-card">
+                <div class="property-card" data-property-id="103" data-type="مكتب إداري" data-price="25000" data-rooms="2" data-area="مدينة نصر">
                     <div class="card-img">
                         <img src="images/home3.jpg" alt="استوديو">
                         <div class="card-price-tag"><span class="price-amount" data-price="640">8,000</span> ج.م/شهر
@@ -342,13 +428,13 @@
                                 onclick="openBookingModal('استوديو بمدينة نصر', 8000, 'images/home3.jpg', 'property')">حجز
                                 الآن</button>
                             <button class="btn-details"
-                                onclick="window.location.href='property-details.html'">التفاصيل</button>
+                                onclick="window.location.href='property-details.html?id=103'">التفاصيل</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Property Card 4 -->
-                <div class="property-card">
+                <div class="property-card" data-property-id="104" data-type="شقة فاخرة" data-price="8000" data-rooms="2" data-area="الشيخ زايد">
                     <div class="card-img">
                         <img src="images/home4.jpg" alt="مكتب إداري">
                         <span class="card-badge" style="background: #f59e0b;">تجاري</span>
@@ -374,13 +460,13 @@
                                 onclick="openBookingModal('مكتب إداري بالشيخ زايد', 25000, 'images/home4.jpg', 'property')">حجز
                                 الآن</button>
                             <button class="btn-details"
-                                onclick="window.location.href='property-details.html'">التفاصيل</button>
+                                onclick="window.location.href='property-details.html?id=104'">التفاصيل</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Property Card 5 -->
-                <div class="property-card">
+                <div class="property-card" data-property-id="105" data-type="محل تجاري" data-price="6000" data-rooms="1" data-area="الدقي">
                     <div class="card-img">
                         <img src="images/home1.jpg" alt="شقة دوبلكس">
                         <div class="card-price-tag"><span class="price-amount" data-price="1440">18,000</span> ج.م/شهر
@@ -405,13 +491,13 @@
                                 onclick="openBookingModal('دوبلكس في الدقي', 18000, 'images/home1.jpg', 'property')">حجز
                                 الآن</button>
                             <button class="btn-details"
-                                onclick="window.location.href='property-details.html'">التفاصيل</button>
+                                onclick="window.location.href='property-details.html?id=105'">التفاصيل</button>
                         </div>
                     </div>
                 </div>
 
                 <!-- Property Card 6 -->
-                <div class="property-card">
+                <div class="property-card" data-property-id="106" data-type="شقة فاخرة" data-price="10000" data-rooms="3" data-area="حدائق الأهرام">
                     <div class="card-img">
                         <img src="images/home2.jpg" alt="شقة">
                         <span class="card-badge">مميز</span>
@@ -437,7 +523,7 @@
                                 onclick="openBookingModal('شقة بحدائق الأهرام', 10000, 'images/home2.jpg', 'property')">حجز
                                 الآن</button>
                             <button class="btn-details"
-                                onclick="window.location.href='property-details.html'">التفاصيل</button>
+                                onclick="window.location.href='property-details.html?id=106'">التفاصيل</button>
                         </div>
                     </div>
                 </div>
@@ -460,7 +546,7 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>إيجاري</h3>
+                    <h3>إيجاري EJARI</h3>
                     <p>منصتك المتكاملة للبحث عن العقارات</p>
                 </div>
                 <div class="footer-section">
@@ -474,14 +560,14 @@
                 <div class="footer-section">
                     <h3>تواصل معنا</h3>
                     <ul>
-                        <li>info@ejari.com</li>
+                        <li>info@ejari.app</li>
                         <li>+20 123 456 789</li>
                         <li>القاهرة، مصر</li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>جميع الحقوق محفوظة © 2024 إيجاري</p>
+                <p>جميع الحقوق محفوظة © 2026 إيجاري EJARI</p>
             </div>
         </div>
     </footer>
@@ -610,13 +696,145 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="js/session.js"></script>
     <script src="js/auto-translator.js"></script>
     <script src="js/localization.js"></script>
+    <script src="js/api-integrations.js"></script>
     <script src="js/main.js"></script>
     <script src="js/bookingModal.js"></script>
     <script src="js/verification.js"></script>
     <script>
+        // --- SMART MAP LOGIC ---
+        let activeMapPropertyId = null;
+        let propertiesMapInstance = null;
+        const propertiesMapData = [
+            { id: 101, title: 'شقة فاخرة بالمعادي', price: 12000, lat: 30.0444, lng: 31.2357, img: 'images/home1.jpg' },
+            { id: 102, title: 'فيلا إيليت التجمع', price: 45000, lat: 30.0131, lng: 31.4913, img: 'images/home2.jpg' },
+            { id: 103, title: 'ستوديو إيجاري المتميز', price: 3200, lat: 31.2001, lng: 29.9187, img: 'images/home4.jpg' }
+        ];
+
+        function initPropertiesMap() {
+            if (!window.EjariAPI || !window.EjariAPI.mountLeafletMap) return;
+            if (propertiesMapInstance) return;
+            propertiesMapInstance = window.EjariAPI.mountLeafletMap('properties-map', propertiesMapData, {
+                center: { lat: 30.0444, lng: 31.2357 },
+                zoom: 6
+            });
+        }
+
+        function parsePriceRange(label = '') {
+            if (label.includes('أقل من 5,000')) return [0, 5000];
+            if (label.includes('5,000 - 15,000')) return [5000, 15000];
+            if (label.includes('15,000 - 30,000')) return [15000, 30000];
+            if (label.includes('أكثر من 30,000')) return [30000, Infinity];
+            return [0, Infinity];
+        }
+
+        function applyPropertyFilters() {
+            const query = (document.getElementById('propertySearchInput')?.value || '').trim().toLowerCase();
+            const type = document.getElementById('propertyTypeFilter')?.value || '';
+            const priceLabel = document.getElementById('propertyPriceFilter')?.value || '';
+            const roomsLabel = document.getElementById('propertyRoomsFilter')?.value || '';
+            const [minPrice, maxPrice] = parsePriceRange(priceLabel);
+            const minRooms = roomsLabel.includes('1') ? 1 : roomsLabel.includes('2') ? 2 : roomsLabel.includes('3') ? 3 : roomsLabel.includes('4') ? 4 : 0;
+
+            const cards = [...document.querySelectorAll('.property-card')];
+            cards.forEach((card) => {
+                const title = (card.querySelector('h3')?.textContent || '').toLowerCase();
+                const area = (card.dataset.area || card.querySelector('.fa-map-marker-alt')?.parentElement?.textContent || '').toLowerCase();
+                const cardType = card.dataset.type || '';
+                const cardPrice = Number(card.dataset.price || 0);
+                const roomsText = card.dataset.rooms || '';
+                const cardRooms = Number(roomsText || 0);
+
+                const matchesQuery = !query || title.includes(query) || area.includes(query);
+                const matchesType = !type || cardType.includes(type) || title.includes(type);
+                const matchesPrice = cardPrice >= minPrice && cardPrice <= maxPrice;
+                const matchesRooms = !minRooms || cardRooms >= minRooms;
+
+                card.style.display = matchesQuery && matchesType && matchesPrice && matchesRooms ? '' : 'none';
+            });
+
+            if (window.EjariAPI && window.EjariAPI.filterByMapBounds && propertiesMapInstance) {
+                const visible = window.EjariAPI.filterByMapBounds(propertiesMapData, propertiesMapInstance);
+                if (visible?.length) {
+                    const first = visible[0];
+                    propertiesMapInstance.setView([first.lat, first.lng], 11);
+                }
+            }
+        }
+
+        function toggleView(view) {
+            const gridSection = document.getElementById('properties-grid-section');
+            const mapView = document.getElementById('smart-map-view');
+            const gridBtn = document.getElementById('grid-view-btn');
+            const mapBtn = document.getElementById('map-view-btn');
+
+            if (view === 'map') {
+                gridSection.style.display = 'none';
+                mapView.style.display = 'block';
+                initPropertiesMap();
+                mapBtn.classList.add('active');
+                mapBtn.style.background = 'var(--primary-color)';
+                mapBtn.style.color = 'white';
+                gridBtn.style.background = '#f3f4f6';
+                gridBtn.style.color = '#1f2937';
+            } else {
+                gridSection.style.display = 'block';
+                mapView.style.display = 'none';
+                gridBtn.style.background = 'var(--primary-color)';
+                gridBtn.style.color = 'white';
+                mapBtn.style.background = '#f3f4f6';
+                mapBtn.style.color = '#1f2937';
+            }
+        }
+
+        function syncFiltersFromSession() {
+            const storedQuery = sessionStorage.getItem('searchQuery');
+            if (storedQuery && document.getElementById('propertySearchInput')) {
+                document.getElementById('propertySearchInput').value = storedQuery;
+            }
+            const storedFilters = sessionStorage.getItem('filters');
+            if (!storedFilters) return;
+            try {
+                const filters = JSON.parse(storedFilters);
+                if (filters.area && document.getElementById('propertySearchInput')) {
+                    document.getElementById('propertySearchInput').value = filters.area;
+                }
+            } catch (_) {}
+        }
+
+        function showMapPreview(id) {
+            activeMapPropertyId = id;
+            const card = document.getElementById('map-preview-card');
+            const title = document.getElementById('map-preview-title');
+            const price = document.getElementById('map-preview-price');
+            const img = document.getElementById('map-preview-img');
+
+            // Simulated Data
+            const data = {
+                101: { title: 'شقة فاخرة بالمعادي', price: '12,000 ج.م', img: 'images/home1.jpg' },
+                102: { title: 'فيلا إيليت التجمع', price: '45,000 ج.م', img: 'images/home2.jpg' },
+                103: { title: 'ستوديو إيجاري المتميز', price: '3,200 ج.م', img: 'images/home4.jpg' }
+            };
+
+            const prop = data[id];
+            title.textContent = prop.title;
+            price.textContent = prop.price;
+            img.src = prop.img;
+
+            card.style.display = 'block';
+        }
+
+        function viewFromMap() {
+            if (activeMapPropertyId) {
+                location.href = `property-details.html?id=${activeMapPropertyId}`;
+            }
+        }
+
+        // --- EXISTING LOGIC ---
         // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
             const settingsBtn = document.getElementById('settingsBtn');
@@ -638,6 +856,16 @@
 
             dropdown.classList.toggle('active');
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            syncFiltersFromSession();
+            applyPropertyFilters();
+            document.getElementById('applyFiltersBtn')?.addEventListener('click', applyPropertyFilters);
+            ['propertySearchInput', 'propertyTypeFilter', 'propertyPriceFilter', 'propertyRoomsFilter'].forEach((id) => {
+                document.getElementById(id)?.addEventListener('input', applyPropertyFilters);
+                document.getElementById(id)?.addEventListener('change', applyPropertyFilters);
+            });
+        });
     </script>
 </body>
 

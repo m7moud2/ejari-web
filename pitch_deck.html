@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عرض إيجاري الاستثماري | Ejari Pitch Deck</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/branding.css">
+    <style>
+        :root {
+            --primary: #0a192f;
+            --secondary: #1a237e;
+            --accent: #c5a059;
+            --text-light: #ffffff;
+            --text-dark: #1a1a1a;
+            --bg-slide: #ffffff;
+            --gradient: linear-gradient(135deg, #0a192f 0%, #1a237e 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #000;
+            color: var(--text-dark);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Container for slides */
+        .deck-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            perspective: 1000px;
+        }
+
+        /* Individual Slide */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: var(--bg-slide);
+            opacity: 0;
+            transform: translate3d(100%, 0, 0) scale(0.8);
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            padding: 40px;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+            pointer-events: auto;
+            z-index: 10;
+        }
+
+        .slide.prev {
+            transform: translate3d(-100%, 0, 0) scale(0.8);
+            opacity: 0;
+            z-index: 5;
+        }
+
+        /* Slide Content Styling */
+        .slide-content {
+            max-width: 1200px;
+            width: 100%;
+            text-align: center;
+            z-index: 2;
+        }
+
+        h1 {
+            font-size: 4rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            color: var(--secondary);
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        h3 {
+            font-size: 1.8rem;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        p,
+        li {
+            font-size: 1.5rem;
+            line-height: 1.6;
+            color: #444;
+            max-width: 900px;
+            margin: 0 auto 20px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 15px;
+            position: relative;
+            padding-right: 35px;
+        }
+
+        li::before {
+            content: "✓";
+            position: absolute;
+            right: 0;
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* Specialized Slides */
+        .slide-cover {
+            background: var(--gradient);
+            color: var(--text-light);
+            text-align: center;
+        }
+
+        .slide-cover h1,
+        .slide-cover h2,
+        .slide-cover p {
+            color: var(--text-light) !important;
+        }
+
+        .slide-cover .logo-placeholder {
+            width: 150px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            margin: 0 auto 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            border: 4px solid rgba(255, 255, 255, 0.4);
+        }
+
+        /* Grid Layout for specific slides */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            text-align: right;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card h4 {
+            font-size: 1.4rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .card .big-number {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* Image Placeholders */
+        .img-placeholder {
+            background: #f0f2f5;
+            border: 3px dashed #cbd5e1;
+            border-radius: 12px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 1.2rem;
+            margin: 20px auto;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .phone-mockup {
+            width: 280px;
+            height: 560px;
+            background: #fff;
+            border: 8px solid #333;
+            border-radius: 30px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e2e8f0;
+            color: #64748b;
+        }
+
+        /* Navigation Controls */
+        .controls {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        .btn-nav {
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: background 0.3s;
+        }
+
+        .btn-nav:hover {
+            background: var(--primary);
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            /* RTL direction */
+            height: 5px;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s;
+            z-index: 100;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            font-size: 1.2rem;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Animations */
+        @keyframes flowUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide.active h1,
+        .slide.active h2,
+        .slide.active p,
+        .slide.active li,
+        .slide.active .card {
+            animation: flowUp 0.8s forwards;
+            opacity: 0;
+            /* Start hidden */
+        }
+
+        .slide.active h1 {
+            animation-delay: 0.2s;
+        }
+
+        .slide.active h2 {
+            animation-delay: 0.4s;
+        }
+
+        .slide.active p {
+            animation-delay: 0.6s;
+        }
+
+        .slide.active li:nth-child(1) {
+            animation-delay: 0.6s;
+        }
+
+        .slide.active li:nth-child(2) {
+            animation-delay: 0.7s;
+        }
+
+        .slide.active li:nth-child(3) {
+            animation-delay: 0.8s;
+        }
+
+        .slide.active .card:nth-child(1) {
+            animation-delay: 0.6s;
+        }
+
+        .slide.active .card:nth-child(2) {
+            animation-delay: 0.7s;
+        }
+
+        .slide.active .card:nth-child(3) {
+            animation-delay: 0.8s;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="deck-container" id="deck">
+
+        <!-- Slide 1: Cover -->
+        <div class="slide active slide-cover">
+            <div class="slide-content">
+                <div class="logo-container">
+                    <svg viewBox="0 0 100 100" class="ejari-logo-svg">
+                        <defs>
+                            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#c5a059" />
+                                <stop offset="100%" style="stop-color:#e2c275" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M50 10 L15 40 L15 85 L85 85 L85 40 L50 10 Z" fill="none" stroke="url(#goldGrad)" stroke-width="3"/>
+                        <circle cx="50" cy="55" r="7" fill="url(#goldGrad)"/>
+                        <rect x="48" y="62" width="4" height="12" fill="url(#goldGrad)"/>
+                    </svg>
+                    <h1 style="font-size: 5rem; letter-spacing: 2px;">إيجاري <span style="color: var(--accent);">إيليت</span></h1>
+                    <p style="font-size: 1.5rem; opacity: 0.8;">مستقبل العقارات والخدمات في مصر</p>
+                </div>
+                <div style="margin-top: 40px; font-weight: 600; color: var(--accent);">
+                    عروض تقديمية للمستثمرين | Shark Tank Egypt
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: Problem -->
+        <div class="slide">
+            <div class="slide-content">
+                <h1>المشكلة (The Problem)</h1>
+                <div class="grid-2">
+                    <div class="glass-card">
+                        <i class="fas fa-exclamation-triangle infographic-icon"></i>
+                        <h3>سوق فوضوي</h3>
+                        <p>65% من المستأجرين يواجهون مشاكل قانونية أو احتيال بسبب غياب التوثيق.</p>
+                    </div>
+                    <div class="glass-card">
+                        <i class="fas fa-link-slash infographic-icon"></i>
+                        <h3>تشتت الخدمات</h3>
+                        <p>المستخدم يضطر للتعامل مع مقدمي خدمات مختلفين للنقل والصيانة بلا ضمان.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Solution -->
+        <div class="slide">
+            <div class="slide-content">
+                <h1>الحل: إيجاري</h1>
+                <h2>نظام بيئي متكامل (Ecosystem)</h2>
+                <p>منصة واحدة موحدة تربط جميع أطراف السوق في دائرة ثقة مغلقة.</p>
+                <div class="grid-3" style="text-align: center;">
+                    <div class="glass-card">
+                        <i class="fas fa-user-tie infographic-icon"></i>
+                        <h4>الملاك</h4>
+                        <p>إدارة أملاك، ضمان إيجار، وفحص مستأجرين.</p>
+                    </div>
+                    <div class="glass-card">
+                        <i class="fas fa-home infographic-icon"></i>
+                        <h4>المستأجرين</h4>
+                        <p>بحث ذكي، عقود إلكترونية، وخدمات انتقال.</p>
+                    </div>
+                    <div class="glass-card">
+                        <i class="fas fa-tools infographic-icon"></i>
+                        <h4>التجار</h4>
+                        <p>فرص عمل لشركات النقل والصيانة.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Product Demo -->
+        <div class="slide">
+            <div class="slide-content">
+                <h1>تجربة مستخدم استثنائية</h1>
+                <div class="grid-3" style="align-items: center;">
+                    <div class="phone-mockup">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen">
+                            <div style="color:white; font-size: 0.8rem; text-align: center; margin-top: 20px;">
+                                <i class="fas fa-map-marker-alt" style="color:var(--accent)"></i> القاهرة
+                            </div>
+                            <div style="margin-top: 30px; background: rgba(255,255,255,0.1); border-radius: 10px; height: 100px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-map-marked-alt fa-3x" style="color: var(--accent)"></i>
+                            </div>
+                            <div style="margin-top: 20px; font-size: 0.7rem;">
+                                <p style="font-weight: bold;">عقارات قريبة</p>
+                                <div style="display: flex; gap: 5px; margin-top: 10px;">
+                                    <div style="flex:1; height: 60px; background: rgba(255,255,255,0.05); border-radius: 5px;"></div>
+                                    <div style="flex:1; height: 60px; background: rgba(255,255,255,0.05); border-radius: 5px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="phone-mockup">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen" style="background: linear-gradient(135deg, #0a192f, #1a237e);">
+                            <div style="text-align: center; margin-top: 30px;">
+                                <i class="fas fa-brain fa-3x" style="color: var(--accent); margin-bottom: 20px;"></i>
+                                <h4 style="color: white; font-size: 0.8rem;">مستشار الذكاء الاصطناعي</h4>
+                                <p style="color: rgba(255,255,255,0.6); font-size: 0.6rem; margin-top: 10px;">تحليل ذكي لاحتياجاتك العقارية</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="phone-mockup">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen">
+                            <div style="margin-top: 30px; border: 1px solid var(--accent); border-radius: 15px; padding: 15px; text-align: center;">
+                                <i class="fas fa-shield-alt fa-2x" style="color: var(--accent)"></i>
+                                <p style="color: white; font-size: 0.8rem; margin-top: 10px;">دفع آمن وموثق</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Merchant Dashboard -->
+        <div class="slide">
+            <div class="slide-content">
+                <h1>لوحة التجار (Merchant Dashboard)</h1>
+                <div class="grid-2">
+                    <div class="glass-card" style="text-align: center;">
+                        <i class="fas fa-chart-line fa-4x" style="color: var(--accent); margin-bottom: 2rem;"></i>
+                        <div style="display: flex; justify-content: space-around; align-items: flex-end; height: 100px; gap: 10px;">
+                            <div style="width: 20px; height: 40%; background: var(--accent); border-radius: 4px;"></div>
+                            <div style="width: 20px; height: 70%; background: #e2e8f0; border-radius: 4px;"></div>
+                            <div style="width: 20px; height: 90%; background: var(--accent); border-radius: 4px;"></div>
+                            <div style="width: 20px; height: 60%; background: #e2e8f0; border-radius: 4px;"></div>
+                        </div>
+                        <p style="margin-top: 1rem;">إحصائيات فورية للأداء</p>
+                    </div>
+                    <div>
+                        <ul style="color: white; text-align: right; list-style: none;">
+                            <li style="margin-bottom: 1.5rem;"><i class="fas fa-check-circle" style="color: var(--accent); margin-left: 10px;"></i> متابعة حية للطلبات والتحصيل.</li>
+                            <li style="margin-bottom: 1.5rem;"><i class="fas fa-check-circle" style="color: var(--accent); margin-left: 10px;"></i> تحليلات مالية ورسوم بيانية للأرباح.</li>
+                            <li style="margin-bottom: 1.5rem;"><i class="fas fa-check-circle" style="color: var(--accent); margin-left: 10px;"></i> نظام إدارة علاقات العملاء (CRM) مصغر.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Market Size -->
+        <div class="slide">
+            <div class="slide-content">
+                <h1>حجم السوق (Market Opportunity)</h1>
+                <div class="grid-3">
+                    <div class="glass-card">
+                        <i class="fas fa-chart-pie infographic-icon"></i>
+                        <h4>TAM</h4>
+                        <div class="stat-value">175</div>
+                        <p>مليار جنيه<br>إجمالي سوق الإيجارات والخدمات</p>
+                    </div>
+                    <div class="glass-card">
+                        <i class="fas fa-bullseye infographic-icon"></i>
+                        <h4>SAM</h4>
+                        <div class="stat-value">50</div>
+                        <p>مليار جنيه<br>المعاملات الرقمية في المدن الكبرى</p>
+                    </div>
+                    <div class="glass-card">
+                        <i class="fas fa-flag infographic-icon"></i>
+                        <h4>SOM</h4>
+                        <div class="stat-value">90</div>
+                        <p>مليون جنيه<br>هدفنا في 3 سنوات (0.05%)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Business Model -->
+        <div class="slide">
+            <div class="slide-content">
+                <h1>نموذج العمل (Revenue Model)</h1>
+                <div class="grid-3" style="margin-top:20px;">
+                    <div class="glass-card">
+                        <i class="fas fa-percentage infographic-icon"></i>
+                        <h4>العمولات</h4>
+                        <p>10% عقارات<br>15% سيارات<br>20% خدمات</p>
+                    </div>
+                    <div class="glass-card">
+                        <i class="fas fa-gem infographic-icon" style="color: var(--accent);"></i>
+                        <h4>الاشتراكات</h4>
+                        <p>باقات للملاك<br>99 - 499 ج.م/شهرياً</p>
+                    </div>
+                    <div class="glass-card">
+                        <i class="fas fa-file-contract infographic-icon"></i>
+                        <h4>القيمة المضافة</h4>
+                        <p>توثيق عقود<br>تأمين شامل</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Financials -->
+        <div class="slide">
+            <div class="slide-content">
+                <h1>التوقعات المالية</h1>
+                <div class="glass-card" style="padding: 0; overflow: hidden;">
+                    <table style="width: 100%; border-collapse: collapse; color: white;">
+                        <thead style="background: var(--primary); color: var(--accent);">
+                            <tr>
+                                <th style="padding: 1.5rem;">البيان</th>
+                                <th style="padding: 1.5rem;">السنة الأولى (Y1)</th>
+                                <th style="padding: 1.5rem;">السنة الثانية (Y2)</th>
+                                <th style="padding: 1.5rem;">السنة الثالثة (Y3)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr style="border-bottom: 1px solid var(--glass-border);">
+                                <td style="padding: 1.2rem;">المستخدمين النشطين</td>
+                                <td>10,000</td>
+                                <td>50,000</td>
+                                <td>200,000</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid var(--glass-border);">
+                                <td style="padding: 1.2rem;">إجمالي الإيرادات</td>
+                                <td style="color: var(--accent);">3 مليون ج.م</td>
+                                <td style="color: var(--accent);">18 مليون ج.م</td>
+                                <td style="color: var(--accent);">90 مليون ج.م</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 1.2rem;">صافي الأرباح</td>
+                                <td>(نمو واستثمار)</td>
+                                <td>4 مليون ج.م</td>
+                                <td>25 مليون ج.م</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: The Ask -->
+        <div class="slide">
+            <div class="slide-content">
+                <h1>فرصة الاستثمار (The Ask)</h1>
+                <div class="grid-2">
+                    <div style="text-align: center;">
+                        <h2 style="color: white; margin-bottom: 2rem;">المطلوب</h2>
+                        <div class="stat-value" style="font-size: 8rem;">3-5</div>
+                        <span style="font-size: 2rem; color: white; display:block;">مليون جنيه مصري</span>
+                        <p style="margin-top:20px; font-weight:bold; color: var(--accent);">مقابل 15-20% حصة (Equity)</p>
+                    </div>
+                    <div class="glass-card">
+                        <h2 style="margin-bottom: 2rem; border-bottom: 1px solid var(--accent); padding-bottom: 1rem;">استخدام الأموال</h2>
+                        <ul style="list-style: none; text-align: right;">
+                            <li style="margin-bottom: 1.5rem;"><span style="color: var(--accent); font-weight: bold;">50%</span> التسويق واكتساب المستخدمين</li>
+                            <li style="margin-bottom: 1.5rem;"><span style="color: var(--accent); font-weight: bold;">30%</span> تطوير الفريق والعمليات</li>
+                            <li style="margin-bottom: 1.5rem;"><span style="color: var(--accent); font-weight: bold;">20%</span> تطوير تقني وبنية تحتية</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Closing -->
+        <div class="slide slide-cover">
+            <div class="slide-content">
+                <div class="logo-container">
+                    <svg viewBox="0 0 100 100" class="ejari-logo-svg" style="width: 150px; height: 150px;">
+                        <defs>
+                            <linearGradient id="goldGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#c5a059" />
+                                <stop offset="100%" style="stop-color:#e2c275" />
+                            </linearGradient>
+                        </defs>
+                        <path d="M50 10 L15 40 L15 85 L85 85 L85 40 L50 10 Z" fill="none" stroke="url(#goldGrad2)" stroke-width="3"/>
+                        <circle cx="50" cy="55" r="7" fill="url(#goldGrad2)"/>
+                        <rect x="48" y="62" width="4" height="12" fill="url(#goldGrad2)"/>
+                    </svg>
+                    <h1 style="font-size: 4rem;">شكراً لكم!</h1>
+                    <h2 style="color: var(--accent); margin-bottom: 3rem;">هل لديك أي أسئلة؟</h2>
+                    <div class="grid-2" style="width: 100%; max-width: 600px;">
+                        <div class="glass-card" style="padding: 1rem;">
+                            <i class="fas fa-envelope" style="color: var(--accent);"></i><br>
+                            investors@ejari.app
+                        </div>
+                        <div class="glass-card" style="padding: 1rem;">
+                            <i class="fas fa-phone" style="color: var(--accent);"></i><br>
+                            +20 10 9999 8888
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+        <button class="btn-nav" onclick="prevSlide()">❮ السابق</button>
+        <button class="btn-nav" onclick="nextSlide()">التالي ❯</button>
+    </div>
+    <div class="progress-bar" id="progress"></div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const progress = document.getElementById('progress');
+
+        function updateSlide() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active', 'prev');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else if (index < currentSlide) {
+                    slide.classList.add('prev');
+                }
+            });
+            // Update progress bar
+            const percent = ((currentSlide + 1) / slides.length) * 100;
+            progress.style.width = percent + '%';
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                updateSlide();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateSlide();
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+                nextSlide(); // RTL: Left arrow means next logic usually, but let's stick to standard flow
+            } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+                prevSlide();
+            } else if (e.key === ' ') {
+                nextSlide();
+            }
+        });
+
+        // Initial call
+        updateSlide();
+    </script>
+</body>
+
+</html>

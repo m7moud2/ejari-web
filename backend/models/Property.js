@@ -18,7 +18,7 @@ const propertySchema = new mongoose.Schema({
     type: {
         type: String,
         required: [true, 'الرجاء تحديد نوع العقار'],
-        enum: ['apartment', 'villa', 'house', 'office', 'shop']
+        enum: ['apartment', 'villa', 'house', 'office', 'shop', 'chalet', 'hotel', 'studio', 'land']
     },
     status: {
         type: String,

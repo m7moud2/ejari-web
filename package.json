@@ -1,5 +1,5 @@
 {
-  "name": "ejari-web1",
+  "name": "ejari-web",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,5 +8,12 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
+    "@capacitor/ios": "^7.4.4",
+    "puppeteer-core": "^22.15.0"
+  }
 }

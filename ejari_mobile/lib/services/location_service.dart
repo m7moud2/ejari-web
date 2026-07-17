@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:location/location.dart' as loc;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -45,16 +45,6 @@ class UserLocationSnapshot {
     return city ?? governorate ?? 'مصر';
   }
 
-  Map<String, dynamic> toJson() => {
-        'lat': lat,
-        'lng': lng,
-        'governorate': governorate,
-        'city': city,
-        'displayLabel': displayLabel,
-        'permissionGranted': permissionGranted,
-        'isManual': isManual,
-      };
-
   factory UserLocationSnapshot.fromPrefs(SharedPreferences prefs) {
     return UserLocationSnapshot(
       lat: prefs.getDouble(_kLat),
@@ -78,8 +68,11 @@ const _kManual = 'user_loc_manual';
 const _kAskedSession = 'user_loc_asked_session';
 const _kDeniedForever = 'user_loc_denied_forever';
 
+/// Location for tenant discovery. Uses [location] (mobile + web geolocation)
+/// and [permission_handler] on native platforms.
 class LocationService {
-  /// Load last known snapshot from SharedPreferences.
+  static final loc.Location _location = loc.Location();
+
   static Future<UserLocationSnapshot> loadSaved() async {
     final prefs = await SharedPreferences.getInstance();
     return UserLocationSnapshot.fromPrefs(prefs);
@@ -124,19 +117,13 @@ class LocationService {
     await saveSnapshot(snap);
   }
 
-  /// Whether we should show the polite Arabic location dialog on this cold start.
   static Future<bool> shouldPromptForLocation() async {
     final prefs = await SharedPreferences.getInstance();
     final saved = UserLocationSnapshot.fromPrefs(prefs);
     if (saved.permissionGranted && saved.hasCoords) return false;
     if (saved.isManual && saved.hasArea) return false;
-
-    // Re-prompt each cold start if not granted (session flag cleared on process restart).
     final asked = prefs.getBool(_kAskedSession) ?? false;
-    if (asked && prefs.getBool(_kDeniedForever) == true) {
-      // Still allow prompt once per session was already asked — skip if denied forever this session
-      return false;
-    }
+    if (asked && prefs.getBool(_kDeniedForever) == true) return false;
     return !asked;
   }
 
@@ -145,64 +132,51 @@ class LocationService {
     await prefs.setBool(_kAskedSession, true);
   }
 
-  /// Request OS / browser location permission and resolve area.
   static Future<UserLocationSnapshot?> requestAndResolve() async {
     try {
       await markPromptShown();
 
-      if (kIsWeb) {
-        return _resolveWithGeolocator();
+      if (!kIsWeb) {
+        final status = await Permission.locationWhenInUse.request();
+        if (status.isPermanentlyDenied) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool(_kDeniedForever, true);
+          return null;
+        }
+        if (!status.isGranted && !status.isLimited) {
+          return null;
+        }
       }
 
-      final status = await Permission.locationWhenInUse.request();
-      if (status.isPermanentlyDenied) {
+      bool serviceEnabled = await _location.serviceEnabled();
+      if (!serviceEnabled) {
+        serviceEnabled = await _location.requestService();
+        if (!serviceEnabled) return null;
+      }
+
+      var permission = await _location.hasPermission();
+      if (permission == loc.PermissionStatus.denied) {
+        permission = await _location.requestPermission();
+      }
+      if (permission != loc.PermissionStatus.granted &&
+          permission != loc.PermissionStatus.grantedLimited) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setBool(_kDeniedForever, true);
         return null;
       }
-      if (!status.isGranted && !status.isLimited) {
-        return null;
-      }
 
-      return _resolveWithGeolocator();
-    } catch (e) {
-      debugPrint('Location request failed: $e');
-      return null;
-    }
-  }
-
-  static Future<UserLocationSnapshot?> _resolveWithGeolocator() async {
-    try {
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled && !kIsWeb) {
-        // Web / some desktop: still try getCurrentPosition
-        debugPrint('Location services disabled');
-      }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        final prefs = await SharedPreferences.getInstance();
-        if (permission == LocationPermission.deniedForever) {
-          await prefs.setBool(_kDeniedForever, true);
-        }
-        return null;
-      }
-
-      final pos = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
-          timeLimit: Duration(seconds: 12),
-        ),
+      final data = await _location.getLocation().timeout(
+        const Duration(seconds: 12),
+        onTimeout: () => loc.LocationData.fromMap(const {}),
       );
+      final lat = data.latitude;
+      final lng = data.longitude;
+      if (lat == null || lng == null) return null;
 
-      final area = await reverseGeocode(pos.latitude, pos.longitude);
+      final area = await reverseGeocode(lat, lng);
       final snap = UserLocationSnapshot(
-        lat: pos.latitude,
-        lng: pos.longitude,
+        lat: lat,
+        lng: lng,
         governorate: area.governorate,
         city: area.city,
         displayLabel: area.label,
@@ -212,7 +186,7 @@ class LocationService {
       await saveSnapshot(snap);
       return snap;
     } catch (e) {
-      debugPrint('Geolocator resolve failed: $e');
+      debugPrint('Location request failed: $e');
       return null;
     }
   }
@@ -250,7 +224,6 @@ class LocationService {
       );
     } catch (e) {
       debugPrint('Reverse geocode failed: $e');
-      // Fallback: nearest governorate center
       String? nearest;
       var best = double.infinity;
       EgyptLocations.governorateCenters.forEach((g, c) {
@@ -270,23 +243,12 @@ class LocationService {
     }
   }
 
-  /// Legacy helper used by map / property provider.
-  static Future<Position?> getCurrentLocation() async {
+  /// Returns lat/lng map for map / property sorting helpers.
+  static Future<Map<String, double>?> getCurrentLocation() async {
     try {
       final snap = await requestAndResolve();
       if (snap?.lat == null || snap?.lng == null) return null;
-      return Position(
-        longitude: snap!.lng!,
-        latitude: snap.lat!,
-        timestamp: DateTime.now(),
-        accuracy: 0,
-        altitude: 0,
-        altitudeAccuracy: 0,
-        heading: 0,
-        headingAccuracy: 0,
-        speed: 0,
-        speedAccuracy: 0,
-      );
+      return {'latitude': snap!.lat!, 'longitude': snap.lng!};
     } catch (_) {
       return null;
     }
@@ -297,7 +259,6 @@ class LocationService {
     return area.label;
   }
 
-  /// Polite Arabic dialog — enable location for nearest units.
   static Future<UserLocationSnapshot?> showEnableLocationDialog(
     BuildContext context,
   ) async {
@@ -372,7 +333,6 @@ class LocationService {
     return null;
   }
 
-  /// Cascading governorate → city picker when permission denied.
   static Future<UserLocationSnapshot?> showManualPicker(
     BuildContext context,
   ) async {

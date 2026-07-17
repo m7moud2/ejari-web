@@ -4,38 +4,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تأجير سيارات - إيجاري</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/business-pitch.css">
-    <link rel="stylesheet" href="css/localization.css">
+    <title>تأجير سيارات إيليت | إيجاري إيليت - منصة العقارات المتميزة</title>
+
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/components/modal.css">
+    <link rel="stylesheet" href="css/components/notifications.css">
+    <link rel="stylesheet" href="css/business-pitch.css">
+    <link rel="stylesheet" href="css/localization.css">
+    
+    <!-- Theme Toggle Script -->
+    <script src="js/theme-toggle.js" defer></script>
     <style>
         .cars-hero {
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('images/car-hero.jpg') center/cover;
-            padding: 6rem 0;
+            position: relative;
+            background: url('images/car-hero.jpg') center/cover no-repeat;
+            padding: 100px 0;
             color: white;
             text-align: center;
-            margin-bottom: 2rem;
+            margin-top: 70px;
+            overflow: hidden;
         }
 
-        .cars-hero h1 {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        .cars-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.6) 100%);
+            z-index: 1;
         }
 
-        .cars-hero p {
-            font-size: 1.2rem;
-            opacity: 0.9;
+        .cars-hero .container {
+            position: relative;
+            z-index: 2;
         }
 
         .filters-container {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            margin-top: -4rem;
+            margin-top: -60px;
             position: relative;
             z-index: 10;
         }
@@ -170,32 +180,51 @@
 
 <body>
     <!-- Navbar -->
-    <nav class="navbar">
+    <header class="navbar">
         <div class="container">
             <div class="logo">
-                <a href="index.html">إيجاري</a>
+                <a href="index.html"
+                    style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-home" style="color: var(--elite-gold);"></i>
+                    إيجاري إيليت
+                </a>
             </div>
-            <ul class="nav-links">
-                <li><a href="index.html">الرئيسية</a></li>
-                <li><a href="properties.html">عقارات</a></li>
-                <li><a href="cars.html" class="active">سيارات</a></li>
-                <li><a href="services.html">الخدمات</a></li>
-                <li><a href="contact.html">تواصل معنا</a></li>
-            </ul>
-            <!-- Settings (Country & Language) -->
-            <div class="settings-container">
-                <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
-                    <i class="fas fa-globe"></i>
-                    <span id="countrySelector">🇸🇦 السعودية</span>
+
+            <nav class="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="index.html">الرئيسية</a></li>
+                    <li><a href="properties.html">عقارات</a></li>
+                    <li><a href="cars.html" class="active">سيارات</a></li>
+                    <li><a href="services.html">الخدمات</a></li>
+                    <li><a href="contact.html">تواصل معنا</a></li>
+                </ul>
+            </nav>
+
+            <div class="nav-icons">
+                <!-- Theme Toggle -->
+                <button class="settings-btn" id="themeToggle" title="تبديل المظهر">
+                    <i class="fas fa-moon"></i>
+                    <i class="fas fa-sun" style="display:none;"></i>
                 </button>
-                <div id="settingsDropdownContainer"></div>
-            </div>
-            <div class="auth-buttons">
-                <button class="btn btn-outline" onclick="location.href='login.html'">تسجيل دخول</button>
-                <button class="btn btn-primary" onclick="location.href='signup.html'">إنشاء حساب</button>
+
+                <div class="settings-container">
+                    <button class="settings-btn" onclick="toggleSettings()" id="settingsBtn">
+                        <i class="fas fa-globe"></i>
+                        <span>🇸🇦 السعودية</span>
+                    </button>
+                </div>
+
+                <div class="auth-buttons" id="authButtons">
+                    <a href="signup.html" class="btn btn-elite">إنشاء حساب</a>
+                    <a href="login.html" class="btn btn-outline">تسجيل الدخول</a>
+                </div>
+
+                <button class="menu-btn" onclick="toggleMobileMenu()" aria-label="القائمة">
+                    <i class="fas fa-bars"></i>
+                </button>
             </div>
         </div>
-    </nav>
+    </header>
 
     <!-- Hero Section -->
     <section class="cars-hero">
@@ -207,13 +236,13 @@
 
     <!-- Search & Filter -->
     <div class="container">
-        <div class="filters-container">
+        <div class="filters-container glass-card" style="padding: 2rem;">
             <div class="search-grid">
                 <div class="filter-group">
-                    <input type="text" placeholder="ابحث عن نوع السيارة...">
+                    <input type="text" placeholder="ابحث عن نوع السيارة..." class="elite-input">
                 </div>
                 <div class="filter-group">
-                    <select>
+                    <select class="elite-input">
                         <option value="">الفئة</option>
                         <option>سيدان</option>
                         <option>دفع رباعي</option>
@@ -222,7 +251,7 @@
                     </select>
                 </div>
                 <div class="filter-group">
-                    <select>
+                    <select class="elite-input">
                         <option value="">السعر اليومي</option>
                         <option>أقل من 1,000</option>
                         <option>1,000 - 3,000</option>
@@ -231,14 +260,14 @@
                     </select>
                 </div>
                 <div class="filter-group">
-                    <select>
+                    <select class="elite-input">
                         <option value="">سنة الصنع</option>
                         <option>2024</option>
                         <option>2023</option>
                         <option>2022</option>
                     </select>
                 </div>
-                <button class="btn btn-primary" style="height: 100%;">
+                <button class="btn-elite" style="height: 50px;">
                     <i class="fas fa-search"></i> بحث
                 </button>
             </div>
@@ -407,7 +436,7 @@
                 <div class="footer-section">
                     <h3>تواصل معنا</h3>
                     <ul>
-                        <li>info@ejari.com</li>
+                        <li>info@ejari.app</li>
                         <li>+20 123 456 789</li>
                         <li>القاهرة، مصر</li>
                     </ul>

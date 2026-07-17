@@ -307,8 +307,21 @@
     <script>
         function submitSubscription(e) {
             e.preventDefault();
-            alert('شكراً لك! سيتم مراجعة طلبك والتواصل معك خلال 48 ساعة.');
-            e.target.reset();
+            const rentInput = e.target.querySelectorAll('input[type="number"]')[0];
+            const rentValue = parseFloat(rentInput.value) || 0;
+            const price = rentValue * 0.02; // 2% value
+
+            const booking = {
+                id: Date.now(),
+                itemTitle: 'ضمان دفع الإيجار',
+                price: price,
+                totalCost: price,
+                serviceFee: 0,
+                type: 'service',
+                image: 'images/home7.jpg'
+            };
+            localStorage.setItem('currentBooking', JSON.stringify(booking));
+            window.location.href = 'payment.html';
         }
 
         // Close dropdown when clicking outside

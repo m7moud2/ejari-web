@@ -99,18 +99,17 @@ cp android/key.properties.example android/key.properties
 # keyPassword=...
 # keyAlias=upload
 
-# 3. بناء APK للاختبار
+# 3. بناء APK للإنتاج (Firebase حقيقي — الافتراضي في release)
 flutter build apk --release \
-  --dart-define=API_BASE_URL=https://api.ejari.app/api \
   --dart-define=DEMO_MODE=false
 
 # 4. بناء AAB لـ Google Play
 flutter build appbundle --release \
-  --dart-define=API_BASE_URL=https://api.ejari.app/api \
   --dart-define=DEMO_MODE=false
 ```
 
 راجع [`releases/README.md`](releases/README.md) لتعليمات الرفع على Play Store بالعربية.
+راجع [`FIREBASE_SETUP_AR.md`](FIREBASE_SETUP_AR.md) لإعداد Firebase Spark.
 
 ### الاختبار
 ```bash
@@ -127,14 +126,22 @@ flutter build ios
 
 ### إعداد التشغيل والإنتاج
 
-وضع الديمو يعمل تلقائياً أثناء التطوير فقط. نسخة الإنتاج يجب أن تُبنى بعنوان API حقيقي:
+**نسخة الـ release** تستخدم Firebase Auth + Firestore تلقائياً (خطة Spark المجانية).
+وضع العرض يبقى للتطوير والاختبارات فقط.
 
 ```bash
-flutter build apk --release \
-  --dart-define=API_BASE_URL=https://api.example.com/api
+# إنتاج — Firebase حقيقي (الافتراضي في --release)
+flutter build apk --release
+# أو صراحةً:
+flutter build apk --release --dart-define=DEMO_MODE=false
+
+# تطوير مع وضع العرض
+flutter run --dart-define=DEMO_MODE=true
 ```
 
-أضف `--dart-define=DEMO_MODE=false` عند اختبار إعدادات الإنتاج من نسخة debug.
+راجع [`FIREBASE_SETUP_AR.md`](FIREBASE_SETUP_AR.md) لتفعيل Email/Password ونشر قواعد Firestore.
+
+أضف `--dart-define=DEMO_MODE=false` عند اختبار Firebase من نسخة debug.
 
 ولتفعيل بيانات الديمو صراحةً:
 

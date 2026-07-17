@@ -252,8 +252,23 @@
     <script>
         function submitQuote(e) {
             e.preventDefault();
-            alert('شكراً لك! سيتم التواصل معك خلال 24 ساعة بعرض سعر مخصص.');
-            e.target.reset();
+            const packageSelect = e.target.querySelector('select:last-of-type').value;
+            let price = 0;
+            if (packageSelect.includes('الأساسية')) price = 500;
+            else if (packageSelect.includes('الشاملة')) price = 1200;
+            else if (packageSelect.includes('الذهبية')) price = 2500;
+
+            const booking = {
+                id: Date.now(),
+                itemTitle: 'تأمين - ' + (packageSelect || 'عرض سعر مخصص'),
+                price: price,
+                totalCost: price,
+                serviceFee: 0,
+                type: 'service',
+                image: 'images/home3.jpg'
+            };
+            localStorage.setItem('currentBooking', JSON.stringify(booking));
+            window.location.href = 'payment.html';
         }
 
         // Close dropdown when clicking outside

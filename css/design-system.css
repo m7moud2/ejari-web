@@ -1,0 +1,232 @@
+/* Ejari Elite Design System */
+
+:root {
+    /* Color Palette - Premium Elite Brand (Quiet Luxury) */
+    --elite-navy: #0a0e17;
+    --elite-navy-light: #161c2a;
+    --elite-gold: #bca374;
+    --elite-gold-light: #d8c49f;
+    --elite-gold-dark: #8c7247;
+    --elite-silver: #f3f4f6;
+    --elite-white: #ffffff;
+    --elite-black: #05070a;
+    
+    /* Semantic Colors */
+    --primary-color: var(--elite-navy);
+    --accent-color: var(--elite-gold);
+    --bg-light: #fbfbfa; /* Warm luxury ivory/alabaster */
+    --bg-dark: var(--elite-black);
+    --text-main: #2c333f;
+    --text-muted: #6b7280;
+    --text-on-dark: #f9fafb;
+    
+    /* Gradients */
+    --gold-gradient: linear-gradient(135deg, #bca374 0%, #d8c49f 100%);
+    --navy-gradient: linear-gradient(135deg, #0a0e17 0%, #161c2a 100%);
+    --premium-glass: rgba(255, 255, 255, 0.45);
+    --premium-glass-dark: rgba(10, 14, 23, 0.75);
+    
+    /* Shadows & Blurs - Sophisticated & Soft */
+    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.02);
+    --shadow-premium: 0 16px 40px rgba(0, 0, 0, 0.03);
+    --blur-glass: blur(8px);
+    
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Base UI Improvements */
+body {
+    font-family: 'Cairo', sans-serif;
+    color: var(--text-main);
+    background-color: var(--bg-light);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    letter-spacing: 0.01em;
+}
+
+body[data-theme="dark"] {
+    background-color: var(--bg-dark);
+    color: var(--text-on-dark);
+}
+
+/* Glassmorphism Utilities */
+.glass-card {
+    background: var(--premium-glass);
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    border-radius: 12px;
+    box-shadow: var(--shadow-soft);
+}
+
+body[data-theme="dark"] .glass-card {
+    background: var(--premium-glass-dark);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-nav {
+    background: rgba(251, 251, 250, 0.85);
+    backdrop-filter: var(--blur-glass);
+    -webkit-backdrop-filter: var(--blur-glass);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+body[data-theme="dark"] .glass-nav {
+    background: rgba(5, 7, 10, 0.9);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Premium Buttons */
+.btn-elite {
+    background: var(--elite-navy);
+    color: var(--elite-white);
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 12px 32px;
+    border-radius: 6px;
+    border: 1px solid var(--elite-navy);
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    box-shadow: none;
+}
+
+.btn-elite:hover {
+    background: transparent;
+    color: var(--elite-navy);
+    transform: translateY(-1px);
+}
+
+body[data-theme="dark"] .btn-elite {
+    background: var(--elite-gold);
+    color: var(--elite-black);
+    border: 1px solid var(--elite-gold);
+}
+
+body[data-theme="dark"] .btn-elite:hover {
+    background: transparent;
+    color: var(--elite-gold);
+}
+
+/* Typography Overrides */
+h1, h2, h3 {
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.text-gold {
+    color: var(--elite-gold);
+    display: inline-block;
+}
+
+/* Dark Mode Overrides */
+body[data-theme="dark"] .stat-card,
+body[data-theme="dark"] .feature-card,
+body[data-theme="dark"] .category-item {
+    background: var(--elite-navy-light);
+    color: var(--text-on-dark);
+}
+
+body[data-theme="dark"] .nav-links a {
+    color: var(--text-on-dark);
+}
+
+/* Premium Hero Styles */
+.premium-hero {
+    position: relative;
+    height: 90vh;
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+    background: url('../images/hero-bg-premium.jpg') center/cover no-repeat;
+    margin-top: 70px;
+    overflow: hidden;
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.4) 100%);
+    z-index: 1;
+}
+
+.premium-hero .container {
+    position: relative;
+    z-index: 2;
+}
+
+.hero-badge {
+    background: rgba(212, 175, 55, 0.2);
+    color: var(--elite-gold);
+    padding: 8px 16px;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: inline-block;
+    margin-bottom: 20px;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+}
+
+.premium-hero h1 {
+    font-size: 4rem;
+    color: white;
+    line-height: 1.2;
+    margin-bottom: 20px;
+}
+
+.premium-hero p {
+    font-size: 1.25rem;
+    color: rgba(255, 255, 255, 0.8);
+    max-width: 600px;
+    margin-bottom: 40px;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 60px;
+}
+
+.hero-stats {
+    display: flex;
+    gap: 50px;
+}
+
+.hero-stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--elite-gold);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn { animation: fadeIn 1s ease-out forwards; }
+.animate-slideUp { opacity: 0; animation: slideUp 0.8s ease-out forwards; }
+
+.delay-100 { animation-delay: 0.2s; }
+.delay-200 { animation-delay: 0.4s; }
+.delay-300 { animation-delay: 0.6s; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .premium-hero h1 { font-size: 2.5rem; }
+    .hero-stats { flex-wrap: wrap; gap: 30px; }
+}

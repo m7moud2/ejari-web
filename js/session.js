@@ -115,7 +115,7 @@ const SessionManager = {
                 {
                     id: 99,
                     name: 'Admin',
-                    email: 'admin@ejari.com',
+                    email: 'admin@ejari.app',
                     password: 'admin123',
                     phone: '01000000000',
                     role: 'admin',

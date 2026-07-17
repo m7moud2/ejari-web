@@ -151,6 +151,9 @@ exports.updateProperty = asyncHandler(async (req, res, next) => {
 // @desc      حذف عقار
 // @route     DELETE /api/properties/:id
 // @access    Private
+// @desc      حذف عقار
+// @route     DELETE /api/properties/:id
+// @access    Private
 exports.deleteProperty = asyncHandler(async (req, res, next) => {
     const property = await Property.findById(req.params.id);
     
@@ -163,10 +166,108 @@ exports.deleteProperty = asyncHandler(async (req, res, next) => {
         return next(new ErrorResponse('غير مصرح لك بحذف هذا العقار', 401));
     }
     
-    await property.remove();
+    await property.deleteOne();
     
     res.status(200).json({
         success: true,
         data: {}
+    });
+});
+
+// @desc      الحصول على عقار معين
+// @route     GET /api/properties/:id
+// @access    Public
+exports.getProperty = asyncHandler(async (req, res, next) => {
+    const property = await Property.findById(req.params.id).populate({
+        path: 'owner',
+        select: 'name email phone'
+    });
+
+    if (!property) {
+        return next(new ErrorResponse('العقار غير موجود', 404));
+    }
+
+    res.status(200).json({
+        success: true,
+        data: property
+    });
+});
+
+// @desc      البحث عن العقارات في نطاق معين
+// @route     GET /api/properties/radius/:zipcode/:distance
+// @access    Public
+exports.getPropertiesInRadius = asyncHandler(async (req, res, next) => {
+    const { zipcode, distance } = req.params;
+
+    const loc = await geocoder.geocode(zipcode);
+    if (!loc || loc.length === 0) {
+        return next(new ErrorResponse('الرمز البريدي غير صحيح', 400));
+    }
+    const lat = loc[0].latitude;
+    const lng = loc[0].longitude;
+
+    // نصف قطر الأرض بالـ ميل = 3963، بالـ كم = 6378
+    const radius = distance / 6378;
+
+    const properties = await Property.find({
+        'location.coordinates': { $geoWithin: { $centerSphere: [[lng, lat], radius] } }
+    });
+
+    res.status(200).json({
+        success: true,
+        count: properties.length,
+        data: properties
+    });
+});
+
+// @desc      رفع صورة للعقار
+// @route     PUT /api/properties/:id/photo
+// @access    Private
+exports.propertyPhotoUpload = asyncHandler(async (req, res, next) => {
+    const path = require('path');
+    const property = await Property.findById(req.params.id);
+
+    if (!property) {
+        return next(new ErrorResponse('العقار غير موجود', 404));
+    }
+
+    // التأكد من ملكية العقار
+    if (property.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+        return next(new ErrorResponse('غير مصرح لك بتحديث هذا العقار', 401));
+    }
+
+    if (!req.files) {
+        return next(new ErrorResponse('الرجاء رفع ملف صورة', 400));
+    }
+
+    const file = req.files.file;
+
+    // التحقق من أنه ملف صورة
+    if (!file.mimetype.startsWith('image')) {
+        return next(new ErrorResponse('الرجاء رفع ملف صورة فقط', 400));
+    }
+
+    // التحقق من حجم الملف
+    const maxFileSize = process.env.MAX_FILE_SIZE || 5242880;
+    if (file.size > maxFileSize) {
+        return next(new ErrorResponse('حجم الملف كبير جداً', 400));
+    }
+
+    // إنشاء اسم فريد للملف
+    file.name = `photo_${property._id}${path.parse(file.name).ext}`;
+
+    const uploadPath = process.env.UPLOAD_PATH || './uploads';
+    file.mv(`${uploadPath}/${file.name}`, async err => {
+        if (err) {
+            console.error(err);
+            return next(new ErrorResponse('مشكلة في رفع الملف', 500));
+        }
+
+        await Property.findByIdAndUpdate(req.params.id, { $push: { images: file.name } });
+
+        res.status(200).json({
+            success: true,
+            data: file.name
+        });
     });
 });

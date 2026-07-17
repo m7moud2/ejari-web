@@ -136,10 +136,17 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// Add loading animation
-window.addEventListener('load', () => {
+// Add loading animation safely checking readyState
+function markAsLoaded() {
     document.body.classList.add('loaded');
-});
+}
+
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    markAsLoaded();
+} else {
+    window.addEventListener('DOMContentLoaded', markAsLoaded);
+    window.addEventListener('load', markAsLoaded);
+}
 
 // Performance optimization: Lazy load images
 if ('IntersectionObserver' in window) {

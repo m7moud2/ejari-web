@@ -18,21 +18,50 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // إضافة للمفضلة
-    const favoriteButtons = document.querySelectorAll('.favorite-btn');
-    favoriteButtons.forEach(button => {
-        button.addEventListener('click', (e) => {
-            e.preventDefault();
-            button.querySelector('i').classList.toggle('fas');
-            button.querySelector('i').classList.toggle('far');
-            
-            if (button.querySelector('i').classList.contains('fas')) {
-                showNotification('تمت الإضافة للمفضلة');
-            } else {
-                showNotification('تمت الإزالة من المفضلة');
-            }
+    const getFavoriteItems = () => JSON.parse(localStorage.getItem('ejari_favorites')) || [];
+    const saveFavoriteItems = (items) => localStorage.setItem('ejari_favorites', JSON.stringify(items));
+    const syncFavoriteButtonState = (btn, isFavorite) => {
+        const icon = btn.querySelector('i');
+        btn.classList.toggle('active', isFavorite);
+        if (icon) {
+            icon.style.color = isFavorite ? '#f5576c' : '';
+            icon.classList.toggle('fas', isFavorite);
+            icon.classList.toggle('far', !isFavorite);
+        }
+    };
+    const toggleFavoriteFromButton = (btn) => {
+        const card = btn.closest('[data-property-id]') || btn.closest('.property-card');
+        const propertyId = card?.dataset?.propertyId || card?.dataset?.id || btn.dataset?.propertyId || card?.querySelector('button.btn-details')?.onclick?.toString?.().match(/id=(\d+)/)?.[1];
+        if (!propertyId) return;
+        const title = card?.dataset?.propertyTitle || card?.querySelector('h3')?.textContent || card?.querySelector('h4')?.textContent || 'عقار';
+        const image = card?.querySelector('img')?.src || 'images/home1.jpg';
+        const price = Number(card?.dataset?.price || 0);
+        let favorites = getFavoriteItems();
+        const exists = favorites.find(item => String(item.id) === String(propertyId));
+        favorites = exists ? favorites.filter(item => String(item.id) !== String(propertyId)) : [{ id: propertyId, title, image, price, savedAt: new Date().toISOString() }, ...favorites];
+        saveFavoriteItems(favorites);
+        syncFavoriteButtonState(btn, !exists);
+        if (typeof showNotification === 'function') {
+            showNotification(exists ? 'تمت الإزالة من المفضلة' : 'تمت الإضافة للمفضلة');
+        }
+        window.dispatchEvent(new CustomEvent('ejari:favorites-updated', { detail: favorites }));
+    };
+    window.refreshFavoriteButtons = () => {
+        document.querySelectorAll('.favorite-btn').forEach(btn => {
+            const card = btn.closest('[data-property-id]') || btn.closest('.property-card');
+            const propertyId = card?.dataset?.propertyId || card?.dataset?.id;
+            if (!propertyId) return;
+            const exists = getFavoriteItems().some(item => String(item.id) === String(propertyId));
+            syncFavoriteButtonState(btn, exists);
         });
+    };
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.favorite-btn');
+        if (!btn) return;
+        e.preventDefault();
+        toggleFavoriteFromButton(btn);
     });
+    window.refreshFavoriteButtons();
 
     // إضافة إلى عربة التسوق
     window.addToCart = function(itemId) {
