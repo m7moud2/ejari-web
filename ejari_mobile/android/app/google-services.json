@@ -12,7 +12,20 @@
           "package_name": "com.ejari.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "349888023290-6s9hlmgrjv794ogih7t9tdf7acsm56mh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ejari.app",
+            "certificate_hash": "8942536fb5bac7ab95fda538843d3ac3066d5f5e"
+          }
+        },
+        {
+          "client_id": "349888023290-dtm53q310e28im7e7glf4o1qj6t73sqi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAx7ay3v8mv1f5vFvDeavp3VUU4CE36RyE"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "349888023290-dtm53q310e28im7e7glf4o1qj6t73sqi.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "349888023290-39h21e1hl04ivrucsdoqf5inb5qfkm9p.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.ejari.app"
+              }
+            }
+          ]
         }
       }
     }
