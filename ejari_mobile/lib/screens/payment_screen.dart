@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
@@ -16,8 +17,10 @@ import '../models/payment_receipt.dart';
 import '../services/auth_service.dart';
 import '../services/maintenance_service.dart';
 import '../services/payment_methods_service.dart';
+import '../services/paymob_service.dart';
 import 'success_payment_screen.dart';
 import 'booking_confirmation_screen.dart';
+import 'paymob_iframe_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   final String itemType;
@@ -326,6 +329,50 @@ class _PaymentScreenState extends State<PaymentScreen> {
             : _selectedSubMethod;
 
     Map<String, dynamic> result = {'success': false};
+
+    // Paymob for cards only when credentials are configured (production).
+    // Wallet balance and demo mode keep the local payment path.
+    if (_selectedCategory == 'cards' && PaymobService.shouldUseGateway) {
+      try {
+        final user = await AuthService.getCurrentUser();
+        final paymentUrl = await PaymobService.getPaymentUrl(
+          amount: _displayAmount,
+          referenceId: bookingId.isNotEmpty
+              ? bookingId
+              : 'REQ_${DateTime.now().millisecondsSinceEpoch}',
+          userData: {
+            'name': user?['name'],
+            'email': user?['email'],
+            'phone': user?['phone'],
+          },
+        );
+
+        if (!mounted) return;
+        final bool? success = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PaymobIframeScreen(paymentUrl: paymentUrl),
+          ),
+        );
+
+        if (success != true) {
+          if (!mounted) return;
+          setState(() => _isProcessing = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('تم إلغاء أو فشل الدفع عبر البطاقة.'),
+              backgroundColor: AppTheme.errorColor,
+            ),
+          );
+          return;
+        }
+      } catch (e) {
+        // Fall through to local/demo completion so the app never dead-ends.
+        if (kDebugMode) {
+          debugPrint('Paymob unavailable, using local payment: $e');
+        }
+      }
+    }
 
     if (widget.itemType == 'booking') {
       final bookingStatus =

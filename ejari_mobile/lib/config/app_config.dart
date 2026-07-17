@@ -8,8 +8,8 @@ import 'package:flutter/foundation.dart';
 /// Override with `--dart-define=DEMO_MODE=true|false`.
 class AppConfig {
   /// Keep in sync with pubspec.yaml `version` (name part).
-  static const String appVersion = '1.3.1';
-  static const int buildNumber = 17;
+  static const String appVersion = '1.3.2';
+  static const int buildNumber = 18;
 
   static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL');
   static const String _demoModeValue = String.fromEnvironment('DEMO_MODE');
@@ -51,7 +51,8 @@ class AppConfig {
   static bool get demoMode {
     if (_demoModeValue == 'true') return true;
     if (_demoModeValue == 'false') return false;
-    // Default to Firebase mode now since it is configured!
+    // Local web + debug must work without Console Email/Password setup.
+    if (kIsWeb || !kReleaseMode) return true;
     return false;
   }
 
