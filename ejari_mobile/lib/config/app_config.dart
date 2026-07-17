@@ -8,8 +8,8 @@ import 'package:flutter/foundation.dart';
 /// Override with `--dart-define=DEMO_MODE=true|false`.
 class AppConfig {
   /// Keep in sync with pubspec.yaml `version` (name part).
-  static const String appVersion = '1.3.2';
-  static const int buildNumber = 18;
+  static const String appVersion = '1.3.3';
+  static const int buildNumber = 19;
 
   static const String apiBaseUrl = String.fromEnvironment('API_BASE_URL');
   static const String _demoModeValue = String.fromEnvironment('DEMO_MODE');
@@ -37,7 +37,19 @@ class AppConfig {
   static const String playStoreUrl = String.fromEnvironment(
     'PLAY_STORE_URL',
     defaultValue:
-        'https://play.google.com/store/apps/details?id=com.ejari.mobile',
+        'https://play.google.com/store/apps/details?id=com.ejari.app',
+  );
+
+  /// Privacy policy URL required by Google Play.
+  static const String privacyPolicyUrl = String.fromEnvironment(
+    'PRIVACY_POLICY_URL',
+    defaultValue: 'https://m7moud2.github.io/ejari-web/docs/privacy.html',
+  );
+
+  /// Terms of service (promo/docs).
+  static const String termsUrl = String.fromEnvironment(
+    'TERMS_URL',
+    defaultValue: 'https://m7moud2.github.io/ejari-web/docs/terms.html',
   );
 
   /// Auth / network wait before showing Arabic timeout + retry.

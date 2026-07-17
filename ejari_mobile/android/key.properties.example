@@ -1,4 +1,5 @@
 storePassword=CHANGE_ME
 keyPassword=CHANGE_ME
-keyAlias=upload
-storeFile=/absolute/path/to/keyo-upload-keystore.jks
+keyAlias=ejari
+# Relative to android/ (rootProject). Keystore lives at android/app/ejari-release-key.jks
+storeFile=app/ejari-release-key.jks

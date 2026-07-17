@@ -1,14 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../config/app_config.dart';
 import '../theme/app_theme.dart';
 
 class TermsScreen extends StatelessWidget {
   const TermsScreen({super.key});
+
+  Future<void> _openOnlineTerms(BuildContext context) async {
+    final uri = Uri.parse(AppConfig.termsUrl);
+    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تعذر فتح الشروط والأحكام')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('الشروط والأحكام'),
+        actions: [
+          TextButton(
+            onPressed: () => _openOnlineTerms(context),
+            child: const Text('النسخة عبر الإنترنت'),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -21,10 +39,16 @@ class TermsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'آخر تحديث: ديسمبر 2024',
+              'آخر تحديث: يوليو 2026',
               style: TextStyle(color: AppTheme.textSecondary),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+            TextButton.icon(
+              onPressed: () => _openOnlineTerms(context),
+              icon: const Icon(Icons.open_in_new, size: 18),
+              label: const Text('فتح الشروط المنشورة (Play)'),
+            ),
+            const SizedBox(height: 12),
             _buildSection(
               '0. حالة الإصدار الحالي',
               '''هذه النسخة من منصة إيجاري مخصصة للإطلاق والتشغيل التدريجي. يتم تحديث الخدمات والميزات بشكل مستمر لتحسين التجربة.

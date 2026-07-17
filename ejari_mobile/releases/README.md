@@ -119,8 +119,42 @@ curl -sS "https://firestore.googleapis.com/v1.3.1/projects/keyo-elite-1/database
 ## رفع Google Play (AAB)
 
 ```bash
+cd ejari_mobile
 flutter build appbundle --release --dart-define=DEMO_MODE=false
 ```
+
+المخرجات: `build/app/outputs/bundle/release/app-release.aab`
+
+اختياري — Paymob (بطاقة):
+
+```bash
+flutter build appbundle --release \
+  --dart-define=DEMO_MODE=false \
+  --dart-define=PAYMOB_API_KEY=... \
+  --dart-define=PAYMOB_INTEGRATION_ID=... \
+  --dart-define=PAYMOB_IFRAME_ID=...
+```
+
+بدون `PAYMOB_*` يُستخدم مسار تجريبي/محلي للبطاقة.
+
+### حقول Play Console
+
+| الحقل | القيمة |
+|--------|--------|
+| Package | `com.ejari.app` |
+| Version | `1.3.3` (build `19`) |
+| Privacy policy | `https://m7moud2.github.io/ejari-web/docs/privacy.html` |
+| Terms | `https://m7moud2.github.io/ejari-web/docs/terms.html` |
+
+### التوقيع
+
+- Keystore: `android/app/ejari-release-key.jks`
+- `android/key.properties` محلي فقط (gitignored) — لا ترفع كلمات المرور
+
+### ملاحظة المدفوعات
+
+- إيجار/عربون/صيانة عبر Paymob ≈ خدمات واقعية — عادةً لا تحتاج Play Billing.
+- اشتراكات رقمية داخل التطبيق قد تحتاج Google Play Billing — راجع نموذج المدفوعات في Console.
 
 ## الدعم
 

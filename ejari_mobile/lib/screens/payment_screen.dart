@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../config/app_config.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../services/wallet_service.dart';
@@ -589,6 +591,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                   child: _buildConsentCard(),
                 ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.screenPadding,
+                    AppTheme.spaceSm,
+                    AppTheme.screenPadding,
+                    0,
+                  ),
+                  child: _buildPlayPaymentDisclosure(),
+                ),
                 if (_tier != null) ...[
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: AppTheme.screenPadding),
@@ -1043,6 +1054,74 @@ class _PaymentScreenState extends State<PaymentScreen> {
           const Text(
             'العقد النهائي هو المرجع الأساسي لأي التزام مالي.',
             style: TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlayPaymentDisclosure() {
+    final paymobNote = PaymobService.shouldUseGateway
+        ? 'مدفوعات البطاقة تُعالَج عبر بوابة Paymob الآمنة.'
+        : 'مدفوعات البطاقة قد تمر عبر Paymob عند تفعيلها؛ وإلا يُستخدم مسار تجريبي/محلي.';
+
+    return EjariSurfaceCard(
+      padding: const EdgeInsets.all(AppTheme.spaceMd),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                size: 18,
+                color: AppTheme.primaryColor.withOpacity(0.9),
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'تنويه الدفع (Google Play)',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'مدفوعات الإيجار والحجز والصيانة تخص خدمات عقارية واقعية وليست سلعاً رقمية داخل Google Play. $paymobNote',
+            style: const TextStyle(
+              fontSize: 11,
+              height: 1.5,
+              color: AppTheme.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          GestureDetector(
+            onTap: () async {
+              final uri = Uri.parse(AppConfig.privacyPolicyUrl);
+              final ok = await launchUrl(
+                uri,
+                mode: LaunchMode.externalApplication,
+              );
+              if (!ok && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('تعذر فتح سياسة الخصوصية')),
+                );
+              }
+            },
+            child: const Text(
+              'سياسة الخصوصية ←',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primaryColor,
+                decoration: TextDecoration.underline,
+              ),
+            ),
           ),
         ],
       ),

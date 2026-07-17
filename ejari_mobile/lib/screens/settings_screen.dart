@@ -15,6 +15,7 @@ import 'package:local_auth/local_auth.dart'; // Add import
 import '../services/push_notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'wallet_screen.dart';
+import 'terms_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -258,19 +259,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildListTile(
             title: 'سياسة الخصوصية',
             icon: Icons.privacy_tip_outlined,
+            onTap: () async {
+              final uri = Uri.parse(AppConfig.privacyPolicyUrl);
+              final ok = await launchUrl(
+                uri,
+                mode: LaunchMode.externalApplication,
+              );
+              if (!ok && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('تعذر فتح سياسة الخصوصية')),
+                );
+              }
+            },
+          ),
+          _buildListTile(
+            title: 'الشروط والأحكام',
+            icon: Icons.gavel_outlined,
             onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('سياسة الخصوصية'),
-                  content: const Text(
-                      'نحن نلتزم بحفظ بياناتك وخصوصيتك بأعلى معايير الأمان العالمية في إيجاري.'),
-                  actions: [
-                    TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('إغلاق'))
-                  ],
-                ),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const TermsScreen()),
               );
             },
           ),
