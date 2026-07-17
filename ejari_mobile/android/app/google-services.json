@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "349888023290-09o0h9l4u0bcjpmncu0oane3ndefmbfd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ejari.app",
+            "certificate_hash": "7de1ded6d979bc869af0aa6d8e28f8a333a758e2"
+          }
+        },
+        {
           "client_id": "349888023290-6s9hlmgrjv794ogih7t9tdf7acsm56mh.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
