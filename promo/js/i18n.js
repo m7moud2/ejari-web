@@ -23,6 +23,8 @@
       "nav.langAria": "التبديل إلى الإنجليزية",
       "nav.aria": "أقسام الصفحة",
       "nav.ariaDl": "تنقل",
+      "nav.menuOpen": "فتح القائمة",
+      "nav.menuClose": "إغلاق القائمة",
       "num.1": "١",
       "num.2": "٢",
       "num.3": "٣",
@@ -185,6 +187,8 @@
       "nav.langAria": "Switch to Arabic",
       "nav.aria": "Page sections",
       "nav.ariaDl": "Navigation",
+      "nav.menuOpen": "Open menu",
+      "nav.menuClose": "Close menu",
       "num.1": "1",
       "num.2": "2",
       "num.3": "3",
@@ -364,7 +368,9 @@
 
   function t(key, lang) {
     var L = STR[lang] || STR.ar;
-    return (L[key] != null ? L[key] : STR.ar[key]) || key;
+    if (L[key] != null) return L[key];
+    if (STR.ar[key] != null) return STR.ar[key];
+    return null;
   }
 
   function apply(lang) {
@@ -382,6 +388,8 @@
       var key = el.getAttribute("data-i18n");
       if (!key) return;
       var val = t(key, lang);
+      /* Never paint raw keys over the HTML fallback copy */
+      if (val == null) return;
       if (el.hasAttribute("data-i18n-html")) {
         el.innerHTML = val;
       } else {
@@ -391,25 +399,38 @@
 
     document.querySelectorAll("[data-i18n-aria]").forEach(function (el) {
       var key = el.getAttribute("data-i18n-aria");
-      if (key) el.setAttribute("aria-label", t(key, lang));
+      var val = key ? t(key, lang) : null;
+      if (val != null) el.setAttribute("aria-label", val);
     });
 
     document.querySelectorAll("[data-i18n-alt]").forEach(function (el) {
       var key = el.getAttribute("data-i18n-alt");
-      if (key) el.setAttribute("alt", t(key, lang));
+      var val = key ? t(key, lang) : null;
+      if (val != null) el.setAttribute("alt", val);
     });
 
     var titleKey = document.body.getAttribute("data-title-key") || "meta.title";
     var descKey = document.body.getAttribute("data-desc-key") || "meta.desc";
-    document.title = t(titleKey, lang);
+    var titleVal = t(titleKey, lang);
+    if (titleVal != null) document.title = titleVal;
     var metaDesc = document.querySelector('meta[name="description"]');
-    if (metaDesc) metaDesc.setAttribute("content", t(descKey, lang));
+    var descVal = t(descKey, lang);
+    if (metaDesc && descVal != null) metaDesc.setAttribute("content", descVal);
 
     document.querySelectorAll("[data-lang-toggle]").forEach(function (btn) {
-      btn.setAttribute("aria-label", t("nav.langAria", lang));
+      var aria = t("nav.langAria", lang);
+      if (aria != null) btn.setAttribute("aria-label", aria);
       var label = btn.querySelector("[data-lang-label]");
-      if (label) label.textContent = t("nav.lang", lang);
+      var langLabel = t("nav.lang", lang);
+      if (label && langLabel != null) label.textContent = langLabel;
       btn.setAttribute("data-next", lang === "ar" ? "en" : "ar");
+    });
+
+    document.querySelectorAll("[data-nav-toggle]").forEach(function (btn) {
+      var open = btn.getAttribute("aria-expanded") === "true";
+      var menuKey = open ? "nav.menuClose" : "nav.menuOpen";
+      var menuAria = t(menuKey, lang);
+      if (menuAria != null) btn.setAttribute("aria-label", menuAria);
     });
 
     try {

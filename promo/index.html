@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl" data-lang="ar">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>إيجاري — إدارة الإيجار في مصر</title>
   <meta name="description" content="إيجاري تطبيق لإدارة الإيجار: عقود، دفع، معاينة، صيانة، ومحفظة — للمستأجر والمالك. الإصدار 1.3.5 لأندرويد." />
   <meta name="theme-color" content="#0F3A30" />
@@ -34,16 +34,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap&subset=arabic,latin" rel="stylesheet" />
-  <link rel="stylesheet" href="css/site.css" />
+  <link rel="stylesheet" href="css/site.css?v=20260718b" />
 </head>
 <body data-title-key="meta.title" data-desc-key="meta.desc">
   <a class="skip-link" href="#main" data-i18n="a11y.skip">تخطّي إلى المحتوى</a>
 
-  <header class="site-nav">
-    <div class="wrap">
-      <a class="nav-mark" href="index.html" data-i18n="nav.brand">إيجاري</a>
+  <header class="site-nav" data-site-nav>
+    <div class="wrap nav-bar">
+      <a class="nav-mark" href="index.html">
+        <span class="nav-mark-badge" aria-hidden="true">إ</span>
+        <span data-i18n="nav.brand">إيجاري</span>
+      </a>
       <div class="nav-end">
-        <nav class="nav-links" data-i18n-aria="nav.aria" aria-label="أقسام الصفحة">
+        <nav class="nav-links" id="site-nav-links" data-i18n-aria="nav.aria" aria-label="أقسام الصفحة">
           <a href="#trust" data-i18n="nav.trust">ليه إيجاري</a>
           <a href="#about" data-i18n="nav.about">من نحن</a>
           <a href="#how" data-i18n="nav.how">كيف يشتغل</a>
@@ -57,8 +60,18 @@
           data-i18n-aria="nav.langAria"
           aria-label="التبديل إلى الإنجليزية"
         >
-          <span class="lang-pair" aria-hidden="true"></span>
           <span data-lang-label>English</span>
+        </button>
+        <button
+          type="button"
+          class="nav-toggle"
+          data-nav-toggle
+          aria-controls="site-nav-links"
+          aria-expanded="false"
+          data-i18n-aria="nav.menuOpen"
+          aria-label="فتح القائمة"
+        >
+          <span class="nav-toggle-bars" aria-hidden="true"></span>
         </button>
       </div>
     </div>
@@ -79,7 +92,10 @@
       </div>
       <div class="wrap">
         <div class="hero-copy">
-          <h1 class="hero-brand"><span data-i18n="nav.brand">إيجاري</span><span data-i18n="hero.brandSub">Ejari</span></h1>
+          <h1 class="hero-brand">
+            <span data-i18n="nav.brand">إيجاري</span>
+            <span class="hero-brand-sub" data-i18n="hero.brandSub">Ejari</span>
+          </h1>
           <p class="hero-line" data-i18n="hero.line">من العقد… لحد الصيانة.</p>
           <p class="hero-sub" data-i18n="hero.sub">تطبيق مصري لإدارة الإيجار بين المستأجر والمالك — بدون لفّ ولا وعود فاضيّة.</p>
           <div class="hero-actions">
@@ -240,7 +256,7 @@
             <a class="btn btn-outline" href="download.html" data-i18n="dl.howto">تعليمات التثبيت</a>
           </div>
           <div class="download-stats" data-ejari-download-stats aria-busy="true" aria-live="polite">
-            <span data-dl-total data-i18n="stats.loading">جاري تحديث عدّاد التحميل…</span>
+            <span data-dl-total>جاري تحديث عدّاد التحميل…</span>
             <span data-dl-current hidden></span>
             <span data-dl-status hidden></span>
           </div>
@@ -329,8 +345,8 @@
     </div>
   </div>
 
-  <script src="js/i18n.js"></script>
-  <script src="js/site.js" defer></script>
-  <script src="js/download-stats.js" defer></script>
+  <script src="js/i18n.js?v=20260718b"></script>
+  <script src="js/site.js?v=20260718b" defer></script>
+  <script src="js/download-stats.js?v=20260718b" defer></script>
 </body>
 </html>

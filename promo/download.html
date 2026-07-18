@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl" data-lang="ar">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>تحميل إيجاري 1.3.5 — تعليمات التثبيت</title>
   <meta name="description" content="حمّل إيجاري 1.3.5 لأندرويد وثبّته خطوة بخطوة. ملف APK مباشر." />
   <meta name="theme-color" content="#0F3A30" />
@@ -32,16 +32,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap&subset=arabic,latin" rel="stylesheet" />
-  <link rel="stylesheet" href="css/site.css" />
+  <link rel="stylesheet" href="css/site.css?v=20260718b" />
 </head>
 <body class="page-download" data-title-key="dlpage.title" data-desc-key="dlpage.meta">
   <a class="skip-link" href="#main" data-i18n="a11y.skip">تخطّي إلى المحتوى</a>
 
-  <header class="site-nav">
-    <div class="wrap">
-      <a class="nav-mark" href="index.html" data-i18n="nav.brand">إيجاري</a>
+  <header class="site-nav" data-site-nav>
+    <div class="wrap nav-bar">
+      <a class="nav-mark" href="index.html">
+        <span class="nav-mark-badge" aria-hidden="true">إ</span>
+        <span data-i18n="nav.brand">إيجاري</span>
+      </a>
       <div class="nav-end">
-        <nav class="nav-links" data-i18n-aria="nav.ariaDl" aria-label="تنقل">
+        <nav class="nav-links" id="site-nav-links" data-i18n-aria="nav.ariaDl" aria-label="تنقل">
           <a href="index.html" data-i18n="nav.home">الرئيسية</a>
           <a href="index.html#download" data-i18n="nav.download">التحميل</a>
           <a href="index.html#contact" data-i18n="nav.contact">تواصل</a>
@@ -53,8 +56,18 @@
           data-i18n-aria="nav.langAria"
           aria-label="التبديل إلى الإنجليزية"
         >
-          <span class="lang-pair" aria-hidden="true"></span>
           <span data-lang-label>English</span>
+        </button>
+        <button
+          type="button"
+          class="nav-toggle"
+          data-nav-toggle
+          aria-controls="site-nav-links"
+          aria-expanded="false"
+          data-i18n-aria="nav.menuOpen"
+          aria-label="فتح القائمة"
+        >
+          <span class="nav-toggle-bars" aria-hidden="true"></span>
         </button>
       </div>
     </div>
@@ -75,7 +88,10 @@
       </div>
       <div class="wrap">
         <div class="hero-copy">
-          <h1 class="hero-brand"><span data-i18n="nav.brand">إيجاري</span><span data-i18n="dlpage.brandSub">v1.3.5</span></h1>
+          <h1 class="hero-brand">
+            <span data-i18n="nav.brand">إيجاري</span>
+            <span class="hero-brand-sub" data-i18n="dlpage.brandSub">v1.3.5</span>
+          </h1>
           <p class="hero-line" data-i18n="dlpage.line">ثبّت إيجاري على أندرويد.</p>
           <p class="hero-sub" data-i18n="dlpage.sub">ملف APK مباشر من إصدارنا الرسمي. لو عندك نسخة قديمة — امسحها الأول.</p>
           <div class="hero-actions">
@@ -126,7 +142,7 @@
         </div>
 
         <div class="download-stats" data-ejari-download-stats aria-busy="true" aria-live="polite" style="margin-top:1.5rem;border-top:1px solid var(--line);padding-top:1rem">
-          <span data-dl-total data-i18n="stats.loading">جاري تحديث عدّاد التحميل…</span>
+          <span data-dl-total>جاري تحديث عدّاد التحميل…</span>
           <span data-dl-current hidden></span>
           <span data-dl-status hidden></span>
         </div>
@@ -203,8 +219,8 @@
     </div>
   </div>
 
-  <script src="js/i18n.js"></script>
-  <script src="js/site.js" defer></script>
-  <script src="js/download-stats.js" defer></script>
+  <script src="js/i18n.js?v=20260718b"></script>
+  <script src="js/site.js?v=20260718b" defer></script>
+  <script src="js/download-stats.js?v=20260718b" defer></script>
 </body>
 </html>

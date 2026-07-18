@@ -45,11 +45,10 @@
     var text;
     if (window.EjariI18n && window.EjariI18n.t) {
       text = window.EjariI18n.t(key, lang());
-    } else {
-      text = key;
     }
+    if (text == null) text = key;
     if (vars && vars.n != null) {
-      text = text.replace("{n}", formatAr(vars.n));
+      text = String(text).replace("{n}", formatAr(vars.n));
     }
     return text;
   }
