@@ -1,0 +1,6 @@
+# Ejari — GitHub Pages (repo root)
+User-agent: *
+Allow: /
+
+# Prefer the public company face
+Sitemap: https://m7moud2.github.io/ejari-web/sitemap.xml

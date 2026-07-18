@@ -50,6 +50,41 @@ a {
   text-decoration: none;
 }
 
+/* —— Accessibility —— */
+.skip-link {
+  position: absolute;
+  inset-inline-start: 1rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.55rem 0.95rem;
+  background: var(--gold);
+  color: var(--green-deep);
+  font-weight: 800;
+  font-size: 0.92rem;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 1rem;
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.btn:focus-visible,
+.lang-toggle:focus-visible,
+.nav-links a:focus-visible,
+.contact-row a:focus-visible,
+.site-footer a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
 .wrap {
   width: min(var(--max), calc(100% - 2.5rem));
   margin-inline: auto;
@@ -306,11 +341,12 @@ html[dir="ltr"] .hero-sub {
 
 .btn-primary {
   background: var(--gold);
-  color: var(--green-deep);
+  color: var(--green-deep); /* dark ink on gold for contrast */
 }
 
 .btn-primary:hover {
-  background: var(--gold-soft);
+  background: #C9A45A;
+  color: #062018;
 }
 
 .btn-ghost {
@@ -518,32 +554,114 @@ html[dir="ltr"] .trust-photo::after {
   max-width: 48ch;
 }
 
+/* About + roles (honest scope, not fake stats) */
+.about-section {
+  background: #fff;
+  border-block: 1px solid var(--line);
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 2.5rem 3rem;
+  align-items: start;
+}
+
+.about-mission {
+  margin: 1.15rem 0 0;
+  color: var(--ink);
+  font-size: 1.05rem;
+  max-width: 44ch;
+  line-height: 1.75;
+}
+
+html[dir="ltr"] .about-mission {
+  max-width: 52ch;
+}
+
+.about-place {
+  margin: 1.25rem 0 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 0.02em;
+}
+
+.about-founder-line:not([hidden]) {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.roles-block {
+  padding: 1.5rem 1.4rem;
+  background: rgba(15, 58, 48, 0.04);
+  border-inline-start: 3px solid var(--gold);
+}
+
+.roles-block h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--green);
+}
+
+.roles-lede {
+  margin: 0.55rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  max-width: 36ch;
+}
+
+.roles-list {
+  list-style: none;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.95rem;
+}
+
+.roles-list li {
+  display: grid;
+  gap: 0.15rem;
+  padding-bottom: 0.95rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.roles-list li:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.roles-list strong {
+  color: var(--green);
+  font-weight: 800;
+  font-size: 0.98rem;
+}
+
+.roles-list span {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
 /* Mission strip */
 .mission {
   background: var(--green);
-  color: rgba(255, 255, 255, 0.9);
-  padding: 2.85rem 0;
+  color: rgba(255, 255, 255, 0.92);
+  padding: 2.5rem 0;
 }
 
 .mission p {
   margin: 0;
-  font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+  font-size: clamp(1.15rem, 2.2vw, 1.4rem);
   font-weight: 600;
   line-height: 1.55;
-  max-width: 38ch;
+  max-width: 36ch;
 }
 
 html[dir="ltr"] .mission p {
-  max-width: 44ch;
-}
-
-.mission .en {
-  display: block;
-  margin-top: 0.7rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--gold-soft);
-  letter-spacing: 0.04em;
+  max-width: 42ch;
 }
 
 /* Download */
@@ -646,7 +764,7 @@ html[dir="ltr"] .mission p {
 }
 
 .contact-row a:hover {
-  color: var(--gold);
+  color: #8A6A2C; /* deeper gold for contrast on paper */
 }
 
 .contact-hours {
@@ -719,7 +837,7 @@ html[dir="ltr"] .footer-blurb {
 }
 
 .site-footer a:hover {
-  color: var(--gold-soft);
+  color: #E0C57A; /* brighter gold on deep green */
 }
 
 .footer-bottom {
@@ -787,7 +905,8 @@ html[dir="ltr"] .footer-blurb {
 @media (max-width: 860px) {
   .trust-grid,
   .download-inner,
-  .footer-grid {
+  .footer-grid,
+  .about-grid {
     grid-template-columns: 1fr;
   }
 

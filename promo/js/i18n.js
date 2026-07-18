@@ -11,28 +11,33 @@
       "meta.title": "إيجاري — إدارة الإيجار في مصر",
       "meta.desc":
         "إيجاري تطبيق لإدارة الإيجار: عقود، دفع، معاينة، صيانة، ومحفظة — للمستأجر والمالك. الإصدار 1.3.5 لأندرويد.",
+      "a11y.skip": "تخطّي إلى المحتوى",
       "nav.brand": "إيجاري",
       "nav.trust": "ليه إيجاري",
+      "nav.about": "من نحن",
       "nav.how": "كيف يشتغل",
       "nav.download": "التحميل",
       "nav.contact": "تواصل",
       "nav.home": "الرئيسية",
       "nav.lang": "English",
       "nav.langAria": "التبديل إلى الإنجليزية",
+      "nav.aria": "أقسام الصفحة",
+      "nav.ariaDl": "تنقل",
       "num.1": "١",
       "num.2": "٢",
       "num.3": "٣",
 
+      "hero.aria": "مقدمة إيجاري",
       "hero.brandSub": "Ejari",
       "hero.line": "من العقد… لحد الصيانة.",
       "hero.sub":
         "تطبيق مصري لإدارة الإيجار بين المستأجر والمالك — بدون لفّ ولا وعود فاضيّة.",
       "hero.cta": "حمّل التطبيق",
-      "hero.secondary": "تعرّف علينا",
+      "hero.secondary": "من نحن",
 
-      "trust.title": "ليه ناس بتثق في إيجاري",
+      "trust.title": "الإيجار محتاج ترتيب، مش شعارات",
       "trust.lede":
-        "الإيجار في مصر محتاج وضوح أكتر من الكلام. التطبيق بيرتّب العقد والدفع والصيانة في مكان واحد.",
+        "في مصر الاتفاق بيتقال شفهي كتير. إيجاري بيرتّب العقد والدفع والصيانة في مكان واحد عشان الطرفين يشوفوا نفس الصورة.",
       "trust.1.title": "عقود واضحة",
       "trust.1.body":
         "بنود الإيجار والمدّة والمبلغ قدام الطرفين قبل ما يتأكد الحجز.",
@@ -47,8 +52,27 @@
         "مستأجر، مالك، فني، وإدارة — كل واحد يشوف اللي يخصّه.",
       "trust.photoAlt": "وحدة سكنية جاهزة للإيجار",
 
-      "how.title": "ثلاث خطوات وبس",
-      "how.lede": "من اختيار الوحدة لحد الدخول — المسار واضح.",
+      "about.title": "من نحن",
+      "about.lede":
+        "إيجاري مشروع مصري لتشغيل الإيجار اليومي: من الاتفاق على الوحدة لحد طلب الصيانة — بدون ما نبيع أرقام مستخدمين ولا وعود مش موجودة.",
+      "about.mission":
+        "هدفنا نقلّل سوء التفاهم بين المستأجر والمالك: بنود واضحة، دفع بحالة ظاهرة، وصيانة مربوطة بالوحدة مش بالواتساب المتفرّق.",
+      "about.place": "القاهرة، مصر",
+
+      "roles.title": "مين بيغطي التطبيق",
+      "roles.lede":
+        "نطاق المنتج — مش إحصائية تحميلات. أربعة أدوار في نفس المنظومة:",
+      "roles.tenant.label": "مستأجر",
+      "roles.tenant.body": "حجز، عقد، دفع، دخول بـ QR، وطلب صيانة.",
+      "roles.owner.label": "مالك",
+      "roles.owner.body": "وحدات، موافقات، محفظة، ومتابعة طلبات.",
+      "roles.tech.label": "فني",
+      "roles.tech.body": "مهام صيانة مربوطة بالوحدة من جوّه التطبيق.",
+      "roles.admin.label": "إدارة",
+      "roles.admin.body": "تشغيل المنصة ومتابعة الحالات من لوحة الإدارة.",
+
+      "how.title": "من الاختيار لحد الدخول",
+      "how.lede": "ثلاث خطوات واضحة — من غير مسار معقّد.",
       "how.1.title": "اختار الوحدة والمدة",
       "how.1.body": "يومي، أسبوعي، أو شهري — وتشوف التفاصيل قبل ما تحجز.",
       "how.2.title": "ادفع العربون واتفق",
@@ -57,9 +81,7 @@
       "how.3.body":
         "رمز دخول عند الوصول، ومتابعة أي طلب صيانة من جوه التطبيق.",
 
-      "mission.body":
-        "هدفنا نبسط الإيجار في مصر: أقل سوء تفاهم، وأكتر وضوح بين المستأجر والمالك.",
-      "mission.en": "Rental operations for Egypt — plain and practical.",
+      "mission.strip": "وضوح بين الطرفين — أقل لفّ في الإيجار.",
 
       "dl.title": "حمّل إيجاري لأندرويد",
       "dl.lede":
@@ -77,13 +99,16 @@
       "contact.title": "تواصل معنا",
       "contact.lede": "للدعم والشراكات — ردّنا على واتساب أو الإيميل.",
       "contact.wa": "واتساب · 01280083336",
+      "contact.waShort": "واتساب",
       "contact.mail": "support@ejari.app",
       "contact.fb": "فيسبوك",
       "contact.li": "لينكدإن",
-      "contact.hours": "الدعم عادةً خلال يوم عمل — اكتب رقم الإصدار لو فيه مشكلة تثبيت.",
+      "contact.hours":
+        "الدعم عادةً خلال يوم عمل — اكتب رقم الإصدار لو فيه مشكلة تثبيت.",
 
       "footer.blurb":
-        "شركة تطبيق لإدارة الإيجار والعقود في السوق المصري.",
+        "تطبيق لإدارة الإيجار والعقود في السوق المصري — من القاهرة.",
+      "footer.place": "القاهرة، مصر",
       "footer.legal": "قانوني",
       "footer.privacy": "سياسة الخصوصية",
       "footer.terms": "الشروط والأحكام",
@@ -93,9 +118,8 @@
       "footer.releases": "أحدث الإصدارات",
       "footer.copy": "© 2026 إيجاري · الإصدار 1.3.5",
       "footer.tag": "Ejari — rental ops for Egypt",
-      "footer.addr":
-        "العنوان: يُضاف لاحقاً من المؤسس <!-- founder: fill registered address -->",
 
+      "sticky.aria": "تحميل سريع",
       "sticky.title": "إيجاري 1.3.5",
       "sticky.sub": "APK لأندرويد",
       "sticky.cta": "تحميل",
@@ -103,6 +127,7 @@
       "dlpage.title": "تحميل إيجاري 1.3.5 — تعليمات التثبيت",
       "dlpage.meta":
         "حمّل إيجاري 1.3.5 لأندرويد وثبّته خطوة بخطوة. ملف APK مباشر.",
+      "dlpage.aria": "تحميل التطبيق",
       "dlpage.brandSub": "v1.3.5",
       "dlpage.line": "ثبّت إيجاري على أندرويد.",
       "dlpage.sub":
@@ -129,7 +154,7 @@
       "dlpage.site": "الموقع",
       "dlpage.home": "الصفحة الرئيسية",
       "dlpage.support": "الدعم:",
-      "dlpage.footerTag": "Android APK download",
+      "dlpage.footerTag": "تحميل APK لأندرويد",
       "dlpage.honest":
         "أندرويد 1.3.5 — قريباً على Google Play. التحميل الحالي عبر ملف APK موقّع من إيجاري.",
 
@@ -148,28 +173,33 @@
       "meta.title": "Ejari — Rental management in Egypt",
       "meta.desc":
         "Ejari helps tenants and owners manage rentals: contracts, payments, viewing, maintenance, and wallet. Android 1.3.5.",
+      "a11y.skip": "Skip to content",
       "nav.brand": "Ejari",
       "nav.trust": "Why Ejari",
+      "nav.about": "About",
       "nav.how": "How it works",
       "nav.download": "Download",
       "nav.contact": "Contact",
       "nav.home": "Home",
       "nav.lang": "عربي",
       "nav.langAria": "Switch to Arabic",
+      "nav.aria": "Page sections",
+      "nav.ariaDl": "Navigation",
       "num.1": "1",
       "num.2": "2",
       "num.3": "3",
 
+      "hero.aria": "Ejari introduction",
       "hero.brandSub": "إيجاري",
       "hero.line": "From contract to maintenance.",
       "hero.sub":
         "An Egyptian app for rental management between tenants and owners — clear process, no empty promises.",
       "hero.cta": "Download the app",
-      "hero.secondary": "Learn more",
+      "hero.secondary": "About us",
 
-      "trust.title": "Why people use Ejari",
+      "trust.title": "Renting needs order, not slogans",
       "trust.lede":
-        "Renting in Egypt needs clarity more than slogans. Ejari keeps the contract, payments, and maintenance in one place.",
+        "In Egypt, deals are often verbal. Ejari keeps the contract, payments, and maintenance in one place so both sides see the same picture.",
       "trust.1.title": "Clear contracts",
       "trust.1.body":
         "Terms, duration, and amount are visible to both sides before a booking is confirmed.",
@@ -184,8 +214,31 @@
         "Tenant, owner, technician, and admin — each sees what they need.",
       "trust.photoAlt": "Residential unit ready to rent",
 
-      "how.title": "Three clear steps",
-      "how.lede": "From choosing a unit to check-in — a straightforward path.",
+      "about.title": "About us",
+      "about.lede":
+        "Ejari is an Egyptian project for day-to-day rental operations: from agreeing on a unit to filing maintenance — without fake user counts or promises we cannot keep.",
+      "about.mission":
+        "We aim to cut misunderstandings between tenant and owner: clear terms, visible payment status, and maintenance tied to the unit — not scattered WhatsApp threads.",
+      "about.place": "Cairo, Egypt",
+
+      "roles.title": "Who the app covers",
+      "roles.lede":
+        "Product scope — not a download statistic. Four roles in one system:",
+      "roles.tenant.label": "Tenant",
+      "roles.tenant.body":
+        "Booking, contract, payment, QR check-in, and maintenance requests.",
+      "roles.owner.label": "Owner",
+      "roles.owner.body":
+        "Units, approvals, wallet, and request follow-up.",
+      "roles.tech.label": "Technician",
+      "roles.tech.body":
+        "Maintenance tasks tied to the unit from inside the app.",
+      "roles.admin.label": "Admin",
+      "roles.admin.body":
+        "Platform operations and status follow-up from the admin panel.",
+
+      "how.title": "From pick to check-in",
+      "how.lede": "Three clear steps — no maze.",
       "how.1.title": "Pick the unit and duration",
       "how.1.body":
         "Daily, weekly, or monthly — review the details before you book.",
@@ -196,9 +249,7 @@
       "how.3.body":
         "An entry code at arrival, and any maintenance request from inside the app.",
 
-      "mission.body":
-        "We aim to simplify renting in Egypt: fewer misunderstandings, more clarity between tenant and owner.",
-      "mission.en": "Rental operations for Egypt — plain and practical.",
+      "mission.strip": "Clarity between both sides — less friction in renting.",
 
       "dl.title": "Download Ejari for Android",
       "dl.lede":
@@ -216,6 +267,7 @@
       "contact.title": "Contact",
       "contact.lede": "Support and partnerships — WhatsApp or email.",
       "contact.wa": "WhatsApp · 01280083336",
+      "contact.waShort": "WhatsApp",
       "contact.mail": "support@ejari.app",
       "contact.fb": "Facebook",
       "contact.li": "LinkedIn",
@@ -223,7 +275,8 @@
         "We usually reply within one business day — include the app version if you hit an install issue.",
 
       "footer.blurb":
-        "A rental and contract management app for the Egyptian market.",
+        "A rental and contract management app for the Egyptian market — based in Cairo.",
+      "footer.place": "Cairo, Egypt",
       "footer.legal": "Legal",
       "footer.privacy": "Privacy policy",
       "footer.terms": "Terms of use",
@@ -233,9 +286,8 @@
       "footer.releases": "Latest releases",
       "footer.copy": "© 2026 Ejari · version 1.3.5",
       "footer.tag": "Ejari — rental ops for Egypt",
-      "footer.addr":
-        "Address: to be added by founder <!-- founder: fill registered address -->",
 
+      "sticky.aria": "Quick download",
       "sticky.title": "Ejari 1.3.5",
       "sticky.sub": "Android APK",
       "sticky.cta": "Download",
@@ -243,6 +295,7 @@
       "dlpage.title": "Download Ejari 1.3.5 — install guide",
       "dlpage.meta":
         "Download Ejari 1.3.5 for Android and install step by step. Direct APK.",
+      "dlpage.aria": "App download",
       "dlpage.brandSub": "v1.3.5",
       "dlpage.line": "Install Ejari on Android.",
       "dlpage.sub":
@@ -359,7 +412,6 @@
       btn.setAttribute("data-next", lang === "ar" ? "en" : "ar");
     });
 
-    // Keep share URL clean but reflect language for deep links
     try {
       var url = new URL(window.location.href);
       if (lang === "en") url.searchParams.set("lang", "en");
