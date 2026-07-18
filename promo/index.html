@@ -1,626 +1,259 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>إيجاري Ejari — نظام تشغيل الإيجار</title>
-  <meta name="description" content="إيجاري: نظام تشغيل الإيجار — غرف وأسِرّة، وديعة آمنة، QR للدخول، ومحفظة ودرجات ثقة. الإصدار 1.3.5 لأندرويد." />
-  <meta property="og:title" content="إيجاري Ejari — نظام تشغيل الإيجار" />
-  <meta property="og:description" content="حمّل تطبيق إيجاري 1.3.5: إيجار يومي/أسبوعي/شهري، أدوار متعددة، وإعلانات بيع بدون عمولة." />
+  <title>إيجاري — إدارة الإيجار في مصر</title>
+  <meta name="description" content="إيجاري تطبيق لإدارة الإيجار: عقود، دفع، معاينة، صيانة، ومحفظة — للمستأجر والمالك. الإصدار 1.3.5 لأندرويد." />
+  <meta name="theme-color" content="#0F3A30" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ar_EG" />
+  <meta property="og:site_name" content="إيجاري" />
+  <meta property="og:title" content="إيجاري — إدارة الإيجار في مصر" />
+  <meta property="og:description" content="عقود أوضح، دفع منظم، ومتابعة صيانة. حمّل التطبيق لأندرويد — الإصدار 1.3.5." />
   <meta property="og:url" content="https://m7moud2.github.io/ejari-web/promo/" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    :root {
-      --bg: #f6f1e8;
-      --bg-2: #fbf8f1;
-      --card: rgba(255, 255, 255, 0.94);
-      --text: #1a2e28;
-      --muted: #5d746c;
-      --primary: #0F3A30;
-      --primary-2: #1a5244;
-      --gold: #B58D3D;
-      --border: rgba(15, 58, 48, 0.12);
-      --shadow: 0 20px 55px rgba(15, 58, 48, 0.10);
-      --radius: 24px;
-    }
+  <meta property="og:image" content="https://m7moud2.github.io/ejari-web/images/home5.jpg" />
+  <meta property="og:image:alt" content="إيجاري — منصة إدارة الإيجار" />
 
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      font-family: 'Cairo', sans-serif;
-      background:
-        radial-gradient(circle at top right, rgba(15, 58, 48, 0.12), transparent 32%),
-        radial-gradient(circle at left top, rgba(181, 141, 61, 0.14), transparent 26%),
-        radial-gradient(circle at 50% 120%, rgba(15, 58, 48, 0.06), transparent 40%),
-        repeating-linear-gradient(
-          -12deg,
-          transparent,
-          transparent 18px,
-          rgba(15, 58, 48, 0.015) 18px,
-          rgba(15, 58, 48, 0.015) 19px
-        ),
-        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
-      color: var(--text);
-      line-height: 1.8;
-    }
-    a { color: inherit; text-decoration: none; }
-    .container { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
-    .nav {
-      position: sticky; top: 0; z-index: 50;
-      backdrop-filter: blur(18px);
-      background: rgba(251, 248, 241, 0.82);
-      border-bottom: 1px solid var(--border);
-    }
-    .nav-inner {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 16px; padding: 16px 0;
-    }
-    .brand {
-      display: inline-flex; align-items: center; gap: 12px;
-      font-weight: 900; font-size: 1.2rem;
-    }
-    .brand-badge {
-      width: 42px; height: 42px; border-radius: 14px;
-      display: grid; place-items: center;
-      background: linear-gradient(135deg, rgba(15,58,48,.18), rgba(181,141,61,.18));
-      color: var(--primary);
-    }
-    .nav-links {
-      display: flex; flex-wrap: wrap; gap: 14px 18px;
-      align-items: center; color: var(--muted); font-weight: 700; font-size: .96rem;
-    }
-    .nav-links a { padding: 8px 2px; border-bottom: 2px solid transparent; }
-    .nav-links a:hover { color: var(--primary); border-bottom-color: rgba(15,58,48,.28); }
-    .nav-cta {
-      display: inline-flex; align-items: center; gap: 10px;
-      padding: 12px 18px; border-radius: 999px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: white; font-weight: 800;
-      box-shadow: 0 16px 35px rgba(15,58,48,.18);
-    }
-    .version-badge {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 8px 14px; border-radius: 999px;
-      background: rgba(181, 141, 61, 0.12);
-      border: 1px solid rgba(181, 141, 61, 0.35);
-      color: var(--gold); font-weight: 800; font-size: .9rem;
-    }
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="إيجاري — إدارة الإيجار في مصر" />
+  <meta name="twitter:description" content="عقود، دفع، صيانة، ومحفظة في تطبيق واحد. الإصدار 1.3.5." />
+  <meta name="twitter:image" content="https://m7moud2.github.io/ejari-web/images/home5.jpg" />
 
-    .hero { padding: 56px 0 18px; }
-    .hero-grid {
-      display: grid; grid-template-columns: 1.15fr .85fr;
-      gap: 28px; align-items: center;
-    }
-    .eyebrow {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 8px 14px; border-radius: 999px;
-      background: rgba(255,255,255,.62);
-      color: var(--primary);
-      border: 1px solid var(--border);
-      font-weight: 800; font-size: .9rem; margin-bottom: 18px;
-    }
-    .hero h1 {
-      margin: 0;
-      font-size: clamp(2.1rem, 4vw, 3.8rem);
-      line-height: 1.12; letter-spacing: -.02em;
-    }
-    .hero h1 span { color: var(--primary); }
-    .hero p.lead {
-      margin: 18px 0 0; font-size: 1.08rem; color: var(--muted); max-width: 62ch;
-    }
-    .hero-actions {
-      display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px;
-    }
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
-      padding: 14px 20px; border-radius: 16px; font-weight: 800;
-      border: 1px solid transparent;
-    }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: white; box-shadow: 0 14px 30px rgba(15,58,48,.16);
-    }
-    .btn-secondary {
-      background: rgba(255,255,255,.74);
-      border-color: var(--border); color: var(--text);
-    }
-    .btn-gold {
-      background: linear-gradient(135deg, var(--gold), #9a7530);
-      color: #fff;
-    }
-
-    .hero-card {
-      background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(249,246,239,.9));
-      border: 1px solid var(--border);
-      border-radius: 30px; box-shadow: var(--shadow); padding: 22px;
-    }
-    .hero-visual {
-      overflow: hidden; border-radius: 22px; margin-bottom: 16px;
-      border: 1px solid var(--border);
-    }
-    .hero-visual img {
-      width: 100%; display: block; aspect-ratio: 16 / 9; object-fit: cover;
-    }
-    .pill {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 8px 12px; border-radius: 999px;
-      background: rgba(15,58,48,.08); color: var(--primary);
-      font-size: .86rem; font-weight: 800;
-    }
-    .feature-chips {
-      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;
-    }
-    .chip {
-      padding: 8px 12px; border-radius: 999px;
-      background: rgba(15,58,48,.06); border: 1px solid var(--border);
-      font-size: .82rem; font-weight: 700; color: var(--text);
-    }
-
-    .section { padding: 34px 0 0; }
-    .section-head { margin-bottom: 16px; }
-    .section h2 {
-      margin: 0; font-size: clamp(1.5rem, 2vw, 2.3rem); color: var(--text);
-    }
-    .section p.sub { margin: 8px 0 0; color: var(--muted); max-width: 68ch; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px;
-    }
-    .card h3 { margin: 0 0 10px; color: var(--primary); }
-    .card p { margin: 0; color: var(--muted); }
-    .card .icon {
-      width: 50px; height: 50px; border-radius: 16px; display: grid; place-items: center;
-      margin-bottom: 14px; color: var(--primary);
-      background: linear-gradient(135deg, rgba(15,58,48,.12), rgba(181,141,61,.12));
-    }
-    .role-card .role-tag {
-      display: inline-block; margin-bottom: 10px;
-      padding: 4px 10px; border-radius: 999px;
-      background: rgba(181,141,61,.14); color: var(--gold);
-      font-size: .78rem; font-weight: 800;
-    }
-    .check-list { display: grid; gap: 10px; margin-top: 16px; }
-    .check-item { display: flex; gap: 10px; align-items: flex-start; color: var(--muted); }
-    .check-item i { color: var(--primary-2); margin-top: 5px; }
-    .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    .step .num {
-      width: 44px; height: 44px; border-radius: 14px;
-      display: grid; place-items: center;
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: white; font-weight: 900; margin-bottom: 12px;
-    }
-    .faq { display: grid; gap: 12px; }
-    details {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 18px; padding: 16px 18px; box-shadow: var(--shadow);
-    }
-    summary { cursor: pointer; font-weight: 800; color: var(--text); }
-    details p { margin: 10px 0 0; color: var(--muted); }
-    .final-cta {
-      margin: 34px 0 64px;
-      background: linear-gradient(135deg, rgba(15,58,48,.14), rgba(181,141,61,.12));
-      border: 1px solid var(--border); border-radius: 30px;
-      padding: 28px; text-align: center;
-    }
-    .final-cta h2 { margin: 0 0 10px; }
-    .footer {
-      padding: 20px 0 44px; color: var(--muted); text-align: center; font-size: .95rem;
-    }
-    .footer a { color: var(--primary); font-weight: 700; }
-    .trust-strip {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px;
-    }
-    .trust {
-      background: rgba(255,255,255,.75); border: 1px solid var(--border);
-      border-radius: 18px; padding: 14px; text-align: center; font-weight: 800;
-    }
-    .trust span { display:block; color: var(--muted); font-size: .82rem; font-weight: 700; margin-top: 4px; }
-    .note-box {
-      margin-top: 14px; padding: 14px 16px; border-radius: 16px;
-      background: rgba(181,141,61,.10); border: 1px solid rgba(181,141,61,.28);
-      color: var(--text); font-size: .95rem;
-    }
-    .download-stats {
-      display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
-      margin-top: 16px; padding: 12px 16px; border-radius: 16px;
-      background: rgba(15, 58, 48, 0.06);
-      border: 1px solid var(--border);
-      color: var(--primary); font-weight: 800;
-    }
-    .download-stats .dl-icon {
-      width: 38px; height: 38px; border-radius: 12px;
-      display: grid; place-items: center;
-      background: linear-gradient(135deg, rgba(15,58,48,.14), rgba(181,141,61,.18));
-      color: var(--gold);
-    }
-    .download-stats .dl-main { font-size: 1.02rem; }
-    .download-stats .dl-sub {
-      color: var(--muted); font-size: .86rem; font-weight: 700;
-      padding: 4px 10px; border-radius: 999px;
-      background: rgba(181,141,61,.12); border: 1px solid rgba(181,141,61,.28);
-      color: var(--gold);
-    }
-    .download-stats .dl-note {
-      width: 100%; color: var(--muted); font-size: .8rem; font-weight: 700;
-    }
-    .brand-lockup {
-      font-size: clamp(2.4rem, 5vw, 4.2rem);
-      font-weight: 900;
-      letter-spacing: -.03em;
-      line-height: 1.05;
-      margin: 0;
-      color: var(--primary);
-    }
-    .brand-lockup .en {
-      display: block;
-      font-size: .42em;
-      font-weight: 800;
-      color: var(--gold);
-      letter-spacing: .08em;
-      margin-top: 6px;
-    }
-    .hero-tagline {
-      margin: 14px 0 0;
-      font-size: clamp(1.15rem, 2.2vw, 1.55rem);
-      font-weight: 800;
-      color: var(--text);
-      max-width: 28ch;
-    }
-    .legal-links {
-      display: flex; flex-wrap: wrap; gap: 10px 16px;
-      justify-content: center; margin-top: 14px;
-    }
-    .legal-links a {
-      color: var(--primary); font-weight: 800; font-size: .92rem;
-      border-bottom: 1px solid rgba(15,58,48,.2);
-    }
-    .whats-new {
-      margin-top: 18px; padding: 16px 18px; border-radius: 18px;
-      background: rgba(255,255,255,.72); border: 1px solid var(--border);
-    }
-    .whats-new h3 {
-      margin: 0 0 10px; color: var(--primary); font-size: 1rem;
-    }
-    .whats-new ul {
-      margin: 0; padding: 0 18px 0 0; color: var(--muted); font-weight: 700;
-    }
-    .whats-new li { margin-bottom: 6px; }
-    .sticky-dl {
-      position: fixed; bottom: 0; inset-inline: 0; z-index: 40;
-      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-      background: rgba(251,248,241,.92); backdrop-filter: blur(14px);
-      border-top: 1px solid var(--border);
-      display: none;
-    }
-    .sticky-dl .inner {
-      width: min(1180px, 100%); margin: 0 auto;
-      display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    }
-    .sticky-dl a {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 12px 18px; border-radius: 14px; font-weight: 900;
-      background: linear-gradient(135deg, var(--primary), var(--primary-2));
-      color: #fff;
-    }
-    @media (max-width: 720px) {
-      .sticky-dl { display: block; }
-      .footer { padding-bottom: 88px; }
-      .nav-cta { display: none; }
-    }
-
-    @media (max-width: 980px) {
-      .hero-grid, .grid-3, .grid-4, .grid-2, .timeline, .trust-strip { grid-template-columns: 1fr; }
-      .nav-inner { flex-wrap: wrap; }
-      .nav-links { width: 100%; justify-content: flex-start; }
-    }
-  </style>
+  <link rel="canonical" href="https://m7moud2.github.io/ejari-web/promo/" />
+  <link rel="icon" href="assets/favicon.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/site.css" />
 </head>
-
 <body>
-  <nav class="nav">
-    <div class="container">
-      <div class="nav-inner">
-        <a class="brand" href="index.html">
-          <span class="brand-badge"><i class="fa-solid fa-key"></i></span>
-          <span>إيجاري Ejari</span>
-        </a>
-        <div class="nav-links">
-          <a href="#os">نظام الإيجار</a>
-          <a href="#roles">الأدوار</a>
-          <a href="#features">المميزات</a>
-          <a href="#workflow">كيف يعمل</a>
-          <a href="#faq">الأسئلة</a>
-          <a href="download.html">التحميل</a>
-        </div>
-        <a data-apk-link class="nav-cta" href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk">
-          <i class="fa-solid fa-download"></i> تحميل التطبيق لأندرويد
-        </a>
-      </div>
+  <header class="site-nav">
+    <div class="wrap">
+      <a class="nav-mark" href="index.html">إيجاري</a>
+      <nav class="nav-links" aria-label="أقسام الصفحة">
+        <a href="#trust">ليه إيجاري</a>
+        <a href="#how">كيف يشتغل</a>
+        <a href="#download">التحميل</a>
+        <a href="#contact">تواصل</a>
+      </nav>
     </div>
-  </nav>
+  </header>
 
   <main>
-    <section class="hero" id="start">
-      <div class="container">
-        <div class="hero-grid">
-          <div>
-            <div class="eyebrow"><i class="fa-solid fa-building"></i> نظام تشغيل الإيجار — Rental Operating System</div>
-            <h1 class="brand-lockup">إيجاري<span class="en">EJARI</span></h1>
-            <p class="hero-tagline">إيجار أوضح، وديعة آمنة، ودخول بـ QR.</p>
-            <p class="lead">
-              تطبيق عربي لإدارة الإيجار بالكامل: أسِرّة وغرف، حجز يومي أو أسبوعي أو شهري،
-              وديعة في عهدة آمنة، محفظة، درجات ثقة، ودعم ذكي — للمستأجر والمالك والفني والإدارة.
-            </p>
-            <div style="margin-top:16px;">
-              <span class="version-badge"><i class="fa-solid fa-tag"></i> الإصدار 1.3.5</span>
-            </div>
-            <div class="hero-actions">
-              <a class="btn btn-primary" data-apk-link href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk">
-                <i class="fa-solid fa-mobile-screen"></i> تحميل التطبيق لأندرويد
-              </a>
-              <a class="btn btn-secondary" href="download.html">
-                <i class="fa-solid fa-circle-info"></i> صفحة التحميل والتعليمات
-              </a>
-              <a class="btn btn-secondary" href="https://github.com/m7moud2/ejari-web/releases/latest" target="_blank" rel="noopener">
-                <i class="fa-brands fa-github"></i> أحدث الإصدارات
-              </a>
-            </div>
-            <p style="margin:12px 0 0; color:var(--muted); font-size:.95rem;">
-              التحميل المباشر لملف APK من GitHub Releases — بدون متجر مطلوب للتجربة.
-            </p>
-            <div class="download-stats" data-ejari-download-stats aria-busy="true" aria-live="polite">
-              <span class="dl-icon"><i class="fa-solid fa-download"></i></span>
-              <span class="dl-main" data-dl-total>جاري حساب التحميلات…</span>
-              <span class="dl-sub" data-dl-current></span>
-              <span class="dl-note" data-dl-status hidden></span>
-            </div>
-            <div class="whats-new">
-              <h3><i class="fa-solid fa-sparkles"></i> ما الجديد في 1.3.5</h3>
-              <ul>
-                <li>حالات فارغة أوضح مع أزرار إجراء في الحجوزات والعقود والصيانة</li>
-                <li>واجهة الفني والمحفظة والمعاينات بمسارات أوضح</li>
-                <li>تحسين صفحة التحميل وروابط الإصدار</li>
-              </ul>
-            </div>
-            <div class="trust-strip">
-              <div class="trust">وديعة آمنة<span>Escrow حتى التسليم</span></div>
-              <div class="trust">دخول بـ QR<span>تحقق عند الوصول</span></div>
-              <div class="trust">درجات ثقة<span>شفافية بين الأطراف</span></div>
-            </div>
-          </div>
-
-          <div class="hero-card">
-            <div class="hero-visual">
-              <img src="../images/promo/hero_building.jpg" alt="عقار داخل إيجاري">
-            </div>
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-              <div class="pill"><i class="fa-solid fa-circle-check"></i> جاهز للتجربة</div>
-              <div class="version-badge">v1.3.5</div>
-            </div>
-            <div class="feature-chips">
-              <span class="chip">أسِرّة وغرف</span>
-              <span class="chip">يومي / أسبوعي / شهري</span>
-              <span class="chip">محفظة</span>
-              <span class="chip">بوت دعم</span>
-              <span class="chip">اشتراكات للملاك</span>
-            </div>
-            <div class="note-box">
-              <strong>البيع:</strong> قسم البيع إعلانات مبوبة فقط — بدون عمولة بيع من إيجاري.
-            </div>
+    <section class="hero" aria-label="مقدمة إيجاري">
+      <div class="hero-media" aria-hidden="true">
+        <img
+          src="../images/home5.jpg"
+          alt=""
+          width="1200"
+          height="800"
+          fetchpriority="high"
+        />
+        <div class="hero-shade"></div>
+      </div>
+      <div class="wrap">
+        <div class="hero-copy">
+          <h1 class="hero-brand">إيجاري<span>Ejari</span></h1>
+          <p class="hero-line">من العقد… لحد الصيانة.</p>
+          <p class="hero-sub">تطبيق مصري لإدارة الإيجار بين المستأجر والمالك — بدون لفّ ولا وعود فاضيّة.</p>
+          <div class="hero-actions">
+            <a
+              class="btn btn-primary"
+              data-apk-link
+              href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk"
+            >حمّل التطبيق</a>
+            <a class="btn btn-ghost" href="#trust">تعرّف علينا</a>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="section" id="os">
-      <div class="container">
-        <div class="section-head">
-          <h2>نظام تشغيل الإيجار</h2>
-          <p class="sub">مش مجرد عرض عقارات — مسار كامل من الحجز للدفع للدخول والتقييم.</p>
+    <section class="section" id="trust">
+      <div class="wrap trust-grid">
+        <div>
+          <h2>ليه ناس بتثق في إيجاري</h2>
+          <p class="lede">الإيجار في مصر محتاج وضوح أكتر من الكلام. التطبيق بيرتّب العقد والدفع والصيانة في مكان واحد.</p>
+          <ul class="trust-list">
+            <li>
+              <span class="tick" aria-hidden="true">✓</span>
+              <div>
+                <strong>عقود واضحة</strong>
+                <p>بنود الإيجار والمدّة والمبلغ قدام الطرفين قبل ما يتأكد الحجز.</p>
+              </div>
+            </li>
+            <li>
+              <span class="tick" aria-hidden="true">✓</span>
+              <div>
+                <strong>دفع منظم ومحفظة</strong>
+                <p>عربون وإيجار واسترداد بتتسجّل في المحفظة بحالة واضحة.</p>
+              </div>
+            </li>
+            <li>
+              <span class="tick" aria-hidden="true">✓</span>
+              <div>
+                <strong>صيانة ومتابعة</strong>
+                <p>طلبات الصيانة مربوطة بالوحدة، والفني يشتغل من نفس التطبيق.</p>
+              </div>
+            </li>
+            <li>
+              <span class="tick" aria-hidden="true">✓</span>
+              <div>
+                <strong>أدوار منفصلة</strong>
+                <p>مستأجر، مالك، فني، وإدارة — كل واحد يشوف اللي يخصّه.</p>
+              </div>
+            </li>
+          </ul>
         </div>
-        <div class="grid-3">
-          <div class="card">
-            <div class="icon"><i class="fa-solid fa-bed"></i></div>
-            <h3>أسِرّة وغرف</h3>
-            <p>إدارة وحدات مرنة: سرير، غرفة، أو شقة كاملة حسب حاجة المستأجر والمالك.</p>
-          </div>
-          <div class="card">
-            <div class="icon"><i class="fa-solid fa-calendar-days"></i></div>
-            <h3>يومي · أسبوعي · شهري</h3>
-            <p>مدد إيجار متعددة بنفس التطبيق، مع وضوح المبلغ والمرحلة قبل التأكيد.</p>
-          </div>
-          <div class="card">
-            <div class="icon"><i class="fa-solid fa-vault"></i></div>
-            <h3>وديعة آمنة (Escrow)</h3>
-            <p>العربون/الوديعة تحت رقابة المسار: دفع، انتظار موافقة، ثم استكمال أو استرداد.</p>
-          </div>
+        <figure class="trust-photo">
+          <img
+            src="../images/home2.jpg"
+            alt="وحدة سكنية جاهزة للإيجار"
+            width="606"
+            height="404"
+            loading="lazy"
+          />
+        </figure>
+      </div>
+    </section>
+
+    <section class="section section-tight" id="how" style="background:#fff;border-block:1px solid var(--line)">
+      <div class="wrap">
+        <h2>ثلاث خطوات وبس</h2>
+        <p class="lede">من اختيار الوحدة لحد الدخول — المسار واضح.</p>
+        <div class="steps">
+          <article class="step">
+            <div class="step-num">١</div>
+            <div>
+              <h3>اختار الوحدة والمدة</h3>
+              <p>يومي، أسبوعي، أو شهري — وتشوف التفاصيل قبل ما تحجز.</p>
+            </div>
+          </article>
+          <article class="step">
+            <div class="step-num">٢</div>
+            <div>
+              <h3>ادفع العربون واتفق</h3>
+              <p>الدفع يتسجّل، والمالك يوافق أو يرد حسب الحالة.</p>
+            </div>
+          </article>
+          <article class="step">
+            <div class="step-num">٣</div>
+            <div>
+              <h3>ادخل بـ QR وتابع الصيانة</h3>
+              <p>رمز دخول عند الوصول، ومتابعة أي طلب صيانة من جوه التطبيق.</p>
+            </div>
+          </article>
         </div>
       </div>
     </section>
 
-    <section class="section" id="roles">
-      <div class="container">
-        <div class="section-head">
-          <h2>أدوار واضحة داخل التطبيق</h2>
-          <p class="sub">كل دور له واجهة ومهام مختلفة — نفس الهوية البصرية، مسارات منفصلة.</p>
-        </div>
-        <div class="grid-4">
-          <div class="card role-card">
-            <span class="role-tag">Tenant</span>
-            <div class="icon"><i class="fa-solid fa-user"></i></div>
-            <h3>مستأجر</h3>
-            <p>بحث، حجز، محفظة، QR للدخول، وتقييم بعد الإقامة.</p>
-          </div>
-          <div class="card role-card">
-            <span class="role-tag">Owner</span>
-            <div class="icon"><i class="fa-solid fa-house-user"></i></div>
-            <h3>مالك</h3>
-            <p>إدارة وحدات، موافقات، مسح QR، واشتراكات لخدمات الملاك.</p>
-          </div>
-          <div class="card role-card">
-            <span class="role-tag">Technician</span>
-            <div class="icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
-            <h3>فني</h3>
-            <p>طلبات صيانة وتتبع المهام المرتبطة بالوحدات المؤجّرة.</p>
-          </div>
-          <div class="card role-card">
-            <span class="role-tag">Admin</span>
-            <div class="icon"><i class="fa-solid fa-shield-halved"></i></div>
-            <h3>إدارة</h3>
-            <p>إشراف على المنصة، المستخدمين، والدعم عند التصعيد.</p>
-          </div>
-        </div>
+    <section class="mission" id="about">
+      <div class="wrap">
+        <p>
+          هدفنا نبسط الإيجار في مصر: أقل سوء تفاهم، وأكتر وضوح بين المستأجر والمالك.
+          <span class="en">Rental operations for Egypt — plain and practical.</span>
+        </p>
       </div>
     </section>
 
-    <section class="section" id="features">
-      <div class="container">
-        <div class="section-head">
-          <h2>ما الذي تجده في 1.3.5؟</h2>
-          <p class="sub">مميزات حقيقية في التطبيق الحالي — مش وعود تسويقية عامة.</p>
-        </div>
-        <div class="grid-3">
-          <div class="card">
-            <div class="icon"><i class="fa-solid fa-qrcode"></i></div>
-            <h3>QR Check-in</h3>
-            <p>المستأجر يعرض رمز الدخول؛ المالك يمسحه للتحقق عند الوصول.</p>
+    <section class="section download-band" id="download">
+      <div class="wrap download-inner">
+        <div>
+          <h2>حمّل إيجاري لأندرويد</h2>
+          <p class="lede">الإصدار الحالي متاح كملف APK. Google Play قريب إن شاء الله.</p>
+          <p class="version-note">الإصدار <strong>1.3.5</strong> · حجم تقريبي حسب جهازك · أندرويد فقط حالياً</p>
+          <div class="dl-actions">
+            <a
+              class="btn btn-solid"
+              data-apk-link
+              href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk"
+            >تنزيل APK · 1.3.5</a>
+            <a class="btn btn-outline" href="download.html">تعليمات التثبيت</a>
           </div>
-          <div class="card">
-            <div class="icon"><i class="fa-solid fa-star-half-stroke"></i></div>
-            <h3>درجات الثقة</h3>
-            <p>Trust scores تعكس سلوك الطرفين وتزيد الشفافية قبل التعامل.</p>
+          <div class="download-stats" data-ejari-download-stats aria-busy="true" aria-live="polite">
+            <span data-dl-total>جاري تحديث عدّاد التحميل…</span>
+            <span data-dl-current hidden></span>
+            <span data-dl-status hidden></span>
           </div>
-          <div class="card">
-            <div class="icon"><i class="fa-solid fa-wallet"></i></div>
-            <h3>محافظ رقمية</h3>
-            <p>تتبع عربون، إيجار، إيداع، سحب، واسترداد داخل المحفظة.</p>
-          </div>
-          <div class="card">
-            <div class="icon"><i class="fa-solid fa-robot"></i></div>
-            <h3>بوت الدعم</h3>
-            <p>اختصارات ذكية داخل الشات مع إمكانية التصعيد للدعم الحي.</p>
-          </div>
-          <div class="card">
-            <div class="icon"><i class="fa-solid fa-crown"></i></div>
-            <h3>اشتراكات الملاك</h3>
-            <p>باقات للملاك لتوسيع القدرات التشغيلية داخل المنصة.</p>
-          </div>
-          <div class="card">
-            <div class="icon"><i class="fa-solid fa-tags"></i></div>
-            <h3>بيع = إعلانات فقط</h3>
-            <p>قسم البيع للإعلانات المبوبة — إيجاري لا تأخذ عمولة على البيع.</p>
+          <div class="install-note">
+            <strong>لو عندك نسخة قديمة:</strong>
+            احذفها الأول، بعدين ثبّت 1.3.5 عشان ما يحصلش تعارض توقيع.
           </div>
         </div>
+        <figure class="dl-aside">
+          <img
+            src="../images/home3.jpg"
+            alt="شقة سكنية"
+            width="606"
+            height="404"
+            loading="lazy"
+          />
+          <figcaption class="caption">صورة توضيحية — استبدلوها بصور وحداتكم الرسمية لاحقاً.</figcaption>
+        </figure>
       </div>
     </section>
 
-    <section class="section" id="workflow">
-      <div class="container">
-        <div class="section-head">
-          <h2>كيف يعمل مسار الإيجار؟</h2>
-          <p class="sub">حجز → دفع وديعة → موافقة → استكمال → QR → تقييم.</p>
+    <section class="section section-tight" id="contact">
+      <div class="wrap">
+        <h2>تواصل معنا</h2>
+        <p class="lede">للدعم والشراكات — ردّنا على واتساب أو الإيميل.</p>
+        <div class="contact-row">
+          <a href="https://wa.me/201280083336" target="_blank" rel="noopener">واتساب · 01280083336</a>
+          <a href="mailto:support@ejari.app">support@ejari.app</a>
+          <a href="https://www.facebook.com/people/%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-EjariApp/61591649755623/" target="_blank" rel="noopener">فيسبوك</a>
+          <a href="https://www.linkedin.com/company/%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-ejariapp/" target="_blank" rel="noopener">لينكدإن</a>
         </div>
-        <div class="timeline">
-          <div class="card step">
-            <div class="num">1</div>
-            <h3>اختيار وحجز</h3>
-            <p>تختار الوحدة والمدة (يومي/أسبوعي/شهري) وتبدأ الحجز.</p>
-          </div>
-          <div class="card step">
-            <div class="num">2</div>
-            <h3>وديعة آمنة</h3>
-            <p>تدفع العربون/الوديعة وتظهر الحالة بوضوح في الحجوزات والمحفظة.</p>
-          </div>
-          <div class="card step">
-            <div class="num">3</div>
-            <h3>دخول بـ QR</h3>
-            <p>بعد التأكيد، تعرض رمز الدخول عند الوصول للتحقق.</p>
-          </div>
-          <div class="card step">
-            <div class="num">4</div>
-            <h3>تقييم وثقة</h3>
-            <p>بعد الإقامة تُحدَّث درجات الثقة وتُغلق الدورة بشفافية.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="faq">
-      <div class="container">
-        <div class="section-head">
-          <h2>أسئلة شائعة</h2>
-          <p class="sub">إجابات مباشرة عن التطبيق والنسخة الحالية.</p>
-        </div>
-        <div class="faq">
-          <details open>
-            <summary>هل إيجاري متاحة على أندرويد؟</summary>
-            <p>نعم. حمّل ملف APK للإصدار 1.3.5 من زر التحميل أعلاه أو من صفحة التحميل.</p>
-          </details>
-          <details>
-            <summary>هل إيجاري تأخذ عمولة على البيع؟</summary>
-            <p>لا. قسم البيع إعلانات مبوبة فقط — بدون عمولة بيع من المنصة.</p>
-          </details>
-          <details>
-            <summary>ما معنى الوديعة الآمنة؟</summary>
-            <p>المبلغ يمر عبر مسار منظم (عربون/وديعة) بحالة واضحة حتى الاستكمال أو الاسترداد حسب الحالة.</p>
-          </details>
-          <details>
-            <summary>من يستخدم التطبيق؟</summary>
-            <p>مستأجر، مالك، فني صيانة، وإدارة — كل دور له مساره داخل نفس التطبيق.</p>
-          </details>
-        </div>
-      </div>
-    </section>
-
-    <section class="container final-cta">
-      <span class="version-badge"><i class="fa-solid fa-android"></i> Android · v1.3.5</span>
-      <h2 style="margin-top:14px;">حمّل إيجاري وابدأ التجربة</h2>
-      <p style="margin:0; color:var(--muted);">نظام تشغيل الإيجار — عربي، RTL، جاهز للتجربة على أندرويد.</p>
-      <div class="hero-actions" style="justify-content:center; margin-top:20px;">
-        <a data-apk-link class="btn btn-primary" href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk">
-          <i class="fa-solid fa-download"></i> تحميل التطبيق لأندرويد
-        </a>
-        <a class="btn btn-secondary" href="download.html">
-          <i class="fa-solid fa-circle-info"></i> تعليمات التثبيت
-        </a>
-        <a class="btn btn-secondary" href="story.html">
-          <i class="fa-regular fa-file-lines"></i> قصة المشروع
-        </a>
-      </div>
-      <div class="legal-links">
-        <a href="https://m7moud2.github.io/ejari-web/docs/privacy.html" target="_blank" rel="noopener">سياسة الخصوصية</a>
-        <a href="https://m7moud2.github.io/ejari-web/docs/terms.html" target="_blank" rel="noopener">الشروط والأحكام</a>
       </div>
     </section>
   </main>
 
-  <footer class="footer">
-    © 2026 إيجاري Ejari — الإصدار 1.3.5 ·
-    <a href="download.html">صفحة التحميل</a> ·
-    <a href="https://m7moud2.github.io/ejari-web/docs/privacy.html" target="_blank" rel="noopener">الخصوصية</a> ·
-    <a href="https://m7moud2.github.io/ejari-web/docs/terms.html" target="_blank" rel="noopener">الشروط</a> ·
-    <a href="https://github.com/m7moud2/ejari-web/releases/latest" target="_blank" rel="noopener">Releases</a>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <p class="footer-brand">إيجاري<small>EJARI</small></p>
+          <p style="margin:0;max-width:28ch">شركة تطبيق لإدارة الإيجار والعقود في السوق المصري.</p>
+        </div>
+        <div>
+          <h4>قانوني</h4>
+          <ul>
+            <li><a href="../docs/privacy.html">سياسة الخصوصية</a></li>
+            <li><a href="../docs/terms.html">الشروط والأحكام</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>روابط</h4>
+          <ul>
+            <li><a href="#download">التحميل</a></li>
+            <li><a href="download.html">تعليمات التثبيت</a></li>
+            <li><a href="https://github.com/m7moud2/ejari-web/releases/latest" target="_blank" rel="noopener">أحدث الإصدارات</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 إيجاري · الإصدار 1.3.5</span>
+        <span class="footer-en">Ejari — rental ops for Egypt</span>
+      </div>
+    </div>
   </footer>
 
   <div class="sticky-dl" aria-label="تحميل سريع">
     <div class="inner">
       <div>
-        <strong>إيجاري · v1.3.5</strong>
-        <div style="color:var(--muted);font-size:.85rem;font-weight:700">APK لأندرويد</div>
+        <strong>إيجاري 1.3.5</strong>
+        <span>APK لأندرويد</span>
       </div>
-      <a data-apk-link href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk">
-        <i class="fa-solid fa-download"></i> تحميل
-      </a>
+      <a
+        class="btn btn-solid"
+        data-apk-link
+        href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk"
+        style="padding:0.7rem 1.1rem;font-size:0.95rem"
+      >تحميل</a>
     </div>
   </div>
+
+  <script src="js/site.js" defer></script>
   <script src="js/download-stats.js" defer></script>
 </body>
 </html>

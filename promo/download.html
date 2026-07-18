@@ -1,361 +1,162 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>تحميل إيجاري 1.3.5 | Ejari</title>
-  <meta name="description" content="حمّل تطبيق إيجاري لأندرويد — الإصدار 1.3.5 مباشرة من GitHub Releases." />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    :root{
-      --bg:#f6f1e8; --bg-2:#fbf8f1; --card:#fff; --text:#1a2e28; --muted:#5d746c;
-      --primary:#0F3A30; --primary-2:#1a5244; --gold:#B58D3D;
-      --border:rgba(15,58,48,.12);
-      --shadow:0 20px 50px rgba(15,58,48,.10);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;font-family:'Cairo',sans-serif;color:var(--text);
-      background:
-        radial-gradient(circle at top right, rgba(15,58,48,.10), transparent 30%),
-        radial-gradient(circle at left top, rgba(181,141,61,.12), transparent 26%),
-        linear-gradient(180deg,var(--bg) 0%,var(--bg-2) 100%);
-      line-height:1.9;
-    }
-    a{text-decoration:none;color:inherit}
-    .container{width:min(1040px,calc(100% - 32px));margin:0 auto}
-    .nav{
-      position:sticky;top:0;z-index:10;
-      backdrop-filter:blur(16px);
-      background:rgba(251,248,241,.88);
-      border-bottom:1px solid var(--border)
-    }
-    .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0}
-    .brand{display:flex;align-items:center;gap:10px;font-weight:900}
-    .brand .icon{
-      width:40px;height:40px;border-radius:14px;display:grid;place-items:center;
-      background:linear-gradient(135deg,rgba(15,58,48,.18),rgba(181,141,61,.18));color:var(--primary)
-    }
-    .cta{
-      display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:999px;
-      background:linear-gradient(135deg,var(--primary),var(--primary-2));color:white;font-weight:800
-    }
-    .social-links{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-    .social-links a{
-      display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;
-      border:1px solid var(--border);background:rgba(255,255,255,.72);
-      color:var(--primary);font-weight:800;font-size:.92rem
-    }
-    .hero{padding:56px 0 24px}
-    .card{
-      background:rgba(255,255,255,.92);border:1px solid var(--border);border-radius:24px;box-shadow:var(--shadow)
-    }
-    .hero-grid{display:grid;grid-template-columns:1fr .95fr;gap:16px;align-items:stretch}
-    .panel{padding:24px}
-    .eyebrow{
-      display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;
-      background:rgba(255,255,255,.7);border:1px solid var(--border);color:var(--primary);font-weight:800;font-size:.9rem
-    }
-    h1{margin:14px 0 0;font-size:clamp(2.1rem,4vw,3.4rem);line-height:1.1}
-    .lead{margin:18px 0 0;color:var(--muted);font-size:1.05rem}
-    .version-badge{
-      display:inline-flex;align-items:center;gap:8px;margin:16px 0 0;padding:10px 14px;border-radius:999px;
-      background:rgba(181,141,61,.12);border:1px solid rgba(181,141,61,.35);color:var(--gold);font-weight:800
-    }
-    .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
-    .btn{
-      display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 20px;border-radius:16px;
-      font-weight:800;border:1px solid transparent
-    }
-    .btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff}
-    .btn-secondary{background:rgba(255,255,255,.78);border-color:var(--border)}
-    .metric-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
-    .metric{padding:14px;border-radius:18px;background:rgba(15,58,48,.06);border:1px solid var(--border)}
-    .metric .label{color:var(--muted);font-size:.82rem}
-    .metric .value{margin-top:6px;font-weight:900}
-    .section{padding:20px 0 0}
-    .section h2{margin:0 0 8px;font-size:clamp(1.4rem,2vw,2rem)}
-    .sub{margin:0;color:var(--muted);max-width:70ch}
-    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
-    .box{padding:22px}
-    .icon-box{
-      width:52px;height:52px;border-radius:16px;display:grid;place-items:center;margin-bottom:14px;
-      background:linear-gradient(135deg,rgba(15,58,48,.12),rgba(181,141,61,.12));color:var(--primary)
-    }
-    .list{display:grid;gap:10px;margin-top:12px}
-    .item{display:flex;gap:10px;align-items:flex-start;color:var(--muted)}
-    .item i{color:var(--primary-2);margin-top:5px}
-    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
-    .step{padding:18px}
-    .num{
-      width:42px;height:42px;border-radius:14px;display:grid;place-items:center;margin-bottom:12px;
-      background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;font-weight:900
-    }
-    .updates-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:16px}
-    .update-card{padding:18px}
-    .update-card h3{margin:0 0 8px;color:var(--primary);font-size:1.02rem}
-    .update-card p{margin:0;color:var(--muted)}
-    .footer{padding:28px 0 46px;text-align:center;color:var(--muted)}
-    .footer a{color:var(--primary);font-weight:700}
-    .mobile-download-bar{
-      display:none;position:fixed;left:0;right:0;bottom:0;z-index:20;
-      padding:12px 16px calc(12px + env(safe-area-inset-bottom));
-      background:rgba(251,248,241,.96);backdrop-filter:blur(18px);
-      border-top:1px solid var(--border);box-shadow:0 -10px 30px rgba(15,58,48,.08)
-    }
-    .mobile-download-bar .inner{display:flex;align-items:center;gap:12px}
-    .mobile-download-bar .copy{flex:1;min-width:0}
-    .mobile-download-bar .copy strong{display:block;font-size:.98rem}
-    .mobile-download-bar .copy span{display:block;font-size:.8rem;color:var(--muted)}
-    .mobile-download-bar a{
-      white-space:nowrap;padding:12px 16px;border-radius:14px;
-      background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;font-weight:800
-    }
-    .qr-wrap{display:flex;align-items:center;gap:18px;padding:22px}
-    .qr-code{
-      width:176px;min-width:176px;aspect-ratio:1/1;border-radius:22px;padding:14px;
-      background:#fff;border:1px solid var(--border)
-    }
-    .qr-code img{width:100%;height:100%;display:block}
-    .qr-copy h3{margin:0 0 8px;color:var(--primary);font-size:1.2rem}
-    .qr-copy p{margin:0;color:var(--muted)}
-    .mini-link{
-      display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:10px 14px;border-radius:14px;
-      background:rgba(15,58,48,.08);color:var(--primary);font-weight:800;word-break:break-all
-    }
-    .copy-link{
-      display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:10px 14px;border-radius:14px;
-      background:rgba(181,141,61,.12);color:var(--gold);font-weight:800;border:0;cursor:pointer;
-      font-family:inherit;font-size:.95rem
-    }
-    .toast{
-      position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(18px);
-      background:rgba(15,58,48,.96);color:#fff;padding:12px 16px;border-radius:999px;
-      opacity:0;pointer-events:none;transition:.25s ease;z-index:30
-    }
-    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-    .warn{
-      margin-top:14px;padding:14px 16px;border-radius:18px;
-      background:rgba(181,141,61,.12);border:1px solid rgba(181,141,61,.28)
-    }
-    .download-stats{
-      display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;
-      margin-top:18px;padding:14px 16px;border-radius:18px;
-      background:rgba(15,58,48,.06);border:1px solid var(--border);
-      color:var(--primary);font-weight:800
-    }
-    .download-stats .dl-icon{
-      width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
-      background:linear-gradient(135deg,rgba(15,58,48,.14),rgba(181,141,61,.18));color:var(--gold)
-    }
-    .download-stats .dl-main{font-size:1.05rem}
-    .download-stats .dl-sub{
-      font-size:.86rem;font-weight:700;padding:4px 10px;border-radius:999px;
-      background:rgba(181,141,61,.12);border:1px solid rgba(181,141,61,.28);color:var(--gold)
-    }
-    .download-stats .dl-note{width:100%;color:var(--muted);font-size:.8rem;font-weight:700}
-    @media (max-width: 900px){
-      .hero-grid,.grid-2,.steps,.metric-grid,.updates-grid{grid-template-columns:1fr}
-      .nav-inner{flex-wrap:wrap}
-      .actions{flex-direction:column}
-      .actions .btn{width:100%}
-      .hero{padding-bottom:84px}
-      .mobile-download-bar{display:block}
-      .qr-wrap{flex-direction:column;align-items:flex-start}
-      .qr-code{width:min(100%,220px);min-width:0}
-    }
-  </style>
+  <title>تحميل إيجاري 1.3.5 — تعليمات التثبيت</title>
+  <meta name="description" content="حمّل إيجاري 1.3.5 لأندرويد وثبّته خطوة بخطوة. ملف APK مباشر." />
+  <meta name="theme-color" content="#0F3A30" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ar_EG" />
+  <meta property="og:title" content="تحميل إيجاري 1.3.5" />
+  <meta property="og:description" content="تنزيل APK وتعليمات التثبيت على أندرويد." />
+  <meta property="og:url" content="https://m7moud2.github.io/ejari-web/promo/download.html" />
+  <meta property="og:image" content="https://m7moud2.github.io/ejari-web/images/home5.jpg" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="تحميل إيجاري 1.3.5" />
+  <meta name="twitter:description" content="APK لأندرويد — تعليمات تثبيت بسيطة." />
+  <meta name="twitter:image" content="https://m7moud2.github.io/ejari-web/images/home5.jpg" />
+
+  <link rel="icon" href="assets/favicon.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/site.css" />
 </head>
-
-<body>
-  <script>
-    const APP_VERSION = '1.3.5';
-    const APK_URL = 'https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk';
-    const APK_FILENAME = 'ejari-1.3.5.apk';
-    const RELEASES_URL = 'https://github.com/m7moud2/ejari-web/releases/latest';
-
-    function applyDownloadLinks() {
-      document.querySelectorAll('[data-apk-link]').forEach((link) => {
-        link.setAttribute('href', APK_URL);
-        link.setAttribute('download', APK_FILENAME);
-      });
-      const qr = document.querySelector('[data-apk-qr]');
-      if (qr) {
-        qr.setAttribute(
-          'src',
-          `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(APK_URL)}`
-        );
-      }
-      const text = document.querySelector('[data-apk-text]');
-      if (text) text.textContent = APK_URL;
-      document.querySelectorAll('[data-app-version]').forEach((el) => {
-        el.textContent = APP_VERSION;
-      });
-    }
-
-    async function copyDownloadLink() {
-      try {
-        await navigator.clipboard.writeText(APK_URL);
-        const toast = document.getElementById('copyToast');
-        if (toast) {
-          toast.textContent = 'تم نسخ رابط التحميل';
-          toast.classList.add('show');
-          setTimeout(() => toast.classList.remove('show'), 1800);
-        }
-      } catch (_) {}
-    }
-
-    window.addEventListener('DOMContentLoaded', applyDownloadLinks);
-  </script>
-
-  <nav class="nav">
-    <div class="container">
-      <div class="nav-inner">
-        <a class="brand" href="index.html">
-          <span class="icon"><i class="fa-solid fa-key"></i></span>
-          <span>إيجاري Ejari</span>
-        </a>
-        <div class="social-links">
-          <a href="https://www.facebook.com/people/%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-EjariApp/61591649755623/" target="_blank" rel="noopener">
-            <i class="fa-brands fa-facebook-f"></i> فيسبوك
-          </a>
-          <a href="https://www.linkedin.com/company/%E2%80%8E%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-ejariapp/?viewAsMember=true" target="_blank" rel="noopener">
-            <i class="fa-brands fa-linkedin-in"></i> لينكدإن
-          </a>
-          <a class="cta" href="index.html"><i class="fa-solid fa-arrow-right"></i> صفحة التعريف</a>
-        </div>
-      </div>
+<body class="page-download">
+  <header class="site-nav">
+    <div class="wrap">
+      <a class="nav-mark" href="index.html">إيجاري</a>
+      <nav class="nav-links" aria-label="تنقل">
+        <a href="index.html">الرئيسية</a>
+        <a href="index.html#download">التحميل</a>
+        <a href="index.html#contact">تواصل</a>
+      </nav>
     </div>
-  </nav>
+  </header>
 
-  <main class="container">
-    <section class="hero">
-      <div class="hero-grid">
-        <div class="card panel">
-          <div class="eyebrow"><i class="fa-solid fa-download"></i> تحميل مباشر لأندرويد</div>
-          <h1>إيجاري — حمّل التطبيق <span data-app-version>1.3.5</span></h1>
-          <p class="lead">
-            نظام تشغيل الإيجار: أسِرّة وغرف، وديعة آمنة، QR للدخول، محفظة، درجات ثقة، ودعم ذكي.
-          </p>
-          <div class="version-badge">
-            <i class="fa-solid fa-tag"></i>
-            الإصدار الحالي: v<span data-app-version>1.3.5</span>
-          </div>
-          <div class="actions">
-            <a class="btn btn-primary" data-apk-link href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk">
-              <i class="fa-solid fa-cloud-arrow-down"></i> تحميل التطبيق لأندرويد
-            </a>
-            <a class="btn btn-secondary" href="https://github.com/m7moud2/ejari-web/releases/latest" target="_blank" rel="noopener">
-              <i class="fa-brands fa-github"></i> أحدث الإصدارات
-            </a>
-            <a class="btn btn-secondary" href="index.html">
-              <i class="fa-solid fa-house"></i> صفحة التعريف
-            </a>
-          </div>
-          <div class="warn">
-            <strong>مهم:</strong> لو عندك نسخة قديمة مثبتة، احذفها أولاً ثم ثبّت v<span data-app-version>1.3.5</span> لتجنب تعارض التوقيع.
-          </div>
-          <div class="download-stats" data-ejari-download-stats aria-busy="true" aria-live="polite">
-            <span class="dl-icon"><i class="fa-solid fa-download"></i></span>
-            <span class="dl-main" data-dl-total>جاري حساب التحميلات…</span>
-            <span class="dl-sub" data-dl-current></span>
-            <span class="dl-note" data-dl-status hidden></span>
-          </div>
-          <div class="metric-grid">
-            <div class="metric"><div class="label">النسخة</div><div class="value">v<span data-app-version>1.3.5</span></div></div>
-            <div class="metric"><div class="label">المنصة</div><div class="value">Android APK</div></div>
-            <div class="metric"><div class="label">الملف</div><div class="value">ejari-1.3.5.apk</div></div>
-          </div>
-        </div>
-
-        <div class="card panel">
-          <div class="icon-box"><i class="fa-solid fa-shield-heart"></i></div>
-          <h2 style="margin:0 0 8px;">قبل التثبيت</h2>
-          <div class="list">
-            <div class="item"><i class="fa-solid fa-check"></i><span>اضغط زر التحميل أو امسح الـ QR للوصول لنفس ملف APK.</span></div>
-            <div class="item"><i class="fa-solid fa-check"></i><span>فعّل مؤقتًا «تثبيت من مصادر غير معروفة» إن طلب الهاتف ذلك.</span></div>
-            <div class="item"><i class="fa-solid fa-check"></i><span>افتح الملف بعد اكتمال التحميل وثبّت التطبيق.</span></div>
+  <main>
+    <section class="hero" aria-label="تحميل التطبيق">
+      <div class="hero-media" aria-hidden="true">
+        <img src="../images/home1.jpg" alt="" width="1200" height="800" fetchpriority="high" />
+        <div class="hero-shade"></div>
+      </div>
+      <div class="wrap">
+        <div class="hero-copy">
+          <h1 class="hero-brand">التحميل<span>v1.3.5</span></h1>
+          <p class="hero-line">ثبّت إيجاري على أندرويد.</p>
+          <p class="hero-sub">ملف APK مباشر. لو عندك نسخة قديمة — امسحها الأول.</p>
+          <div class="hero-actions">
+            <a
+              class="btn btn-primary"
+              data-apk-link
+              href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk"
+            >تنزيل ejari-1.3.5.apk</a>
+            <a class="btn btn-ghost" href="index.html">العودة للموقع</a>
           </div>
         </div>
       </div>
     </section>
 
     <section class="section">
-      <h2>ما الجديد في 1.3.5؟</h2>
-      <p class="sub">ملخص يعكس حالة التطبيق الحالية (نظام تشغيل الإيجار).</p>
-      <div class="updates-grid">
-        <div class="card update-card">
-          <div class="icon-box"><i class="fa-solid fa-bed"></i></div>
-          <h3>إيجار مرن</h3>
-          <p>أسِرّة وغرف، يومي/أسبوعي/شهري، مع وديعة آمنة وQR للدخول.</p>
+      <div class="wrap" style="max-width:40rem">
+        <h2>خطوات التثبيت</h2>
+        <p class="lede">ثلاث دقايق على أغلب الأجهزة.</p>
+        <div class="steps">
+          <article class="step">
+            <div class="step-num">١</div>
+            <div>
+              <h3>نزّل الملف</h3>
+              <p>اضغط زر التنزيل واحفظ <strong>ejari-1.3.5.apk</strong> على الموبايل.</p>
+            </div>
+          </article>
+          <article class="step">
+            <div class="step-num">٢</div>
+            <div>
+              <h3>اسمح بالتثبيت من المصدر</h3>
+              <p>أندرويد هيطلب إذن «تثبيت تطبيقات غير معروفة» للمتصفح أو مدير الملفات — وافق مرة واحدة.</p>
+            </div>
+          </article>
+          <article class="step">
+            <div class="step-num">٣</div>
+            <div>
+              <h3>افتح الملف وثبّت</h3>
+              <p>افتح الـ APK من الإشعارات أو التحميلات، واضغط تثبيت. بعدين افتح إيجاري من الشاشة الرئيسية.</p>
+            </div>
+          </article>
         </div>
-        <div class="card update-card">
-          <div class="icon-box"><i class="fa-solid fa-users"></i></div>
-          <h3>أدوار متعددة</h3>
-          <p>مستأجر، مالك، فني، وإدارة — كل دور بمساره داخل التطبيق.</p>
-        </div>
-        <div class="card update-card">
-          <div class="icon-box"><i class="fa-solid fa-tags"></i></div>
-          <h3>بيع بدون عمولة</h3>
-          <p>قسم البيع إعلانات مبوبة فقط — إيجاري لا تأخذ عمولة بيع.</p>
-        </div>
-      </div>
-    </section>
 
-    <section class="section">
-      <h2>امسح الكود وابدأ التحميل</h2>
-      <p class="sub">الـ QR يفتح ملف الـ APK مباشرة من GitHub Releases.</p>
-      <div class="card qr-wrap">
-        <div class="qr-code">
-          <img alt="QR Code to Ejari APK"
-               data-apk-qr
-               src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=https%3A%2F%2Fgithub.com%2Fm7moud2%2Fejari-web%2Freleases%2Fdownload%2Fv1.3.5%2Fejari-1.3.5.apk">
+        <div class="install-note" style="margin-top:2rem">
+          <strong>مهم:</strong>
+          لو التثبيت فشل بسبب «تعارض التوقيع»، امسح أي نسخة قديمة من إيجاري الأول، بعدين ثبّت 1.3.5 من جديد.
         </div>
-        <div class="qr-copy">
-          <h3>رابط التنزيل المباشر</h3>
-          <p><strong data-apk-text>https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk</strong></p>
-          <a class="mini-link" data-apk-link href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i>
-            افتح ملف التطبيق
-          </a>
-          <button class="copy-link" type="button" onclick="copyDownloadLink()">
-            <i class="fa-regular fa-copy"></i>
-            نسخ رابط التحميل
-          </button>
-        </div>
-      </div>
-    </section>
 
-    <section class="section">
-      <h2>خطوات التثبيت</h2>
-      <div class="steps">
-        <div class="card step"><div class="num">1</div><h3 style="margin:0 0 8px;color:var(--primary)">تنزيل</h3><p style="margin:0;color:var(--muted)">حمّل ejari-1.3.5.apk على جهاز أندرويد.</p></div>
-        <div class="card step"><div class="num">2</div><h3 style="margin:0 0 8px;color:var(--primary)">سماح</h3><p style="margin:0;color:var(--muted)">اسمح مؤقتًا بالتثبيت من هذا المصدر إن لزم.</p></div>
-        <div class="card step"><div class="num">3</div><h3 style="margin:0 0 8px;color:var(--primary)">تجربة</h3><p style="margin:0;color:var(--muted)">افتح إيجاري وجرّب مسار الحجز والوديعة وQR.</p></div>
+        <div class="download-stats" data-ejari-download-stats aria-busy="true" aria-live="polite" style="margin-top:1.5rem;border-top:1px solid var(--line);padding-top:1rem">
+          <span data-dl-total>جاري تحديث عدّاد التحميل…</span>
+          <span data-dl-current hidden></span>
+          <span data-dl-status hidden></span>
+        </div>
+
+        <div class="dl-actions" style="margin-top:1.5rem">
+          <a
+            class="btn btn-solid"
+            data-apk-link
+            href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk"
+          >تنزيل مرة تانية</a>
+          <a class="btn btn-outline" href="../docs/privacy.html">الخصوصية</a>
+          <a class="btn btn-outline" href="../docs/terms.html">الشروط</a>
+        </div>
       </div>
     </section>
   </main>
 
-  <footer class="footer">
-    © 2026 إيجاري Ejari · v1.3.5 ·
-    <a href="index.html">صفحة التعريف</a> ·
-    <a href="https://m7moud2.github.io/ejari-web/docs/privacy.html" target="_blank" rel="noopener">الخصوصية</a> ·
-    <a href="https://m7moud2.github.io/ejari-web/docs/terms.html" target="_blank" rel="noopener">الشروط</a> ·
-    <a href="https://github.com/m7moud2/ejari-web/releases/latest" target="_blank" rel="noopener">Releases</a>
+  <footer class="site-footer">
+    <div class="wrap">
+      <div class="footer-grid">
+        <div>
+          <p class="footer-brand">إيجاري<small>EJARI</small></p>
+          <p style="margin:0">الدعم: <a href="mailto:support@ejari.app">support@ejari.app</a> · <a href="https://wa.me/201280083336">واتساب</a></p>
+        </div>
+        <div>
+          <h4>قانوني</h4>
+          <ul>
+            <li><a href="../docs/privacy.html">الخصوصية</a></li>
+            <li><a href="../docs/terms.html">الشروط</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>الموقع</h4>
+          <ul>
+            <li><a href="index.html">الصفحة الرئيسية</a></li>
+            <li><a href="index.html#contact">تواصل</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2026 إيجاري · v1.3.5</span>
+        <span class="footer-en">Android APK download</span>
+      </div>
+    </div>
   </footer>
 
-  <div class="mobile-download-bar">
-    <div class="inner container">
-      <div class="copy">
-        <strong>تحميل APK · v1.3.5</strong>
-        <span>تحميل التطبيق لأندرويد</span>
+  <div class="sticky-dl" aria-label="تحميل سريع">
+    <div class="inner">
+      <div>
+        <strong>إيجاري 1.3.5</strong>
+        <span>APK</span>
       </div>
-      <a data-apk-link href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk">تحميل الآن</a>
+      <a
+        class="btn btn-solid"
+        data-apk-link
+        href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk"
+        style="padding:0.7rem 1.1rem;font-size:0.95rem"
+      >تحميل</a>
     </div>
   </div>
-  <div id="copyToast" class="toast">تم نسخ رابط التحميل</div>
+
+  <script src="js/site.js" defer></script>
   <script src="js/download-stats.js" defer></script>
 </body>
 </html>
