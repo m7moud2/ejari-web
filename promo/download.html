@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-lang="ar">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,94 +7,125 @@
   <meta name="description" content="حمّل إيجاري 1.3.5 لأندرويد وثبّته خطوة بخطوة. ملف APK مباشر." />
   <meta name="theme-color" content="#0F3A30" />
 
+  <!-- Canonical: update when pointing a custom domain at /promo/ (see README.md) -->
+  <link rel="canonical" href="https://m7moud2.github.io/ejari-web/promo/download.html" />
+
   <meta property="og:type" content="website" />
-  <meta property="og:locale" content="ar_EG" />
+  <meta property="og:locale" content="ar_AR" />
+  <meta property="og:locale:alternate" content="en_US" />
+  <meta property="og:site_name" content="إيجاري" />
   <meta property="og:title" content="تحميل إيجاري 1.3.5" />
   <meta property="og:description" content="تنزيل APK وتعليمات التثبيت على أندرويد." />
   <meta property="og:url" content="https://m7moud2.github.io/ejari-web/promo/download.html" />
-  <meta property="og:image" content="https://m7moud2.github.io/ejari-web/images/home5.jpg" />
+  <meta property="og:image" content="https://m7moud2.github.io/ejari-web/promo/assets/og-cover.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="تحميل إيجاري 1.3.5" />
   <meta name="twitter:description" content="APK لأندرويد — تعليمات تثبيت بسيطة." />
-  <meta name="twitter:image" content="https://m7moud2.github.io/ejari-web/images/home5.jpg" />
+  <meta name="twitter:image" content="https://m7moud2.github.io/ejari-web/promo/assets/og-cover.jpg" />
 
-  <link rel="icon" href="assets/favicon.png" type="image/png" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="assets/favicon.png" type="image/png" sizes="64x64" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap&subset=arabic,latin" rel="stylesheet" />
   <link rel="stylesheet" href="css/site.css" />
 </head>
-<body class="page-download">
+<body class="page-download" data-title-key="dlpage.title" data-desc-key="dlpage.meta">
   <header class="site-nav">
     <div class="wrap">
-      <a class="nav-mark" href="index.html">إيجاري</a>
-      <nav class="nav-links" aria-label="تنقل">
-        <a href="index.html">الرئيسية</a>
-        <a href="index.html#download">التحميل</a>
-        <a href="index.html#contact">تواصل</a>
-      </nav>
+      <a class="nav-mark" href="index.html" data-i18n="nav.brand">إيجاري</a>
+      <div class="nav-end">
+        <nav class="nav-links" aria-label="تنقل">
+          <a href="index.html" data-i18n="nav.home">الرئيسية</a>
+          <a href="index.html#download" data-i18n="nav.download">التحميل</a>
+          <a href="index.html#contact" data-i18n="nav.contact">تواصل</a>
+        </nav>
+        <button
+          type="button"
+          class="lang-toggle"
+          data-lang-toggle
+          data-i18n-aria="nav.langAria"
+          aria-label="التبديل إلى الإنجليزية"
+        >
+          <span class="lang-pair" aria-hidden="true"></span>
+          <span data-lang-label>English</span>
+        </button>
+      </div>
     </div>
   </header>
 
   <main>
     <section class="hero" aria-label="تحميل التطبيق">
       <div class="hero-media" aria-hidden="true">
-        <img src="../images/home1.jpg" alt="" width="1200" height="800" fetchpriority="high" />
+        <img
+          src="../images/home1.jpg"
+          alt=""
+          width="1080"
+          height="720"
+          fetchpriority="high"
+          decoding="async"
+        />
         <div class="hero-shade"></div>
       </div>
       <div class="wrap">
         <div class="hero-copy">
-          <h1 class="hero-brand">التحميل<span>v1.3.5</span></h1>
-          <p class="hero-line">ثبّت إيجاري على أندرويد.</p>
-          <p class="hero-sub">ملف APK مباشر. لو عندك نسخة قديمة — امسحها الأول.</p>
+          <h1 class="hero-brand"><span data-i18n="nav.brand">إيجاري</span><span data-i18n="dlpage.brandSub">v1.3.5</span></h1>
+          <p class="hero-line" data-i18n="dlpage.line">ثبّت إيجاري على أندرويد.</p>
+          <p class="hero-sub" data-i18n="dlpage.sub">ملف APK مباشر من إصدارنا الرسمي. لو عندك نسخة قديمة — امسحها الأول.</p>
           <div class="hero-actions">
             <a
               class="btn btn-primary"
               data-apk-link
+              data-i18n="dlpage.cta"
               href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk"
             >تنزيل ejari-1.3.5.apk</a>
-            <a class="btn btn-ghost" href="index.html">العودة للموقع</a>
+            <a class="btn btn-ghost" href="index.html" data-i18n="dlpage.back">العودة للموقع</a>
           </div>
         </div>
       </div>
     </section>
 
     <section class="section">
-      <div class="wrap" style="max-width:40rem">
-        <h2>خطوات التثبيت</h2>
-        <p class="lede">ثلاث دقايق على أغلب الأجهزة.</p>
+      <div class="wrap help-narrow">
+        <h2 data-i18n="dlpage.stepsTitle">خطوات التثبيت</h2>
+        <p class="lede" data-i18n="dlpage.stepsLede">صفحة مساعدة قصيرة — زي ما بنرد على واتساب لما حد يسأل «إزاي أثبّت؟».</p>
+        <p class="honest-note" data-i18n="dlpage.honest">أندرويد 1.3.5 — قريباً على Google Play. التحميل الحالي عبر ملف APK موقّع من إيجاري.</p>
+
         <div class="steps">
           <article class="step">
-            <div class="step-num">١</div>
+            <div class="step-num" data-i18n="num.1">١</div>
             <div>
-              <h3>نزّل الملف</h3>
-              <p>اضغط زر التنزيل واحفظ <strong>ejari-1.3.5.apk</strong> على الموبايل.</p>
+              <h3 data-i18n="dlpage.s1.title">نزّل الملف</h3>
+              <p data-i18n="dlpage.s1.body" data-i18n-html>اضغط زر التنزيل واحفظ <strong>ejari-1.3.5.apk</strong> على الموبايل.</p>
             </div>
           </article>
           <article class="step">
-            <div class="step-num">٢</div>
+            <div class="step-num" data-i18n="num.2">٢</div>
             <div>
-              <h3>اسمح بالتثبيت من المصدر</h3>
-              <p>أندرويد هيطلب إذن «تثبيت تطبيقات غير معروفة» للمتصفح أو مدير الملفات — وافق مرة واحدة.</p>
+              <h3 data-i18n="dlpage.s2.title">اسمح بالتثبيت من المصدر</h3>
+              <p data-i18n="dlpage.s2.body">أندرويد هيطلب إذن تثبيت من المتصفح أو مدير الملفات (مصادر غير معروفة). وافق مرة للمتصفح اللي نزّلت منه — ده سلوك طبيعي لأي APK برا المتجر.</p>
             </div>
           </article>
           <article class="step">
-            <div class="step-num">٣</div>
+            <div class="step-num" data-i18n="num.3">٣</div>
             <div>
-              <h3>افتح الملف وثبّت</h3>
-              <p>افتح الـ APK من الإشعارات أو التحميلات، واضغط تثبيت. بعدين افتح إيجاري من الشاشة الرئيسية.</p>
+              <h3 data-i18n="dlpage.s3.title">افتح الملف وثبّت</h3>
+              <p data-i18n="dlpage.s3.body">افتح الـ APK من الإشعارات أو التحميلات، واضغط تثبيت. بعدين افتح إيجاري من الشاشة الرئيسية.</p>
             </div>
           </article>
         </div>
 
         <div class="install-note" style="margin-top:2rem">
-          <strong>مهم:</strong>
-          لو التثبيت فشل بسبب «تعارض التوقيع»، امسح أي نسخة قديمة من إيجاري الأول، بعدين ثبّت 1.3.5 من جديد.
+          <span data-i18n="dlpage.note">لو التثبيت فشل بسبب تعارض التوقيع: امسح أي نسخة قديمة من إيجاري، بعدين ثبّت 1.3.5 من جديد.</span>
         </div>
 
         <div class="download-stats" data-ejari-download-stats aria-busy="true" aria-live="polite" style="margin-top:1.5rem;border-top:1px solid var(--line);padding-top:1rem">
-          <span data-dl-total>جاري تحديث عدّاد التحميل…</span>
+          <span data-dl-total data-i18n="stats.loading">جاري تحديث عدّاد التحميل…</span>
           <span data-dl-current hidden></span>
           <span data-dl-status hidden></span>
         </div>
@@ -103,11 +134,19 @@
           <a
             class="btn btn-solid"
             data-apk-link
+            data-i18n="dlpage.retry"
             href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk"
           >تنزيل مرة تانية</a>
-          <a class="btn btn-outline" href="../docs/privacy.html">الخصوصية</a>
-          <a class="btn btn-outline" href="../docs/terms.html">الشروط</a>
+          <a class="btn btn-outline" href="../docs/privacy.html" data-i18n="dlpage.privacy">الخصوصية</a>
+          <a class="btn btn-outline" href="../docs/terms.html" data-i18n="dlpage.terms">الشروط</a>
         </div>
+
+        <p class="contact-hours" style="margin-top:1.75rem">
+          <span data-i18n="dlpage.support">الدعم:</span>
+          <a href="mailto:support@ejari.app">support@ejari.app</a>
+          ·
+          <a href="https://wa.me/201280083336" target="_blank" rel="noopener" data-i18n="contact.wa">واتساب · 01280083336</a>
+        </p>
       </div>
     </section>
   </main>
@@ -117,26 +156,31 @@
       <div class="footer-grid">
         <div>
           <p class="footer-brand">إيجاري<small>EJARI</small></p>
-          <p style="margin:0">الدعم: <a href="mailto:support@ejari.app">support@ejari.app</a> · <a href="https://wa.me/201280083336">واتساب</a></p>
+          <p class="footer-blurb">
+            <span data-i18n="dlpage.support">الدعم:</span>
+            <a href="mailto:support@ejari.app">support@ejari.app</a>
+            ·
+            <a href="https://wa.me/201280083336">WhatsApp</a>
+          </p>
         </div>
         <div>
-          <h4>قانوني</h4>
+          <h4 data-i18n="footer.legal">قانوني</h4>
           <ul>
-            <li><a href="../docs/privacy.html">الخصوصية</a></li>
-            <li><a href="../docs/terms.html">الشروط</a></li>
+            <li><a href="../docs/privacy.html" data-i18n="dlpage.privacy">الخصوصية</a></li>
+            <li><a href="../docs/terms.html" data-i18n="dlpage.terms">الشروط</a></li>
           </ul>
         </div>
         <div>
-          <h4>الموقع</h4>
+          <h4 data-i18n="dlpage.site">الموقع</h4>
           <ul>
-            <li><a href="index.html">الصفحة الرئيسية</a></li>
-            <li><a href="index.html#contact">تواصل</a></li>
+            <li><a href="index.html" data-i18n="dlpage.home">الصفحة الرئيسية</a></li>
+            <li><a href="index.html#contact" data-i18n="nav.contact">تواصل</a></li>
           </ul>
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© 2026 إيجاري · v1.3.5</span>
-        <span class="footer-en">Android APK download</span>
+        <span data-i18n="footer.copy">© 2026 إيجاري · الإصدار 1.3.5</span>
+        <span class="footer-en" data-i18n="dlpage.footerTag">Android APK download</span>
       </div>
     </div>
   </footer>
@@ -144,18 +188,20 @@
   <div class="sticky-dl" aria-label="تحميل سريع">
     <div class="inner">
       <div>
-        <strong>إيجاري 1.3.5</strong>
-        <span>APK</span>
+        <strong data-i18n="sticky.title">إيجاري 1.3.5</strong>
+        <span data-i18n="sticky.sub">APK لأندرويد</span>
       </div>
       <a
         class="btn btn-solid"
         data-apk-link
+        data-i18n="sticky.cta"
         href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk"
         style="padding:0.7rem 1.1rem;font-size:0.95rem"
       >تحميل</a>
     </div>
   </div>
 
+  <script src="js/i18n.js"></script>
   <script src="js/site.js" defer></script>
   <script src="js/download-stats.js" defer></script>
 </body>

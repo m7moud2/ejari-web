@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-lang="ar">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,37 +7,58 @@
   <meta name="description" content="إيجاري تطبيق لإدارة الإيجار: عقود، دفع، معاينة، صيانة، ومحفظة — للمستأجر والمالك. الإصدار 1.3.5 لأندرويد." />
   <meta name="theme-color" content="#0F3A30" />
 
+  <!-- Canonical: update when pointing a custom domain at /promo/ (see README.md) -->
+  <link rel="canonical" href="https://m7moud2.github.io/ejari-web/promo/" />
+
   <meta property="og:type" content="website" />
-  <meta property="og:locale" content="ar_EG" />
+  <meta property="og:locale" content="ar_AR" />
+  <meta property="og:locale:alternate" content="en_US" />
   <meta property="og:site_name" content="إيجاري" />
   <meta property="og:title" content="إيجاري — إدارة الإيجار في مصر" />
   <meta property="og:description" content="عقود أوضح، دفع منظم، ومتابعة صيانة. حمّل التطبيق لأندرويد — الإصدار 1.3.5." />
   <meta property="og:url" content="https://m7moud2.github.io/ejari-web/promo/" />
-  <meta property="og:image" content="https://m7moud2.github.io/ejari-web/images/home5.jpg" />
-  <meta property="og:image:alt" content="إيجاري — منصة إدارة الإيجار" />
+  <meta property="og:image" content="https://m7moud2.github.io/ejari-web/promo/assets/og-cover.jpg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="إيجاري — إدارة الإيجار في مصر" />
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="إيجاري — إدارة الإيجار في مصر" />
   <meta name="twitter:description" content="عقود، دفع، صيانة، ومحفظة في تطبيق واحد. الإصدار 1.3.5." />
-  <meta name="twitter:image" content="https://m7moud2.github.io/ejari-web/images/home5.jpg" />
+  <meta name="twitter:image" content="https://m7moud2.github.io/ejari-web/promo/assets/og-cover.jpg" />
 
-  <link rel="canonical" href="https://m7moud2.github.io/ejari-web/promo/" />
-  <link rel="icon" href="assets/favicon.png" type="image/png" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="assets/favicon.png" type="image/png" sizes="64x64" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Tajawal subset: Arabic + Latin, weights used on the page -->
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap&subset=arabic,latin" rel="stylesheet" />
   <link rel="stylesheet" href="css/site.css" />
 </head>
-<body>
+<body data-title-key="meta.title" data-desc-key="meta.desc">
   <header class="site-nav">
     <div class="wrap">
-      <a class="nav-mark" href="index.html">إيجاري</a>
-      <nav class="nav-links" aria-label="أقسام الصفحة">
-        <a href="#trust">ليه إيجاري</a>
-        <a href="#how">كيف يشتغل</a>
-        <a href="#download">التحميل</a>
-        <a href="#contact">تواصل</a>
-      </nav>
+      <a class="nav-mark" href="index.html" data-i18n="nav.brand">إيجاري</a>
+      <div class="nav-end">
+        <nav class="nav-links" aria-label="أقسام الصفحة">
+          <a href="#trust" data-i18n="nav.trust">ليه إيجاري</a>
+          <a href="#how" data-i18n="nav.how">كيف يشتغل</a>
+          <a href="#download" data-i18n="nav.download">التحميل</a>
+          <a href="#contact" data-i18n="nav.contact">تواصل</a>
+        </nav>
+        <button
+          type="button"
+          class="lang-toggle"
+          data-lang-toggle
+          data-i18n-aria="nav.langAria"
+          aria-label="التبديل إلى الإنجليزية"
+        >
+          <span class="lang-pair" aria-hidden="true"></span>
+          <span data-lang-label>English</span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -47,24 +68,26 @@
         <img
           src="../images/home5.jpg"
           alt=""
-          width="1200"
-          height="800"
+          width="1080"
+          height="720"
           fetchpriority="high"
+          decoding="async"
         />
         <div class="hero-shade"></div>
       </div>
       <div class="wrap">
         <div class="hero-copy">
-          <h1 class="hero-brand">إيجاري<span>Ejari</span></h1>
-          <p class="hero-line">من العقد… لحد الصيانة.</p>
-          <p class="hero-sub">تطبيق مصري لإدارة الإيجار بين المستأجر والمالك — بدون لفّ ولا وعود فاضيّة.</p>
+          <h1 class="hero-brand"><span data-i18n="nav.brand">إيجاري</span><span data-i18n="hero.brandSub">Ejari</span></h1>
+          <p class="hero-line" data-i18n="hero.line">من العقد… لحد الصيانة.</p>
+          <p class="hero-sub" data-i18n="hero.sub">تطبيق مصري لإدارة الإيجار بين المستأجر والمالك — بدون لفّ ولا وعود فاضيّة.</p>
           <div class="hero-actions">
             <a
               class="btn btn-primary"
               data-apk-link
+              data-i18n="hero.cta"
               href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk"
             >حمّل التطبيق</a>
-            <a class="btn btn-ghost" href="#trust">تعرّف علينا</a>
+            <a class="btn btn-ghost" href="#trust" data-i18n="hero.secondary">تعرّف علينا</a>
           </div>
         </div>
       </div>
@@ -72,47 +95,49 @@
 
     <section class="section" id="trust">
       <div class="wrap trust-grid">
-        <div>
-          <h2>ليه ناس بتثق في إيجاري</h2>
-          <p class="lede">الإيجار في مصر محتاج وضوح أكتر من الكلام. التطبيق بيرتّب العقد والدفع والصيانة في مكان واحد.</p>
+        <div class="reveal">
+          <h2 data-i18n="trust.title">ليه ناس بتثق في إيجاري</h2>
+          <p class="lede" data-i18n="trust.lede">الإيجار في مصر محتاج وضوح أكتر من الكلام. التطبيق بيرتّب العقد والدفع والصيانة في مكان واحد.</p>
           <ul class="trust-list">
             <li>
               <span class="tick" aria-hidden="true">✓</span>
               <div>
-                <strong>عقود واضحة</strong>
-                <p>بنود الإيجار والمدّة والمبلغ قدام الطرفين قبل ما يتأكد الحجز.</p>
+                <strong data-i18n="trust.1.title">عقود واضحة</strong>
+                <p data-i18n="trust.1.body">بنود الإيجار والمدّة والمبلغ قدام الطرفين قبل ما يتأكد الحجز.</p>
               </div>
             </li>
             <li>
               <span class="tick" aria-hidden="true">✓</span>
               <div>
-                <strong>دفع منظم ومحفظة</strong>
-                <p>عربون وإيجار واسترداد بتتسجّل في المحفظة بحالة واضحة.</p>
+                <strong data-i18n="trust.2.title">دفع منظم ومحفظة</strong>
+                <p data-i18n="trust.2.body">عربون وإيجار واسترداد بتتسجّل في المحفظة بحالة واضحة.</p>
               </div>
             </li>
             <li>
               <span class="tick" aria-hidden="true">✓</span>
               <div>
-                <strong>صيانة ومتابعة</strong>
-                <p>طلبات الصيانة مربوطة بالوحدة، والفني يشتغل من نفس التطبيق.</p>
+                <strong data-i18n="trust.3.title">صيانة ومتابعة</strong>
+                <p data-i18n="trust.3.body">طلبات الصيانة مربوطة بالوحدة، والفني يشتغل من نفس التطبيق.</p>
               </div>
             </li>
             <li>
               <span class="tick" aria-hidden="true">✓</span>
               <div>
-                <strong>أدوار منفصلة</strong>
-                <p>مستأجر، مالك، فني، وإدارة — كل واحد يشوف اللي يخصّه.</p>
+                <strong data-i18n="trust.4.title">أدوار منفصلة</strong>
+                <p data-i18n="trust.4.body">مستأجر، مالك، فني، وإدارة — كل واحد يشوف اللي يخصّه.</p>
               </div>
             </li>
           </ul>
         </div>
-        <figure class="trust-photo">
+        <figure class="trust-photo reveal">
           <img
             src="../images/home2.jpg"
             alt="وحدة سكنية جاهزة للإيجار"
+            data-i18n-alt="trust.photoAlt"
             width="606"
             height="404"
             loading="lazy"
+            decoding="async"
           />
         </figure>
       </div>
@@ -120,28 +145,28 @@
 
     <section class="section section-tight" id="how" style="background:#fff;border-block:1px solid var(--line)">
       <div class="wrap">
-        <h2>ثلاث خطوات وبس</h2>
-        <p class="lede">من اختيار الوحدة لحد الدخول — المسار واضح.</p>
+        <h2 data-i18n="how.title">ثلاث خطوات وبس</h2>
+        <p class="lede" data-i18n="how.lede">من اختيار الوحدة لحد الدخول — المسار واضح.</p>
         <div class="steps">
           <article class="step">
-            <div class="step-num">١</div>
+            <div class="step-num" data-i18n="num.1">١</div>
             <div>
-              <h3>اختار الوحدة والمدة</h3>
-              <p>يومي، أسبوعي، أو شهري — وتشوف التفاصيل قبل ما تحجز.</p>
+              <h3 data-i18n="how.1.title">اختار الوحدة والمدة</h3>
+              <p data-i18n="how.1.body">يومي، أسبوعي، أو شهري — وتشوف التفاصيل قبل ما تحجز.</p>
             </div>
           </article>
           <article class="step">
-            <div class="step-num">٢</div>
+            <div class="step-num" data-i18n="num.2">٢</div>
             <div>
-              <h3>ادفع العربون واتفق</h3>
-              <p>الدفع يتسجّل، والمالك يوافق أو يرد حسب الحالة.</p>
+              <h3 data-i18n="how.2.title">ادفع العربون واتفق</h3>
+              <p data-i18n="how.2.body">الدفع يتسجّل، والمالك يوافق أو يرد حسب الحالة.</p>
             </div>
           </article>
           <article class="step">
-            <div class="step-num">٣</div>
+            <div class="step-num" data-i18n="num.3">٣</div>
             <div>
-              <h3>ادخل بـ QR وتابع الصيانة</h3>
-              <p>رمز دخول عند الوصول، ومتابعة أي طلب صيانة من جوه التطبيق.</p>
+              <h3 data-i18n="how.3.title">ادخل بـ QR وتابع الصيانة</h3>
+              <p data-i18n="how.3.body">رمز دخول عند الوصول، ومتابعة أي طلب صيانة من جوه التطبيق.</p>
             </div>
           </article>
         </div>
@@ -151,59 +176,62 @@
     <section class="mission" id="about">
       <div class="wrap">
         <p>
-          هدفنا نبسط الإيجار في مصر: أقل سوء تفاهم، وأكتر وضوح بين المستأجر والمالك.
-          <span class="en">Rental operations for Egypt — plain and practical.</span>
+          <span data-i18n="mission.body">هدفنا نبسط الإيجار في مصر: أقل سوء تفاهم، وأكتر وضوح بين المستأجر والمالك.</span>
+          <span class="en" data-i18n="mission.en">Rental operations for Egypt — plain and practical.</span>
         </p>
       </div>
     </section>
 
     <section class="section download-band" id="download">
       <div class="wrap download-inner">
-        <div>
-          <h2>حمّل إيجاري لأندرويد</h2>
-          <p class="lede">الإصدار الحالي متاح كملف APK. Google Play قريب إن شاء الله.</p>
-          <p class="version-note">الإصدار <strong>1.3.5</strong> · حجم تقريبي حسب جهازك · أندرويد فقط حالياً</p>
+        <div class="reveal">
+          <h2 data-i18n="dl.title">حمّل إيجاري لأندرويد</h2>
+          <p class="lede" data-i18n="dl.lede">الإصدار الحالي متاح كملف APK. قريباً على Google Play.</p>
+          <p class="version-note" data-i18n="dl.version" data-i18n-html>أندرويد <strong>1.3.5</strong> · حجم تقريبي حسب جهازك · أندرويد فقط حالياً</p>
           <div class="dl-actions">
             <a
               class="btn btn-solid"
               data-apk-link
+              data-i18n="dl.apk"
               href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk"
             >تنزيل APK · 1.3.5</a>
-            <a class="btn btn-outline" href="download.html">تعليمات التثبيت</a>
+            <a class="btn btn-outline" href="download.html" data-i18n="dl.howto">تعليمات التثبيت</a>
           </div>
           <div class="download-stats" data-ejari-download-stats aria-busy="true" aria-live="polite">
-            <span data-dl-total>جاري تحديث عدّاد التحميل…</span>
+            <span data-dl-total data-i18n="stats.loading">جاري تحديث عدّاد التحميل…</span>
             <span data-dl-current hidden></span>
             <span data-dl-status hidden></span>
           </div>
           <div class="install-note">
-            <strong>لو عندك نسخة قديمة:</strong>
-            احذفها الأول، بعدين ثبّت 1.3.5 عشان ما يحصلش تعارض توقيع.
+            <span data-i18n="dl.upgrade">لو عندك نسخة قديمة: احذفها الأول، بعدين ثبّت 1.3.5 عشان ما يحصلش تعارض توقيع.</span>
           </div>
         </div>
-        <figure class="dl-aside">
+        <figure class="dl-aside reveal">
           <img
             src="../images/home3.jpg"
             alt="شقة سكنية"
+            data-i18n-alt="dl.photoAlt"
             width="606"
             height="404"
             loading="lazy"
+            decoding="async"
           />
-          <figcaption class="caption">صورة توضيحية — استبدلوها بصور وحداتكم الرسمية لاحقاً.</figcaption>
+          <figcaption class="caption" data-i18n="dl.caption">صورة توضيحية — استبدلوها بصور وحداتكم الرسمية لاحقاً.</figcaption>
         </figure>
       </div>
     </section>
 
     <section class="section section-tight" id="contact">
-      <div class="wrap">
-        <h2>تواصل معنا</h2>
-        <p class="lede">للدعم والشراكات — ردّنا على واتساب أو الإيميل.</p>
+      <div class="wrap reveal">
+        <h2 data-i18n="contact.title">تواصل معنا</h2>
+        <p class="lede" data-i18n="contact.lede">للدعم والشراكات — ردّنا على واتساب أو الإيميل.</p>
         <div class="contact-row">
-          <a href="https://wa.me/201280083336" target="_blank" rel="noopener">واتساب · 01280083336</a>
-          <a href="mailto:support@ejari.app">support@ejari.app</a>
-          <a href="https://www.facebook.com/people/%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-EjariApp/61591649755623/" target="_blank" rel="noopener">فيسبوك</a>
-          <a href="https://www.linkedin.com/company/%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-ejariapp/" target="_blank" rel="noopener">لينكدإن</a>
+          <a href="https://wa.me/201280083336" target="_blank" rel="noopener" data-i18n="contact.wa">واتساب · 01280083336</a>
+          <a href="mailto:support@ejari.app" data-i18n="contact.mail">support@ejari.app</a>
+          <a href="https://www.facebook.com/people/%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-EjariApp/61591649755623/" target="_blank" rel="noopener" data-i18n="contact.fb">فيسبوك</a>
+          <a href="https://www.linkedin.com/company/%D8%A5%D9%8A%D8%AC%D8%A7%D8%B1%D9%8A-ejariapp/" target="_blank" rel="noopener" data-i18n="contact.li">لينكدإن</a>
         </div>
+        <p class="contact-hours" data-i18n="contact.hours">الدعم عادةً خلال يوم عمل — اكتب رقم الإصدار لو فيه مشكلة تثبيت.</p>
       </div>
     </section>
   </main>
@@ -213,27 +241,29 @@
       <div class="footer-grid">
         <div>
           <p class="footer-brand">إيجاري<small>EJARI</small></p>
-          <p style="margin:0;max-width:28ch">شركة تطبيق لإدارة الإيجار والعقود في السوق المصري.</p>
+          <p class="footer-blurb" data-i18n="footer.blurb">شركة تطبيق لإدارة الإيجار والعقود في السوق المصري.</p>
+          <!-- founder: replace with real registered address when ready — do not invent -->
+          <p class="footer-addr" data-i18n="footer.addr" data-i18n-html>العنوان: يُضاف لاحقاً من المؤسس <!-- founder: fill registered address --></p>
         </div>
         <div>
-          <h4>قانوني</h4>
+          <h4 data-i18n="footer.legal">قانوني</h4>
           <ul>
-            <li><a href="../docs/privacy.html">سياسة الخصوصية</a></li>
-            <li><a href="../docs/terms.html">الشروط والأحكام</a></li>
+            <li><a href="../docs/privacy.html" data-i18n="footer.privacy">سياسة الخصوصية</a></li>
+            <li><a href="../docs/terms.html" data-i18n="footer.terms">الشروط والأحكام</a></li>
           </ul>
         </div>
         <div>
-          <h4>روابط</h4>
+          <h4 data-i18n="footer.links">روابط</h4>
           <ul>
-            <li><a href="#download">التحميل</a></li>
-            <li><a href="download.html">تعليمات التثبيت</a></li>
-            <li><a href="https://github.com/m7moud2/ejari-web/releases/latest" target="_blank" rel="noopener">أحدث الإصدارات</a></li>
+            <li><a href="#download" data-i18n="footer.download">التحميل</a></li>
+            <li><a href="download.html" data-i18n="footer.howto">تعليمات التثبيت</a></li>
+            <li><a href="https://github.com/m7moud2/ejari-web/releases/latest" target="_blank" rel="noopener" data-i18n="footer.releases">أحدث الإصدارات</a></li>
           </ul>
         </div>
       </div>
       <div class="footer-bottom">
-        <span>© 2026 إيجاري · الإصدار 1.3.5</span>
-        <span class="footer-en">Ejari — rental ops for Egypt</span>
+        <span data-i18n="footer.copy">© 2026 إيجاري · الإصدار 1.3.5</span>
+        <span class="footer-en" data-i18n="footer.tag">Ejari — rental ops for Egypt</span>
       </div>
     </div>
   </footer>
@@ -241,18 +271,20 @@
   <div class="sticky-dl" aria-label="تحميل سريع">
     <div class="inner">
       <div>
-        <strong>إيجاري 1.3.5</strong>
-        <span>APK لأندرويد</span>
+        <strong data-i18n="sticky.title">إيجاري 1.3.5</strong>
+        <span data-i18n="sticky.sub">APK لأندرويد</span>
       </div>
       <a
         class="btn btn-solid"
         data-apk-link
+        data-i18n="sticky.cta"
         href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.5/ejari-1.3.5.apk"
         style="padding:0.7rem 1.1rem;font-size:0.95rem"
       >تحميل</a>
     </div>
   </div>
 
+  <script src="js/i18n.js"></script>
   <script src="js/site.js" defer></script>
   <script src="js/download-stats.js" defer></script>
 </body>

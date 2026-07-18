@@ -1,22 +1,24 @@
 /**
- * Light page motion — steps reveal on scroll.
- * No frameworks.
+ * Light editorial motion — steps + reveal blocks on scroll.
+ * No frameworks. Respects prefers-reduced-motion.
  */
 (function () {
-  var steps = document.querySelectorAll(".step");
-  if (!steps.length) return;
+  var targets = document.querySelectorAll(".step, .reveal");
+  if (!targets.length) return;
 
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    steps.forEach(function (el) {
+  function showAll() {
+    targets.forEach(function (el) {
       el.classList.add("is-in");
     });
+  }
+
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    showAll();
     return;
   }
 
   if (!("IntersectionObserver" in window)) {
-    steps.forEach(function (el) {
-      el.classList.add("is-in");
-    });
+    showAll();
     return;
   }
 
@@ -29,10 +31,10 @@
         }
       });
     },
-    { rootMargin: "0px 0px -8% 0px", threshold: 0.15 }
+    { rootMargin: "0px 0px -10% 0px", threshold: 0.12 }
   );
 
-  steps.forEach(function (el) {
+  targets.forEach(function (el) {
     io.observe(el);
   });
 })();

@@ -2,6 +2,7 @@
  * Ejari APK download counter — realtime click counter
  * Primary: Firestore public_stats/downloads.total (instant on click)
  * Secondary: optimistic UI + local cache; 30s session dedupe
+ * Messages follow EjariI18n language when available.
  */
 (function () {
   const FIREBASE = {
@@ -28,11 +29,34 @@
   const DEDUPE_MS = 30_000;
 
   let displayedTotal = 0;
+  let lastStatusKey = "stats.live";
   let remoteReady = false;
+
+  function lang() {
+    if (window.EjariI18n && window.EjariI18n.getLang) {
+      return window.EjariI18n.getLang();
+    }
+    return document.documentElement.getAttribute("data-lang") === "en"
+      ? "en"
+      : "ar";
+  }
+
+  function msg(key, vars) {
+    var text;
+    if (window.EjariI18n && window.EjariI18n.t) {
+      text = window.EjariI18n.t(key, lang());
+    } else {
+      text = key;
+    }
+    if (vars && vars.n != null) {
+      text = text.replace("{n}", formatAr(vars.n));
+    }
+    return text;
+  }
 
   function formatAr(n) {
     try {
-      return Number(n).toLocaleString("ar-EG");
+      return Number(n).toLocaleString(lang() === "en" ? "en-US" : "ar-EG");
     } catch (_) {
       return String(n);
     }
@@ -69,23 +93,24 @@
     } catch (_) {}
   }
 
-  function renderAll(total, statusText) {
+  function renderAll(total, statusKey) {
     displayedTotal = Math.max(0, total | 0);
     writeCache(displayedTotal);
+    if (statusKey) lastStatusKey = statusKey;
     const roots = document.querySelectorAll("[data-ejari-download-stats]");
     roots.forEach((root) => {
       const totalEl = root.querySelector("[data-dl-total]");
       const currentEl = root.querySelector("[data-dl-current]");
       const statusEl = root.querySelector("[data-dl-status]");
       if (totalEl) {
-        totalEl.textContent = `تم التحميل ${formatAr(displayedTotal)} مرة`;
+        totalEl.textContent = msg("stats.total", { n: displayedTotal });
       }
       if (currentEl) {
         currentEl.textContent = "";
         currentEl.hidden = true;
       }
       if (statusEl) {
-        statusEl.textContent = statusText || "عدّاد لحظي من نقرات التحميل";
+        statusEl.textContent = msg(lastStatusKey);
         statusEl.hidden = false;
       }
       root.classList.add("is-ready");
@@ -152,45 +177,44 @@
       }),
     });
     if (res.status === 404 || res.status === 400) {
-      // Doc missing — create with 1 (allowed by rules).
       return createRemote(1);
     }
     if (!res.ok) {
       const errBody = await res.json().catch(() => ({}));
-      const msg =
+      const msgText =
         (errBody.error && errBody.error.message) || String(res.status);
-      // NOT_FOUND when document does not exist
-      if (/NOT_FOUND|No document to update|not found/i.test(msg)) {
+      if (/NOT_FOUND|No document to update|not found/i.test(msgText)) {
         return createRemote(1);
       }
-      throw new Error("Firestore INC " + msg);
+      throw new Error("Firestore INC " + msgText);
     }
     const data = await res.json();
     const writeResult =
-      data.writeResults && data.writeResults[0] && data.writeResults[0].transformResults;
+      data.writeResults &&
+      data.writeResults[0] &&
+      data.writeResults[0].transformResults;
     if (writeResult && writeResult[0] && writeResult[0].integerValue != null) {
       return parseInt(writeResult[0].integerValue, 10) || displayedTotal + 1;
     }
-    // Commit succeeded but no transform echo — re-fetch
     return fetchRemoteTotal();
   }
 
   async function refreshFromRemote() {
     const cached = readCache();
     if (cached > 0) {
-      renderAll(cached, "عدّاد لحظي — جاري التحديث…");
+      renderAll(cached, "stats.updating");
     } else {
-      renderAll(0, "اضغط تحميل ليبدأ العدّاد فوراً");
+      renderAll(0, "stats.start");
     }
     try {
       const total = await fetchRemoteTotal();
       remoteReady = true;
-      renderAll(Math.max(total, cached), "عدّاد لحظي من نقرات التحميل");
+      renderAll(Math.max(total, cached), "stats.live");
     } catch (_) {
       if (cached > 0) {
-        renderAll(cached, "عدّاد محلي — تعذّر الاتصال بالخادم");
+        renderAll(cached, "stats.offline");
       } else {
-        renderAll(0, "اضغط تحميل ليبدأ العدّاد فوراً");
+        renderAll(0, "stats.start");
       }
     }
   }
@@ -202,31 +226,34 @@
     if (!link) return;
 
     if (recentSessionBump()) {
-      // Same browser session within 30s — show count, don't double-count.
-      renderAll(
-        displayedTotal || readCache(),
-        "تم احتساب تحميلك · لن يُعاد العد خلال 30 ثانية"
-      );
+      renderAll(displayedTotal || readCache(), "stats.dedupe");
       return;
     }
 
     markSessionBump();
     const optimistic = (displayedTotal || readCache()) + 1;
-    renderAll(optimistic, "تم تسجيل التحميل فوراً");
+    renderAll(optimistic, "stats.saved");
 
     try {
       const remote = await incrementRemote();
       remoteReady = true;
-      renderAll(Math.max(remote, optimistic), "عدّاد لحظي من نقرات التحميل");
+      renderAll(Math.max(remote, optimistic), "stats.live");
     } catch (_) {
-      // Keep optimistic local count if remote write fails.
-      renderAll(optimistic, "محفوظ محلياً — ستتم المزامنة لاحقاً");
+      renderAll(optimistic, "stats.local");
     }
   }
 
   function init() {
     document.addEventListener("click", onDownloadClick, true);
-    refreshFromRemote();
+    window.addEventListener("ejari:lang", function () {
+      renderAll(displayedTotal || readCache(), lastStatusKey);
+    });
+    // Wait a tick so i18n can apply first if scripts load out of order
+    if (window.EjariI18n) {
+      refreshFromRemote();
+    } else {
+      setTimeout(refreshFromRemote, 0);
+    }
   }
 
   if (document.readyState === "loading") {
