@@ -553,13 +553,13 @@ class AuthService {
         return true;
       } catch (e) {
         debugPrint('Firebase SignUp Error: $e');
-        // Prefer a working local account over a dead-end connection error.
-        // Only rethrow hard credential conflicts (email already in use) if we
-        // did not fall back — for early stage always create local account.
+        // Production: surface real errors — do not silently create a local ghost account.
+        if (!AppConfig.demoMode && AppConfig.isProduction) {
+          throw _arabicFirebaseAuthError(e);
+        }
         if (_isCredentialAuthError(e) &&
             e is FirebaseAuthException &&
             e.code == 'email-already-in-use') {
-          // Still allow local if the account only exists offline.
           try {
             return await localSignUp();
           } catch (_) {
@@ -605,8 +605,10 @@ class AuthService {
         await prefs.setString(_userRoleKey, role);
         await _saveAuthToken(token, prefs: prefs);
         await prefs.setString(_userIdKey, uid);
+        await prefs.setString(_currentUserEmailKey, (user['email'] ?? userData['email'] ?? '').toString().trim().toLowerCase());
         await prefs.setString(_userDataKey, jsonEncode(user));
         await prefs.setBool(_guestModeKey, false);
+        await WalletService.init(userId: (user['email'] ?? userData['email'] ?? '').toString());
         return true;
       } else {
         final err = jsonDecode(response.body);
@@ -1228,28 +1230,51 @@ class AuthService {
   /// Sign In with Google
   static Future<Map<String, dynamic>> signInWithGoogle() async {
     if (AppConfig.demoMode) {
-      return {
-        'id': 'demo_google_id',
-        'name': 'مستخدم جوجل تجريبي',
-        'email': 'social_user@ejari.app',
-        'type': 'tenant',
-        'role': 'tenant',
-      };
+      final demoUser = _buildLocalUser(
+        name: 'مستخدم جوجل تجريبي',
+        email: 'social_user@ejari.app',
+        role: 'tenant',
+        password: 'google-demo',
+        offlineSignup: true,
+        accountId: 'EJR-GOOGLE',
+      );
+      await _storeLocalAccount(demoUser, token: 'local-google-demo-token');
+      return demoUser;
+    }
+
+    if (Firebase.apps.isEmpty) {
+      throw Exception(
+        'Firebase غير مهيأ. فعّل DEMO_MODE أو أضف google-services.json.',
+      );
     }
 
     try {
-      final GoogleSignInAccount? gUser = await GoogleSignIn().signIn();
+      // Web OAuth client (client_type 3) — required for a valid idToken on Android.
+      const webClientId =
+          '349888023290-dtm53q310e28im7e7glf4o1qj6t73sqi.apps.googleusercontent.com';
+      final googleSignIn = GoogleSignIn(
+        scopes: const ['email', 'profile'],
+        serverClientId: webClientId,
+      );
+      final GoogleSignInAccount? gUser = await googleSignIn.signIn();
       if (gUser == null) {
         throw Exception('تم إلغاء تسجيل الدخول بجوجل');
       }
 
       final GoogleSignInAuthentication gAuth = await gUser.authentication;
+      if (gAuth.idToken == null && gAuth.accessToken == null) {
+        throw Exception(
+          'تعذر الحصول على رمز جوجل. تحقق من SHA-1 في Firebase Console وتفعيل مزوّد Google.',
+        );
+      }
+
       final AuthCredential credential = GoogleAuthProvider.credential(
         accessToken: gAuth.accessToken,
         idToken: gAuth.idToken,
       );
 
-      final UserCredential userCredential = await _firebaseAuth.signInWithCredential(credential);
+      final UserCredential userCredential =
+          await _firebaseAuth.signInWithCredential(credential);
       final user = userCredential.user;
 
       if (user != null) {
@@ -1258,12 +1283,14 @@ class AuthService {
         String role = 'tenant';
 
         if (doc.exists) {
-          data = doc.data() as Map<String, dynamic>;
-          role = data['type'] ?? data['role'] ?? 'tenant';
+          data = Map<String, dynamic>.from(doc.data() as Map<String, dynamic>);
+          role = (data['type'] ?? data['role'] ?? 'tenant').toString();
         } else {
-          final String generatedId = await AccountIdService.generateNextAccountId();
+          final String generatedId =
+              await AccountIdService.generateNextAccountId();
           data = {
             'id': user.uid,
+            'uid': user.uid,
             'name': user.displayName ?? gUser.displayName ?? 'مستخدم جوجل',
             'email': user.email ?? gUser.email,
             'type': 'tenant',
@@ -1274,19 +1301,28 @@ class AuthService {
           await _firestore.collection('users').doc(user.uid).set(data);
         }
 
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString(_userTokenKey, await user.getIdToken() ?? 'mock_firebase_token');
-        await prefs.setString(_userRoleKey, role);
-        await prefs.setString(_userIdKey, user.uid);
-        await prefs.setString(_currentUserEmailKey, user.email ?? gUser.email ?? '');
-        await prefs.setString(_userDataKey, jsonEncode(data));
-
-        return data;
+        await _storeFirebaseSession(
+          firebaseUser: user,
+          profile: {
+            ...data,
+            'role': role,
+            'type': role,
+          },
+        );
+        await WalletService.init(userId: user.email ?? gUser.email);
+        return _withCompatibleIdentity({
+          ...data,
+          'role': role,
+          'type': role,
+          'id': user.uid,
+          'uid': user.uid,
+        }..removeWhere((_, v) => v is FieldValue));
       }
       throw Exception('فشل تسجيل الدخول بجوجل');
     } catch (e) {
       if (kDebugMode) print('Google Sign-In Error: $e');
-      throw Exception('خطأ في تسجيل الدخول بجوجل: $e');
+      if (e is Exception && e.toString().contains('تم إلغاء')) rethrow;
+      throw Exception(friendlyAuthError(e));
     }
   }
 

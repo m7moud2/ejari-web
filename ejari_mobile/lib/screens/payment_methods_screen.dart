@@ -36,9 +36,12 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        title: const Text('بطاقات الدفع'),
+        title: const Text('وسائل الدفع المحفوظة'),
         centerTitle: true,
+        backgroundColor: AppTheme.backgroundColor,
+        surfaceTintColor: Colors.transparent,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -46,8 +49,46 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  ..._cards.map((card) => _buildCardItem(card)),
-                  const SizedBox(height: 24),
+                  if (_cards.isEmpty)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppTheme.primaryColor.withOpacity(0.15),
+                        ),
+                      ),
+                      child: const Column(
+                        children: [
+                          Icon(Icons.credit_card_off_rounded,
+                              size: 40, color: AppTheme.textSecondary),
+                          SizedBox(height: 12),
+                          Text(
+                            'لا توجد بطاقات محفوظة',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 16,
+                            ),
+                          ),
+                          SizedBox(height: 6),
+                          Text(
+                            'أضف بطاقة لاستخدامها لاحقاً في الدفع. نعرض آخر 4 أرقام فقط ولا نخزّن CVV.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              height: 1.4,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    ..._cards.map((card) => _buildCardItem(card)),
+                  const SizedBox(height: 8),
                   InkWell(
                     onTap: _showAddCardDialog,
                     borderRadius: BorderRadius.circular(16),
@@ -87,7 +128,53 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
   Widget _buildCardItem(Map<String, dynamic> card) {
     final bool isVisa = card['type'] == 'visa';
     final isDefault = card['isDefault'] == true;
-    return GestureDetector(
+    return Dismissible(
+      key: Key(card['id']?.toString() ?? card['number']?.toString() ?? ''),
+      direction: DismissDirection.endToStart,
+      background: Container(
+        alignment: Alignment.centerLeft,
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: AppTheme.errorColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Icon(Icons.delete_outline, color: Colors.white),
+      ),
+      confirmDismiss: (_) async {
+        return await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('حذف البطاقة؟'),
+                content: const Text('لن تُحذف من البنك — فقط من وسائل الدفع المحفوظة في التطبيق.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: const Text('إلغاء'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: const Text('حذف'),
+                  ),
+                ],
+              ),
+            ) ??
+            false;
+      },
+      onDismissed: (_) async {
+        setState(() {
+          _cards.removeWhere((c) => c['id'] == card['id']);
+          if (_cards.isNotEmpty && !_cards.any((c) => c['isDefault'] == true)) {
+            _cards.first['isDefault'] = true;
+          }
+        });
+        await _persistCards();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تم حذف البطاقة')),
+        );
+      },
+      child: GestureDetector(
       onTap: () async {
         await PaymentMethodsService.setDefaultCard(card['id'].toString());
         await PaymentMethodsService.saveSelectedMethod(
@@ -160,7 +247,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Card Holder',
+                      'حامل البطاقة',
                       style: TextStyle(
                           color: Colors.white.withOpacity(0.6), fontSize: 10),
                     ),
@@ -175,7 +262,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Expires',
+                      'الانتهاء',
                       style: TextStyle(
                           color: Colors.white.withOpacity(0.6), fontSize: 10),
                     ),
@@ -191,6 +278,7 @@ class _PaymentMethodsScreenState extends State<PaymentMethodsScreen> {
           ],
         ),
       ),
+    ),
     );
   }
 

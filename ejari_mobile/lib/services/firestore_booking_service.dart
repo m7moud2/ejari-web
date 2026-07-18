@@ -131,6 +131,72 @@ class FirestoreBookingService {
     }
   }
 
+  static Future<Map<String, dynamic>?> getBookingById(String bookingId) async {
+    if (AppConfig.demoMode || bookingId.trim().isEmpty) return null;
+    try {
+      final doc = await _db
+          .collection('bookings')
+          .doc(bookingId)
+          .get()
+          .timeout(AppConfig.authTimeout);
+      if (!doc.exists) return null;
+      final data = Map<String, dynamic>.from(doc.data() ?? {});
+      data['id'] = doc.id;
+      return _normalize(data);
+    } catch (e) {
+      debugPrint('Firestore getBookingById error: $e');
+      return null;
+    }
+  }
+
+  /// Updates booking status + payment fields in Firestore.
+  static Future<bool> updateBookingStatus(
+    String bookingId,
+    String newStatus, {
+    String? note,
+    Map<String, dynamic>? extraFields,
+  }) async {
+    if (AppConfig.demoMode || bookingId.trim().isEmpty) return false;
+    try {
+      final payload = <String, dynamic>{
+        'status': newStatus,
+        'updatedAt': FieldValue.serverTimestamp(),
+        if (note != null && note.isNotEmpty) 'statusNote': note,
+        ...?extraFields,
+      };
+      await _db
+          .collection('bookings')
+          .doc(bookingId)
+          .set(payload, SetOptions(merge: true))
+          .timeout(AppConfig.authTimeout);
+      return true;
+    } catch (e) {
+      debugPrint('Firestore updateBookingStatus error: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> recordPayment({
+    required String bookingId,
+    required String status,
+    required double paidAmount,
+    required String paymentPhase,
+    String? paymentStatus,
+    String? method,
+  }) async {
+    return updateBookingStatus(
+      bookingId,
+      status,
+      extraFields: {
+        'paidAmount': paidAmount,
+        'paymentPhase': paymentPhase,
+        'paymentStatus': paymentStatus ?? paymentPhase,
+        if (method != null) 'lastPaymentMethod': method,
+        'lastPaidAt': FieldValue.serverTimestamp(),
+      },
+    );
+  }
+
   static Map<String, dynamic> _normalize(Map<String, dynamic> raw) {
     final out = <String, dynamic>{};
     raw.forEach((key, value) {

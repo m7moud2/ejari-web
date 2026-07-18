@@ -230,7 +230,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     const MyServiceRequestsScreen()));
                       }),
                       _buildEjariMenuItem(
-                          'مركز قيادة الشركات',
+                          'حساب الشركات',
                           Icons.corporate_fare_rounded,
                           AppTheme.accentColor, () {
                         Navigator.push(

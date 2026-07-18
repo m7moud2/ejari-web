@@ -138,7 +138,7 @@ class _SignupScreenState extends State<SignupScreen> {
             const Icon(Icons.verified_rounded,
                 color: AppTheme.primaryColor, size: 80),
             const SizedBox(height: 24),
-            const Text('طلبك قيد المراجعة',
+            const Text('تم إنشاء حسابك',
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center),
             const SizedBox(height: 12),
@@ -150,17 +150,19 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               child: Text(
                 _userType == 'owner'
-                    ? '💡 نصيحة: كمالك يمكنك إضافة عقاراتك ومتابعة الحجوزات من لوحة التحكم.'
-                    : '💡 نصيحة: كمستأجر ابحث عن عقار، احجز، وادفع بأمان من التطبيق.',
+                    ? 'طلب دور المالك قيد المراجعة. يمكنك استخدام التطبيق كمستأجر حتى تتم الموافقة.'
+                    : '💡 نصيحة: ابحث عن عقار، احجز، وادفع بأمان من التطبيق.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 12, height: 1.5),
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'أهلاً بك في إيجاري. يتم الآن مراجعة بياناتك لضمان الأمان والموثوقية قبل تفعيل الحساب.',
+            Text(
+              _userType == 'owner'
+                  ? 'أهلاً بك في إيجاري. حسابك جاهز — صلاحيات المالك تُفعَّل بعد مراجعة الإدارة.'
+                  : 'أهلاً بك في إيجاري. يمكنك الآن اختيار دورك والبدء.',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                   color: AppTheme.primaryColor, height: 1.5, fontSize: 13),
             ),
             const SizedBox(height: 32),
@@ -478,8 +480,27 @@ class _SignupScreenState extends State<SignupScreen> {
               )
             : null,
       ),
-      validator: (value) =>
-          (value == null || value.isEmpty) ? 'مطلوب إكمال هذا الحقل' : null,
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'مطلوب إكمال هذا الحقل';
+        }
+        if (isEmail) {
+          final email = value.trim();
+          if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email)) {
+            return 'أدخل بريداً إلكترونياً صالحاً';
+          }
+        }
+        if (isPassword && value.trim().length < 6) {
+          return 'كلمة المرور يجب ألا تقل عن 6 أحرف';
+        }
+        if (isPhone) {
+          final digits = value.replaceAll(RegExp(r'\D'), '');
+          if (digits.length < 10) {
+            return 'أدخل رقم هاتف صحيح (10 أرقام على الأقل)';
+          }
+        }
+        return null;
+      },
     );
   }
 

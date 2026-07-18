@@ -1140,6 +1140,8 @@ class DataService {
   }
 
   static Future<Map<String, dynamic>?> _findBookingById(String bookingId) async {
+    if (bookingId.trim().isEmpty) return null;
+
     final prefs = await SharedPreferences.getInstance();
     for (final key in [_bookingsKey, _requestsKey]) {
       final list = prefs.getStringList(key) ?? [];
@@ -1150,6 +1152,11 @@ class DataService {
           return data;
         }
       }
+    }
+
+    // Production bookings live in Firestore — prefs lookup alone fails.
+    if (!AppConfig.demoMode) {
+      return FirestoreBookingService.getBookingById(bookingId);
     }
     return null;
   }
@@ -1679,8 +1686,11 @@ class DataService {
     var employees = await getCorporateEmployees();
 
     if (employees.isEmpty) {
-      employees = _generateCorporateEmployees(200);
-      await saveCorporateEmployees(employees);
+      // Seed demo roster only in demo mode — never invent 200 employees in prod.
+      if (AppConfig.demoMode) {
+        employees = _generateCorporateEmployees(12);
+        await saveCorporateEmployees(employees);
+      }
     }
 
     final bookings = await getBookings();
@@ -2249,6 +2259,31 @@ class DataService {
     List<String> bookings = prefs.getStringList(_bookingsKey) ?? [];
     await prefs.setStringList(_bookingsKey, updateList(bookings));
 
+    // Keep Firestore in sync for production bookings.
+    if (!AppConfig.demoMode) {
+      final firestoreExtras = <String, dynamic>{};
+      if (normalizedStatus == BookingStatus.depositPaid) {
+        firestoreExtras['paymentStatus'] = 'deposit_paid';
+        firestoreExtras['paymentPhase'] = 'deposit';
+        firestoreExtras['depositPaidAt'] = DateTime.now().toIso8601String();
+      } else if (normalizedStatus == BookingStatus.paid) {
+        firestoreExtras['paymentStatus'] = 'paid';
+        firestoreExtras['paymentPhase'] = 'rent_paid';
+        firestoreExtras['paidAt'] = DateTime.now().toIso8601String();
+      } else if (normalizedStatus == BookingStatus.depositRefunded) {
+        firestoreExtras['paymentStatus'] = 'refunded';
+        firestoreExtras['paymentPhase'] = 'refunded';
+      } else if (normalizedStatus == BookingStatus.cancelled) {
+        firestoreExtras['paymentStatus'] = 'cancelled';
+      }
+      await FirestoreBookingService.updateBookingStatus(
+        requestId,
+        normalizedStatus,
+        note: note,
+        extraFields: firestoreExtras.isEmpty ? null : firestoreExtras,
+      );
+    }
+
     final updatedBooking = await _findBookingById(requestId);
     if (updatedBooking != null) {
       final title = updatedBooking['title']?.toString() ?? 'الوحدة';
@@ -2490,35 +2525,43 @@ class DataService {
     double? amount,
     String method = 'wallet',
     bool useWallet = true,
+    bool isDeposit = true,
   }) async {
     final booking = await _findBookingById(bookingId);
     if (booking == null) {
       return {'success': false, 'message': 'الحجز غير موجود'};
     }
 
-    final deposit = amount ??
+    final payAmount = amount ??
         double.tryParse(
           (booking['depositAmount'] ?? booking['currentAmount'] ?? '0')
               .toString()
               .replaceAll(RegExp(r'[^0-9.]'), ''),
         ) ??
         0;
-    final tenantId = booking['tenantEmail']?.toString() ?? '';
+    if (payAmount <= 0) {
+      return {'success': false, 'message': 'مبلغ الدفع غير صالح'};
+    }
+
+    final tenantId = booking['tenantEmail']?.toString() ??
+        booking['tenantId']?.toString() ??
+        '';
     final ownerId = booking['ownerEmail']?.toString() ??
         booking['ownerId']?.toString() ??
         '';
     final title = booking['title']?.toString() ?? 'حجز';
+    final label = isDeposit ? 'عربون $title' : 'دفع $title';
 
     if (useWallet && method == 'wallet') {
       final ok = await WalletService.processBookingPayment(
         tenantId: tenantId,
         ownerId: ownerId,
-        amount: deposit,
+        amount: payAmount,
         bookingId: bookingId,
-        title: 'عربون $title',
+        title: label,
         method: 'wallet',
         useWallet: true,
-        isDeposit: true,
+        isDeposit: isDeposit,
       );
       if (!ok) {
         return {'success': false, 'message': 'رصيد المحفظة غير كافٍ'};
@@ -2527,25 +2570,28 @@ class DataService {
       await WalletService.processBookingPayment(
         tenantId: tenantId,
         ownerId: ownerId,
-        amount: deposit,
+        amount: payAmount,
         bookingId: bookingId,
-        title: 'عربون $title',
+        title: label,
         method: method,
         useWallet: false,
-        isDeposit: true,
+        isDeposit: isDeposit,
       );
     }
 
     final receipt = await createPaymentReceipt(
-      amount: deposit,
+      amount: payAmount,
       bookingRef: bookingId,
       payer: tenantId,
       payee: ownerId,
       method: method,
-      title: 'عربون $title',
+      title: label,
     );
 
-    await updateRequestStatus(bookingId, 'deposit_paid');
+    final nextStatus =
+        isDeposit ? BookingStatus.depositPaid : BookingStatus.paid;
+    await updateRequestStatus(bookingId, nextStatus,
+        note: isDeposit ? 'تم دفع العربون' : 'تم الدفع بالكامل');
     return {'success': true, 'receipt': receipt};
   }
 

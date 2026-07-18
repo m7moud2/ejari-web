@@ -6,7 +6,7 @@ import '../models/booking_status.dart';
 import 'corporate_booking_screen.dart';
 import 'my_bookings_screen.dart';
 
-/// مركز قيادة الشركات — إدارة حجوزات الموظفين عبر المحافظات.
+/// حساب الشركات — موافقات الحجوزات، الفواتير، وحجوزات الفريق.
 class CorporateCommandCenterScreen extends StatefulWidget {
   const CorporateCommandCenterScreen({super.key});
 
@@ -21,17 +21,10 @@ class _CorporateCommandCenterScreenState
   Map<String, dynamic> _bulkInvoice = {};
   Map<String, dynamic> _wallet = {};
   List<Map<String, dynamic>> _employees = [];
+  List<Map<String, dynamic>> _pendingApprovals = [];
+  List<Map<String, dynamic>> _teamBookings = [];
   bool _loading = true;
-  String _filterGov = 'الكل';
-
-  static const _governorates = [
-    'الكل',
-    'القاهرة',
-    'الجيزة',
-    'الإسكندرية',
-    'القليوبية',
-    'الشرقية',
-  ];
+  String? _error;
 
   @override
   void initState() {
@@ -40,11 +33,33 @@ class _CorporateCommandCenterScreenState
   }
 
   Future<void> _load() async {
-    final summary = await DataService.getCorporateCommandSummary();
-    final bulk = await DataService.getCorporateBulkInvoiceSummary();
-    final wallet = await DataService.getCorporateWalletSummary();
-    final employees = await DataService.getCorporateEmployees();
-    if (mounted) {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final summary = await DataService.getCorporateCommandSummary();
+      final bulk = await DataService.getCorporateBulkInvoiceSummary();
+      final wallet = await DataService.getCorporateWalletSummary();
+      final employees = await DataService.getCorporateEmployees();
+      final bookings = await DataService.getBookings();
+      final corporate = bookings
+          .where((b) =>
+              b['bookingMode'] == 'corporate' ||
+              b['status'] == BookingStatus.corporatePending ||
+              (b['employeeId']?.toString().isNotEmpty ?? false))
+          .toList();
+      final pending = corporate
+          .where((b) {
+            final s = BookingStatus.normalize(b['status']?.toString());
+            return s == BookingStatus.corporatePending ||
+                s == BookingStatus.pending ||
+                s == BookingStatus.submitted ||
+                b['status']?.toString() == 'pending';
+          })
+          .toList();
+
+      if (!mounted) return;
       setState(() {
         _summary = summary;
         _bulkInvoice = bulk;
@@ -54,16 +69,55 @@ class _CorporateCommandCenterScreenState
             : List<Map<String, dynamic>>.from(
                 summary['employees'] ?? const [],
               );
+        _pendingApprovals = pending;
+        _teamBookings = corporate;
         _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = e.toString().replaceAll('Exception: ', '');
       });
     }
   }
 
-  List<Map<String, dynamic>> get _filteredEmployees {
-    if (_filterGov == 'الكل') return _employees;
-    return _employees
-        .where((e) => e['governorate']?.toString() == _filterGov)
-        .toList();
+  Future<void> _approveBooking(Map<String, dynamic> booking) async {
+    final id = booking['id']?.toString() ?? booking['_id']?.toString() ?? '';
+    if (id.isEmpty) return;
+    final ok = await DataService.updateRequestStatus(
+      id,
+      BookingStatus.approved,
+      note: 'موافقة إدارة الشركة',
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ok
+            ? 'تمت الموافقة على طلب ${booking['tenantName'] ?? booking['employeeName'] ?? 'الموظف'}'
+            : 'تعذر تحديث حالة الطلب'),
+        backgroundColor: ok ? AppTheme.primaryColor : AppTheme.errorColor,
+      ),
+    );
+    _load();
+  }
+
+  Future<void> _rejectBooking(Map<String, dynamic> booking) async {
+    final id = booking['id']?.toString() ?? booking['_id']?.toString() ?? '';
+    if (id.isEmpty) return;
+    final ok = await DataService.updateRequestStatus(
+      id,
+      BookingStatus.rejected,
+      note: 'رفض إدارة الشركة',
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ok ? 'تم رفض الطلب' : 'تعذر رفض الطلب'),
+        backgroundColor: ok ? AppTheme.primaryColor : AppTheme.errorColor,
+      ),
+    );
+    _load();
   }
 
   @override
@@ -73,7 +127,7 @@ class _CorporateCommandCenterScreenState
       appBar: AppBar(
         backgroundColor: AppTheme.backgroundColor,
         surfaceTintColor: Colors.transparent,
-        title: const Text('مركز قيادة الشركات'),
+        title: const Text('حساب الشركات'),
         titleTextStyle: const TextStyle(
           color: AppTheme.textPrimary,
           fontSize: 20,
@@ -81,94 +135,112 @@ class _CorporateCommandCenterScreenState
         ),
         actions: [
           IconButton(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const CorporateBookingScreen(),
-              ),
-            ),
+            onPressed: _load,
+            icon: const Icon(Icons.refresh_rounded),
+            tooltip: 'تحديث',
+          ),
+          IconButton(
+            onPressed: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const CorporateBookingScreen(),
+                ),
+              );
+              _load();
+            },
             icon: const Icon(Icons.add_business_rounded),
-            tooltip: 'حجز جديد',
+            tooltip: 'طلب حجز جديد',
           ),
         ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              color: AppTheme.accentColor,
-              onRefresh: _load,
-              child: ListView(
-                padding: const EdgeInsets.all(AppTheme.spaceMd),
-                children: [
-                  _buildHero(),
-                  const SizedBox(height: AppTheme.spaceMd),
-                  _buildWalletCard(),
-                  const SizedBox(height: AppTheme.spaceSm),
-                  _buildBulkInvoiceCard(),
-                  const SizedBox(height: AppTheme.spaceMd),
-                  _buildStats(),
-                  const SizedBox(height: AppTheme.spaceLg),
-                  const EjariSectionHeader(
-                    title: 'الموظفون حسب المحافظة',
-                    subtitle: 'حالة كل حجز وإجمالي الإنفاق',
-                  ),
-                  const SizedBox(height: AppTheme.spaceSm),
-                  _buildGovernorateFilter(),
-                  const SizedBox(height: AppTheme.spaceSm),
-                  ..._filteredEmployees.map(_employeeCard),
-                  if (_filteredEmployees.isEmpty)
-                    const EjariSurfaceCard(
-                      child: Text(
-                        'لا موظفين في هذه المحافظة — أضف حجزاً جديداً.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textSecondary,
+          : _error != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppTheme.spaceLg),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_error!, textAlign: TextAlign.center),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _load,
+                          child: const Text('إعادة المحاولة'),
                         ),
-                      ),
-                    ),
-                  const SizedBox(height: AppTheme.spaceLg),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: _assignBedBooking,
-                      icon: const Icon(Icons.single_bed_rounded),
-                      label: const Text('تعيين موظف لسرير — تدفق واحد'),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: AppTheme.spaceSm),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const CorporateBookingScreen(),
+                )
+              : RefreshIndicator(
+                  color: AppTheme.accentColor,
+                  onRefresh: _load,
+                  child: ListView(
+                    padding: const EdgeInsets.all(AppTheme.spaceMd),
+                    children: [
+                      _buildHero(),
+                      const SizedBox(height: AppTheme.spaceMd),
+                      _buildQuickStats(),
+                      const SizedBox(height: AppTheme.spaceMd),
+                      _buildApprovalsInbox(),
+                      const SizedBox(height: AppTheme.spaceMd),
+                      _buildWalletCard(),
+                      const SizedBox(height: AppTheme.spaceSm),
+                      _buildBulkInvoiceCard(),
+                      const SizedBox(height: AppTheme.spaceMd),
+                      _buildTeamBookings(),
+                      const SizedBox(height: AppTheme.spaceMd),
+                      if (_employees.isNotEmpty) ...[
+                        const EjariSectionHeader(
+                          title: 'فريق الإسكان',
+                          subtitle: 'الموظفون المرتبطون بطلبات الشركة',
+                        ),
+                        const SizedBox(height: AppTheme.spaceSm),
+                        ..._employees.take(8).map(_employeeCard),
+                        if (_employees.length > 8)
+                          Text(
+                            '+${_employees.length - 8} موظف آخر',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
                           ),
-                        );
-                        _load();
-                      },
-                      icon: const Icon(Icons.add_home_work_rounded),
-                      label: const Text('حجز سكن جديد للموظفين'),
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.spaceSm),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const MyBookingsScreen(),
+                        const SizedBox(height: AppTheme.spaceMd),
+                      ],
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const CorporateBookingScreen(),
+                              ),
+                            );
+                            _load();
+                          },
+                          icon: const Icon(Icons.add_home_work_rounded),
+                          label: const Text('طلب سكن جديد للموظفين'),
                         ),
                       ),
-                      icon: const Icon(Icons.list_alt_rounded),
-                      label: const Text('عرض كل حجوزات الشركة'),
-                    ),
+                      const SizedBox(height: AppTheme.spaceSm),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const MyBookingsScreen(),
+                            ),
+                          ),
+                          icon: const Icon(Icons.list_alt_rounded),
+                          label: const Text('كل حجوزات الشركة'),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
+                ),
     );
   }
 
@@ -177,7 +249,7 @@ class _CorporateCommandCenterScreenState
       padding: const EdgeInsets.all(AppTheme.spaceLg),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF0A2E26), Color(0xFF1B594B)],
+          colors: [Color(0xFF0F3A30), Color(0xFF1B594B)],
         ),
         borderRadius: BorderRadius.circular(AppTheme.cardRadiusLg),
       ),
@@ -186,10 +258,10 @@ class _CorporateCommandCenterScreenState
         children: [
           const Row(
             children: [
-              Icon(Icons.corporate_fare_rounded, color: AppTheme.accentColor),
+              Icon(Icons.apartment_rounded, color: AppTheme.accentColor),
               SizedBox(width: 8),
               Text(
-                'إسكان موظفين متعدد المحافظات',
+                'طلبات الشركات والموافقات',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w900,
@@ -200,15 +272,15 @@ class _CorporateCommandCenterScreenState
           ),
           const SizedBox(height: 8),
           Text(
-            _summary['companyName']?.toString() ?? 'شركة تجريبية — إيجاري',
+            _summary['companyName']?.toString() ?? 'حساب الشركة — إيجاري',
             style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
-              fontSize: 12,
+              color: Colors.white.withOpacity(0.85),
+              fontSize: 13,
             ),
           ),
           const SizedBox(height: 12),
           Text(
-            'إجمالي الإنفاق: ${_summary['totalSpend'] ?? 0} ج.م / شهر',
+            'بانتظار الموافقة: ${_pendingApprovals.length}',
             style: const TextStyle(
               color: AppTheme.accentColor,
               fontWeight: FontWeight.w900,
@@ -220,37 +292,28 @@ class _CorporateCommandCenterScreenState
     );
   }
 
-  Widget _buildStats() {
+  Widget _buildQuickStats() {
     final stats = [
+      ('موافقات', '${_pendingApprovals.length}', Icons.fact_check_rounded),
+      ('حجوزات الفريق', '${_teamBookings.length}', Icons.groups_rounded),
       (
-        'موظفون',
-        '${_summary['totalEmployees'] ?? _employees.length}',
-        Icons.people_rounded,
-      ),
-      (
-        'حجوزات نشطة',
+        'نشطة',
         '${_summary['activeBookings'] ?? 0}',
         Icons.event_available_rounded,
       ),
       (
-        'بانتظار الموافقة',
-        '${_summary['pendingBookings'] ?? 0}',
-        Icons.hourglass_top_rounded,
-      ),
-      (
-        'محافظات',
-        '${_summary['governorateCount'] ?? 0}',
-        Icons.map_rounded,
+        'إنفاق شهري',
+        '${_summary['totalSpend'] ?? 0}',
+        Icons.payments_rounded,
       ),
     ];
-
     return GridView.count(
       crossAxisCount: 2,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: AppTheme.spaceSm,
       crossAxisSpacing: AppTheme.spaceSm,
-      childAspectRatio: 1.6,
+      childAspectRatio: 1.55,
       children: stats.map((s) {
         return EjariSurfaceCard(
           padding: const EdgeInsets.all(12),
@@ -282,32 +345,171 @@ class _CorporateCommandCenterScreenState
     );
   }
 
-  Widget _buildGovernorateFilter() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: _governorates.map((gov) {
-          final selected = _filterGov == gov;
-          return Padding(
-            padding: const EdgeInsets.only(left: 6),
-            child: FilterChip(
-              label: Text(gov, style: const TextStyle(fontSize: 11)),
-              selected: selected,
-              onSelected: (_) => setState(() => _filterGov = gov),
-              selectedColor: AppTheme.primaryColor.withOpacity(0.15),
-              checkmarkColor: AppTheme.primaryColor,
+  Widget _buildApprovalsInbox() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const EjariSectionHeader(
+          title: 'صندوق الموافقات',
+          subtitle: 'طلبات إسكان الموظفين التي تحتاج قرار الإدارة',
+        ),
+        const SizedBox(height: AppTheme.spaceSm),
+        if (_pendingApprovals.isEmpty)
+          const EjariSurfaceCard(
+            child: Text(
+              'لا توجد طلبات معلّقة حالياً. عند تقديم حجز شركة سيظهر هنا للموافقة أو الرفض.',
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.45,
+                color: AppTheme.textSecondary,
+              ),
             ),
-          );
-        }).toList(),
+          )
+        else
+          ..._pendingApprovals.map(_approvalCard),
+      ],
+    );
+  }
+
+  Widget _approvalCard(Map<String, dynamic> booking) {
+    final title = booking['title']?.toString() ??
+        booking['propertyTitle']?.toString() ??
+        'طلب سكن';
+    final name = booking['employeeName']?.toString() ??
+        booking['tenantName']?.toString() ??
+        'موظف';
+    final rent = booking['monthlyRent'] ?? booking['price'] ?? '';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppTheme.spaceSm),
+      child: EjariSurfaceCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accentColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: const Text(
+                    'بانتظار القرار',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.accentColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '$name${rent.toString().isNotEmpty ? ' • $rent ج.م' : ''}',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => _rejectBooking(booking),
+                    child: const Text('رفض'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _approveBooking(booking),
+                    child: const Text('موافقة'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildTeamBookings() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const EjariSectionHeader(
+          title: 'حجوزات الفريق',
+          subtitle: 'آخر طلبات الإسكان المرتبطة بالشركة',
+        ),
+        const SizedBox(height: AppTheme.spaceSm),
+        if (_teamBookings.isEmpty)
+          const EjariSurfaceCard(
+            child: Text(
+              'لا توجد حجوزات شركة بعد. ابدأ بطلب سكن جديد للموظفين.',
+              style: TextStyle(fontSize: 13, color: AppTheme.textSecondary),
+            ),
+          )
+        else
+          ..._teamBookings.take(6).map((b) {
+            final status =
+                BookingStatus.normalize(b['status']?.toString());
+            return Padding(
+              padding: const EdgeInsets.only(bottom: AppTheme.spaceSm),
+              child: EjariSurfaceCard(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            b['title']?.toString() ?? 'حجز',
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                          Text(
+                            b['employeeName']?.toString() ??
+                                b['tenantName']?.toString() ??
+                                '',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      BookingStatus.arabicLabel(status),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+      ],
     );
   }
 
   Widget _employeeCard(Map<String, dynamic> emp) {
     final status = emp['status']?.toString() ?? 'pending';
-    final rent = (emp['monthlyRent'] as num?)?.toDouble() ?? 0;
-    final color = _statusColor(status);
-
     return Padding(
       padding: const EdgeInsets.only(bottom: AppTheme.spaceSm),
       child: EjariSurfaceCard(
@@ -330,10 +532,7 @@ class _CorporateCommandCenterScreenState
                 children: [
                   Text(
                     emp['name']?.toString() ?? '',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                   Text(
                     '${emp['role'] ?? ''} • ${emp['governorate'] ?? ''}',
@@ -342,70 +541,21 @@ class _CorporateCommandCenterScreenState
                       color: AppTheme.textSecondary,
                     ),
                   ),
-                  if (emp['propertyTitle'] != null)
-                    Text(
-                      emp['propertyTitle'].toString(),
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: AppTheme.primaryColor,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
                 ],
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    _statusLabel(status),
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: color,
-                    ),
-                  ),
-                ),
-                if (rent > 0) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    '${rent.toStringAsFixed(0)} ج.م',
-                    style: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.accentColor,
-                    ),
-                  ),
-                ],
-              ],
+            Text(
+              _statusLabel(status),
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.accentColor,
+              ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  Color _statusColor(String status) {
-    switch (status) {
-      case 'approved':
-      case 'active':
-        return AppTheme.successColor;
-      case 'booked':
-      case BookingStatus.depositPaid:
-        return AppTheme.primaryColor;
-      case 'pending':
-      case BookingStatus.corporatePending:
-        return AppTheme.accentColor;
-      default:
-        return AppTheme.textSecondary;
-    }
   }
 
   String _statusLabel(String status) {
@@ -420,10 +570,8 @@ class _CorporateCommandCenterScreenState
         return 'عربون مدفوع';
       case BookingStatus.corporatePending:
         return 'بانتظار الإدارة';
-      case 'assigned':
-        return 'مُعيَّن';
       default:
-        return 'بانتظار الحجز';
+        return 'متاح';
     }
   }
 
@@ -477,12 +625,12 @@ class _CorporateCommandCenterScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'ملخص الفواتير الجماعية',
+            'ملخص الفواتير',
             style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
           ),
           const SizedBox(height: 8),
           Text(
-            'الفترة: ${_bulkInvoice['period'] ?? ''}',
+            'الفترة: ${_bulkInvoice['period'] ?? '—'}',
             style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
           ),
           const SizedBox(height: 8),
@@ -512,45 +660,12 @@ class _CorporateCommandCenterScreenState
       child: Column(
         children: [
           Text(value,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w900, fontSize: 13)),
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
           Text(label,
               style: const TextStyle(
                   fontSize: 10, color: AppTheme.textSecondary)),
         ],
       ),
     );
-  }
-
-  Future<void> _assignBedBooking() async {
-    final pending = _employees
-        .where((e) => e['status'] == 'pending' || e['status'] == 'available')
-        .toList();
-    if (pending.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('لا يوجد موظفون متاحون للتعيين')),
-      );
-      return;
-    }
-    final emp = pending.first;
-    final result = await DataService.assignEmployeeToBedBooking(
-      employeeId: emp['id']?.toString() ?? '',
-      employeeName: emp['name']?.toString() ?? '',
-      propertyId: 'shared_egy1',
-      bedId: 'bed_${DateTime.now().millisecond % 8 + 1}',
-      bedLabel: 'سرير — ${emp['name']}',
-      monthlyRent: (emp['monthlyRent'] as num?)?.toDouble() ?? 2500,
-      governorate: emp['governorate']?.toString() ?? 'القاهرة',
-    );
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(result['message']?.toString() ??
-            (result['success'] == true
-                ? 'تم تعيين الموظف لسرير بنجاح'
-                : 'فشل التعيين')),
-      ),
-    );
-    _load();
   }
 }

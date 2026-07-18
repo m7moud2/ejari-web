@@ -30,7 +30,11 @@ class _WalletScreenState extends State<WalletScreen>
 
   Future<void> _loadWalletData() async {
     final user = await AuthService.getCurrentUser();
-    final ownerId = user?['email']?.toString() ?? 'owner@ejari.app';
+    final ownerId = user?['email']?.toString().trim();
+    if (ownerId == null || ownerId.isEmpty) {
+      if (mounted) setState(() => _isLoading = false);
+      return;
+    }
     final walletData = await DataService.getWalletData(ownerId);
     final transactions = await DataService.getWalletTransactions(ownerId);
     if (mounted) {
@@ -542,7 +546,18 @@ class _WalletScreenState extends State<WalletScreen>
               if (controller.text.isEmpty) return;
               final amount = double.tryParse(controller.text) ?? 0;
               final user = await AuthService.getCurrentUser();
-              final ownerId = user?['email']?.toString() ?? 'owner@ejari.app';
+              final ownerId = user?['email']?.toString() ?? '';
+              if (ownerId.isEmpty) {
+                if (!context.mounted) return;
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('سجّل الدخول أولاً'),
+                    backgroundColor: AppTheme.errorColor,
+                  ),
+                );
+                return;
+              }
               final ok = await WalletService.requestWithdrawal(
                 amount: amount,
                 userId: ownerId,
@@ -587,6 +602,7 @@ class _WalletScreenState extends State<WalletScreen>
   }
 
   Future<void> _showTopUpDialog(BuildContext context) async {
+    final amountController = TextEditingController();
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -595,15 +611,22 @@ class _WalletScreenState extends State<WalletScreen>
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('اختر وسيلة الدفع:',
-                style: TextStyle(color: AppTheme.primaryColor)),
-            const SizedBox(height: 20),
-            _buildWithdrawOption(context, 'فوري (Fawry)', Icons.receipt_long,
-                AppTheme.borderColor),
-            _buildWithdrawOption(context, 'فيزا / ماستركارد', Icons.credit_card,
-                AppTheme.primaryColor),
-            _buildWithdrawOption(context, 'فودافون كاش', Icons.phone_android,
-                AppTheme.errorColor),
+            const Text(
+              'أدخل المبلغ بالجنيه. في وضع العرض يُضاف مباشرة للمحفظة.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: amountController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'المبلغ (ج.م)',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(12)),
+                ),
+              ),
+            ),
           ],
         ),
         actions: [
@@ -611,6 +634,41 @@ class _WalletScreenState extends State<WalletScreen>
             onPressed: () => Navigator.pop(context),
             child: const Text('إلغاء',
                 style: TextStyle(color: AppTheme.primaryColor)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final amount = double.tryParse(amountController.text.trim()) ?? 0;
+              if (amount <= 0) return;
+              final user = await AuthService.getCurrentUser();
+              final ownerId = user?['email']?.toString();
+              if (ownerId == null || ownerId.isEmpty) {
+                if (!context.mounted) return;
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('سجّل الدخول أولاً لشحن المحفظة'),
+                    backgroundColor: AppTheme.errorColor,
+                  ),
+                );
+                return;
+              }
+              await WalletService.topUpWallet(amount, userId: ownerId);
+              if (!context.mounted) return;
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('تم شحن ${amount.toStringAsFixed(0)} ج.م بنجاح'),
+                  backgroundColor: AppTheme.primaryColor,
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+              _loadWalletData();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryColor,
+            ),
+            child: const Text('تأكيد الشحن',
+                style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

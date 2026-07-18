@@ -41,6 +41,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   bool _isSyncRefreshing = false;
   int _lastSyncGeneration = 0;
   LiveSyncService? _liveSync;
+  String? _loadError;
 
   @override
   void initState() {
@@ -74,21 +75,31 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     if (showUpdatedSnack) {
       setState(() => _isSyncRefreshing = true);
     }
-    final bookings = await DataService.getBookings();
-    if (!mounted) return;
-    setState(() {
-      _bookings = bookings;
-      _isLoading = false;
-      _isSyncRefreshing = false;
-    });
-    if (showUpdatedSnack && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم التحديث'),
-          duration: Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    try {
+      final bookings = await DataService.getBookings();
+      if (!mounted) return;
+      setState(() {
+        _bookings = bookings;
+        _isLoading = false;
+        _isSyncRefreshing = false;
+        _loadError = null;
+      });
+      if (showUpdatedSnack && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('تم التحديث'),
+            duration: Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _isSyncRefreshing = false;
+        _loadError = e.toString().replaceAll('Exception: ', '');
+      });
     }
   }
 
@@ -127,6 +138,37 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       ),
       body: _isLoading
           ? const SkeletonListLoader(itemCount: 4, itemHeight: 120)
+          : _loadError != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppTheme.spaceLg),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.cloud_off_rounded,
+                            size: 48, color: AppTheme.textSecondary),
+                        const SizedBox(height: 16),
+                        Text(
+                          _loadError!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: AppTheme.textSecondary),
+                        ),
+                        const SizedBox(height: 20),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              _isLoading = true;
+                              _loadError = null;
+                            });
+                            _loadBookings();
+                          },
+                          icon: const Icon(Icons.refresh_rounded),
+                          label: const Text('إعادة المحاولة'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
           : RefreshIndicator(
               onRefresh: () => _loadBookings(),
               color: AppTheme.primaryColor,

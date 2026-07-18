@@ -4,7 +4,7 @@ import '../services/data_service.dart';
 import 'ejari_section.dart';
 import '../screens/corporate_command_center_screen.dart';
 
-/// ملخص سريع لحجوزات الموظفين — يوجّه إلى مركز قيادة الشركات.
+/// ملخص سريع لحجوزات الموظفين — يوجّه إلى حساب الشركات.
 class CorporateBookingsStrip extends StatefulWidget {
   const CorporateBookingsStrip({super.key});
 
@@ -51,7 +51,7 @@ class _CorporateBookingsStripState extends State<CorporateBookingsStrip> {
               const Expanded(
                 child: EjariSectionHeader(
                   title: 'إسكان الموظفين (شركات)',
-                  subtitle: 'متابعة من مركز قيادة الشركات',
+                  subtitle: 'متابعة من حساب الشركات',
                 ),
               ),
               TextButton.icon(
@@ -65,7 +65,7 @@ class _CorporateBookingsStripState extends State<CorporateBookingsStrip> {
                   _load();
                 },
                 icon: const Icon(Icons.corporate_fare_rounded, size: 16),
-                label: const Text('مركز القيادة', style: TextStyle(fontSize: 11)),
+                label: const Text('حساب الشركات', style: TextStyle(fontSize: 11)),
               ),
             ],
           ),

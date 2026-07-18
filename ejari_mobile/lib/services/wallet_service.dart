@@ -293,10 +293,13 @@ class WalletService {
   }) async {
     await init(userId: userId);
     _escrowBalance += amount;
+    // Escrow is a hold marker — funds already left available balance via payFromWallet.
+    // Do not log a second negative expense (that doubled outflow in history).
     _transactions.insert(0, {
       'id': 'ESC-${DateTime.now().millisecondsSinceEpoch}',
-      'title': title,
-      'amount': -amount,
+      'title': 'حجز ضمان: $title',
+      'amount': 0,
+      'heldAmount': amount,
       'date': DateTime.now().toIso8601String(),
       'type': 'escrow',
       'method': method,

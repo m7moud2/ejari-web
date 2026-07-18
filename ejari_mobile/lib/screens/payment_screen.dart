@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../config/app_config.dart';
@@ -211,6 +210,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return false;
     }
     if (_selectedCategory == 'cards') {
+      // Paymob iframe collects the card — skip local PAN/CVV when gateway is on.
+      if (PaymobService.shouldUseGateway) return true;
       return _cardNumberController.text.length >= 16 &&
           _expiryController.text.contains('/') &&
           _cvvController.text.length >= 3;
@@ -318,12 +319,28 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return;
     }
 
+    final useWallet = _selectedCategory == 'wallet_balance';
+    if (useWallet) {
+      final balance = await WalletService.getBalance();
+      if (balance < _displayAmount) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'رصيد المحفظة غير كافٍ (${balance.toStringAsFixed(0)} ج.م). اشحن المحفظة أو اختر وسيلة أخرى.',
+            ),
+            backgroundColor: AppTheme.errorColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
+      }
+    }
+
     setState(() => _isProcessing = true);
-    await Future.delayed(const Duration(seconds: 2));
     await _persistPaymentSelection();
 
     final bookingId = widget.itemData['id']?.toString() ?? '';
-    final useWallet = _selectedCategory == 'wallet_balance';
     final method = useWallet
         ? 'wallet'
         : _selectedCategory == 'cards'
@@ -331,9 +348,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
             : _selectedSubMethod;
 
     Map<String, dynamic> result = {'success': false};
+    final isDepositPhase = widget.paymentStage == 'deposit' ||
+        (widget.paymentStage == 'full' && _splitDepositNow);
+    final isFullOrRemaining = widget.paymentStage == 'remaining' ||
+        (widget.paymentStage == 'full' && !_splitDepositNow) ||
+        BookingStatus.normalize(widget.itemData['status']?.toString()) ==
+            BookingStatus.approved;
 
     // Paymob for cards only when credentials are configured (production).
-    // Wallet balance and demo mode keep the local payment path.
+    // Fail closed: never mark paid locally if gateway was attempted and failed.
     if (_selectedCategory == 'cards' && PaymobService.shouldUseGateway) {
       try {
         final user = await AuthService.getCurrentUser();
@@ -369,61 +392,82 @@ class _PaymentScreenState extends State<PaymentScreen> {
           return;
         }
       } catch (e) {
-        // Fall through to local/demo completion so the app never dead-ends.
-        if (kDebugMode) {
-          debugPrint('Paymob unavailable, using local payment: $e');
-        }
+        if (!mounted) return;
+        setState(() => _isProcessing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              e.toString().replaceAll('Exception: ', ''),
+            ),
+            backgroundColor: AppTheme.errorColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return;
       }
     }
 
-    if (widget.itemType == 'booking') {
-      final bookingStatus =
-          BookingStatus.normalize(widget.itemData['status']?.toString());
-      if (widget.paymentStage == 'remaining' ||
-          bookingStatus == BookingStatus.approved) {
-        result = await DataService.completeBookingPaymentWithReceipt(
-          bookingId,
+    try {
+      if (widget.itemType == 'booking') {
+        if (isFullOrRemaining && !isDepositPhase) {
+          result = await DataService.completeBookingPaymentWithReceipt(
+            bookingId,
+            amount: _displayAmount,
+            method: method,
+            useWallet: useWallet,
+          );
+        } else {
+          result = await DataService.payForBooking(
+            bookingId,
+            amount: _displayAmount,
+            method: method,
+            useWallet: useWallet,
+            isDeposit: true,
+          );
+        }
+      } else if (widget.itemType == 'subscription') {
+        final planId =
+            widget.itemData['id'] ?? widget.itemData['planId'] ?? 'bronze';
+        final userType = widget.itemData['userType'] ?? 'owner';
+        final user = await AuthService.getCurrentUser();
+        final email = user?['email']?.toString() ?? '';
+        await SubscriptionService.activatePlan(
+          email,
+          planId.toString(),
+          userType: userType.toString(),
+        );
+        await WalletService.recordExternalPayment(
+          title: 'اشتراك ${widget.itemData['name'] ?? planId}',
           amount: _displayAmount,
           method: method,
+          bookingId: 'SUB-$planId',
+          userId: user?['email']?.toString(),
+        );
+        result = {'success': true};
+      } else if (widget.itemType == 'service') {
+        final requestId = widget.itemData['id']?.toString() ?? '';
+        final user = await AuthService.getCurrentUser();
+        final tenantId = user?['email']?.toString() ?? '';
+        result = await MaintenanceService.confirmAndPay(
+          requestId: requestId,
+          tenantId: tenantId,
           useWallet: useWallet,
+          method: method,
         );
       } else {
-        result = await DataService.payForBooking(
-          bookingId,
-          amount: _displayAmount,
-          method: method,
-          useWallet: useWallet,
-        );
+        // Wallet top-up / generic — settle locally after method validation.
+        result = {'success': true};
       }
-    } else if (widget.itemType == 'subscription') {
-      final planId =
-          widget.itemData['id'] ?? widget.itemData['planId'] ?? 'bronze';
-      final userType = widget.itemData['userType'] ?? 'owner';
-      final user = await AuthService.getCurrentUser();
-      final email = user?['email']?.toString() ?? '';
-      await SubscriptionService.activatePlan(
-        email,
-        planId.toString(),
-        userType: userType.toString(),
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isProcessing = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تعذر إتمام الدفع: ${e.toString().replaceAll('Exception: ', '')}'),
+          backgroundColor: AppTheme.errorColor,
+        ),
       );
-      await WalletService.recordExternalPayment(
-        title: 'اشتراك ${widget.itemData['name'] ?? planId}',
-        amount: _displayAmount,
-        method: method,
-        bookingId: 'SUB-$planId',
-        userId: user?['email']?.toString(),
-      );
-      result = {'success': true};
-    } else if (widget.itemType == 'service') {
-      final requestId = widget.itemData['id']?.toString() ?? '';
-      final user = await AuthService.getCurrentUser();
-      final tenantId = user?['email']?.toString() ?? '';
-      result = await MaintenanceService.confirmAndPay(
-        requestId: requestId,
-        tenantId: tenantId,
-        useWallet: useWallet,
-        method: method,
-      );
+      return;
     }
 
     if (!mounted) return;
@@ -444,9 +488,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ? 'تم تفعيل باقة ${widget.itemData['name'] ?? ''} بنجاح!'
         : _selectedCategory == 'manual'
             ? 'تم إرسال إيصال الدفع للمراجعة.'
-            : widget.paymentStage == 'remaining'
-                ? 'تم استلام المتبقي (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح.'
-                : 'تم استلام العربون (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح.';
+            : isDepositPhase
+                ? 'تم استلام العربون (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح.'
+                : widget.paymentStage == 'remaining'
+                    ? 'تم استلام المتبقي (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح.'
+                    : 'تم الدفع (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح.';
 
     if (receipt != null) {
       if (widget.itemType == 'booking') {
@@ -471,9 +517,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
               transactionId: receipt.id,
               paymentMethod: receipt.method,
               receipt: receipt,
-              successTitle: widget.paymentStage == 'remaining'
-                  ? 'تم استكمال الصفقة! 🎉'
-                  : 'تم الدفع بنجاح! 🎉',
+              successTitle: isDepositPhase
+                  ? 'تم دفع العربون'
+                  : widget.paymentStage == 'remaining'
+                      ? 'تم استكمال الصفقة'
+                      : 'تم الدفع بنجاح',
               successMessage: successMessage,
             ),
           ),
@@ -482,7 +530,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
       if (mounted) Navigator.pop(context, true);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(successMessage), backgroundColor: AppTheme.primaryColor),
+        SnackBar(
+            content: Text(successMessage),
+            backgroundColor: AppTheme.primaryColor),
       );
       if (mounted) Navigator.pop(context, true);
     }
@@ -1241,6 +1291,38 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Widget _buildCardsForm() {
+    if (PaymobService.shouldUseGateway) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppTheme.primaryColor.withOpacity(0.06),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.accentColor.withOpacity(0.35)),
+        ),
+        child: const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'الدفع الآمن عبر البطاقة',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'سيتم فتح صفحة Paymob الآمنة لإدخال بيانات البطاقة. لا تُخزَّن أرقام البطاقات على الجهاز.',
+              style: TextStyle(
+                fontSize: 13,
+                height: 1.45,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     return Column(
       children: [
         _buildInputField(_cardNumberController, 'رقم البطاقة',
