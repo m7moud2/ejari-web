@@ -60,6 +60,7 @@
       "about.mission":
         "هدفنا نقلّل سوء التفاهم بين المستأجر والمالك: بنود واضحة، دفع بحالة ظاهرة، وصيانة مربوطة بالوحدة مش بالواتساب المتفرّق.",
       "about.place": "القاهرة، مصر",
+      "about.contactLink": "تواصل للشراكات أو الدعم",
 
       "roles.title": "مين بيغطي التطبيق",
       "roles.lede":
@@ -159,6 +160,14 @@
       "dlpage.footerTag": "تحميل APK لأندرويد",
       "dlpage.honest":
         "أندرويد 1.3.5 — قريباً على Google Play. التحميل الحالي عبر ملف APK موقّع من إيجاري.",
+      "dlpage.beforeTitle": "قبل ما تبدأ",
+      "dlpage.beforeBody":
+        "أندرويد فقط. لو عندك إيجاري قديم — امسحه من إعدادات التطبيقات الأول عشان التوقيع ما يتعارضش.",
+      "dlpage.fileChip": "ejari-1.3.5.apk",
+      "dlpage.needTitle": "هتحتاج",
+      "dlpage.need1": "موبايل أندرويد واتصال بالنت",
+      "dlpage.need2": "سماح لمرة واحدة بالتثبيت من المتصفح أو مدير الملفات",
+      "dlpage.need3": "مساحة كافية لملف التثبيت",
 
       "stats.loading": "جاري تحديث عدّاد التحميل…",
       "stats.total": "تم التحميل {n} مرة",
@@ -224,6 +233,7 @@
       "about.mission":
         "We aim to cut misunderstandings between tenant and owner: clear terms, visible payment status, and maintenance tied to the unit — not scattered WhatsApp threads.",
       "about.place": "Cairo, Egypt",
+      "about.contactLink": "Contact for partnerships or support",
 
       "roles.title": "Who the app covers",
       "roles.lede":
@@ -329,6 +339,14 @@
       "dlpage.footerTag": "Android APK download",
       "dlpage.honest":
         "Android 1.3.5 — coming soon on Google Play. Current download is a signed Ejari APK.",
+      "dlpage.beforeTitle": "Before you start",
+      "dlpage.beforeBody":
+        "Android only. If you already have an older Ejari build — uninstall it first so the signature does not conflict.",
+      "dlpage.fileChip": "ejari-1.3.5.apk",
+      "dlpage.needTitle": "You will need",
+      "dlpage.need1": "An Android phone and a network connection",
+      "dlpage.need2": "One-time permission to install from the browser or file manager",
+      "dlpage.need3": "Enough free space for the install file",
 
       "stats.loading": "Updating download count…",
       "stats.total": "Downloaded {n} times",

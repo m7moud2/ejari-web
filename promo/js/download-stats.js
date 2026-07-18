@@ -42,11 +42,12 @@
   }
 
   function msg(key, vars) {
-    var text;
+    var text = null;
     if (window.EjariI18n && window.EjariI18n.t) {
       text = window.EjariI18n.t(key, lang());
     }
-    if (text == null) text = key;
+    /* Never paint raw keys — leave existing DOM text if missing */
+    if (text == null) return null;
     if (vars && vars.n != null) {
       text = String(text).replace("{n}", formatAr(vars.n));
     }
@@ -102,15 +103,19 @@
       const currentEl = root.querySelector("[data-dl-current]");
       const statusEl = root.querySelector("[data-dl-status]");
       if (totalEl) {
-        totalEl.textContent = msg("stats.total", { n: displayedTotal });
+        const totalText = msg("stats.total", { n: displayedTotal });
+        if (totalText != null) totalEl.textContent = totalText;
       }
       if (currentEl) {
         currentEl.textContent = "";
         currentEl.hidden = true;
       }
       if (statusEl) {
-        statusEl.textContent = msg(lastStatusKey);
-        statusEl.hidden = false;
+        const statusText = msg(lastStatusKey);
+        if (statusText != null) {
+          statusEl.textContent = statusText;
+          statusEl.hidden = false;
+        }
       }
       root.classList.add("is-ready");
       root.setAttribute("aria-busy", "false");
