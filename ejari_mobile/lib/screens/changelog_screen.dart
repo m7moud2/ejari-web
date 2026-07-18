@@ -8,6 +8,15 @@ class ChangelogScreen extends StatelessWidget {
   static const List<({String version, String date, List<String> items})>
       releases = [
     (
+      version: '1.3.5',
+      date: 'يوليو 2026',
+      items: [
+        'إصدار متجر: APK + AAB للإنتاج (DEMO_MODE=false)',
+        'تلميع شاشات الدخول والدعم والحالات الفارغة لاستعداد المتجر',
+        'تحديث روابط التحميل والترويج إلى v1.3.5',
+      ],
+    ),
+    (
       version: '1.3.4',
       date: 'يوليو 2026',
       items: [
