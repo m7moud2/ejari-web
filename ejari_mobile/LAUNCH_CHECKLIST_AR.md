@@ -2,10 +2,10 @@
 
 ## المتاح الآن للتجربة والإعلان المحدود
 
-- أحدث إصدار منشور: **1.3.5+21**
-  - GitHub Releases: https://github.com/m7moud2/ejari-web/releases/tag/v1.3.5
+- أحدث إصدار منشور: **1.3.6+22**
+  - GitHub Releases: https://github.com/m7moud2/ejari-web/releases/tag/v1.3.6
   - صفحة الترويج: https://m7moud2.github.io/ejari-web/promo/
-  - AAB للرفع على Play: `ejari_mobile/releases/ejari-1.3.5.aab`
+  - AAB للرفع على Play: `ejari_mobile/releases/ejari-1.3.6.aab`
 - دليل رفع Play (يدوي): [`PLAY_CONSOLE_UPLOAD_AR.md`](PLAY_CONSOLE_UPLOAD_AR.md)
 - التطبيق يعمل بـ Firebase في APK/AAB الإنتاج، ووضع Demo محلياً/ويب بدون Console.
 - حسابات تجربة محلية (وضع العرض / عند فشل الشبكة):
@@ -18,12 +18,12 @@
   - شروط: https://m7moud2.github.io/ejari-web/docs/terms.html
 - دعم: واتساب `201280083336` · `support@ejari.app`
 
-## حالة خطوات الإطلاق (بعد 1.3.5)
+## حالة خطوات الإطلاق (بعد 1.3.6)
 
 | الخطوة | الحالة |
 |--------|--------|
-| بناء ونشر APK 1.3.5 على GitHub | تم |
-| تجهيز AAB 1.3.5+21 موقّع | تم — `releases/ejari-1.3.5.aab` |
+| بناء ونشر APK 1.3.6 على GitHub | تم |
+| تجهيز AAB 1.3.6+22 موقّع | تم — `releases/ejari-1.3.6.aab` |
 | رفع تلقائي عبر Play API | غير متاح (لا credentials في المستودع) |
 | رفع يدوي Internal testing | **عليك** — راجع `PLAY_CONSOLE_UPLOAD_AR.md` |
 | مفاتيح Paymob الحية | منتظر أسرار منك |
@@ -46,7 +46,7 @@ flutter build appbundle --release --dart-define=DEMO_MODE=false
 ```
 
 المخرجات: `build/app/outputs/bundle/release/app-release.aab`  
-نسخة جاهزة للرفع: `releases/ejari-1.3.5.aab`
+نسخة جاهزة للرفع: `releases/ejari-1.3.6.aab`
 
 اختياري — تفعيل بطاقة Paymob في نفس البناء (التفاصيل: `PAYMOB_SETUP_AR.md`):
 
@@ -68,10 +68,10 @@ flutter build appbundle --release \
 | الحقل | القيمة |
 |--------|--------|
 | Package name | `com.ejari.app` |
-| Version name / code | `1.3.5` / `21` |
+| Version name / code | `1.3.6` / `22` |
 | Privacy policy URL | `https://m7moud2.github.io/ejari-web/docs/privacy.html` |
 | Terms URL | `https://m7moud2.github.io/ejari-web/docs/terms.html` |
-| AAB path | `ejari_mobile/releases/ejari-1.3.5.aab` |
+| AAB path | `ejari_mobile/releases/ejari-1.3.6.aab` |
 
 ### Firebase (إصدار الإنتاج)
 
@@ -104,4 +104,4 @@ flutter build appbundle --release \
 
 ## ملاحظة مهمة
 
-ملف APK التجريبي مناسب لتجربة العملاء الأوائل وجمع الملاحظات، لكنه ليس مناسبًا للرفع على Google Play إذا كان Debug-signed. استخدم AAB الموقّع بمفتاح الإصدار أعلاه (`releases/ejari-1.3.5.aab`).
+ملف APK التجريبي مناسب لتجربة العملاء الأوائل وجمع الملاحظات، لكنه ليس مناسبًا للرفع على Google Play إذا كان Debug-signed. استخدم AAB الموقّع بمفتاح الإصدار أعلاه (`releases/ejari-1.3.6.aab`).
