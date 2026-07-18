@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'signup_screen.dart';
@@ -32,15 +33,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _authenticate() async {
     final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     final prefs = await SharedPreferences.getInstance();
     final biometricEnabled = prefs.getBool('biometric_enabled') ?? false;
 
     if (!biometricEnabled) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        messenger.showSnackBar(
           const SnackBar(
-              content:
-                  Text('يرجى تفعيل المصادقة الحيوية من إعدادات النظام أولاً')),
+            content: Text(
+                'فعّل الدخول بالبصمة من الإعدادات بعد تسجيل الدخول مرة واحدة'),
+          ),
         );
       }
       return;
@@ -55,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (!canAuthenticate) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          messenger.showSnackBar(
               const SnackBar(content: Text('المصادقة الحيوية غير متوفرة')));
         }
         return;
@@ -67,41 +70,67 @@ class _LoginScreenState extends State<LoginScreen> {
             const AuthenticationOptions(stickyAuth: true, biometricOnly: true),
       );
     } on PlatformException catch (e) {
-      debugPrint("Biometric Error: $e");
-      _handleSocialSuccess('عضو إيجاري (بيومتري)');
+      debugPrint('Biometric Error: $e');
+      if (mounted) {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('تعذر إكمال المصادقة الحيوية. سجّل الدخول يدوياً'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
       return;
     }
 
     if (!mounted) return;
 
-    if (authenticated) {
-      final user = await AuthService.login(
-          'user@ejari.app', 'user123'); // Using demo user
-      if (mounted && user != null) {
-        String role = widget.redirectToRole ?? user['type'] ?? 'tenant';
-        await AuthService.setUserRole(role);
-
-        if (widget.returnResult) {
-          navigator.pop(true);
-          return;
-        }
-
-        if (!mounted) return;
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()));
-      }
+    if (!authenticated) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('لم تكتمل المصادقة الحيوية')),
+      );
+      return;
     }
+
+    // Unlock an existing saved session — never invent a demo account.
+    final loggedIn = await AuthService.isLoggedIn();
+    final user = await AuthService.getCurrentUser();
+    if (user == null && !loggedIn) {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(
+              'لا توجد جلسة محفوظة. سجّل الدخول بكلمة المرور ثم فعّل البصمة'),
+        ),
+      );
+      return;
+    }
+
+    String role = widget.redirectToRole ??
+        user?['type']?.toString() ??
+        user?['role']?.toString() ??
+        await AuthService.getUserRole();
+    await AuthService.setUserRole(role);
+
+    if (widget.returnResult) {
+      navigator.pop(true);
+      return;
+    }
+
+    if (!mounted) return;
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
   }
 
   Future<void> _signInWithGoogle() async {
     try {
       setState(() => _isLoading = true);
-      
-      final userData = await AuthService.signInWithGoogle();
-      
+
+      await AuthService.signInWithGoogle();
+
       if (mounted) {
         setState(() => _isLoading = false);
-        _handleSocialSuccess(userData['name'] ?? 'مستخدم جوجل');
+        await _finishAuthenticatedSession();
       }
     } catch (e) {
       if (mounted) {
@@ -114,25 +143,21 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _handleSocialSuccess(String name) async {
+  Future<void> _finishAuthenticatedSession() async {
     final navigator = Navigator.of(context);
-    final prefs = await SharedPreferences.getInstance();
-    // Set a mock user for social login if not already set
-    await prefs.setString('current_user_email', 'social_user@ejari.app');
-
-    if (mounted) {
-      String role = widget.redirectToRole ?? 'tenant';
-      await AuthService.setUserRole(role);
-
-      if (widget.returnResult) {
-        navigator.pop(true);
-        return;
-      }
-
-      if (!mounted) return;
-      navigator.pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()));
+    if (widget.redirectToRole != null) {
+      await AuthService.setUserRole(widget.redirectToRole!);
     }
+
+    if (widget.returnResult) {
+      navigator.pop(true);
+      return;
+    }
+
+    if (!mounted) return;
+    navigator.pushReplacement(
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
   }
 
   Future<void> _loginAsVisitor() async {
@@ -146,6 +171,18 @@ class _LoginScreenState extends State<LoginScreen> {
     navigator.pushReplacement(
       MaterialPageRoute(builder: (context) => const HomeScreen()),
     );
+  }
+
+  Future<void> _openLegal(String url) async {
+    final ok = await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تعذر فتح الرابط')),
+      );
+    }
   }
 
   @override
@@ -251,8 +288,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 .validate()) {
                                               setState(() => _isLoading = true);
                                               try {
-                                                // AuthService owns Firebase
-                                                // timeouts + local demo fallback.
                                                 final user =
                                                     await AuthService.login(
                                                   _emailController.text,
@@ -270,8 +305,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                                   );
                                                   if (widget.redirectToRole !=
                                                       null) {
-                                                    await AuthService.setUserRole(
-                                                        widget.redirectToRole!);
+                                                    await AuthService
+                                                        .setUserRole(widget
+                                                            .redirectToRole!);
                                                   }
                                                   if (widget.returnResult) {
                                                     if (!mounted) return;
@@ -301,9 +337,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                       action: SnackBarAction(
                                                         label: 'إعادة',
                                                         textColor: Colors.white,
-                                                        onPressed: () {
-                                                          // User can tap دخول again.
-                                                        },
+                                                        onPressed: () {},
                                                       ),
                                                     ),
                                                   );
@@ -437,7 +471,67 @@ class _LoginScreenState extends State<LoginScreen> {
                               ],
                             ),
                           ),
-
+                          const SizedBox(height: 18),
+                          Center(
+                            child: Wrap(
+                              alignment: WrapAlignment.center,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 4,
+                              children: [
+                                TextButton(
+                                  onPressed: () =>
+                                      _openLegal(AppConfig.privacyPolicyUrl),
+                                  style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 4),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  child: const Text(
+                                    'سياسة الخصوصية',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppTheme.textSecondary,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ),
+                                const Text('·',
+                                    style: TextStyle(
+                                        color: AppTheme.textSecondary)),
+                                TextButton(
+                                  onPressed: () =>
+                                      _openLegal(AppConfig.termsUrl),
+                                  style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 6, vertical: 4),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  child: const Text(
+                                    'الشروط والأحكام',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: AppTheme.textSecondary,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Center(
+                            child: Text(
+                              'إيجاري ${AppConfig.versionLabel} · ${AppConfig.environmentLabel}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AppTheme.textSecondary.withOpacity(0.85),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -530,31 +624,6 @@ class _LoginScreenState extends State<LoginScreen> {
         if (value == null || value.isEmpty) return 'هذا الحقل مطلوب';
         return null;
       },
-    );
-  }
-
-  // ignore: unused_element
-  Widget _buildSocialCircularButton(IconData icon,
-      {VoidCallback? onTap, bool isPrimary = false}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isPrimary
-              ? AppTheme.primaryColor.withOpacity(0.1)
-              : AppTheme.surfaceColor,
-          shape: BoxShape.circle,
-          border: Border.all(
-              color: isPrimary
-                  ? AppTheme.primaryColor.withOpacity(0.5)
-                  : AppTheme.backgroundColor,
-              width: 1.5),
-        ),
-        child: Icon(icon,
-            size: 28,
-            color: isPrimary ? AppTheme.primaryColor : AppTheme.textPrimary),
-      ),
     );
   }
 }

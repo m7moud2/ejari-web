@@ -211,12 +211,19 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     color: AppTheme.primaryColor,
                     child: items.isEmpty
                         ? ListView(
-                            children: const [
-                              SizedBox(height: 80),
+                            children: [
+                              const SizedBox(height: 80),
                               EmptyStateView(
                                 icon: Icons.notifications_none_rounded,
                                 title: 'لا توجد إشعارات حالياً',
-                                subtitle: 'ستظهر هنا التنبيهات والتحديثات المهمة.',
+                                subtitle:
+                                    'ستظهر هنا تنبيهات الحجز والدفع والصيانة والتوثيق.',
+                                actionLabel: 'تحديث',
+                                actionIcon: Icons.refresh_rounded,
+                                onAction: () {
+                                  setState(() => _loading = true);
+                                  _load();
+                                },
                               ),
                             ],
                           )

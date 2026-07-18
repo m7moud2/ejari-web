@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
+import '../widgets/empty_state_view.dart';
 import '../services/maintenance_service.dart';
 import '../services/auth_service.dart';
 import '../utils/safe_parse.dart';
@@ -401,17 +402,18 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
   }
 
   Widget _empty() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.handyman_outlined,
-              size: 72, color: AppTheme.primaryColor),
-          SizedBox(height: 12),
-          Text('لا توجد مهام حالياً',
-              style: TextStyle(color: AppTheme.textSecondary)),
-        ],
-      ),
+    return EmptyStateView(
+      icon: Icons.handyman_outlined,
+      title: 'لا توجد مهام حالياً',
+      subtitle: _selectedFilter == 'all'
+          ? 'عندما تُعيَّن لك طلبات صيانة ستظهر هنا مع تفاصيل العميل والموقع.'
+          : 'لا توجد مهام ضمن هذا الفلتر. جرّب «الكل» أو حدّث القائمة.',
+      actionLabel: 'تحديث المهام',
+      actionIcon: Icons.refresh_rounded,
+      onAction: () {
+        setState(() => _isLoading = true);
+        _loadJobs();
+      },
     );
   }
 }

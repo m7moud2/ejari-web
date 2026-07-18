@@ -257,6 +257,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           _buildListTile(
+            title: 'واتساب الدعم',
+            subtitle: SocialLinks.supportWhatsAppE164,
+            icon: Icons.chat_rounded,
+            onTap: () => _launchUrl(SocialLinks.whatsappUrl),
+          ),
+          _buildListTile(
+            title: 'بريد الدعم',
+            subtitle: SocialLinks.supportEmail,
+            icon: Icons.email_outlined,
+            onTap: () => _launchUrl(SocialLinks.mailtoSupport),
+          ),
+          _buildListTile(
             title: 'سياسة الخصوصية',
             icon: Icons.privacy_tip_outlined,
             onTap: () async {

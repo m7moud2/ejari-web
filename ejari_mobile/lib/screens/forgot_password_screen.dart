@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import 'otp_screen.dart';
+import '../services/auth_service.dart';
+import '../config/app_config.dart';
+import '../config/social_links.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -13,26 +16,55 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   bool _isLoading = false;
+  bool _sent = false;
 
   Future<void> _sendResetLink() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OtpScreen(
-          phoneOrEmail: _emailController.text,
-          verificationType: 'password_reset',
+    try {
+      await AuthService.sendPasswordResetEmail(_emailController.text);
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _sent = true;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppConfig.demoMode
+                ? 'تم تسجيل الطلب (وضع العرض). في الإنتاج يُرسل رابط إعادة التعيين للبريد.'
+                : 'تم إرسال رابط إعادة التعيين إن وُجد حساب بهذا البريد.',
+          ),
+          backgroundColor: AppTheme.primaryColor,
         ),
-      ),
-    );
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AuthService.friendlyAuthError(e)),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+    }
+  }
+
+  Future<void> _openSupport() async {
+    final uri = Uri.parse(SocialLinks.whatsappUrl);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
+        mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تعذر فتح واتساب')),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
   }
 
   @override
@@ -67,19 +99,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       letterSpacing: -0.5),
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'أدخل بريدك الإلكتروني أو رقم هاتفك وسنرسل رمزاً مشفراً للتحقق وإعادة التعيين.',
-                  style: TextStyle(
+                Text(
+                  _sent
+                      ? 'تحقق من بريدك واتبع الرابط لإعادة تعيين كلمة المرور. إن لم تصلك رسالة خلال دقائق، راجع مجلد الرسائل غير المرغوبة أو تواصل مع الدعم.'
+                      : 'أدخل بريدك الإلكتروني المسجّل وسنرسل رابطاً آمناً لإعادة تعيين كلمة المرور.',
+                  style: const TextStyle(
                       fontSize: 15, color: AppTheme.primaryColor, height: 1.5),
                 ),
                 const SizedBox(height: 50),
                 TextFormField(
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
+                  enabled: !_sent,
                   decoration: InputDecoration(
-                    labelText: 'البريد الإلكتروني / الهاتف',
+                    labelText: 'البريد الإلكتروني',
                     labelStyle: const TextStyle(color: AppTheme.primaryColor),
-                    prefixIcon: const Icon(Icons.shield_outlined,
+                    prefixIcon: const Icon(Icons.email_outlined,
                         color: AppTheme.primaryColor, size: 22),
                     filled: true,
                     fillColor: AppTheme.backgroundColor,
@@ -93,8 +128,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     contentPadding: const EdgeInsets.symmetric(vertical: 20),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
+                    if (value == null || value.trim().isEmpty) {
                       return 'مطلوب إكمال هذا الحقل';
+                    }
+                    if (!value.contains('@')) {
+                      return 'أدخل بريداً إلكترونياً صالحاً';
                     }
                     return null;
                   },
@@ -104,7 +142,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _sendResetLink,
+                    onPressed: _isLoading
+                        ? null
+                        : (_sent ? () => Navigator.pop(context) : _sendResetLink),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
                       shape: RoundedRectangleBorder(
@@ -117,11 +157,36 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             width: 24,
                             child: CircularProgressIndicator(
                                 color: Colors.white, strokeWidth: 2))
-                        : const Text('إرسال الرمز الآمن',
-                            style: TextStyle(
-                                fontSize: 18,
+                        : Text(
+                            _sent ? 'العودة لتسجيل الدخول' : 'إرسال رابط التعيين',
+                            style: const TextStyle(
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white)),
+                                color: Colors.white),
+                          ),
+                  ),
+                ),
+                if (_sent) ...[
+                  const SizedBox(height: 16),
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: _isLoading
+                          ? null
+                          : () {
+                              setState(() => _sent = false);
+                              _sendResetLink();
+                            },
+                      icon: const Icon(Icons.refresh_rounded, size: 18),
+                      label: const Text('إعادة الإرسال'),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 24),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: _openSupport,
+                    icon: const Icon(Icons.chat_rounded, size: 18),
+                    label: const Text('مساعدة عبر واتساب'),
                   ),
                 ),
               ],
@@ -130,11 +195,5 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    super.dispose();
   }
 }

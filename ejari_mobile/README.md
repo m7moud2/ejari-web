@@ -110,6 +110,8 @@ flutter build appbundle --release \
 
 راجع [`releases/README.md`](releases/README.md) لتعليمات الرفع على Play Store بالعربية.
 راجع [`FIREBASE_SETUP_AR.md`](FIREBASE_SETUP_AR.md) لإعداد Firebase Spark.
+راجع [`PAYMOB_SETUP_AR.md`](PAYMOB_SETUP_AR.md) لتفعيل بطاقة Paymob وقت البناء.
+راجع [`LAUNCH_CHECKLIST_AR.md`](LAUNCH_CHECKLIST_AR.md) قبل الرفع على Google Play.
 
 ### الاختبار
 ```bash

@@ -52,6 +52,16 @@ class AppConfig {
     defaultValue: 'https://m7moud2.github.io/ejari-web/docs/terms.html',
   );
 
+  /// Public support contacts (override at build time if needed).
+  static const String supportEmail = String.fromEnvironment(
+    'SUPPORT_EMAIL',
+    defaultValue: 'support@ejari.app',
+  );
+  static const String supportWhatsApp = String.fromEnvironment(
+    'SUPPORT_WHATSAPP',
+    defaultValue: '201280083336',
+  );
+
   /// Auth / network wait before showing Arabic timeout + retry.
   static const Duration authTimeout = Duration(seconds: 8);
 

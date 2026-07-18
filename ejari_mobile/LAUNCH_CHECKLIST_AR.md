@@ -2,14 +2,19 @@
 
 ## المتاح الآن للتجربة والإعلان المحدود
 
-- ملف APK تجريبي جاهز للتثبيت اليدوي:
-  `dist/keyo-initial-demo.apk`
-- التطبيق يعمل في وضع Demo بدون انتظار السيرفر.
-- حسابات تجربة محلية:
+- أحدث إصدار منشور: **1.3.4+20**
+  - GitHub Releases: https://github.com/m7moud2/ejari-web/releases/tag/v1.3.4
+  - صفحة الترويج: https://m7moud2.github.io/ejari-web/promo/
+- التطبيق يعمل بـ Firebase في APK الإنتاج، ووضع Demo محلياً/ويب بدون Console.
+- حسابات تجربة محلية (وضع العرض / عند فشل الشبكة):
   - مستأجر: `user@ejari.app` / `user123`
   - مالك: `owner@ejari.app` / `owner123`
   - فني صيانة: `tech@ejari.app` / `tech123`
   - مدير: `admin@ejari.app` / `admin123`
+- صفحات قانونية على GitHub Pages:
+  - خصوصية: https://m7moud2.github.io/ejari-web/docs/privacy.html
+  - شروط: https://m7moud2.github.io/ejari-web/docs/terms.html
+- دعم: واتساب `201280083336` · `support@ejari.app`
 
 ## قبل الرفع الرسمي على Google Play
 
@@ -29,7 +34,7 @@ flutter build appbundle --release --dart-define=DEMO_MODE=false
 
 المخرجات: `build/app/outputs/bundle/release/app-release.aab`
 
-اختياري — تفعيل بطاقة Paymob في نفس البناء:
+اختياري — تفعيل بطاقة Paymob في نفس البناء (التفاصيل: `PAYMOB_SETUP_AR.md`):
 
 ```bash
 flutter build appbundle --release \
@@ -41,14 +46,15 @@ flutter build appbundle --release \
 
 بدون تعريفات Paymob أعلاه يبقى مسار البطاقة تجريبياً/محلياً.
 
-5. اختبار التسجيل/الدخول/الحجز/الصيانة على السيرفر الحقيقي قبل الإعلان الواسع.
+5. اختبار التسجيل/الدخول/نسيت كلمة المرور/الحجز/الصيانة على السيرفر الحقيقي قبل الإعلان الواسع.
+6. تأكد من وجود مساحة قرص كافية قبل البناء (يفضّل >15 GB حرة).
 
 ### حقول Play Console للصق
 
 | الحقل | القيمة |
 |--------|--------|
 | Package name | `com.ejari.app` |
-| Version name / code | `1.3.3` / `19` |
+| Version name / code | `1.3.4` / `20` (ارفع عند كل نشر) |
 | Privacy policy URL | `https://m7moud2.github.io/ejari-web/docs/privacy.html` |
 | Terms URL | `https://m7moud2.github.io/ejari-web/docs/terms.html` |
 
@@ -60,4 +66,4 @@ flutter build appbundle --release \
 
 ## ملاحظة مهمة
 
-ملف APK التجريبي الحالي مناسب لتجربة العملاء الأوائل وجمع الملاحظات، لكنه ليس مناسبًا للرفع على Google Play إذا كان Debug-signed. استخدم AAB الموقّع بمفتاح الإصدار أعلاه.
+ملف APK التجريبي مناسب لتجربة العملاء الأوائل وجمع الملاحظات، لكنه ليس مناسبًا للرفع على Google Play إذا كان Debug-signed. استخدم AAB الموقّع بمفتاح الإصدار أعلاه.

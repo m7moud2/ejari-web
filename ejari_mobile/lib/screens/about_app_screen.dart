@@ -148,7 +148,7 @@ class AboutAppScreen extends StatelessWidget {
                 Expanded(
                   child: _buildSocialButton(
                       Icons.email_outlined, 'البريد الإلكتروني', () {
-                    _launchUrl('mailto:support@ejari.app');
+                    _launchUrl(SocialLinks.mailtoSupport);
                   }),
                 ),
                 const SizedBox(width: 12),

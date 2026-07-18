@@ -136,6 +136,8 @@ class AuthService {
         case 'unavailable':
         case 'internal-error':
           return 'تعذر الاتصال بالخادم. جرّب حسابات التجربة أو أعد المحاولة';
+        case 'missing-email':
+          return 'أدخل البريد الإلكتروني أولاً';
         default:
           return 'تعذر إتمام العملية. جرّب حسابات التجربة أو أعد المحاولة';
       }
@@ -759,6 +761,40 @@ class AuthService {
       }
       throw 'تعذر الاتصال بالسيرفر. جرّب حسابات التجربة أو تحقق من الإنترنت';
     }
+  }
+
+  // ─────────────────────────────────────────────
+  // PASSWORD RESET
+  // ─────────────────────────────────────────────
+  /// Sends a Firebase password-reset email when Firebase auth is active.
+  /// In demo/local mode, completes successfully so the UX can be tested.
+  static Future<void> sendPasswordResetEmail(String email) async {
+    final trimmed = email.trim();
+    if (trimmed.isEmpty) {
+      throw 'أدخل البريد الإلكتروني أولاً';
+    }
+    if (!trimmed.contains('@')) {
+      throw 'أدخل بريداً إلكترونياً صالحاً لإعادة التعيين';
+    }
+
+    if (_useLocalAuth || AppConfig.demoMode) {
+      await Future<void>.delayed(const Duration(milliseconds: 700));
+      return;
+    }
+
+    if (_useFirebaseAuth) {
+      try {
+        await _firebaseAuth
+            .sendPasswordResetEmail(email: trimmed)
+            .timeout(AppConfig.authTimeout);
+        return;
+      } catch (e) {
+        debugPrint('Password reset error: $e');
+        throw _arabicFirebaseAuthError(e);
+      }
+    }
+
+    await Future<void>.delayed(const Duration(milliseconds: 700));
   }
 
   // ─────────────────────────────────────────────

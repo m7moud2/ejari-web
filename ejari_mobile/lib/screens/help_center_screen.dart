@@ -5,6 +5,7 @@ import 'support_chat_screen.dart';
 import '../services/auth_service.dart';
 import '../services/support_service.dart';
 import '../config/app_config.dart';
+import '../config/social_links.dart';
 import 'dart:async';
 
 class HelpCenterScreen extends StatefulWidget {
@@ -58,14 +59,32 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                   Icons.chat_bubble_outline,
                   'دعم واتساب',
                   AppTheme.primaryColor,
-                  () => _launchWhatsApp(),
+                  _launchWhatsApp,
                 ),
                 const SizedBox(width: 16),
                 _buildActionCard(
                   Icons.support_agent_rounded,
                   'شات الدعم',
                   AppTheme.primaryColor,
-                  () => _openSupportChat(),
+                  _openSupportChat,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                _buildActionCard(
+                  Icons.email_outlined,
+                  'بريد الدعم',
+                  AppTheme.accentColor,
+                  _launchEmail,
+                ),
+                const SizedBox(width: 16),
+                _buildActionCard(
+                  Icons.privacy_tip_outlined,
+                  'الخصوصية',
+                  AppTheme.accentColor,
+                  _openPrivacy,
                 ),
               ],
             ),
@@ -76,6 +95,14 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               AppTheme.borderColor,
               () => _showReportDialog(context),
             ),
+            const SizedBox(height: 12),
+            Text(
+              'واتساب: ${SocialLinks.supportWhatsAppE164} · ${SocialLinks.supportEmail}',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondary,
+              ),
+            ),
             const SizedBox(height: 32),
             const Text('الأسئلة الشائعة',
                 style: TextStyle(
@@ -83,11 +110,15 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                     fontWeight: FontWeight.bold,
                     color: AppTheme.primaryColor)),
             _buildFaqItem('كيف أقوم بحجز عقار؟',
-                'يمكنك الحجز من خلال الضغط على زر احجز الآن في صفحة العقار ورفع إيصال الدفع.'),
-            _buildFaqItem('كيف أوثق حسابي؟',
-                'التوثيق متاح للملاك من خلال إعدادات الملف الشخصي.'),
+                'افتح العقار ← احجز الآن ← أكمل البيانات ← ادفع العربون عبر البطاقة أو المحفظة أو التحويل. يمكنك متابعة الحالة من «حجوزاتي».'),
+            _buildFaqItem('كيف أوثق حسابي (KYC)؟',
+                'من الملف الشخصي ← طلب التوثيق. التقط صورة وجهي البطاقة والسيلفي، ثم انتظر مراجعة الإدارة.'),
+            _buildFaqItem('هل المدفوعات آمنة؟',
+                'مدفوعات الإيجار والحجز والصيانة لخدمات عقارية حقيقية. عند تفعيل Paymob تُعالَج البطاقة عبر بوابة آمنة، وإلا يظهر مسار تجريبي واضح.'),
+            _buildFaqItem('ما دور الضمان (Escrow)؟',
+                'جزء من العربون/التأمين يُحجز في المحفظة حتى انتهاء الإقامة أو إتمام الصيانة، ثم يُحرَّر أو يُخصم حسب الحالة.'),
             _buildFaqItem('ما هي الخدمات المتاحة؟',
-                'خدمات تشمل النقل الذكي، التصميم المعماري، والكونسيرج المدعوم بالذكاء الاصطناعي.'),
+                'حجز وإيجار قصير/طويل، معاينات، عقود، محفظة وضمان، صيانة بفنيين، ودعم داخل التطبيق.'),
           ],
         ),
       ),
@@ -137,10 +168,32 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     }
   }
 
-  void _launchWhatsApp() async {
-    const url = "https://wa.me/201280083336";
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+  Future<void> _launchWhatsApp() async {
+    final uri = Uri.parse(SocialLinks.whatsappUrl);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
+        mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تعذر فتح واتساب')),
+      );
+    }
+  }
+
+  Future<void> _launchEmail() async {
+    final uri = Uri.parse(SocialLinks.mailtoSupport);
+    if (!await launchUrl(uri) && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('راسلنا على ${SocialLinks.supportEmail}')),
+      );
+    }
+  }
+
+  Future<void> _openPrivacy() async {
+    final uri = Uri.parse(AppConfig.privacyPolicyUrl);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
+        mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تعذر فتح سياسة الخصوصية')),
+      );
     }
   }
 
@@ -179,24 +232,34 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          border: Border.all(color: color),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style:
-                      TextStyle(color: color, fontWeight: FontWeight.bold)),
-            ),
-            Icon(Icons.arrow_forward_ios_rounded, color: color, size: 14),
+            Icon(icon, color: AppTheme.errorColor),
+            const SizedBox(width: 12),
+            Text(label,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold, color: AppTheme.textPrimary)),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildFaqItem(String question, String answer) {
+    return ExpansionTile(
+      title: Text(question,
+          style: const TextStyle(
+              fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Text(answer,
+              style: const TextStyle(color: AppTheme.textSecondary, height: 1.5)),
+        ),
+      ],
     );
   }
 
@@ -204,7 +267,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     _reportController.clear();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('تبليغ عن مشكلة'),
         content: Column(
@@ -225,24 +288,24 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                 if (text.isEmpty) return;
 
                 final user = await AuthService.getCurrentUser();
-                if (user != null && user['email'] != null) {
-                  await SupportService.createTicket(
-                    userEmail: user['email'].toString(),
-                    userName: user['name']?.toString() ?? 'مستخدم',
-                    subject: 'بلاغ فني',
-                    message: text,
-                    category: 'technical',
-                  );
-                }
+                await SupportService.createTicket(
+                  userEmail: user?['email']?.toString() ?? 'guest@ejari.app',
+                  userName: user?['name']?.toString() ?? 'زائر',
+                  subject: 'بلاغ فني',
+                  message: text,
+                  category: 'technical',
+                );
 
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text(
-                            'تم إرسال بلاغك بنجاح وسيتم التواصل معك')),
-                  );
+                if (dialogContext.mounted) {
+                  Navigator.pop(dialogContext);
                 }
+                if (!mounted) return;
+                ScaffoldMessenger.of(this.context).showSnackBar(
+                  const SnackBar(
+                    content: Text('تم إرسال بلاغك بنجاح وسيتم التواصل معك'),
+                    backgroundColor: AppTheme.primaryColor,
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor),
@@ -251,18 +314,6 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildFaqItem(String question, String answer) {
-    return ExpansionTile(
-      title: Text(question,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.bold)),
-      children: [
-        Padding(padding: const EdgeInsets.all(16), child: Text(answer))
-      ],
     );
   }
 }
