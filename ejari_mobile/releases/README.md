@@ -142,14 +142,18 @@ flutter build appbundle --release \
 | الحقل | القيمة |
 |--------|--------|
 | Package | `com.ejari.app` |
-| Version | `1.3.3` (build `19`) |
+| Version | `1.3.5` (build `21`) |
+| AAB جاهز | `releases/ejari-1.3.5.aab` |
 | Privacy policy | `https://m7moud2.github.io/ejari-web/docs/privacy.html` |
 | Terms | `https://m7moud2.github.io/ejari-web/docs/terms.html` |
+
+دليل الرفع اليدوي (Internal testing): [`../PLAY_CONSOLE_UPLOAD_AR.md`](../PLAY_CONSOLE_UPLOAD_AR.md)
 
 ### التوقيع
 
 - Keystore: `android/app/ejari-release-key.jks`
 - `android/key.properties` محلي فقط (gitignored) — لا ترفع كلمات المرور
+- بصمات upload key (SHA) موثّقة في دليل Play أعلاه — لـ Firebase / App integrity
 
 ### ملاحظة المدفوعات
 
