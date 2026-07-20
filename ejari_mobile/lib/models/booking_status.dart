@@ -368,18 +368,18 @@ class BookingStatus {
       case submitted:
       case pending:
       case corporatePending:
-        return ('hourglass', 'انتظر موافقة المالك', 'wait');
+        return ('hourglass', 'انتظر موافقة المالك أو ادفع العربون', 'wait');
       case approved:
-        return ('payments', 'ادفع الآن', 'pay');
+        return ('payments', 'ادفع المتبقي الآن', 'pay');
       case depositPaid:
-        return ('visibility', 'اطلب / تابع المعاينة', 'viewing');
+        return ('hourglass', 'انتظر موافقة المالك', 'wait');
       case viewingScheduled:
         return ('event', 'موعد المعاينة مجدول', 'viewing');
       case paid:
       case confirmed:
       case active:
         if (booking['checkedInAt'] == null) {
-          return ('qr', 'اعرض QR / سجّل دخول', 'qr_checkin');
+          return ('qr', 'اعرض QR للاستلام', 'qr_checkin');
         }
         if (booking['checkedOutAt'] == null) {
           return ('logout', 'سجّل خروج', 'checkout');

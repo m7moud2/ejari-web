@@ -4702,6 +4702,14 @@ class DataService {
       }).toList();
       if (updated) await prefs.setStringList(key, newList);
     }
+
+    // Keep Firestore in sync for check-in/out / handover in production.
+    if (!AppConfig.demoMode && fields.isNotEmpty) {
+      try {
+        await FirestoreBookingService.patchBooking(bookingId, fields);
+        updated = true;
+      } catch (_) {}
+    }
     return updated;
   }
 

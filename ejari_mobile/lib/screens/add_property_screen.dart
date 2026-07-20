@@ -240,7 +240,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
         if (!ok) throw StateError('العقار غير موجود');
       } else {
         propertyData['status'] = 'pending';
-        await DataService.addProperty(propertyData);
+        await propertyProvider.addProperty(propertyData);
       }
       await propertyProvider.fetchAllProperties();
       if (mounted) {

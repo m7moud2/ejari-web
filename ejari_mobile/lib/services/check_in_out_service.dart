@@ -1,14 +1,69 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/booking_status.dart';
+import 'booking_qr_service.dart';
 import 'data_service.dart';
 import 'wallet_service.dart';
 
 /// تسجيل الدخول/الخروج وإطلاق العربون.
+///
+/// الاستلام (handover): المالك يتحقق من QR ثم يستدعي [confirmHandover]
+/// → يُسجَّل [checkedInAt] والحالة `active`.
 class CheckInOutService {
   CheckInOutService._();
 
-  /// تسجيل دخول المستأجر.
+  /// تأكيد استلام المالك بعد مسح/تحقق QR ناجح.
+  static Future<Map<String, dynamic>> confirmHandover(String bookingId) async {
+    final booking = await DataService.findBookingById(bookingId);
+    if (booking == null) {
+      return {'success': false, 'message': 'الحجز غير موجود'};
+    }
+
+    if (!BookingQrService.canConfirmHandover(booking)) {
+      final status = BookingStatus.normalize(booking['status']?.toString());
+      if (booking['checkedInAt'] != null) {
+        return {
+          'success': false,
+          'message': 'تم تسجيل الاستلام مسبقاً',
+          'alreadyCheckedIn': true,
+        };
+      }
+      if (status == BookingStatus.approved) {
+        return {
+          'success': false,
+          'message':
+              'لا يمكن تأكيد الاستلام قبل إكمال المستأجر للدفع المتبقي',
+        };
+      }
+      return {
+        'success': false,
+        'message': 'الحجز غير جاهز للاستلام — يجب اكتمال الدفع أولاً',
+      };
+    }
+
+    final result = await checkIn(bookingId);
+    if (result['success'] == true) {
+      final prefs = await SharedPreferences.getInstance();
+      const key = 'booking_qr_codes_v1';
+      final raw = prefs.getString(key);
+      if (raw != null) {
+        final map = Map<String, dynamic>.from(jsonDecode(raw) as Map);
+        if (map.containsKey(bookingId)) {
+          map[bookingId]['handoverConfirmed'] = true;
+          map[bookingId]['handoverAt'] = result['checkedInAt'];
+          await prefs.setString(key, jsonEncode(map));
+        }
+      }
+      return {
+        ...result,
+        'message': 'تم تأكيد الاستلام وتسجيل الدخول ✓',
+        'handover': true,
+      };
+    }
+    return result;
+  }
+
+  /// تسجيل دخول المستأجر (بعد دفع كامل — عادة عبر تأكيد استلام المالك).
   static Future<Map<String, dynamic>> checkIn(String bookingId) async {
     final booking = await DataService.findBookingById(bookingId);
     if (booking == null) {
@@ -16,13 +71,17 @@ class CheckInOutService {
     }
 
     final status = BookingStatus.normalize(booking['status']?.toString());
-    if (status != BookingStatus.approved &&
-        status != BookingStatus.paid &&
-        status != BookingStatus.active &&
-        status != BookingStatus.confirmed) {
+    if (!_canCheckInStatus(status)) {
+      if (status == BookingStatus.approved) {
+        return {
+          'success': false,
+          'message':
+              'لا يمكن تسجيل الدخول قبل إكمال الدفع — ادفع المتبقي أولاً',
+        };
+      }
       return {
         'success': false,
-        'message': 'لا يمكن تسجيل الدخول — الحجز غير مؤكد',
+        'message': 'لا يمكن تسجيل الدخول — الحجز غير مؤكد أو غير مدفوع',
       };
     }
 
@@ -34,12 +93,21 @@ class CheckInOutService {
     await DataService.updateBookingFields(bookingId, {
       'checkedInAt': now,
       'status': BookingStatus.active,
+      'handoverConfirmedAt': now,
     });
 
     await DataService.addNotificationToUser(
       booking['ownerEmail']?.toString() ?? 'owner@ejari.app',
       'تسجيل دخول مستأجر 🏠',
       'قام ${booking['tenantName'] ?? 'المستأجر'} بتسجيل الدخول',
+      type: 'check_in',
+      refId: bookingId,
+    );
+
+    await DataService.addNotificationToUser(
+      booking['tenantEmail']?.toString() ?? '',
+      'تم الاستلام ✓',
+      'تم تأكيد استلام الوحدة — إقامة سعيدة',
       type: 'check_in',
       refId: bookingId,
     );
@@ -195,10 +263,10 @@ class CheckInOutService {
 
   static bool _canCheckInStatus(String? status) {
     final s = BookingStatus.normalize(status);
-    return s == BookingStatus.approved ||
-        s == BookingStatus.paid ||
-        s == BookingStatus.active ||
-        s == BookingStatus.confirmed;
+    // يتطلب اكتمال الدفع قبل الاستلام (ليس مجرد موافقة المالك).
+    return s == BookingStatus.paid ||
+        s == BookingStatus.confirmed ||
+        s == BookingStatus.active;
   }
 
   static double _parseDeposit(Map<String, dynamic> booking) {

@@ -176,6 +176,30 @@ class FirestoreBookingService {
     }
   }
 
+  /// Merge arbitrary booking fields (check-in/out, handover, etc.).
+  static Future<bool> patchBooking(
+    String bookingId,
+    Map<String, dynamic> fields,
+  ) async {
+    if (AppConfig.demoMode || bookingId.trim().isEmpty || fields.isEmpty) {
+      return false;
+    }
+    try {
+      await _db
+          .collection('bookings')
+          .doc(bookingId)
+          .set({
+            ...fields,
+            'updatedAt': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true))
+          .timeout(AppConfig.authTimeout);
+      return true;
+    } catch (e) {
+      debugPrint('Firestore patchBooking error: $e');
+      return false;
+    }
+  }
+
   static Future<bool> recordPayment({
     required String bookingId,
     required String status,

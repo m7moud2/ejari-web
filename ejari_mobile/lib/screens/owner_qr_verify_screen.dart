@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../theme/app_theme.dart';
 import '../services/booking_qr_service.dart';
+import '../services/check_in_out_service.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
+import '../models/booking_status.dart';
 import '../widgets/ejari_section.dart';
+import 'move_in_inspection_screen.dart';
 
-/// شاشة تحقق المالك من QR الحجز — مسح بالكاميرا أو إدخال يدوي.
+/// شاشة تحقق المالك من QR الحجز — مسح بالكاميرا أو إدخال يدوي ثم تأكيد الاستلام.
 class OwnerQrVerifyScreen extends StatefulWidget {
   const OwnerQrVerifyScreen({super.key});
 
@@ -21,6 +24,7 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
   final _controller = TextEditingController();
   Map<String, dynamic>? _result;
   bool _loading = false;
+  bool _handoverLoading = false;
   bool _cameraActive = false;
   bool _cameraInitializing = false;
   String? _cameraError;
@@ -176,6 +180,66 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
   Future<void> _simulateCameraScan(Map<String, dynamic> booking) async {
     final qr = await BookingQrService.generateForBooking(booking);
     await _verifyFromInput(qr['qrData'] as String);
+  }
+
+  Future<void> _confirmHandover() async {
+    final bookingId = _result?['bookingId']?.toString() ?? '';
+    if (bookingId.isEmpty || _handoverLoading) return;
+
+    setState(() => _handoverLoading = true);
+    final result = await CheckInOutService.confirmHandover(bookingId);
+    if (!mounted) return;
+
+    setState(() {
+      _handoverLoading = false;
+      if (result['success'] == true) {
+        _result = {
+          ...?_result,
+          'alreadyCheckedIn': true,
+          'canConfirmHandover': false,
+          'bookingStatus': BookingStatus.active,
+          'bookingStatusLabel': BookingStatus.arabicLabel(BookingStatus.active),
+          'message': result['message']?.toString() ?? 'تم تأكيد الاستلام ✓',
+        };
+      }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(result['message']?.toString() ?? ''),
+        backgroundColor: result['success'] == true
+            ? AppTheme.primaryColor
+            : AppTheme.errorColor,
+      ),
+    );
+
+    if (result['success'] == true && mounted) {
+      final goInspect = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('تم الاستلام'),
+          content: const Text(
+            'هل تريد فتح فحص الاستلام (صور الغرف) الآن؟',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('لاحقاً'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('فتح الفحص'),
+            ),
+          ],
+        ),
+      );
+      if (goInspect == true && mounted) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MoveInInspectionScreen()),
+        );
+      }
+    }
   }
 
   @override
@@ -630,7 +694,76 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
             _detailRow('تاريخ الدخول', _formatDate(_result!['checkInDate'])),
             _detailRow('المدة', _result!['duration']?.toString()),
             _detailRow('حالة الدفع', _result!['paymentStatus']?.toString()),
-            _detailRow('حالة الحجز', _result!['bookingStatus']?.toString()),
+            _detailRow(
+              'حالة الحجز',
+              _result!['bookingStatusLabel']?.toString() ??
+                  BookingStatus.arabicLabel(
+                    _result!['bookingStatus']?.toString(),
+                  ),
+            ),
+          ],
+          if (_result!['valid'] == true) ...[
+            const SizedBox(height: 16),
+            if (_result!['alreadyCheckedIn'] == true)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'تم تأكيد الاستلام وتسجيل دخول المستأجر مسبقاً.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primaryColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              )
+            else if (_result!['canConfirmHandover'] == true)
+              SizedBox(
+                width: double.infinity,
+                height: AppTheme.ctaHeight,
+                child: ElevatedButton.icon(
+                  onPressed: _handoverLoading ? null : _confirmHandover,
+                  icon: _handoverLoading
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(Icons.home_work_rounded, size: 20),
+                  label: Text(
+                    _handoverLoading
+                        ? 'جاري تأكيد الاستلام…'
+                        : 'تأكيد الاستلام وتسجيل الدخول',
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                ),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.orange.shade300),
+                ),
+                child: Text(
+                  _result!['message']?.toString() ??
+                      'الحجز غير جاهز للاستلام بعد.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.orange.shade900,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
           ],
         ],
       ),

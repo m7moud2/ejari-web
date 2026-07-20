@@ -401,6 +401,7 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
   Widget _buildNextCta(Map<String, dynamic> booking) {
     final next = BookingStatus.nextActionForBooking(booking);
     if (next == null) return const SizedBox.shrink();
+    final status = BookingStatus.normalize(booking['status']?.toString());
 
     IconData icon;
     switch (next.$1) {
@@ -426,12 +427,15 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
         next.$3 == 'rate';
 
     final helper = switch (next.$3) {
-      'pay' => 'ادفع المتبقي الآن لإصدار العقد وتفعيل الحجز.',
+      'pay' => 'ادفع المتبقي الآن لإصدار العقد وتفعيل رمز الاستلام (QR).',
       'viewing' => 'افتح مواعيد المعاينة لطلب موعد أو متابعة الموعد الحالي.',
-      'qr_checkin' => 'اعرض رمز QR عند الوصول لتسجيل الدخول.',
-      'checkout' => 'سجّل الخروج بعد انتهاء الإقامة.',
+      'qr_checkin' =>
+        'اعرض رمز QR للمالك عند الوصول — المالك يمسحه ويؤكّد الاستلام.',
+      'checkout' => 'سجّل الخروج بعد انتهاء الإقامة لاسترداد التأمين.',
       'rate' => 'قيّم تجربتك مع المالك بعد الإقامة.',
-      'wait' => 'المالك يراجع طلبك — ستصلك إشعارات بأي تحديث.',
+      'wait' => status == BookingStatus.depositPaid
+          ? 'تم دفع العربون — المالك يراجع طلبك للموافقة.'
+          : 'المالك يراجع طلبك — ستصلك إشعارات بأي تحديث.',
       _ => null,
     };
 
@@ -623,6 +627,12 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
     final id = booking['id']?.toString() ?? '';
     final checkedIn = booking['checkedInAt'] != null;
     final checkedOut = booking['checkedOutAt'] != null;
+    final qrReady = status == BookingStatus.paid ||
+        status == BookingStatus.confirmed ||
+        status == BookingStatus.active;
+    final ownerName = booking['ownerName']?.toString() ??
+        booking['ownerEmail']?.toString() ??
+        'المالك';
 
     return EjariSurfaceCard(
       child: Column(
@@ -648,24 +658,39 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
                   ),
                 ),
               ),
-              _actionChip(
-                icon: Icons.qr_code_2_rounded,
-                label: 'QR',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BookingQrScreen(booking: booking),
+              if (qrReady)
+                _actionChip(
+                  icon: Icons.qr_code_2_rounded,
+                  label: checkedIn ? 'QR ✓' : 'QR استلام',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BookingQrScreen(booking: booking),
+                    ),
                   ),
+                )
+              else
+                _actionChip(
+                  icon: Icons.qr_code_2_rounded,
+                  label: 'QR (بعد الدفع)',
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'رمز الاستلام يُفعَّل بعد إكمال الدفع',
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              ),
               _actionChip(
                 icon: Icons.chat_bubble_outline_rounded,
                 label: 'المالك',
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const ChatDetailsScreen(
-                      userName: 'احمد محمد (المالك)',
+                    builder: (_) => ChatDetailsScreen(
+                      userName: ownerName,
                     ),
                   ),
                 ),
@@ -688,6 +713,26 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
               status == BookingStatus.confirmed ||
               status == BookingStatus.active) ...[
             const SizedBox(height: 12),
+            if (!checkedIn)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 8),
+                decoration: BoxDecoration(
+                  color: AppTheme.accentColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'عند الوصول: اعرض QR للمالك ليؤكّد الاستلام. '
+                  'أو سجّل الدخول يدوياً إن تم التسليم بالفعل.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    height: 1.4,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
             Row(
               children: [
                 Expanded(

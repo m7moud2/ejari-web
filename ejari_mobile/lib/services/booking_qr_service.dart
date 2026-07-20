@@ -1,12 +1,34 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/booking_status.dart';
 import 'data_service.dart';
 
 /// توليد والتحقق من QR لكل حجز — demo بدون API خارجي.
+///
+/// دورة الاستلام:
+/// 1) المستأجر يعرض QR بعد اكتمال الدفع (`paid` / `confirmed`)
+/// 2) المالك يمسح/يتحقق من الرمز
+/// 3) المالك يؤكد الاستلام → تسجيل دخول (`active`)
 class BookingQrService {
   BookingQrService._();
 
   static const String _qrKey = 'booking_qr_codes_v1';
+
+  /// QR جاهز عندما اكتمل الدفع ولم يُسجَّل دخول بعد.
+  static bool isQrReady(Map<String, dynamic> booking) {
+    final status = BookingStatus.normalize(booking['status']?.toString());
+    if (booking['checkedInAt'] != null) return false;
+    return status == BookingStatus.paid ||
+        status == BookingStatus.confirmed ||
+        status == BookingStatus.active;
+  }
+
+  /// يمكن تأكيد الاستلام (handover) بعد تحقق QR صالح.
+  static bool canConfirmHandover(Map<String, dynamic> booking) {
+    final status = BookingStatus.normalize(booking['status']?.toString());
+    if (booking['checkedInAt'] != null) return false;
+    return status == BookingStatus.paid || status == BookingStatus.confirmed;
+  }
 
   static Future<Map<String, dynamic>> generateForBooking(
     Map<String, dynamic> booking,
@@ -28,11 +50,16 @@ class BookingQrService {
     final map = raw != null
         ? Map<String, dynamic>.from(jsonDecode(raw) as Map)
         : <String, dynamic>{};
+    final existing = map[id] is Map
+        ? Map<String, dynamic>.from(map[id] as Map)
+        : <String, dynamic>{};
     map[id] = {
+      ...existing,
       'qrData': qrData,
       'hash': hash,
-      'generatedAt': DateTime.now().toIso8601String(),
-      'verified': false,
+      'generatedAt':
+          existing['generatedAt'] ?? DateTime.now().toIso8601String(),
+      'verified': existing['verified'] == true,
     };
     await prefs.setString(_qrKey, jsonEncode(map));
 
@@ -44,6 +71,8 @@ class BookingQrService {
       'title': booking['title'] ?? 'حجز',
       'tenantName': booking['tenantName'] ?? tenant,
       'checkInDate': checkIn,
+      'qrReady': isQrReady(booking),
+      'canConfirmHandover': canConfirmHandover(booking),
     };
   }
 
@@ -139,11 +168,26 @@ class BookingQrService {
       }
     }
 
+    final alreadyCheckedIn = booking['checkedInAt'] != null;
+    final handoverReady = canConfirmHandover(booking);
+    String message;
+    if (alreadyCheckedIn) {
+      message = 'تم التحقق — الاستلام مسجّل مسبقاً ✓';
+    } else if (handoverReady) {
+      message = 'تم التحقق بنجاح ✓ — أكّد الاستلام لتسجيل دخول المستأجر';
+    } else if (!isQrReady(booking) &&
+        BookingStatus.normalize(status) == BookingStatus.approved) {
+      message =
+          'الرمز صالح لكن الدفع غير مكتمل — يجب على المستأجر إكمال الدفع أولاً';
+    } else {
+      message = 'تم التحقق بنجاح ✓';
+    }
+
     return {
       'valid': true,
       'expired': false,
       'status': 'valid',
-      'message': 'تم التحقق بنجاح ✓',
+      'message': message,
       'booking': booking,
       'bookingId': bookingId,
       'tenantName': tenantName,
@@ -153,6 +197,10 @@ class BookingQrService {
       'duration': duration,
       'paymentStatus': paymentStatus,
       'bookingStatus': status,
+      'bookingStatusLabel': BookingStatus.arabicLabel(status),
+      'alreadyCheckedIn': alreadyCheckedIn,
+      'canConfirmHandover': handoverReady,
+      'qrReady': isQrReady(booking),
     };
   }
 
@@ -165,14 +213,24 @@ class BookingQrService {
 
   static String _paymentStatusLabel(Map<String, dynamic> booking) {
     final raw = booking['paymentStatus']?.toString() ?? '';
-    final status = booking['status']?.toString() ?? '';
-    if (raw == 'deposit_paid' || status == 'deposit_paid') {
-      return 'تم دفع العربون';
-    }
-    if (status == 'approved' || status == 'active') {
+    final status = BookingStatus.normalize(booking['status']?.toString());
+    if (raw == 'paid' ||
+        raw == 'pre_entry_paid' ||
+        status == BookingStatus.paid ||
+        status == BookingStatus.confirmed ||
+        status == BookingStatus.active ||
+        status == BookingStatus.completed) {
       return 'مدفوع بالكامل';
     }
-    if (status == 'submitted' || status == 'pending') {
+    if (raw == 'deposit_paid' || status == BookingStatus.depositPaid) {
+      return 'تم دفع العربون';
+    }
+    if (status == BookingStatus.approved) {
+      return 'موافقة المالك — بانتظار إكمال الدفع';
+    }
+    if (status == BookingStatus.submitted ||
+        status == BookingStatus.pending ||
+        status == BookingStatus.corporatePending) {
       return 'بانتظار الدفع';
     }
     return raw.isNotEmpty ? raw : 'غير محدد';

@@ -8,6 +8,17 @@ class ChangelogScreen extends StatelessWidget {
   static const List<({String version, String date, List<String> items})>
       releases = [
     (
+      version: '1.3.7',
+      date: 'يوليو 2026',
+      items: [
+        'دورة الاستلام: مسح QR من المالك ثم تأكيد الاستلام يسجّل دخول المستأجر',
+        'رمز QR يُفعَّل بعد اكتمال الدفع فقط — لا دخول قبل الدفع المتبقي',
+        'نشر الإعلان عبر Firestore في الإنتاج بدل التخزين المحلي فقط',
+        'تتبع الحجز: نصوص أوضح للخطوة التالية ومحادثة باسم المالك الحقيقي',
+        'توثيق دورة الحجز في BOOKING_CYCLE_AR.md + اختبارات الاستلام',
+      ],
+    ),
+    (
       version: '1.3.6',
       date: 'يوليو 2026',
       items: [

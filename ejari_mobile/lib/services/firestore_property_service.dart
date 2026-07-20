@@ -99,6 +99,10 @@ class FirestorePropertyService {
       throw StateError('Cannot create property without an authenticated owner.');
     }
     property['ownerId'] = ownerId;
+    final ownerEmail = currentUser?['email']?.toString().trim();
+    if (ownerEmail != null && ownerEmail.isNotEmpty) {
+      property['ownerEmail'] = ownerEmail;
+    }
 
     if (AppConfig.demoMode) {
       await DataService.addProperty(property);

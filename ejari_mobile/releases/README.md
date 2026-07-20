@@ -9,7 +9,7 @@
 | صفحة التحميل (GitHub Pages) | `https://m7moud2.github.io/ejari-web/promo/` |
 | صفحة الترويج | `https://m7moud2.github.io/ejari-web/promo/` |
 | أحدث إصدار مباشرة | `https://github.com/m7moud2/ejari-web/releases/latest` |
-| تحميل APK مباشرة | `https://github.com/m7moud2/ejari-web/releases/download/v1.3.6/ejari-1.3.6.apk` |
+| تحميل APK مباشرة | `https://github.com/m7moud2/ejari-web/releases/download/v1.3.7/ejari-1.3.7.apk` |
 
 > GitHub Pages مفعّل من فرع `main` (جذر المستودع). صفحة التحميل بعد الدفع: `/docs/download/`.
 
@@ -45,11 +45,11 @@ git push origin main
 cd ejari_mobile
 
 flutter build apk --release --dart-define=DEMO_MODE=false
-cp build/app/outputs/flutter-apk/app-release.apk releases/ejari-1.3.6.apk
+cp build/app/outputs/flutter-apk/app-release.apk releases/ejari-1.3.7.apk
 
-gh release create v1.3.6 releases/ejari-1.3.6.apk \
+gh release create v1.3.7 releases/ejari-1.3.7.apk \
   --repo m7moud2/ejari-web \
-  --title "Ejari 1.3.6" \
+  --title "Ejari 1.3.7" \
   --notes "$(cat <<'EOF'
 ## ما الجديد
 - محفظة المستأجر وتذكيرات الدفع
@@ -95,7 +95,7 @@ gh auth login -h github.com
 curl -sS "https://firestore.googleapis.com/v1/projects/ejari-mobile-d9f8e/databases/(default)/documents/public_stats/downloads"
 ```
 
-## تثبيت APK (عملاء حقيقيون — v1.3.6+)
+## تثبيت APK (عملاء حقيقيون — v1.3.7+)
 
 1. فعّل **مصادر غير معروفة** على جهاز Android.
 2. افتح رابط التحميل من الهاتف واضغط **تحميل**.
@@ -109,7 +109,7 @@ curl -sS "https://firestore.googleapis.com/v1/projects/ejari-mobile-d9f8e/databa
 
 | الملف | الوصف |
 |-------|--------|
-| `ejari-1.3.6.apk` | أحدث إنتاج — محفظة + إقامة قصيرة + Firebase |
+| `ejari-1.3.7.apk` | أحدث إنتاج — محفظة + إقامة قصيرة + Firebase |
 | `index.html` | صفحة تحميل عربية للمشاركة |
 
 ## Firebase
@@ -142,8 +142,8 @@ flutter build appbundle --release \
 | الحقل | القيمة |
 |--------|--------|
 | Package | `com.ejari.app` |
-| Version | `1.3.6` (build `22`) |
-| AAB جاهز | `releases/ejari-1.3.6.aab` |
+| Version | `1.3.7` (build `22`) |
+| AAB جاهز | `releases/ejari-1.3.7.aab` |
 | Privacy policy | `https://m7moud2.github.io/ejari-web/docs/privacy.html` |
 | Terms | `https://m7moud2.github.io/ejari-web/docs/terms.html` |
 
