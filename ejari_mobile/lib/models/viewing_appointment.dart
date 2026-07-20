@@ -92,7 +92,11 @@ class ViewingAppointment {
   final String? propertyImage;
   final String tenantEmail;
   final String tenantName;
+  /// Firebase Auth uid للمستأجر (إنتاج).
+  final String? tenantId;
   final String ownerEmail;
+  /// Firebase Auth uid للمالك (إنتاج) — قد يختلف عن [ownerEmail].
+  final String? ownerId;
   final DateTime scheduledAt;
   final String status;
   final DateTime createdAt;
@@ -113,7 +117,9 @@ class ViewingAppointment {
     this.propertyImage,
     required this.tenantEmail,
     required this.tenantName,
+    this.tenantId,
     required this.ownerEmail,
+    this.ownerId,
     required this.scheduledAt,
     this.status = ViewingStatus.requested,
     required this.createdAt,
@@ -135,7 +141,9 @@ class ViewingAppointment {
     String? propertyImage,
     String? tenantEmail,
     String? tenantName,
+    String? tenantId,
     String? ownerEmail,
+    String? ownerId,
     DateTime? scheduledAt,
     String? status,
     DateTime? createdAt,
@@ -156,7 +164,9 @@ class ViewingAppointment {
       propertyImage: propertyImage ?? this.propertyImage,
       tenantEmail: tenantEmail ?? this.tenantEmail,
       tenantName: tenantName ?? this.tenantName,
+      tenantId: tenantId ?? this.tenantId,
       ownerEmail: ownerEmail ?? this.ownerEmail,
+      ownerId: ownerId ?? this.ownerId,
       scheduledAt: scheduledAt ?? this.scheduledAt,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
@@ -179,7 +189,9 @@ class ViewingAppointment {
         if (propertyImage != null) 'propertyImage': propertyImage,
         'tenantEmail': tenantEmail,
         'tenantName': tenantName,
+        if (tenantId != null && tenantId!.isNotEmpty) 'tenantId': tenantId,
         'ownerEmail': ownerEmail,
+        if (ownerId != null && ownerId!.isNotEmpty) 'ownerId': ownerId,
         'scheduledAt': scheduledAt.toIso8601String(),
         'status': ViewingStatus.normalize(status),
         'createdAt': createdAt.toIso8601String(),
@@ -201,17 +213,24 @@ class ViewingAppointment {
       return DateTime.tryParse(raw.toString());
     }
 
+    final ownerEmail = json['ownerEmail']?.toString() ?? '';
+    final ownerId = json['ownerId']?.toString();
+    final tenantEmail = json['tenantEmail']?.toString() ?? '';
+    final tenantId = json['tenantId']?.toString();
+
     return ViewingAppointment(
       id: json['id']?.toString() ?? '',
       propertyId: json['propertyId']?.toString() ?? '',
       propertyTitle: json['propertyTitle']?.toString() ?? 'عقار',
       propertyImage: json['propertyImage']?.toString() ??
           json['image']?.toString(),
-      tenantEmail: json['tenantEmail']?.toString() ?? '',
+      tenantEmail: tenantEmail,
       tenantName: json['tenantName']?.toString() ?? 'مستأجر',
-      ownerEmail: json['ownerEmail']?.toString() ??
-          json['ownerId']?.toString() ??
-          '',
+      tenantId: tenantId,
+      ownerEmail: ownerEmail.isNotEmpty
+          ? ownerEmail
+          : (ownerId ?? ''),
+      ownerId: ownerId,
       scheduledAt: parse(json['scheduledAt']) ?? DateTime.now(),
       status: ViewingStatus.normalize(json['status']?.toString()),
       createdAt: parse(json['createdAt']) ?? DateTime.now(),

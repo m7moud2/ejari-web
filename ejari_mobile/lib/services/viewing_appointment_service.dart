@@ -3,20 +3,27 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../config/app_config.dart';
 import '../models/listing_type.dart';
 import '../models/viewing_appointment.dart';
 import 'auth_service.dart';
 import 'data_service.dart';
+import 'firestore_viewing_service.dart';
 import 'live_sync_service.dart';
 
 /// تخزين وإدارة مواعيد المعاينة مع صلاحيات الأدوار.
+///
+/// - وضع العرض: SharedPreferences
+/// - الإنتاج: مجموعة `viewings` في Firestore (مشتركة بين المستأجر والمالك)
 class ViewingAppointmentService {
   ViewingAppointmentService._();
 
   static const _storageKey = 'viewing_appointments_v1';
   static const _demoSeededKey = 'viewing_appointments_demo_v1';
 
-  static Future<List<ViewingAppointment>> _loadAll() async {
+  static bool get _useFirestore => !AppConfig.demoMode;
+
+  static Future<List<ViewingAppointment>> _loadAllLocal() async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getStringList(_storageKey) ?? [];
     return raw
@@ -33,7 +40,7 @@ class ViewingAppointmentService {
         .toList();
   }
 
-  static Future<void> _saveAll(List<ViewingAppointment> items) async {
+  static Future<void> _saveAllLocal(List<ViewingAppointment> items) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
       _storageKey,
@@ -43,9 +50,10 @@ class ViewingAppointmentService {
   }
 
   static Future<void> ensureDemoSeed() async {
+    if (_useFirestore) return;
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool(_demoSeededKey) == true) return;
-    final existing = await _loadAll();
+    final existing = await _loadAllLocal();
     if (existing.isNotEmpty) {
       await prefs.setBool(_demoSeededKey, true);
       return;
@@ -65,18 +73,24 @@ class ViewingAppointmentService {
       createdAt: DateTime.now().subtract(const Duration(hours: 2)),
       note: 'معاينة تجريبية — بانتظار موافقة المالك',
     );
-    await _saveAll([demo]);
+    await _saveAllLocal([demo]);
     await prefs.setBool(_demoSeededKey, true);
   }
 
   static Future<List<ViewingAppointment>> getAll() async {
+    if (_useFirestore) {
+      return FirestoreViewingService.getAll();
+    }
     await ensureDemoSeed();
-    final all = await _loadAll();
+    final all = await _loadAllLocal();
     all.sort((a, b) => b.scheduledAt.compareTo(a.scheduledAt));
     return all;
   }
 
   static Future<ViewingAppointment?> getById(String id) async {
+    if (_useFirestore) {
+      return FirestoreViewingService.getById(id);
+    }
     final all = await getAll();
     try {
       return all.firstWhere((e) => e.id == id);
@@ -86,19 +100,30 @@ class ViewingAppointmentService {
   }
 
   static Future<List<ViewingAppointment>> getForTenant(String email) async {
+    if (_useFirestore) {
+      return FirestoreViewingService.getForTenant(email);
+    }
     final all = await getAll();
-    final e = email.trim().toLowerCase();
-    return all
-        .where((v) => v.tenantEmail.trim().toLowerCase() == e)
-        .toList();
+    final keys = await AuthService.identityKeysFor(email);
+    return all.where((v) {
+      return keys.contains(v.tenantEmail.trim()) ||
+          (v.tenantId != null && keys.contains(v.tenantId!.trim()));
+    }).toList();
   }
 
   static Future<List<ViewingAppointment>> getForOwner(String email) async {
+    if (_useFirestore) {
+      return FirestoreViewingService.getForOwner(email);
+    }
     final all = await getAll();
-    final e = email.trim().toLowerCase();
-    return all
-        .where((v) => v.ownerEmail.trim().toLowerCase() == e)
-        .toList();
+    final keys = await AuthService.identityKeysFor(email);
+    return all.where((v) {
+      return AuthService.matchesOwnerIdentity(
+        actorKeys: keys,
+        ownerEmail: v.ownerEmail,
+        ownerId: v.ownerId,
+      );
+    }).toList();
   }
 
   static Future<List<ViewingAppointment>> search(String query) async {
@@ -112,6 +137,7 @@ class ViewingAppointmentService {
           v.tenantEmail.toLowerCase().contains(q) ||
           v.tenantName.toLowerCase().contains(q) ||
           v.ownerEmail.toLowerCase().contains(q) ||
+          (v.ownerId?.toLowerCase().contains(q) ?? false) ||
           v.status.toLowerCase().contains(q) ||
           ViewingStatus.arabicLabel(v.status).contains(query.trim());
     }).toList();
@@ -123,7 +149,9 @@ class ViewingAppointmentService {
     required DateTime scheduledAt,
     String? excludeId,
   }) async {
-    final all = await getAll();
+    final all = _useFirestore
+        ? await FirestoreViewingService.listForConflictCheck(propertyId)
+        : await getAll();
     final day = DateTime(scheduledAt.year, scheduledAt.month, scheduledAt.day);
     return all.any((v) {
       if (excludeId != null && v.id == excludeId) return false;
@@ -166,7 +194,8 @@ class ViewingAppointmentService {
     if (isSaleListing(property)) {
       return {
         'success': false,
-        'message': 'المعاينة عبر المنصة متاحة لعقارات الإيجار فقط. تواصل مع المعلن مباشرة.',
+        'message':
+            'المعاينة عبر المنصة متاحة لعقارات الإيجار فقط. تواصل مع المعلن مباشرة.',
       };
     }
 
@@ -185,7 +214,10 @@ class ViewingAppointmentService {
     }
 
     final tenantEmail = user?['email']?.toString() ?? '';
-    if (tenantEmail.isEmpty) {
+    final tenantId = (user?['uid'] ?? user?['id'] ?? user?['_id'])
+        ?.toString()
+        .trim();
+    if (tenantEmail.isEmpty && (tenantId == null || tenantId.isEmpty)) {
       return {'success': false, 'message': 'يجب تسجيل الدخول أولاً'};
     }
 
@@ -195,9 +227,14 @@ class ViewingAppointmentService {
       return {'success': false, 'message': 'عقار غير صالح'};
     }
 
-    final ownerEmail = property['ownerEmail']?.toString() ??
-        property['ownerId']?.toString() ??
-        'owner@ejari.app';
+    final ownerEmailRaw = property['ownerEmail']?.toString().trim() ?? '';
+    final ownerIdRaw = property['ownerId']?.toString().trim() ?? '';
+    final ownerEmail = ownerEmailRaw.isNotEmpty
+        ? ownerEmailRaw
+        : (ownerIdRaw.contains('@') ? ownerIdRaw : 'owner@ejari.app');
+    final ownerId = ownerIdRaw.isNotEmpty && !ownerIdRaw.contains('@')
+        ? ownerIdRaw
+        : (ownerEmailRaw.isNotEmpty ? null : ownerIdRaw);
 
     final conflict = await hasSameDayConflict(
       propertyId: propertyId,
@@ -206,12 +243,15 @@ class ViewingAppointmentService {
     if (conflict) {
       return {
         'success': false,
-        'message': 'يوجد موعد معاينة آخر لنفس العقار في هذا اليوم. اختر يوماً آخر.',
+        'message':
+            'يوجد موعد معاينة آخر لنفس العقار في هذا اليوم. اختر يوماً آخر.',
       };
     }
 
-    final appointment = ViewingAppointment(
-      id: 'view_${DateTime.now().millisecondsSinceEpoch}',
+    var appointment = ViewingAppointment(
+      id: _useFirestore
+          ? ''
+          : 'view_${DateTime.now().millisecondsSinceEpoch}',
       propertyId: propertyId,
       propertyTitle: property['title']?.toString() ?? 'عقار',
       propertyImage: property['image']?.toString() ??
@@ -222,7 +262,9 @@ class ViewingAppointmentService {
       tenantName: user?['name']?.toString() ??
           user?['fullName']?.toString() ??
           'مستأجر',
+      tenantId: tenantId,
       ownerEmail: ownerEmail,
+      ownerId: ownerId,
       scheduledAt: scheduledAt.toUtc().isUtc
           ? scheduledAt
           : DateTime(
@@ -237,13 +279,23 @@ class ViewingAppointmentService {
       note: note,
     );
 
-    final all = await _loadAll();
-    all.add(appointment);
-    await _saveAll(all);
+    try {
+      if (_useFirestore) {
+        appointment = await FirestoreViewingService.create(appointment);
+        await LiveSyncService.bumpRevision();
+      } else {
+        final all = await _loadAllLocal();
+        all.add(appointment);
+        await _saveAllLocal(all);
+      }
+    } catch (e) {
+      final msg = e is String ? e : 'تعذر حفظ موعد المعاينة. حاول مرة أخرى';
+      return {'success': false, 'message': msg};
+    }
 
     final when = _formatArabicSlot(appointment.scheduledAt);
     await DataService.addNotificationToUser(
-      tenantEmail,
+      tenantEmail.isNotEmpty ? tenantEmail : (tenantId ?? ''),
       'تم إرسال طلب المعاينة 📅',
       'طلب معاينة ${appointment.propertyTitle} — $when',
       type: 'viewing',
@@ -265,7 +317,11 @@ class ViewingAppointmentService {
       adminFeed: true,
     );
 
-    return {'success': true, 'id': appointment.id, 'appointment': appointment.toJson()};
+    return {
+      'success': true,
+      'id': appointment.id,
+      'appointment': appointment.toJson(),
+    };
   }
 
   static Future<Map<String, dynamic>> updateStatus({
@@ -278,22 +334,40 @@ class ViewingAppointmentService {
     String? actorRole,
     String? actorEmail,
   }) async {
-    final all = await _loadAll();
-    final idx = all.indexWhere((e) => e.id == id);
-    if (idx < 0) {
+    ViewingAppointment? current;
+    List<ViewingAppointment>? localAll;
+    int localIdx = -1;
+
+    if (_useFirestore) {
+      current = await FirestoreViewingService.getById(id);
+    } else {
+      localAll = await _loadAllLocal();
+      localIdx = localAll.indexWhere((e) => e.id == id);
+      if (localIdx >= 0) current = localAll[localIdx];
+    }
+
+    if (current == null) {
       return {'success': false, 'message': 'موعد المعاينة غير موجود'};
     }
 
-    var current = all[idx];
     final role = actorRole ?? await AuthService.getUserRole();
+    final actorKeys = await AuthService.identityKeysFor(actorEmail);
     final email = (actorEmail ??
             (await AuthService.getCurrentUser())?['email']?.toString() ??
             '')
         .trim()
         .toLowerCase();
 
-    final isOwner = email == current.ownerEmail.trim().toLowerCase();
-    final isTenant = email == current.tenantEmail.trim().toLowerCase();
+    final isOwner = AuthService.matchesOwnerIdentity(
+          actorKeys: actorKeys,
+          ownerEmail: current.ownerEmail,
+          ownerId: current.ownerId,
+        ) ||
+        email == current.ownerEmail.trim().toLowerCase();
+    final isTenant = actorKeys.contains(current.tenantEmail.trim()) ||
+        (current.tenantId != null &&
+            actorKeys.contains(current.tenantId!.trim())) ||
+        email == current.tenantEmail.trim().toLowerCase();
     final isAdmin = role == 'admin';
 
     if (!isAdmin) {
@@ -365,33 +439,30 @@ class ViewingAppointmentService {
           : target,
       scheduledAt: newSlot,
       ownerNote: ownerNote ?? current.ownerNote,
-      confirmedAt: target == ViewingStatus.confirmed
-          ? now
-          : current.confirmedAt,
-      completedAt: target == ViewingStatus.completed
-          ? now
-          : current.completedAt,
-      cancelledAt: target == ViewingStatus.cancelled
-          ? now
-          : current.cancelledAt,
+      confirmedAt:
+          target == ViewingStatus.confirmed ? now : current.confirmedAt,
+      completedAt:
+          target == ViewingStatus.completed ? now : current.completedAt,
+      cancelledAt:
+          target == ViewingStatus.cancelled ? now : current.cancelledAt,
       rejectedAt: target == ViewingStatus.rejected ? now : current.rejectedAt,
-      tenantAttended: tenantConfirmAttendance
-          ? true
-          : current.tenantAttended,
-      ownerMarkedComplete: ownerMarkComplete
-          ? true
-          : current.ownerMarkedComplete,
+      tenantAttended:
+          tenantConfirmAttendance ? true : current.tenantAttended,
+      ownerMarkedComplete:
+          ownerMarkComplete ? true : current.ownerMarkedComplete,
     );
 
     // Complete when either party confirms after confirmed state
     if (target == ViewingStatus.completed ||
         ((tenantConfirmAttendance || ownerMarkComplete) &&
-            ViewingStatus.normalize(current.status) == ViewingStatus.confirmed)) {
+            ViewingStatus.normalize(current.status) ==
+                ViewingStatus.confirmed)) {
       updated = updated.copyWith(
         status: ViewingStatus.completed,
         completedAt: now,
         tenantAttended: tenantConfirmAttendance || updated.tenantAttended,
-        ownerMarkedComplete: ownerMarkComplete || updated.ownerMarkedComplete,
+        ownerMarkedComplete:
+            ownerMarkComplete || updated.ownerMarkedComplete,
       );
     }
 
@@ -403,8 +474,25 @@ class ViewingAppointmentService {
       );
     }
 
-    all[idx] = updated;
-    await _saveAll(all);
+    try {
+      if (_useFirestore) {
+        final ok = await FirestoreViewingService.update(updated);
+        if (!ok) {
+          return {
+            'success': false,
+            'message': 'تعذر تحديث موعد المعاينة. تحقق من الاتصال',
+          };
+        }
+        await LiveSyncService.bumpRevision();
+      } else {
+        localAll![localIdx] = updated;
+        await _saveAllLocal(localAll);
+      }
+    } catch (e) {
+      final msg = e is String ? e : 'تعذر تحديث موعد المعاينة';
+      return {'success': false, 'message': msg};
+    }
+
     await _notifyStatusChange(updated, previous: current);
 
     // Link booking status when viewing confirmed (if booking exists)
@@ -448,7 +536,8 @@ class ViewingAppointmentService {
         break;
       case ViewingStatus.rejected:
         tenantTitle = 'تم رفض طلب المعاينة';
-        tenantBody = 'رفض المالك معاينة $title${appt.ownerNote != null ? ': ${appt.ownerNote}' : ''}';
+        tenantBody =
+            'رفض المالك معاينة $title${appt.ownerNote != null ? ': ${appt.ownerNote}' : ''}';
         ownerTitle = 'رفضت طلب المعاينة';
         ownerBody = 'رفضت معاينة $title';
         break;

@@ -9,6 +9,13 @@ import 'auth_service.dart';
 class FirestoreBookingService {
   static final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  /// حالات حساب الضمان على مستند الحجز.
+  static const escrowNone = 'none';
+  static const escrowHeld = 'held';
+  static const escrowReleased = 'released';
+  static const escrowRefunded = 'refunded';
+  static const escrowDisputed = 'disputed';
+
   static Future<Map<String, dynamic>> createBooking(
     Map<String, dynamic> request,
   ) async {
@@ -26,25 +33,30 @@ class FirestoreBookingService {
 
     final propertyId =
         (request['propertyId'] ?? request['property'] ?? '').toString().trim();
-    final ownerId = (request['ownerId'] ?? request['ownerEmail'] ?? '')
-        .toString()
-        .trim();
+    final ownerIdRaw = (request['ownerId'] ?? '').toString().trim();
+    final ownerEmailRaw = (request['ownerEmail'] ?? '').toString().trim();
+    final ownerId = ownerIdRaw.isNotEmpty ? ownerIdRaw : ownerEmailRaw;
     if (propertyId.isEmpty || ownerId.isEmpty) {
       throw 'بيانات العقار غير مكتملة';
     }
 
+    final tenantEmail =
+        (current?['email'] ?? request['tenantEmail'] ?? '').toString().trim();
+
     final payload = <String, dynamic>{
       'tenantId': tenantId,
+      if (tenantEmail.isNotEmpty) 'tenantEmail': tenantEmail,
       'ownerId': ownerId,
+      if (ownerEmailRaw.isNotEmpty) 'ownerEmail': ownerEmailRaw,
+      if (ownerEmailRaw.isEmpty && ownerId.contains('@')) 'ownerEmail': ownerId,
       'propertyId': propertyId,
       'status': 'pending',
       'paymentStatus': 'pending',
-      'escrowStatus': 'none',
+      'escrowStatus': escrowNone,
       'contractStatus': 'none',
       'paidAmount': 0,
       'title': request['title'] ?? '',
       'tenantName': current?['name'] ?? request['tenantName'] ?? '',
-      'tenantEmail': current?['email'] ?? request['tenantEmail'] ?? '',
       'price': request['price'],
       'monthlyRent': request['monthlyRent'],
       'depositAmount': request['depositAmount'],
@@ -74,28 +86,29 @@ class FirestoreBookingService {
   static Future<List<Map<String, dynamic>>> getBookingsForCurrentUser() async {
     if (AppConfig.demoMode) return [];
     final current = await AuthService.getCurrentUser();
-    final uid = (current?['uid'] ?? current?['id'] ?? current?['_id'])
-        ?.toString()
-        .trim();
-    if (uid == null || uid.isEmpty) return [];
+    final keys = AuthService.identityKeysFrom(current);
+    if (keys.isEmpty) return [];
 
     try {
-      final tenantSnap = await _db
-          .collection('bookings')
-          .where('tenantId', isEqualTo: uid)
-          .get()
-          .timeout(AppConfig.authTimeout);
-      final ownerSnap = await _db
-          .collection('bookings')
-          .where('ownerId', isEqualTo: uid)
-          .get()
-          .timeout(AppConfig.authTimeout);
-
       final byId = <String, Map<String, dynamic>>{};
-      for (final doc in [...tenantSnap.docs, ...ownerSnap.docs]) {
-        final data = Map<String, dynamic>.from(doc.data());
-        data['id'] = doc.id;
-        byId[doc.id] = _normalize(data);
+      for (final key in keys) {
+        for (final field in [
+          'tenantId',
+          'tenantEmail',
+          'ownerId',
+          'ownerEmail',
+        ]) {
+          final snap = await _db
+              .collection('bookings')
+              .where(field, isEqualTo: key)
+              .get()
+              .timeout(AppConfig.authTimeout);
+          for (final doc in snap.docs) {
+            final data = Map<String, dynamic>.from(doc.data());
+            data['id'] = doc.id;
+            byId[doc.id] = _normalize(data);
+          }
+        }
       }
       final list = byId.values.toList();
       list.sort((a, b) {
@@ -114,17 +127,25 @@ class FirestoreBookingService {
     String ownerId,
   ) async {
     if (AppConfig.demoMode) return [];
+    final keys = await AuthService.identityKeysFor(ownerId);
+    if (keys.isEmpty) return [];
     try {
-      final snap = await _db
-          .collection('bookings')
-          .where('ownerId', isEqualTo: ownerId)
-          .get()
-          .timeout(AppConfig.authTimeout);
-      return snap.docs.map((doc) {
-        final data = Map<String, dynamic>.from(doc.data());
-        data['id'] = doc.id;
-        return _normalize(data);
-      }).toList();
+      final byId = <String, Map<String, dynamic>>{};
+      for (final key in keys) {
+        for (final field in ['ownerId', 'ownerEmail']) {
+          final snap = await _db
+              .collection('bookings')
+              .where(field, isEqualTo: key)
+              .get()
+              .timeout(AppConfig.authTimeout);
+          for (final doc in snap.docs) {
+            final data = Map<String, dynamic>.from(doc.data());
+            data['id'] = doc.id;
+            byId[doc.id] = _normalize(data);
+          }
+        }
+      }
+      return byId.values.toList();
     } catch (e) {
       debugPrint('Firestore getOwnerBookings error: $e');
       return [];
@@ -198,6 +219,37 @@ class FirestoreBookingService {
       debugPrint('Firestore patchBooking error: $e');
       return false;
     }
+  }
+
+  /// يحدّث [escrowStatus] والمبالغ/الطوابع الزمنية على مستند الحجز.
+  static Future<bool> syncEscrowStatus(
+    String bookingId,
+    String escrowStatus, {
+    double? escrowAmount,
+    Map<String, dynamic>? extraFields,
+  }) async {
+    if (AppConfig.demoMode || bookingId.trim().isEmpty) return false;
+    final nowIso = DateTime.now().toIso8601String();
+    final fields = <String, dynamic>{
+      'escrowStatus': escrowStatus,
+      if (escrowAmount != null) 'escrowAmount': escrowAmount,
+      ...?extraFields,
+    };
+    switch (escrowStatus) {
+      case escrowHeld:
+        fields['escrowHeldAt'] = nowIso;
+        break;
+      case escrowReleased:
+        fields['escrowReleasedAt'] = nowIso;
+        break;
+      case escrowRefunded:
+        fields['escrowRefundedAt'] = nowIso;
+        break;
+      case escrowDisputed:
+        fields['escrowDisputedAt'] = nowIso;
+        break;
+    }
+    return patchBooking(bookingId, fields);
   }
 
   static Future<bool> recordPayment({

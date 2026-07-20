@@ -42,6 +42,10 @@ service cloud.firestore {
     match /bookings/{bookingId} {
       allow read, write: if isAuthenticated();
     }
+
+    match /viewings/{viewingId} {
+      allow read, write: if isAuthenticated();
+    }
     
     // Fallback for any other collection (temporarily open for authenticated users)
     match /{document=**} {

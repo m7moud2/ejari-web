@@ -273,8 +273,8 @@ class HomeRepository {
 
   Future<Map<String, dynamic>> _loadOwnerStats() async {
     final user = await AuthService.getCurrentUser();
-    final ownerId = user?['email']?.toString() ??
-        user?['uid']?.toString() ??
+    final ownerId = user?['uid']?.toString() ??
+        user?['email']?.toString() ??
         'owner@ejari.app';
     final properties = await DataService.getOwnerProperties(ownerId);
     final requests = await DataService.getOwnerRequests(ownerId);

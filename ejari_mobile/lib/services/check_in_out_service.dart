@@ -1,14 +1,17 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/app_config.dart';
 import '../models/booking_status.dart';
 import 'booking_qr_service.dart';
 import 'data_service.dart';
+import 'firestore_booking_service.dart';
 import 'wallet_service.dart';
 
 /// تسجيل الدخول/الخروج وإطلاق العربون.
 ///
 /// الاستلام (handover): المالك يتحقق من QR ثم يستدعي [confirmHandover]
 /// → يُسجَّل [checkedInAt] والحالة `active`.
+/// العربون يبقى محجوزاً أثناء `active` ويُفرَج عند `completed` (بدون نزاع).
 class CheckInOutService {
   CheckInOutService._();
 
@@ -96,6 +99,21 @@ class CheckInOutService {
       'handoverConfirmedAt': now,
     });
 
+    // الاستلام لا يُفرج العربون — يبقى محجوزاً حتى الخروج.
+    if (!AppConfig.demoMode) {
+      final deposit = _parseDeposit(booking);
+      final currentEscrow = booking['escrowStatus']?.toString();
+      if (currentEscrow == null ||
+          currentEscrow == FirestoreBookingService.escrowNone ||
+          currentEscrow.isEmpty) {
+        await FirestoreBookingService.syncEscrowStatus(
+          bookingId,
+          FirestoreBookingService.escrowHeld,
+          escrowAmount: deposit > 0 ? deposit : null,
+        );
+      }
+    }
+
     await DataService.addNotificationToUser(
       booking['ownerEmail']?.toString() ?? 'owner@ejari.app',
       'تسجيل دخول مستأجر 🏠',
@@ -138,6 +156,7 @@ class CheckInOutService {
     }
 
     final now = DateTime.now().toIso8601String();
+    final deposit = _parseDeposit(booking);
     final updates = <String, dynamic>{
       'checkedOutAt': now,
     };
@@ -145,7 +164,15 @@ class CheckInOutService {
     if (damageClaimed || booking['damageClaim'] == true) {
       updates['status'] = BookingStatus.disputed;
       updates['damageClaim'] = true;
+      updates['escrowStatus'] = FirestoreBookingService.escrowDisputed;
       await DataService.updateBookingFields(bookingId, updates);
+      if (!AppConfig.demoMode) {
+        await FirestoreBookingService.syncEscrowStatus(
+          bookingId,
+          FirestoreBookingService.escrowDisputed,
+          escrowAmount: deposit > 0 ? deposit : null,
+        );
+      }
       await DataService.addNotificationToUser(
         booking['ownerEmail']?.toString() ?? '',
         'مطالبة أضرار — العربون محجوز ⚠️',
@@ -162,9 +189,9 @@ class CheckInOutService {
     }
 
     updates['status'] = BookingStatus.completed;
+    updates['escrowStatus'] = FirestoreBookingService.escrowReleased;
     await DataService.updateBookingFields(bookingId, updates);
 
-    final deposit = _parseDeposit(booking);
     if (deposit > 0) {
       await WalletService.releaseBookingDeposit(
         title: 'إطلاق عربون — ${booking['title'] ?? bookingId}',
@@ -174,6 +201,14 @@ class CheckInOutService {
             booking['ownerId']?.toString() ??
             'owner@ejari.app',
         tenantId: booking['tenantEmail']?.toString(),
+      );
+    }
+
+    if (!AppConfig.demoMode) {
+      await FirestoreBookingService.syncEscrowStatus(
+        bookingId,
+        FirestoreBookingService.escrowReleased,
+        escrowAmount: deposit > 0 ? deposit : null,
       );
     }
 
@@ -229,7 +264,16 @@ class CheckInOutService {
       'damageClaim': true,
       'damageClaimData': claim,
       'status': BookingStatus.disputed,
+      'escrowStatus': FirestoreBookingService.escrowDisputed,
     });
+
+    if (!AppConfig.demoMode) {
+      await FirestoreBookingService.syncEscrowStatus(
+        bookingId,
+        FirestoreBookingService.escrowDisputed,
+        escrowAmount: _parseDeposit(booking),
+      );
+    }
 
     await DataService.addNotificationToUser(
       booking['tenantEmail']?.toString() ?? '',
@@ -258,6 +302,7 @@ class CheckInOutService {
       'damageClaim': booking['damageClaim'] == true,
       'depositReleased': booking['checkedOutAt'] != null &&
           booking['damageClaim'] != true,
+      'escrowStatus': booking['escrowStatus']?.toString() ?? 'none',
     };
   }
 

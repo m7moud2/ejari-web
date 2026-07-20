@@ -149,6 +149,65 @@ class EscrowTransparencyWidget extends StatelessWidget {
         BookingStatus.normalize(booking['status']?.toString());
     final deposit = safeDouble(booking['depositAmount']);
     final feePercent = WalletService.platformFeePercent;
+    final escrowRaw = booking['escrowStatus']?.toString().trim().toLowerCase();
+
+    // Prefer explicit Firestore/local escrowStatus when present.
+    if (escrowRaw == 'held') {
+      return _EscrowState(
+        icon: Icons.lock_rounded,
+        color: AppTheme.accentColor,
+        tenantLabel: 'تم خصم العربون من محفظتك',
+        tenantActive: true,
+        escrowLabel: 'محجوز في الضمان — $deposit ج.م',
+        escrowActive: true,
+        ownerLabel: status == BookingStatus.active ||
+                status == BookingStatus.paid ||
+                status == BookingStatus.confirmed
+            ? 'يُفرج بعد الخروج بدون أضرار'
+            : 'يُفرج بعد موافقتك على الحجز',
+        ownerActive: false,
+        note: RentalRulesNote.escrowHeld,
+      );
+    }
+    if (escrowRaw == 'released') {
+      return const _EscrowState(
+        icon: Icons.verified_rounded,
+        color: AppTheme.successColor,
+        tenantLabel: 'اكتمل الحجز بنجاح',
+        tenantActive: true,
+        escrowLabel: 'تم الإفراج من الضمان',
+        escrowActive: true,
+        ownerLabel: 'استلم المبلغ في محفظته',
+        ownerActive: true,
+        note: 'جميع المدفوعات مُوثقة بإيصالات رسمية.',
+      );
+    }
+    if (escrowRaw == 'refunded') {
+      return const _EscrowState(
+        icon: Icons.replay_rounded,
+        color: AppTheme.successColor,
+        tenantLabel: 'تم استرداد العربون',
+        tenantActive: true,
+        escrowLabel: 'لا مبالغ محجوزة',
+        escrowActive: false,
+        ownerLabel: 'لا مستحقات',
+        ownerActive: false,
+        note: 'تُطبَّق سياسة الاسترداد (٤٨ ساعة قبل الاستلام).',
+      );
+    }
+    if (escrowRaw == 'disputed') {
+      return _EscrowState(
+        icon: Icons.gavel_rounded,
+        color: AppTheme.errorColor,
+        tenantLabel: 'نزاع مفتوح — المبلغ مجمّد',
+        tenantActive: true,
+        escrowLabel: 'مجمّد في الضمان — $deposit ج.م',
+        escrowActive: true,
+        ownerLabel: 'بانتظار قرار الإدارة',
+        ownerActive: false,
+        note: 'فريق إيجاري يراجع النزاع — لا إفراج حتى الحسم.',
+      );
+    }
 
     switch (status) {
       case BookingStatus.submitted:
@@ -184,15 +243,15 @@ class EscrowTransparencyWidget extends StatelessWidget {
       case BookingStatus.paid:
         final ownerNet = (deposit * (1 - feePercent)).toStringAsFixed(0);
         return _EscrowState(
-          icon: Icons.sync_rounded,
+          icon: Icons.lock_rounded,
           color: AppTheme.primaryColor,
-          tenantLabel: 'العربون مؤكد — بانتظار الإفراج',
+          tenantLabel: 'العربون مؤكد — محجوز حتى الخروج',
           tenantActive: true,
-          escrowLabel: 'جاري الإفراج من الضمان',
+          escrowLabel: 'محجوز في الضمان — $deposit ج.م',
           escrowActive: true,
-          ownerLabel: 'سيستلم ~$ownerNet ج.م (بعد عمولة المنصة)',
-          ownerActive: true,
-          note: 'المنصة تحتفظ بـ ${(feePercent * 100).toInt()}% كعمولة خدمة.',
+          ownerLabel: 'سيُفرج ~$ownerNet ج.م بعد الخروج (بعد عمولة المنصة)',
+          ownerActive: false,
+          note: 'المنصة تحتفظ بـ ${(feePercent * 100).toInt()}% كعمولة خدمة عند الإفراج.',
         );
       case BookingStatus.completed:
         return const _EscrowState(

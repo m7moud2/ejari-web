@@ -56,8 +56,10 @@ class _OwnerViewingsPanelState extends State<OwnerViewingsPanel> {
 
   Future<void> _load() async {
     final user = await AuthService.getCurrentUser();
-    final email = user?['email']?.toString() ?? 'owner@ejari.app';
-    final all = await ViewingAppointmentService.getForOwner(email);
+    final hint = user?['uid']?.toString() ??
+        user?['email']?.toString() ??
+        'owner@ejari.app';
+    final all = await ViewingAppointmentService.getForOwner(hint);
     final pending = all
         .where((a) =>
             a.status == ViewingStatus.requested ||

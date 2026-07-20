@@ -439,6 +439,11 @@ class _BookingScreenState extends State<BookingScreen> {
         : _remainingAfterDepositAmount > 0
             ? _remainingAfterDepositAmount
             : monthlyRent;
+    final ownerIdRaw = widget.itemData['ownerId']?.toString().trim() ?? 'admin';
+    final ownerEmailRaw = widget.itemData['ownerEmail']?.toString().trim() ?? '';
+    final ownerEmail = ownerEmailRaw.isNotEmpty
+        ? ownerEmailRaw
+        : (ownerIdRaw.contains('@') ? ownerIdRaw : '');
 
     // Save to backend with server-side validation
     final bookingPayload = {
@@ -475,9 +480,8 @@ class _BookingScreenState extends State<BookingScreen> {
               : durationLabel,
       'startDate': leaseStartDate.toIso8601String(),
       'endDate': leaseEndDate.toIso8601String(),
-      'ownerId': widget.itemData['ownerId'] ?? 'admin',
-      'ownerEmail':
-          widget.itemData['ownerEmail'] ?? widget.itemData['ownerId'] ?? 'admin',
+      'ownerId': ownerIdRaw,
+      'ownerEmail': ownerEmail,
       'status': BookingStatus.depositPaid,
       'paymentStatus': 'pre_entry_paid',
       'paymentPhase': 'pre_entry',

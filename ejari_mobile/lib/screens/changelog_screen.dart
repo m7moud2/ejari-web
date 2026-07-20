@@ -8,6 +8,17 @@ class ChangelogScreen extends StatelessWidget {
   static const List<({String version, String date, List<String> items})>
       releases = [
     (
+      version: '1.3.8',
+      date: 'يوليو 2026',
+      items: [
+        'معاينات العقار على Firestore في الإنتاج — المستأجر والمالك يريان نفس البيانات',
+        'حالة الضمان escrowStatus على مستند الحجز: held → released / refunded / disputed',
+        'العربون يبقى محجوزاً حتى الخروج (لا إفراج مبكر عند إكمال الدفع)',
+        'إصلاح استعلامات المالك: مطابقة uid والبريد معاً للعقارات والحجوزات والمعاينات',
+        'تحديث BOOKING_CYCLE_AR.md لمسار الضمان والمعاينات',
+      ],
+    ),
+    (
       version: '1.3.7',
       date: 'يوليو 2026',
       items: [

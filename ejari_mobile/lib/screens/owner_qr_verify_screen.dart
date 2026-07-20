@@ -78,7 +78,9 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
 
   Future<void> _loadBookings() async {
     final user = await AuthService.getCurrentUser();
-    final ownerId = user?['email']?.toString() ?? 'owner@ejari.app';
+    final ownerId = user?['uid']?.toString() ??
+        user?['email']?.toString() ??
+        'owner@ejari.app';
     final bookings = await DataService.getOwnerBookings(ownerId);
     if (mounted) {
       setState(() => _ownerBookings = bookings.take(8).toList());

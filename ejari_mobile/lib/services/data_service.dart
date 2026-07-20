@@ -1268,11 +1268,14 @@ class DataService {
 
   static Future<List<Map<String, dynamic>>> getOwnerProperties(
       String ownerId) async {
+    final keys = await AuthService.identityKeysFor(ownerId);
     List<Map<String, dynamic>> all = await getAllProperties(approvedOnly: false);
     return all
-        .where((p) =>
-            p['ownerId']?.toString() == ownerId ||
-            p['ownerEmail']?.toString() == ownerId)
+        .where((p) => AuthService.matchesOwnerIdentity(
+              actorKeys: keys,
+              ownerEmail: p['ownerEmail']?.toString(),
+              ownerId: p['ownerId']?.toString(),
+            ))
         .toList();
   }
 
@@ -2139,17 +2142,29 @@ class DataService {
   // Owner gets their requests
   static Future<List<Map<String, dynamic>>> getOwnerRequests(
       String ownerId) async {
+    if (!AppConfig.demoMode) {
+      try {
+        final remote = await FirestoreBookingService.getOwnerBookings(ownerId);
+        return remote.reversed.toList();
+      } catch (e) {
+        debugPrint('getOwnerRequests Firestore: $e');
+      }
+    }
+
+    final keys = await AuthService.identityKeysFor(ownerId);
     final prefs = await SharedPreferences.getInstance();
     List<String> requests = prefs.getStringList(_requestsKey) ?? [];
     List<Map<String, dynamic>> allRequests = requests
         .map((item) => jsonDecode(item) as Map<String, dynamic>)
         .toList();
 
-    // Filter requests for this owner
+    // Filter requests for this owner (uid أو البريد)
     return allRequests
-        .where((r) =>
-            r['ownerId']?.toString() == ownerId ||
-            r['ownerEmail']?.toString() == ownerId)
+        .where((r) => AuthService.matchesOwnerIdentity(
+              actorKeys: keys,
+              ownerEmail: r['ownerEmail']?.toString(),
+              ownerId: r['ownerId']?.toString(),
+            ))
         .toList()
         .reversed
         .toList();
@@ -2266,6 +2281,7 @@ class DataService {
         firestoreExtras['paymentStatus'] = 'deposit_paid';
         firestoreExtras['paymentPhase'] = 'deposit';
         firestoreExtras['depositPaidAt'] = DateTime.now().toIso8601String();
+        firestoreExtras['escrowStatus'] = FirestoreBookingService.escrowHeld;
       } else if (normalizedStatus == BookingStatus.paid) {
         firestoreExtras['paymentStatus'] = 'paid';
         firestoreExtras['paymentPhase'] = 'rent_paid';
@@ -2273,8 +2289,16 @@ class DataService {
       } else if (normalizedStatus == BookingStatus.depositRefunded) {
         firestoreExtras['paymentStatus'] = 'refunded';
         firestoreExtras['paymentPhase'] = 'refunded';
+        firestoreExtras['escrowStatus'] =
+            FirestoreBookingService.escrowRefunded;
       } else if (normalizedStatus == BookingStatus.cancelled) {
         firestoreExtras['paymentStatus'] = 'cancelled';
+      } else if (normalizedStatus == BookingStatus.completed) {
+        firestoreExtras['escrowStatus'] =
+            FirestoreBookingService.escrowReleased;
+      } else if (normalizedStatus == BookingStatus.disputed) {
+        firestoreExtras['escrowStatus'] =
+            FirestoreBookingService.escrowDisputed;
       }
       await FirestoreBookingService.updateBookingStatus(
         requestId,
@@ -2373,6 +2397,29 @@ class DataService {
   // Owner gets their bookings (filtered by ownerId / property ownership)
   static Future<List<Map<String, dynamic>>> getOwnerBookings(
       String ownerId) async {
+    if (!AppConfig.demoMode) {
+      try {
+        final remote = await FirestoreBookingService.getOwnerBookings(ownerId);
+        return remote.map((b) {
+          final price = double.tryParse(
+                  (b['price'] ?? b['monthlyRent'] ?? '0')
+                      .toString()
+                      .replaceAll(RegExp(r'[^0-9.]'), '')) ??
+              0.0;
+          return {
+            ...b,
+            'propertyTitle': b['title'] ?? b['propertyTitle'] ?? 'عقار',
+            'date': b['requestDate'] ?? b['startDate'] ?? '',
+            'amount': '${price.toStringAsFixed(0)} ج.م',
+            'revenue': b['revenue'] ?? price,
+          };
+        }).toList();
+      } catch (e) {
+        debugPrint('getOwnerBookings Firestore: $e');
+      }
+    }
+
+    final keys = await AuthService.identityKeysFor(ownerId);
     final prefs = await SharedPreferences.getInstance();
     List<String> bookings = prefs.getStringList(_bookingsKey) ?? [];
     final ownerProperties = await getOwnerProperties(ownerId);
@@ -2383,11 +2430,12 @@ class DataService {
         .map((item) =>
             _normalizeBooking(jsonDecode(item) as Map<String, dynamic>))
         .where((b) {
-          final bookingOwner = b['ownerId']?.toString() ??
-              b['ownerEmail']?.toString() ??
-              '';
           final propertyId = b['propertyId']?.toString() ?? '';
-          return bookingOwner == ownerId ||
+          return AuthService.matchesOwnerIdentity(
+                actorKeys: keys,
+                ownerEmail: b['ownerEmail']?.toString(),
+                ownerId: b['ownerId']?.toString(),
+              ) ||
               ownerPropertyIds.contains(propertyId);
         })
         .map((b) {
@@ -2592,6 +2640,19 @@ class DataService {
         isDeposit ? BookingStatus.depositPaid : BookingStatus.paid;
     await updateRequestStatus(bookingId, nextStatus,
         note: isDeposit ? 'تم دفع العربون' : 'تم الدفع بالكامل');
+
+    // إنتاج: حالة الضمان على مستند الحجز (المحفظة المحلية تبقى لدفتر العرض).
+    if (!AppConfig.demoMode) {
+      if (isDeposit) {
+        await FirestoreBookingService.syncEscrowStatus(
+          bookingId,
+          FirestoreBookingService.escrowHeld,
+          escrowAmount: payAmount,
+        );
+      }
+      // الدفع الكامل للإيجار لا يُفرج العربون — يبقى محجوزاً حتى الخروج.
+    }
+
     return {'success': true, 'receipt': receipt};
   }
 
@@ -2640,14 +2701,8 @@ class DataService {
         ) ??
         0;
 
-    await WalletService.releaseBookingDeposit(
-      title: 'عربون $title',
-      amount: deposit,
-      bookingId: bookingId,
-      ownerId: ownerId,
-      tenantId: tenantId,
-    );
-
+    // العربون يبقى في الضمان حتى الخروج (completed) — وفق BOOKING_CYCLE_AR.
+    // الدفع المتبقي = إيجار فقط.
     await WalletService.creditOwnerFromPayment(
       ownerId: ownerId,
       totalAmount: amount,
@@ -2666,6 +2721,16 @@ class DataService {
 
     await updateRequestStatus(bookingId, BookingStatus.paid,
         note: 'تم إتمام دفع الإيجار');
+
+    if (!AppConfig.demoMode && deposit > 0) {
+      // تأكيد أن الضمان ما زال محجوزاً بعد اكتمال الدفع.
+      await FirestoreBookingService.syncEscrowStatus(
+        bookingId,
+        FirestoreBookingService.escrowHeld,
+        escrowAmount: deposit,
+      );
+    }
+
     return {'success': true, 'receipt': receipt};
   }
 
@@ -2681,6 +2746,13 @@ class DataService {
         bookingId: bookingId,
         userId: booking['tenantEmail']?.toString(),
       );
+      if (!AppConfig.demoMode) {
+        await FirestoreBookingService.syncEscrowStatus(
+          bookingId,
+          FirestoreBookingService.escrowRefunded,
+          escrowAmount: depositAmount,
+        );
+      }
     }
     await updateRequestStatus(bookingId, 'deposit_refunded');
   }

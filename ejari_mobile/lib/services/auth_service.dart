@@ -910,6 +910,53 @@ class AuthService {
     }
   }
 
+  /// مفاتيح هوية المستخدم الحالي (uid + email + id) لمطابقة مستندات Firestore.
+  static Set<String> identityKeysFrom(
+    Map<String, dynamic>? user, [
+    String? hint,
+  ]) {
+    final keys = <String>{};
+    void add(dynamic value) {
+      final s = value?.toString().trim();
+      if (s != null && s.isNotEmpty) keys.add(s);
+    }
+
+    add(hint);
+    if (user != null) {
+      add(user['uid']);
+      add(user['id']);
+      add(user['_id']);
+      add(user['email']);
+      add(user['ownerEmail']);
+      add(user['ownerId']);
+    }
+    return keys;
+  }
+
+  /// يدمج [hint] مع هوية الجلسة الحالية — يحل تعارض uid مقابل البريد.
+  static Future<Set<String>> identityKeysFor([String? hint]) async {
+    final user = await getCurrentUser();
+    return identityKeysFrom(user, hint);
+  }
+
+  /// هل [candidate] يطابق المالك في المستند (بريد أو uid)؟
+  static bool matchesOwnerIdentity({
+    required Set<String> actorKeys,
+    String? ownerEmail,
+    String? ownerId,
+  }) {
+    if (actorKeys.isEmpty) return false;
+    final email = ownerEmail?.trim();
+    final id = ownerId?.trim();
+    if (email != null && email.isNotEmpty && actorKeys.contains(email)) {
+      return true;
+    }
+    if (id != null && id.isNotEmpty && actorKeys.contains(id)) {
+      return true;
+    }
+    return false;
+  }
+
   // ─────────────────────────────────────────────
   // GET USER ROLE
   // ─────────────────────────────────────────────
