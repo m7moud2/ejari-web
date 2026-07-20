@@ -42,7 +42,7 @@
 | `refunded` | استرداد العربون |
 | `disputed` | مطالبة أضرار / خروج مع نزاع |
 
-دفتر المحفظة المحلي (SharedPreferences) يبقى لوضع العرض؛ في الإنتاج تُزامَن حالة الضمان عبر `FirestoreBookingService.syncEscrowStatus`.
+دفتر المحفظة في وضع العرض على SharedPreferences؛ في الإنتاج الأرصدة وسجل المعاملات على `wallets/{user}` في Firestore، بينما تُزامَن حالة الضمان عبر `FirestoreBookingService.syncEscrowStatus` على مستند الحجز.
 
 ## QR للاستلام
 

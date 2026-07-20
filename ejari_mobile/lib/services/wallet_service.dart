@@ -2,10 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/app_config.dart';
 import '../utils/date_utils.dart';
 import 'financial_service.dart';
+import 'firestore_wallet_service.dart';
 
 /// مصدر الحقيقة الوحيد لأرصدة المحفظة — لكل مستخدم على حدة.
+///
+/// - وضع العرض: SharedPreferences
+/// - الإنتاج: `wallets/{userKey}` + `transactions` على Firestore
 class WalletService {
   static const String _balancesKey = 'wallet_balances_v2';
   static const String _escrowKey = 'wallet_escrow_v2';
@@ -19,6 +24,9 @@ class WalletService {
   static double _pendingBalance = 0.0;
   static double _escrowBalance = 0.0;
   static List<Map<String, dynamic>> _transactions = [];
+  static final Set<String> _dirtyTxIds = {};
+
+  static bool get _useFirestore => !AppConfig.demoMode;
 
   static double get currentBalance => _balance;
   static double get pendingBalance => _pendingBalance;
@@ -51,13 +59,48 @@ class WalletService {
     await prefs.setString(key, jsonEncode(map));
   }
 
+  static void _recordTransaction(Map<String, dynamic> tx) {
+    _transactions.insert(0, tx);
+    final id = tx['id']?.toString();
+    if (id != null && id.isNotEmpty) _dirtyTxIds.add(id);
+  }
+
   static Future<void> init({String? userId}) async {
     _activeUserId = await _resolveUserId(userId);
+    _dirtyTxIds.clear();
     if (_activeUserId == null || _activeUserId!.isEmpty) {
       _balance = 0;
       _pendingBalance = 0;
       _escrowBalance = 0;
       _transactions = [];
+      return;
+    }
+
+    if (_useFirestore) {
+      try {
+        final remote =
+            await FirestoreWalletService.loadWallet(_activeUserId!);
+        if (remote != null) {
+          _balance = (remote['balance'] as num?)?.toDouble() ?? 0;
+          _pendingBalance = (remote['pending'] as num?)?.toDouble() ?? 0;
+          _escrowBalance = (remote['escrow'] as num?)?.toDouble() ?? 0;
+          final txs = remote['transactions'];
+          _transactions = txs is List
+              ? txs
+                  .map((e) => Map<String, dynamic>.from(e as Map))
+                  .toList()
+              : <Map<String, dynamic>>[];
+        } else {
+          // إنتاج: لا أرصدة تجريبية — محفظة جديدة تبدأ من صفر.
+          _balance = 0;
+          _pendingBalance = 0;
+          _escrowBalance = 0;
+          _transactions = [];
+        }
+      } catch (e) {
+        debugPrint('WalletService Firestore init failed: $e');
+        rethrow;
+      }
       return;
     }
 
@@ -94,6 +137,22 @@ class WalletService {
   static Future<void> _persistUserState() async {
     if (_activeUserId == null || _activeUserId!.isEmpty) return;
 
+    if (_useFirestore) {
+      final dirty = _transactions
+          .where((tx) => _dirtyTxIds.contains(tx['id']?.toString()))
+          .map((tx) => Map<String, dynamic>.from(tx))
+          .toList();
+      await FirestoreWalletService.saveWallet(
+        userId: _activeUserId!,
+        balance: _balance,
+        pending: _pendingBalance,
+        escrow: _escrowBalance,
+        dirtyTransactions: dirty,
+      );
+      _dirtyTxIds.clear();
+      return;
+    }
+
     final balances = await _loadBalancesMap(_balancesKey);
     final escrow = await _loadBalancesMap(_escrowKey);
     final pending = await _loadBalancesMap(_pendingKey);
@@ -111,6 +170,7 @@ class WalletService {
       '$_transactionsPrefix$_activeUserId',
       jsonEncode(_transactions),
     );
+    _dirtyTxIds.clear();
   }
 
   static Future<double> getBalance({String? userId}) async {
@@ -154,7 +214,7 @@ class WalletService {
       return false;
     }
     _balance -= amount;
-    _transactions.insert(0, {
+    _recordTransaction({
       'id': 'TRX-${DateTime.now().millisecondsSinceEpoch}',
       'title': title,
       'amount': -amount,
@@ -178,7 +238,7 @@ class WalletService {
     String category = 'rent',
   }) async {
     await init(userId: userId);
-    _transactions.insert(0, {
+    _recordTransaction({
       'id': 'EXT-${DateTime.now().millisecondsSinceEpoch}',
       'title': title,
       'amount': -amount,
@@ -252,7 +312,7 @@ class WalletService {
 
     await init(userId: ownerId);
     _pendingBalance += ownerNet;
-    _transactions.insert(0, {
+    _recordTransaction({
       'id': 'INC-${DateTime.now().millisecondsSinceEpoch}',
       'title': title,
       'amount': ownerNet,
@@ -270,7 +330,7 @@ class WalletService {
     await init(userId: 'admin@ejari.app');
     final adminFee = totalAmount * _platformFeePercent;
     _balance += adminFee;
-    _transactions.insert(0, {
+    _recordTransaction({
       'id': 'ADM-${DateTime.now().millisecondsSinceEpoch}',
       'title': 'عمولة منصة — $title',
       'amount': adminFee,
@@ -295,7 +355,7 @@ class WalletService {
     _escrowBalance += amount;
     // Escrow is a hold marker — funds already left available balance via payFromWallet.
     // Do not log a second negative expense (that doubled outflow in history).
-    _transactions.insert(0, {
+    _recordTransaction({
       'id': 'ESC-${DateTime.now().millisecondsSinceEpoch}',
       'title': 'حجز ضمان: $title',
       'amount': 0,
@@ -319,7 +379,7 @@ class WalletService {
     await init(userId: userId);
     _escrowBalance = (_escrowBalance - amount).clamp(0.0, double.infinity);
     _balance += amount;
-    _transactions.insert(0, {
+    _recordTransaction({
       'id': 'REF-${DateTime.now().millisecondsSinceEpoch}',
       'title': title,
       'amount': amount,
@@ -368,7 +428,7 @@ class WalletService {
   static Future<void> topUpWallet(double amount, {String? userId}) async {
     await init(userId: userId);
     _balance += amount;
-    _transactions.insert(0, {
+    _recordTransaction({
       'id': 'TOP-${DateTime.now().millisecondsSinceEpoch}',
       'title': 'شحن رصيد',
       'amount': amount,
@@ -389,7 +449,7 @@ class WalletService {
     await init(userId: userId);
     if (amount <= 0 || amount > _balance) return false;
     _balance -= amount;
-    _transactions.insert(0, {
+    _recordTransaction({
       'id': 'WD-${DateTime.now().millisecondsSinceEpoch}',
       'title': 'طلب سحب',
       'amount': -amount,
@@ -404,6 +464,10 @@ class WalletService {
   }
 
   static Future<List<Map<String, dynamic>>> getAllTransactionsForAdmin() async {
+    if (_useFirestore) {
+      return FirestoreWalletService.getAllTransactions();
+    }
+
     final prefs = await SharedPreferences.getInstance();
     final keys = prefs.getKeys().where((k) => k.startsWith(_transactionsPrefix));
     final all = <Map<String, dynamic>>[];
@@ -462,7 +526,7 @@ class WalletService {
 
     await init(userId: technicianId);
     _balance += technicianShare;
-    _transactions.insert(0, {
+    _recordTransaction({
       'id': 'SVC-${DateTime.now().millisecondsSinceEpoch}',
       'title': 'أجر صيانة — $title',
       'amount': technicianShare,
@@ -477,7 +541,7 @@ class WalletService {
 
     await init(userId: 'admin@ejari.app');
     _balance += platformFee;
-    _transactions.insert(0, {
+    _recordTransaction({
       'id': 'ADM-SVC-${DateTime.now().millisecondsSinceEpoch}',
       'title': 'عمولة صيانة — $title',
       'amount': platformFee,

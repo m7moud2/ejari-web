@@ -8,6 +8,16 @@ class ChangelogScreen extends StatelessWidget {
   static const List<({String version, String date, List<String> items})>
       releases = [
     (
+      version: '1.3.9',
+      date: 'يوليو 2026',
+      items: [
+        'محفظة الإنتاج على Firestore: أرصدة + سجل معاملات تحت wallets/{user}',
+        'وضع العرض يبقى على SharedPreferences كما هو',
+        'لوحة الأدمن تقرأ معاملات المحافظ من Firestore في الإنتاج',
+        'لا تغيير على مسار escrowStatus للحجز (held → released / refunded)',
+      ],
+    ),
+    (
       version: '1.3.8',
       date: 'يوليو 2026',
       items: [
