@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../config/app_config.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../services/insurance_service.dart';
@@ -133,20 +134,22 @@ class _BookingScreenState extends State<BookingScreen> {
     return safeDeposit > _currentMonthTotal ? _currentMonthTotal : safeDeposit;
   }
 
+  /// المتبقي بعد العربون = إجمالي أول فترة − العربون (العربون جزء من الإجمالي).
   double get _remainingAfterDepositAmount {
-    final remaining = _preEntryTotalAmount - _bookingDepositAmount;
+    final remaining = _currentMonthTotal - _bookingDepositAmount;
     return remaining < 0 ? 0 : remaining;
   }
 
-  /// المطلوب قبل الدخول: عربون + أول فترة إيجار.
+  /// إجمالي أول فترة إيجار (يشمل العربون كجزء منه — لا يُضاعَف).
   double get _firstPeriodAmount {
     if (isSale || _isCar) return 0;
     return _currentMonthTotal;
   }
 
+  /// المبلغ المعروض للفترة الأولى (بدون مضاعفة العربون).
   double get _preEntryTotalAmount {
     if (isSale || _isCar) return _finalTotal;
-    return _bookingDepositAmount + _firstPeriodAmount;
+    return _currentMonthTotal;
   }
 
   String get _paymentStageLabel => isSale
@@ -345,17 +348,17 @@ class _BookingScreenState extends State<BookingScreen> {
     bool success = false;
     String message = '';
     String transactionId = '';
-    final payAmount = _isPropertyRent ? _preEntryTotalAmount : _bookingDepositAmount;
+    // عند إنشاء الحجز يُدفع العربون فقط — المتبقي بعد موافقة المالك.
+    final payAmount = _bookingDepositAmount;
+    final provisionalBookingId = 'BK-${DateTime.now().millisecondsSinceEpoch}';
 
     // 1. Process Payment
     if (_selectedPaymentMethod == 'wallet') {
       success = await WalletService.payFromWallet(
-        title: _isPropertyRent
-            ? 'دفع قبل الدخول — ${widget.itemData['title']}'
-            : 'عربون ${widget.itemData['title']}',
+        title: 'عربون ${widget.itemData['title']}',
         amount: payAmount,
         category: 'booking_deposit',
-        bookingId: 'BK-${DateTime.now().millisecondsSinceEpoch}',
+        bookingId: provisionalBookingId,
       );
 
       if (!success) {
@@ -363,32 +366,31 @@ class _BookingScreenState extends State<BookingScreen> {
       } else {
         transactionId = 'WAL-${DateTime.now().millisecondsSinceEpoch}';
       }
-    } else {
-      // 2. Process External Payment (Simulation)
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API
+    } else if (AppConfig.demoMode) {
+      // وضع العرض فقط: محاكاة بوابة دفع خارجية.
+      await Future.delayed(const Duration(milliseconds: 800));
       success = true;
       transactionId =
           '${_selectedPaymentMethod.toUpperCase()}-${DateTime.now().millisecondsSinceEpoch}';
 
-      // Record in Ledger for Receipt
       await WalletService.recordExternalPayment(
-        title: _isPropertyRent
-            ? 'دفع قبل الدخول — ${widget.itemData['title']}'
-            : 'عربون ${widget.itemData['title']}',
+        title: 'عربون ${widget.itemData['title']}',
         amount: payAmount,
         method: _selectedPaymentMethod,
-        bookingId: 'BK-${DateTime.now().millisecondsSinceEpoch}',
+        bookingId: provisionalBookingId,
       );
+    } else {
+      message =
+          'الدفع بالبطاقة متاح عبر شاشة الدفع بعد إنشاء الطلب. استخدم المحفظة أو أكمل الدفع لاحقاً.';
+      success = false;
     }
 
     if (success) {
-      // 3. Hold the deposit safely until the user confirms the deal
+      // ضمان العربون فقط (وليس كامل أول فترة).
       await WalletService.holdBookingDeposit(
-        title: _isPropertyRent
-            ? 'إسكرو قبل الدخول — ${widget.itemData['title']}'
-            : 'عربون ${widget.itemData['title']}',
+        title: 'عربون ${widget.itemData['title']}',
         amount: payAmount,
-        bookingId: transactionId,
+        bookingId: provisionalBookingId,
         method: _selectedPaymentMethod,
       );
     }
@@ -397,7 +399,11 @@ class _BookingScreenState extends State<BookingScreen> {
 
     if (success) {
       if (!mounted) return;
-      _finalizeBooking(transactionId);
+      _finalizeBooking(
+        transactionId,
+        payAmount: payAmount,
+        provisionalBookingId: provisionalBookingId,
+      );
     } else {
       if (!mounted) return;
       showDialog(
@@ -414,7 +420,11 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
-  Future<void> _finalizeBooking(String transactionId) async {
+  Future<void> _finalizeBooking(
+    String transactionId, {
+    required double payAmount,
+    required String provisionalBookingId,
+  }) async {
     setState(() => _isLoading = true);
     final durationMeta = RentalScheduleUtils.describeDuration(
       '$_duration $_selectedDurationType',
@@ -483,13 +493,14 @@ class _BookingScreenState extends State<BookingScreen> {
       'ownerId': ownerIdRaw,
       'ownerEmail': ownerEmail,
       'status': BookingStatus.depositPaid,
-      'paymentStatus': 'pre_entry_paid',
-      'paymentPhase': 'pre_entry',
+      'paymentStatus': 'deposit_paid',
+      'paymentPhase': 'deposit',
       'depositPaid': true,
-      'firstPeriodPaid': true,
-      'preEntryPaid': true,
-      'preEntryStatus': 'paid',
-      'preEntryAmount': _preEntryTotalAmount.toStringAsFixed(0),
+      'firstPeriodPaid': false,
+      'preEntryPaid': false,
+      'preEntryStatus': 'deposit_only',
+      'preEntryAmount': payAmount.toStringAsFixed(0),
+      'securityDeposit': _bookingDepositAmount,
       if (_selectedBedId != null) 'bedId': _selectedBedId,
       if (_selectedBedLabel != null) 'bedLabel': _selectedBedLabel,
       if (widget.itemData['selectedBedId'] != null &&
@@ -523,12 +534,20 @@ class _BookingScreenState extends State<BookingScreen> {
     final result = await DataService.sendBookingRequest(bookingPayload);
 
     if (result['success'] != true) {
+      // استرداد العربون إذا فشل إنشاء الحجز بعد الخصم.
+      try {
+        await WalletService.refundBookingDeposit(
+          title: 'استرداد عربون — فشل إنشاء الحجز',
+          amount: payAmount,
+          bookingId: provisionalBookingId,
+        );
+      } catch (_) {}
       if (!mounted) return;
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              result['message']?.toString() ?? 'تعذر إتمام الحجز'),
+              result['message']?.toString() ?? 'تعذر إتمام الحجز — تم إرجاع المبلغ'),
           backgroundColor: AppTheme.errorColor,
         ),
       );
@@ -538,17 +557,19 @@ class _BookingScreenState extends State<BookingScreen> {
     if (!mounted) return;
     setState(() => _isLoading = false);
 
+    final bookingId =
+        (result['id'] ?? result['bookingId'])?.toString();
     // Navigate to confirmation with next steps
     final confirmedBooking = {
       ...bookingPayload,
-      if (result['bookingId'] != null) 'id': result['bookingId'],
+      if (bookingId != null && bookingId.isNotEmpty) 'id': bookingId,
     };
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => BookingConfirmationScreen(
           booking: confirmedBooking,
-          amount: _isPropertyRent ? _preEntryTotalAmount : _bookingDepositAmount,
+          amount: payAmount,
           transactionId: transactionId,
           paymentMethod: _selectedPaymentMethod,
         ),

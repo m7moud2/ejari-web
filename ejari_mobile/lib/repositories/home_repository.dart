@@ -330,6 +330,7 @@ class HomeRepository {
     final pendingViewings = viewings
         .where((a) =>
             a.status == ViewingStatus.requested ||
+            a.status == ViewingStatus.confirmed ||
             a.status == ViewingStatus.rescheduled)
         .length;
 

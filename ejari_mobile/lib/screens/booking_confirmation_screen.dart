@@ -7,6 +7,7 @@ import 'booking_track_screen.dart';
 import 'contract_view_screen.dart';
 import 'receipt_screen.dart';
 import '../models/payment_receipt.dart';
+import '../services/booking_qr_service.dart';
 
 /// شاشة تأكيد الحجز مع الخطوات التالية: QR، العقد، مواعيد الدخول.
 class BookingConfirmationScreen extends StatelessWidget {
@@ -116,7 +117,7 @@ class BookingConfirmationScreen extends StatelessWidget {
                   children: [
                     const EjariSectionHeader(
                       title: 'ملخص الدفع',
-                      subtitle: 'تم استلام العربون بنجاح',
+                      subtitle: 'تم استلام العربون — بانتظار موافقة المالك',
                     ),
                     const SizedBox(height: 8),
                     _row('المبلغ', '${amount.toStringAsFixed(0)} ج.م'),
@@ -137,17 +138,48 @@ class BookingConfirmationScreen extends StatelessWidget {
               const SizedBox(height: 10),
               _nextStepTile(
                 context,
-                icon: Icons.qr_code_2_rounded,
-                title: 'رمز QR للدخول',
-                subtitle: 'اعرض الرمز للمالك عند استلام الوحدة',
+                icon: Icons.timeline_rounded,
+                title: 'تتبع الحجز',
+                subtitle: 'تابع موافقة المالك وإكمال الدفع ثم الاستلام',
                 color: AppTheme.primaryColor,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => BookingQrScreen(booking: booking),
+                    builder: (_) => BookingTrackScreen(booking: booking),
                   ),
                 ),
               ),
+              const SizedBox(height: 8),
+              if (BookingQrService.isQrReady(booking))
+                _nextStepTile(
+                  context,
+                  icon: Icons.qr_code_2_rounded,
+                  title: 'رمز QR للدخول',
+                  subtitle: 'اعرض الرمز للمالك عند استلام الوحدة',
+                  color: AppTheme.primaryColor,
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BookingQrScreen(booking: booking),
+                    ),
+                  ),
+                )
+              else
+                _nextStepTile(
+                  context,
+                  icon: Icons.hourglass_top_rounded,
+                  title: 'رمز QR بعد اكتمال الدفع',
+                  subtitle:
+                      'يُفعَّل QR بعد موافقة المالك وإكمال المتبقي — ليس بعد العربون فقط',
+                  color: AppTheme.textSecondary,
+                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'رمز الاستلام يظهر بعد اكتمال الدفع فقط',
+                      ),
+                    ),
+                  ),
+                ),
               const SizedBox(height: 8),
               _nextStepTile(
                 context,

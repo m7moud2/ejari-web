@@ -109,6 +109,12 @@ void main() {
         'status': BookingStatus.depositPaid,
       });
       expect(wait?.$3, 'wait');
+
+      final payDeposit = BookingStatus.nextActionForBooking({
+        'status': BookingStatus.submitted,
+      });
+      expect(payDeposit?.$3, 'pay_deposit');
+      expect(payDeposit?.$2, 'ادفع العربون');
     });
   });
 }

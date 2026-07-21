@@ -596,12 +596,12 @@ class _OwnerQrVerifyScreenState extends State<OwnerQrVerifyScreen>
             spacing: 8,
             children: [
               ActionChip(
-                label: const Text('demo_req_1'),
+                label: const Text('demo_qr_ready'),
                 onPressed: _loading
                     ? null
                     : () {
-                        _controller.text = 'demo_req_1';
-                        _verifyFromInput('demo_req_1');
+                        _controller.text = 'demo_qr_ready';
+                        _verifyFromInput('demo_qr_ready');
                       },
               ),
               ActionChip(

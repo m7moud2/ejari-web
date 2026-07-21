@@ -408,7 +408,33 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
 
     try {
-      if (widget.itemType == 'booking') {
+      if (_selectedCategory == 'manual' && widget.itemType == 'booking') {
+        // تحويل بنكي: لا نُعلّم الحجز مدفوعاً حتى المراجعة.
+        final bookingId = widget.itemData['id']?.toString() ??
+            widget.itemData['_id']?.toString() ??
+            '';
+        if (bookingId.isEmpty) {
+          result = {
+            'success': false,
+            'message': 'معرّف الحجز غير موجود',
+          };
+        } else {
+          final ok = await DataService.updateBookingFields(bookingId, {
+            'paymentStatus': 'pending_review',
+            'manualReceiptPath': _receiptPath,
+            'manualReceiptSubmittedAt': DateTime.now().toIso8601String(),
+            'manualPaymentAmount': _displayAmount,
+            'manualPaymentMethod': method,
+          });
+          result = {
+            'success': ok,
+            'message': ok
+                ? 'تم إرسال إيصال الدفع للمراجعة.'
+                : 'تعذر حفظ إيصال التحويل',
+            'pendingReview': true,
+          };
+        }
+      } else if (widget.itemType == 'booking') {
         if (isFullOrRemaining && !isDepositPhase) {
           result = await DataService.completeBookingPaymentWithReceipt(
             bookingId,
@@ -484,15 +510,27 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
 
     final receipt = result['receipt'] as PaymentReceipt?;
+    final pendingReview = result['pendingReview'] == true;
     final successMessage = widget.itemType == 'subscription'
         ? 'تم تفعيل باقة ${widget.itemData['name'] ?? ''} بنجاح!'
-        : _selectedCategory == 'manual'
-            ? 'تم إرسال إيصال الدفع للمراجعة.'
+        : pendingReview || _selectedCategory == 'manual'
+            ? 'تم إرسال إيصال الدفع للمراجعة — لن يُعلَّم الحجز مدفوعاً حتى التأكيد.'
             : isDepositPhase
                 ? 'تم استلام العربون (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح.'
                 : widget.paymentStage == 'remaining'
                     ? 'تم استلام المتبقي (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح.'
                     : 'تم الدفع (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح.';
+
+    if (pendingReview) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(successMessage),
+          backgroundColor: AppTheme.primaryColor,
+        ),
+      );
+      Navigator.pop(context, true);
+      return;
+    }
 
     if (receipt != null) {
       if (widget.itemType == 'booking') {

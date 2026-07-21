@@ -7,6 +7,7 @@ import '../models/rental_duration_tier.dart';
 import '../services/check_in_out_service.dart';
 import '../services/data_service.dart';
 import '../services/live_sync_service.dart';
+import '../services/booking_qr_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/auth_gate.dart';
 import '../utils/date_utils.dart';
@@ -421,6 +422,7 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
     }
 
     final actionable = next.$3 == 'pay' ||
+        next.$3 == 'pay_deposit' ||
         next.$3 == 'viewing' ||
         next.$3 == 'qr_checkin' ||
         next.$3 == 'checkout' ||
@@ -428,6 +430,7 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
 
     final helper = switch (next.$3) {
       'pay' => 'ادفع المتبقي الآن لإصدار العقد وتفعيل رمز الاستلام (QR).',
+      'pay_deposit' => 'ادفع العربون لتثبيت الطلب وإرساله للمالك للموافقة.',
       'viewing' => 'افتح مواعيد المعاينة لطلب موعد أو متابعة الموعد الحالي.',
       'qr_checkin' =>
         'اعرض رمز QR للمالك عند الوصول — المالك يمسحه ويؤكّد الاستلام.',
@@ -484,6 +487,8 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
     switch (key) {
       case 'pay':
         await _openPayment(booking);
+      case 'pay_deposit':
+        await _openPayment(booking, stage: 'deposit');
       case 'viewing':
         await Navigator.push(
           context,
@@ -627,9 +632,7 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
     final id = booking['id']?.toString() ?? '';
     final checkedIn = booking['checkedInAt'] != null;
     final checkedOut = booking['checkedOutAt'] != null;
-    final qrReady = status == BookingStatus.paid ||
-        status == BookingStatus.confirmed ||
-        status == BookingStatus.active;
+    final qrReady = BookingQrService.isQrReady(booking);
     final ownerName = booking['ownerName']?.toString() ??
         booking['ownerEmail']?.toString() ??
         'المالك';
@@ -889,19 +892,30 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
     return RentalDurationTier.shortTerm;
   }
 
-  Future<void> _openPayment(Map<String, dynamic> booking) async {
+  Future<void> _openPayment(
+    Map<String, dynamic> booking, {
+    String stage = 'remaining',
+  }) async {
     final allowed = await AuthGate.requireLogin(
       context,
       actionLabel: 'دفع الحجز وإصدار العقد',
     );
     if (!allowed || !mounted) return;
 
-    final amount = safeDouble(booking['remainingAmount']);
     final monthly = safeDouble(booking['monthlyRent'] ?? booking['price']);
     final deposit = safeDouble(booking['depositAmount']);
     final leaseTotal = safeDouble(
       booking['leaseTotal'] ?? booking['totalAmount'] ?? monthly,
     );
+    final remaining = safeDouble(booking['remainingAmount']);
+    final remainingFallback = remaining > 0
+        ? remaining
+        : (leaseTotal > deposit ? leaseTotal - deposit : leaseTotal);
+    final amount = stage == 'deposit'
+        ? (deposit > 0
+            ? deposit
+            : (monthly * 0.2).clamp(500.0, monthly > 0 ? monthly : 500.0).toDouble())
+        : (remainingFallback > 0 ? remainingFallback : leaseTotal);
 
     final result = await Navigator.push(
       context,
@@ -909,11 +923,11 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
         builder: (_) => PaymentScreen(
           itemType: 'booking',
           itemData: booking,
-          amount: amount > 0 ? amount : leaseTotal,
-          paymentStage: 'remaining',
+          amount: amount,
+          paymentStage: stage,
           totalAmount: leaseTotal,
           depositAmount: deposit,
-          remainingAmount: amount,
+          remainingAmount: remainingFallback,
         ),
       ),
     );

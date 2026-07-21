@@ -229,12 +229,24 @@ class ViewingAppointmentService {
 
     final ownerEmailRaw = property['ownerEmail']?.toString().trim() ?? '';
     final ownerIdRaw = property['ownerId']?.toString().trim() ?? '';
-    final ownerEmail = ownerEmailRaw.isNotEmpty
-        ? ownerEmailRaw
-        : (ownerIdRaw.contains('@') ? ownerIdRaw : 'owner@ejari.app');
-    final ownerId = ownerIdRaw.isNotEmpty && !ownerIdRaw.contains('@')
-        ? ownerIdRaw
-        : (ownerEmailRaw.isNotEmpty ? null : ownerIdRaw);
+    // Prefer real owner identity; only fall back to demo email when both empty.
+    final String ownerEmail;
+    final String? ownerId;
+    if (ownerEmailRaw.isNotEmpty) {
+      ownerEmail = ownerEmailRaw;
+      ownerId = ownerIdRaw.isNotEmpty && !ownerIdRaw.contains('@')
+          ? ownerIdRaw
+          : null;
+    } else if (ownerIdRaw.contains('@')) {
+      ownerEmail = ownerIdRaw;
+      ownerId = null;
+    } else if (ownerIdRaw.isNotEmpty) {
+      ownerEmail = ownerIdRaw; // identity key for matching / notifications
+      ownerId = ownerIdRaw;
+    } else {
+      ownerEmail = 'owner@ejari.app';
+      ownerId = null;
+    }
 
     final conflict = await hasSameDayConflict(
       propertyId: propertyId,

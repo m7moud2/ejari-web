@@ -125,7 +125,7 @@ class OwnerHomeView extends StatelessWidget {
                   const SizedBox(height: AppTheme.spaceSm),
                   HomeActionGrid(
                     actions: _primaryActions(),
-                    maxVisible: 5,
+                    maxVisible: 6,
                     onMore: () => _showOwnerMoreSheet(context),
                   ),
                   const SizedBox(height: AppTheme.spaceSm),
@@ -214,6 +214,11 @@ class OwnerHomeView extends StatelessWidget {
         page: const OwnerViewingsScreen(),
       ),
       (
+        label: 'تحقق QR',
+        icon: Icons.qr_code_scanner_rounded,
+        page: const OwnerQrVerifyScreen(),
+      ),
+      (
         label: 'تحصيل',
         icon: Icons.receipt_long_rounded,
         page: const OwnerCollectionScreen(),
@@ -223,11 +228,6 @@ class OwnerHomeView extends StatelessWidget {
         icon: Icons.account_tree_rounded,
         page: const BedHierarchyScreen(),
       ),
-      (
-        label: 'تحقق QR',
-        icon: Icons.qr_code_scanner_rounded,
-        page: const OwnerQrVerifyScreen(),
-      ),
     ];
   }
 
@@ -236,6 +236,14 @@ class OwnerHomeView extends StatelessWidget {
       context,
       title: 'المزيد من الأدوات',
       items: [
+        (
+          label: 'تحقق QR للاستلام',
+          icon: Icons.qr_code_scanner_rounded,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const OwnerQrVerifyScreen()),
+          ),
+        ),
         (
           label: 'إضافة عقار',
           icon: Icons.add_home_work_rounded,

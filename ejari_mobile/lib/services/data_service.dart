@@ -28,7 +28,7 @@ class DataService {
   static const String _bookingsKey = 'bookings'; // For tenants
   static const String _requestsKey = 'requests'; // For owners (incoming)
   static const String _demoBookingsVersionKey = 'demo_bookings_version';
-  static const int _currentDemoBookingsVersion = 8;
+  static const int _currentDemoBookingsVersion = 9;
   static const String _demoReceiptsVersionKey = 'demo_receipts_version';
   static const int _currentDemoReceiptsVersion = 1;
   static const String _favoritesKey = 'favorites';
@@ -143,6 +143,9 @@ class DataService {
         'duration': '6 شهر',
         'leaseMonths': 6,
         'depositAmount': '3000',
+        'remainingAmount': '12000',
+        'currentAmount': '15000',
+        'leaseTotal': '90000',
         'rentalTier': 'medium',
         'rentalTierLabel': '٦+ شهور',
         'tenantType': 'family',
@@ -164,6 +167,7 @@ class DataService {
         'ownerEmail': 'owner@ejari.app',
         'status': BookingStatus.depositPaid,
         'paymentStatus': 'deposit_paid',
+        'depositPaid': true,
         'requestDate':
             DateTime.now().subtract(const Duration(hours: 5)).toIso8601String(),
         'createdAt':
@@ -200,6 +204,8 @@ class DataService {
         'leaseMonths': 0,
         'depositAmount': '500',
         'securityDeposit': 500,
+        'remainingAmount': '2000',
+        'currentAmount': '2500',
         'rentalTier': 'weekly',
         'rentalTierLabel': 'إيجار أسبوعي',
         'tenantType': 'individual',
@@ -215,8 +221,8 @@ class DataService {
         'image': 'assets/images/home3.jpg',
         'price': '2500',
         'monthlyRent': '2500',
-        'tenantName': 'سارة أحمد',
-        'tenantEmail': 'tenant.demo@ejari.app',
+        'tenantName': 'مستأجر تجريبي',
+        'tenantEmail': 'user@ejari.app',
         'ownerId': 'owner@ejari.app',
         'ownerEmail': 'owner@ejari.app',
         'status': BookingStatus.approved,
@@ -224,20 +230,87 @@ class DataService {
         'bedLabel': 'سرير 3 — غرفة A',
         'requestDate':
             DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
-        'checkInDate': DateTime.now().toIso8601String(),
-        'startDate': DateTime.now().toIso8601String(),
-        'leaseStartDate': DateTime.now().toIso8601String(),
+        'checkInDate': DateTime.now().add(const Duration(days: 2)).toIso8601String(),
+        'startDate': DateTime.now().add(const Duration(days: 2)).toIso8601String(),
+        'leaseStartDate': DateTime.now().add(const Duration(days: 2)).toIso8601String(),
         'durationLabel': '1 شهر',
         'duration': '1 شهر',
         'durationType': 'شهر',
         'durationCount': 1,
         'depositAmount': '500',
         'securityDeposit': 500,
+        'remainingAmount': '2000',
+        'currentAmount': '2500',
         'rentAmount': 500,
+        'paymentStatus': 'deposit_paid',
+        'depositPaid': true,
         'rentalTier': 'monthly',
         'rentalTierLabel': 'شهري',
         'tenantType': 'individual',
         'tenantTypeLabel': 'فرد',
+      },
+      {
+        'id': 'demo_qr_ready',
+        'contractNumber': 'CTR-QR-001',
+        'propertyId': 'egy1',
+        'title': 'شقة فاخرة على النيل — جاهزة للاستلام',
+        'image': 'assets/images/home1.jpg',
+        'price': '15000',
+        'monthlyRent': '15000',
+        'tenantName': 'مستأجر تجريبي',
+        'tenantEmail': 'user@ejari.app',
+        'ownerId': 'owner@ejari.app',
+        'ownerEmail': 'owner@ejari.app',
+        'status': BookingStatus.paid,
+        'paymentStatus': 'paid',
+        'depositPaid': true,
+        'requestDate':
+            DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
+        'createdAt':
+            DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
+        'checkInDate':
+            DateTime.now().add(const Duration(days: 1)).toIso8601String(),
+        'leaseStartDate':
+            DateTime.now().add(const Duration(days: 1)).toIso8601String(),
+        'startDate':
+            DateTime.now().add(const Duration(days: 1)).toIso8601String(),
+        'depositAmount': '3000',
+        'securityDeposit': 3000,
+        'remainingAmount': '0',
+        'currentAmount': '15000',
+        'leaseTotal': '15000',
+        'durationLabel': '1 شهر',
+        'duration': '1 شهر',
+        'statusHistory': [
+          {
+            'status': BookingStatus.submitted,
+            'label': 'إرسال الطلب',
+            'at': DateTime.now()
+                .subtract(const Duration(days: 2))
+                .toIso8601String(),
+          },
+          {
+            'status': BookingStatus.depositPaid,
+            'label': 'دفع العربون',
+            'at': DateTime.now()
+                .subtract(const Duration(days: 2, hours: -2))
+                .toIso8601String(),
+          },
+          {
+            'status': BookingStatus.approved,
+            'label': 'موافقة المالك',
+            'at': DateTime.now()
+                .subtract(const Duration(days: 1))
+                .toIso8601String(),
+          },
+          {
+            'status': BookingStatus.paid,
+            'label': 'إكمال الدفع',
+            'at': DateTime.now()
+                .subtract(const Duration(hours: 6))
+                .toIso8601String(),
+          },
+        ],
       },
       {
         'id': 'demo_active_checkin',
@@ -2029,7 +2102,41 @@ class DataService {
         // Rules require status == pending on create.
         final firestoreRequest = Map<String, dynamic>.from(request);
         firestoreRequest['status'] = 'pending';
-        return await FirestoreBookingService.createBooking(firestoreRequest);
+        final created =
+            await FirestoreBookingService.createBooking(firestoreRequest);
+        final createdId = created['id']?.toString();
+        if (created['success'] == true &&
+            createdId != null &&
+            createdId.isNotEmpty &&
+            initialStatus == BookingStatus.depositPaid) {
+          final patched = await updateRequestStatus(
+            createdId,
+            BookingStatus.depositPaid,
+            note: 'تم دفع العربون — بانتظار موافقة المالك',
+          );
+          if (patched) {
+            final deposit = double.tryParse(
+                  (request['depositAmount'] ?? '0')
+                      .toString()
+                      .replaceAll(RegExp(r'[^0-9.]'), ''),
+                ) ??
+                0;
+            await FirestoreBookingService.syncEscrowStatus(
+              createdId,
+              FirestoreBookingService.escrowHeld,
+              escrowAmount: deposit > 0 ? deposit : null,
+            );
+            await FirestoreBookingService.patchBooking(createdId, {
+              'paymentStatus': 'deposit_paid',
+              'depositPaid': true,
+              'remainingAmount': request['remainingAmount'],
+              'currentAmount': request['currentAmount'],
+              'leaseTotal': request['leaseTotal'],
+              'depositAmount': request['depositAmount'],
+            });
+          }
+        }
+        return created;
       } catch (e) {
         debugPrint('SendBookingRequest Firestore Error: $e');
         if (e is String) rethrow;
@@ -2638,8 +2745,25 @@ class DataService {
 
     final nextStatus =
         isDeposit ? BookingStatus.depositPaid : BookingStatus.paid;
-    await updateRequestStatus(bookingId, nextStatus,
+    final statusOk = await updateRequestStatus(bookingId, nextStatus,
         note: isDeposit ? 'تم دفع العربون' : 'تم الدفع بالكامل');
+    if (!statusOk) {
+      if (useWallet && method == 'wallet') {
+        try {
+          await WalletService.refundBookingDeposit(
+            title: 'استرداد — فشل تحديث حالة الحجز',
+            amount: payAmount,
+            bookingId: bookingId,
+            userId: tenantId.isNotEmpty ? tenantId : null,
+          );
+        } catch (_) {}
+      }
+      return {
+        'success': false,
+        'message':
+            'تم الخصم لكن تعذر تحديث حالة الحجز. تأكد من المرحلة الصحيحة (عربون ثم موافقة ثم المتبقي)',
+      };
+    }
 
     // إنتاج: حالة الضمان على مستند الحجز (المحفظة المحلية تبقى لدفتر العرض).
     if (!AppConfig.demoMode) {
@@ -4780,7 +4904,10 @@ class DataService {
       try {
         await FirestoreBookingService.patchBooking(bookingId, fields);
         updated = true;
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('updateBookingFields Firestore error: $e');
+        if (!updated) return false;
+      }
     }
     return updated;
   }

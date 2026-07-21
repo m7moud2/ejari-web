@@ -55,22 +55,35 @@ class _OwnerViewingsPanelState extends State<OwnerViewingsPanel> {
   }
 
   Future<void> _load() async {
-    final user = await AuthService.getCurrentUser();
-    final hint = user?['uid']?.toString() ??
-        user?['email']?.toString() ??
-        'owner@ejari.app';
-    final all = await ViewingAppointmentService.getForOwner(hint);
-    final pending = all
-        .where((a) =>
-            a.status == ViewingStatus.requested ||
-            a.status == ViewingStatus.confirmed ||
-            a.status == ViewingStatus.rescheduled)
-        .toList();
-    if (!mounted) return;
-    setState(() {
-      _items = pending;
-      _loading = false;
-    });
+    try {
+      final user = await AuthService.getCurrentUser();
+      final hint = user?['uid']?.toString() ??
+          user?['email']?.toString() ??
+          'owner@ejari.app';
+      final all = await ViewingAppointmentService.getForOwner(hint);
+      final pending = all
+          .where((a) =>
+              a.status == ViewingStatus.requested ||
+              a.status == ViewingStatus.confirmed ||
+              a.status == ViewingStatus.rescheduled)
+          .toList();
+      if (!mounted) return;
+      setState(() {
+        _items = pending;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e is String ? e : 'تعذر تحميل طلبات المعاينة',
+          ),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+    }
   }
 
   Future<void> _act(

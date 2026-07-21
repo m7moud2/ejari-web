@@ -364,13 +364,21 @@ class BookingStatus {
     Map<String, dynamic> booking,
   ) {
     final status = normalize(booking['status']?.toString());
+    final paymentRaw = booking['paymentStatus']?.toString() ?? '';
+    final depositAlreadyPaid = booking['depositPaid'] == true ||
+        paymentRaw == 'deposit_paid' ||
+        paymentRaw == 'pre_entry_paid' ||
+        paymentRaw == 'paid';
     switch (status) {
       case submitted:
       case pending:
       case corporatePending:
-        return ('hourglass', 'انتظر موافقة المالك أو ادفع العربون', 'wait');
+        if (!depositAlreadyPaid) {
+          return ('payments', 'ادفع العربون', 'pay_deposit');
+        }
+        return ('hourglass', 'انتظر موافقة المالك', 'wait');
       case approved:
-        return ('payments', 'ادفع المتبقي الآن', 'pay');
+        return ('payments', 'ادفع الآن', 'pay');
       case depositPaid:
         return ('hourglass', 'انتظر موافقة المالك', 'wait');
       case viewingScheduled:

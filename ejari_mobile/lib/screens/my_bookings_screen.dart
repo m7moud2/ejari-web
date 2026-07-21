@@ -646,19 +646,46 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                     status == BookingStatus.pending ||
                     status == BookingStatus.corporatePending) ...[
                   const SizedBox(height: AppTheme.spaceMd),
-                  const EjariSurfaceCard(
-                    elevated: false,
-                    padding: EdgeInsets.all(12),
-                    child: Text(
-                      'طلبك قيد المراجعة. سيتم إبلاغك عند موافقة المالك.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.textSecondary,
-                        height: 1.4,
+                  if (!_isDepositPaid(booking)) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      height: AppTheme.ctaHeight,
+                      child: ElevatedButton.icon(
+                        onPressed: () => _openPayment(
+                          booking,
+                          stage: 'deposit',
+                          amount: _depositOrFallback(booking),
+                        ),
+                        icon: const Icon(Icons.payments_rounded, size: 18),
+                        label: const Text('ادفع العربون'),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
+                    const SizedBox(height: 8),
+                  ] else
+                    const EjariSurfaceCard(
+                      elevated: false,
+                      padding: EdgeInsets.all(12),
+                      child: Text(
+                        'طلبك قيد المراجعة. سيتم إبلاغك عند موافقة المالك.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  if (!_isDepositPaid(booking))
+                    const Padding(
+                      padding: EdgeInsets.only(bottom: 8),
+                      child: Text(
+                        'ادفع العربون لتثبيت الطلب وإرساله للمالك.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
                   _buildCancelButton(booking, status),
                 ],
 
@@ -681,7 +708,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                       onPressed: () => _openPayment(
                         booking,
                         stage: 'remaining',
-                        amount: _parseAmount(booking['remainingAmount']),
+                        amount: _remainingOrFallback(booking),
                       ),
                       icon: const Icon(Icons.payment, size: 18),
                       label: const Text('ادفع المتبقي واصدر العقد'),
@@ -873,10 +900,42 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   }
 
   double _parseAmount(dynamic raw) {
-    return double.tryParse(
-          raw?.toString().replaceAll(RegExp(r'[^0-9.]'), '') ?? '',
-        ) ??
+    if (raw is num) return raw.toDouble();
+    if (raw == null) return 0;
+    return double.tryParse(raw.toString().replaceAll(RegExp(r'[^0-9.]'), '')) ??
         0;
+  }
+
+  bool _isDepositPaid(Map<String, dynamic> booking) {
+    final payment = booking['paymentStatus']?.toString() ?? '';
+    return booking['depositPaid'] == true ||
+        payment == 'deposit_paid' ||
+        payment == 'pre_entry_paid' ||
+        payment == 'paid';
+  }
+
+  double _depositOrFallback(Map<String, dynamic> booking) {
+    final deposit = _parseAmount(booking['depositAmount']);
+    if (deposit > 0) return deposit;
+    final monthly = _parseAmount(booking['monthlyRent'] ?? booking['price']);
+    return monthly > 0
+        ? (monthly * 0.2).clamp(500.0, monthly).toDouble()
+        : 500;
+  }
+
+  double _remainingOrFallback(Map<String, dynamic> booking) {
+    final remaining = _parseAmount(booking['remainingAmount']);
+    if (remaining > 0) return remaining;
+    final current = _parseAmount(
+      booking['currentAmount'] ??
+          booking['leaseTotal'] ??
+          booking['monthlyRent'] ??
+          booking['price'],
+    );
+    final deposit = _parseAmount(booking['depositAmount']);
+    final calc = current - deposit;
+    if (calc > 0) return calc;
+    return current > 0 ? current : deposit;
   }
 
   DateTime? _checkInDate(Map<String, dynamic> booking) {

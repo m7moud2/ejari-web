@@ -18,9 +18,7 @@ class BookingQrService {
   static bool isQrReady(Map<String, dynamic> booking) {
     final status = BookingStatus.normalize(booking['status']?.toString());
     if (booking['checkedInAt'] != null) return false;
-    return status == BookingStatus.paid ||
-        status == BookingStatus.confirmed ||
-        status == BookingStatus.active;
+    return status == BookingStatus.paid || status == BookingStatus.confirmed;
   }
 
   /// يمكن تأكيد الاستلام (handover) بعد تحقق QR صالح.
@@ -108,7 +106,9 @@ class BookingQrService {
 
     final booking = await DataService.findBookingById(id);
     if (booking == null) {
-      return _invalid('الحجز غير موجود — جرّب demo_req_1 أو demo_bed_booking');
+      return _invalid(
+        'الحجز غير موجود — جرّب demo_qr_ready (مدفوع) أو demo_bed_booking',
+      );
     }
 
     final qr = await generateForBooking(booking);
@@ -170,17 +170,24 @@ class BookingQrService {
 
     final alreadyCheckedIn = booking['checkedInAt'] != null;
     final handoverReady = canConfirmHandover(booking);
+    final normalized = BookingStatus.normalize(status);
     String message;
     if (alreadyCheckedIn) {
       message = 'تم التحقق — الاستلام مسجّل مسبقاً ✓';
     } else if (handoverReady) {
       message = 'تم التحقق بنجاح ✓ — أكّد الاستلام لتسجيل دخول المستأجر';
-    } else if (!isQrReady(booking) &&
-        BookingStatus.normalize(status) == BookingStatus.approved) {
+    } else if (normalized == BookingStatus.approved) {
       message =
           'الرمز صالح لكن الدفع غير مكتمل — يجب على المستأجر إكمال الدفع أولاً';
+    } else if (normalized == BookingStatus.depositPaid ||
+        normalized == BookingStatus.submitted ||
+        normalized == BookingStatus.pending ||
+        normalized == BookingStatus.viewingScheduled) {
+      message =
+          'الرمز صالح لكن الحجز غير جاهز للاستلام — أكمل الدفع بعد موافقة المالك';
     } else {
-      message = 'تم التحقق بنجاح ✓';
+      message =
+          'تم التحقق لكن لا يمكن تأكيد الاستلام في الحالة الحالية (${BookingStatus.arabicLabel(status)})';
     }
 
     return {

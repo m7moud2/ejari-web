@@ -93,11 +93,17 @@ class CheckInOutService {
     }
 
     final now = DateTime.now().toIso8601String();
-    await DataService.updateBookingFields(bookingId, {
+    final updated = await DataService.updateBookingFields(bookingId, {
       'checkedInAt': now,
       'status': BookingStatus.active,
       'handoverConfirmedAt': now,
     });
+    if (!updated) {
+      return {
+        'success': false,
+        'message': 'تعذر حفظ تسجيل الدخول. تحقق من الاتصال وحاول مرة أخرى',
+      };
+    }
 
     // الاستلام لا يُفرج العربون — يبقى محجوزاً حتى الخروج.
     if (!AppConfig.demoMode) {

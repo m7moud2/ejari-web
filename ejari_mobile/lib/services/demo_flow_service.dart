@@ -183,24 +183,56 @@ class DemoFlowService {
       return {'success': false, 'message': 'الحجز غير موجود'};
     }
     await WalletService.init(userId: tenantEmail);
+    final status = BookingStatus.normalize(booking['status']?.toString());
+    if (status == BookingStatus.approved) {
+      final ok = await DataService.updateRequestStatus(
+        bookingId,
+        BookingStatus.paid,
+        note: 'إكمال الدفع بعد الموافقة (تجريبي)',
+      );
+      if (!ok) {
+        return {'success': false, 'message': 'تعذر إكمال الدفع'};
+      }
+      await DataService.updateBookingFields(bookingId, {
+        'paymentStatus': 'paid',
+        'remainingAmount': '0',
+        'rentPaidAt': DateTime.now().toIso8601String(),
+      });
+      await DataService.addNotificationToUser(
+        tenantEmail,
+        'تم إكمال الدفع ✓',
+        'الحجز مدفوع بالكامل — اعرض QR للاستلام',
+        type: 'payment',
+        refId: bookingId,
+      );
+      return {
+        'success': true,
+        'message': 'تم إكمال الدفع — اعرض QR للاستلام',
+      };
+    }
+
     await DataService.updateRequestStatus(
       bookingId,
       BookingStatus.depositPaid,
-      note: 'دفع العربون + الإيجار (تجريبي)',
+      note: 'دفع العربون (تجريبي)',
     );
     await DataService.updateBookingFields(bookingId, {
       'paymentStatus': 'deposit_paid',
+      'depositPaid': true,
       'depositPaidAt': DateTime.now().toIso8601String(),
-      'rentPaidAt': DateTime.now().toIso8601String(),
+      'remainingAmount': '2000',
     });
     await DataService.addNotificationToUser(
       tenantEmail,
-      'تم الدفع بنجاح 💳',
-      'عربون 500 ج.م + إيجار 2500 ج.م — بانتظار موافقة المالك',
+      'تم دفع العربون 💳',
+      'عربون 500 ج.م — بانتظار موافقة المالك ثم إكمال المتبقي',
       type: 'payment',
       refId: bookingId,
     );
-    return {'success': true, 'message': 'تم دفع العربون والإيجار — بانتظار موافقة المالك'};
+    return {
+      'success': true,
+      'message': 'تم دفع العربون — بانتظار موافقة المالك',
+    };
   }
 
   static Future<Map<String, dynamic>> _simulateOwnerApproval() async {
@@ -215,23 +247,35 @@ class DemoFlowService {
     await DataService.addNotificationToUser(
       tenantEmail,
       'تمت الموافقة على حجزك ✅',
-      'المالك وافق — يمكنك الآن استلام رمز QR',
+      'المالك وافق — أكمل دفع المتبقي لتفعيل QR',
       type: 'booking',
       refId: bookingId,
     );
-    return {'success': true, 'message': 'وافق المالك على الحجز'};
+    return {
+      'success': true,
+      'message': 'تمت الموافقة — أكمل الدفع لتفعيل QR',
+    };
   }
 
   static Future<Map<String, dynamic>> _generateQr() async {
-    final booking = await DataService.findBookingById(bookingId);
+    var booking = await DataService.findBookingById(bookingId);
     if (booking == null) {
       return {'success': false, 'message': 'الحجز غير موجود'};
     }
-    final status = BookingStatus.normalize(booking['status']?.toString());
-    if (status != BookingStatus.approved &&
-        status != BookingStatus.paid &&
-        status != BookingStatus.active) {
-      return {'success': false, 'message': 'الحجز لم يُوافق عليه بعد'};
+    var status = BookingStatus.normalize(booking['status']?.toString());
+    // تدفق العرض المختصر: بعد الموافقة نُكمل المتبقي تلقائياً ثم نُنشئ QR.
+    if (status == BookingStatus.approved) {
+      final pay = await _simulatePayment();
+      if (pay['success'] != true) return pay;
+      booking = await DataService.findBookingById(bookingId);
+      status = BookingStatus.normalize(booking?['status']?.toString());
+    }
+    if (booking == null ||
+        (status != BookingStatus.paid && status != BookingStatus.confirmed)) {
+      return {
+        'success': false,
+        'message': 'أكمل الدفع أولاً لتفعيل رمز QR للاستلام',
+      };
     }
     final qrResult = await BookingQrService.generateForBooking(booking);
     await DataService.updateBookingFields(bookingId, {
@@ -251,14 +295,27 @@ class DemoFlowService {
     if (booking?['checkedOutAt'] == null) {
       return {'success': false, 'message': 'سجّل الخروج أولاً'};
     }
+    final deposit = double.tryParse(
+          (booking?['depositAmount'] ?? booking?['securityDeposit'] ?? '500')
+              .toString()
+              .replaceAll(RegExp(r'[^0-9.]'), ''),
+        ) ??
+        500;
+    await WalletService.refundBookingDeposit(
+      title: 'إطلاق عربون — تدفق تجريبي',
+      amount: deposit,
+      bookingId: bookingId,
+      userId: tenantEmail,
+    );
     await DataService.updateBookingFields(bookingId, {
       'depositReleased': true,
       'depositReleasedAt': DateTime.now().toIso8601String(),
+      'escrowStatus': 'released',
     });
     await DataService.addNotificationToUser(
       tenantEmail,
       'تم إطلاق العربون 🔓',
-      '500 ج.م عادت إلى محفظتك بعد تسجيل الخروج',
+      '${deposit.toStringAsFixed(0)} ج.م عادت إلى محفظتك بعد تسجيل الخروج',
       type: 'refund',
       refId: bookingId,
     );

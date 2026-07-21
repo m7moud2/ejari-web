@@ -86,18 +86,25 @@ class _OwnerBookingRequestsPanelState extends State<OwnerBookingRequestsPanel> {
   }
 
   Future<void> _handle(String id, String status, {String? reason}) async {
-    await DataService.updateRequestStatus(id, status, note: reason);
+    final ok = await DataService.updateRequestStatus(id, status, note: reason);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(status == 'approved'
-            ? 'تم قبول الطلب ✅'
-            : 'تم رفض الطلب${reason != null ? ': $reason' : ''}'),
-        backgroundColor:
-            status == 'approved' ? AppTheme.primaryColor : AppTheme.errorColor,
+        content: Text(
+          !ok
+              ? 'تعذر تحديث الطلب — تحقق من حالة الحجز'
+              : status == 'approved'
+                  ? 'تم قبول الطلب ✅'
+                  : 'تم رفض الطلب${reason != null ? ': $reason' : ''}',
+        ),
+        backgroundColor: !ok
+            ? AppTheme.errorColor
+            : status == 'approved'
+                ? AppTheme.primaryColor
+                : AppTheme.errorColor,
       ),
     );
-    _load();
+    if (ok) _load();
   }
 
   Future<void> _rejectWithReason(String id) async {

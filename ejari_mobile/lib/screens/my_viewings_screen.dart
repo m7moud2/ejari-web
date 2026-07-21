@@ -50,16 +50,31 @@ class _MyViewingsScreenState extends State<MyViewingsScreen> {
   }
 
   Future<void> _load() async {
-    final user = await AuthService.getCurrentUser();
-    final email = user?['email']?.toString() ?? '';
-    final items = email.isEmpty
-        ? <ViewingAppointment>[]
-        : await ViewingAppointmentService.getForTenant(email);
-    if (!mounted) return;
-    setState(() {
-      _items = items;
-      _loading = false;
-    });
+    try {
+      final user = await AuthService.getCurrentUser();
+      final hint = user?['email']?.toString().trim().isNotEmpty == true
+          ? user!['email'].toString()
+          : (user?['uid']?.toString() ?? user?['id']?.toString() ?? '');
+      final items = hint.isEmpty
+          ? <ViewingAppointment>[]
+          : await ViewingAppointmentService.getForTenant(hint);
+      if (!mounted) return;
+      setState(() {
+        _items = items;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            e is String ? e : 'تعذر تحميل مواعيد المعاينة',
+          ),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+    }
   }
 
   Future<void> _cancel(ViewingAppointment a) async {
