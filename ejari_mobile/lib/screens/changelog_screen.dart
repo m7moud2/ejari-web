@@ -8,6 +8,15 @@ class ChangelogScreen extends StatelessWidget {
   static const List<({String version, String date, List<String> items})>
       releases = [
     (
+      version: '1.3.13',
+      date: 'يوليو 2026',
+      items: [
+        'المساعدة بدل كونسيرج/AI — نبرة دعم واضحة بدون تسويق ذكاء اصطناعي',
+        'الخدمات المهنية: مسح العقد وتقدير الإيجار وتقرير الحي بأسماء تشغيلية',
+        'ردود الدعم المختصرة بلا رموز تعبيرية وشخصية روبوت',
+      ],
+    ),
+    (
       version: '1.3.12',
       date: 'يوليو 2026',
       items: [

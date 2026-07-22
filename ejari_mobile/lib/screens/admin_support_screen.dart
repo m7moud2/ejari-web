@@ -63,7 +63,7 @@ class _AdminSupportScreenState extends State<AdminSupportScreen> {
                   child: Row(
                     children: [
                       _chip('الكل', 'all'),
-                      _chip('تصعيد البوت', 'escalated'),
+                      _chip('تصعيد تلقائي', 'escalated'),
                       _chip('مفتوحة', 'open'),
                       _chip('قيد المعالجة', 'in_progress'),
                       _chip('تم الحل', 'resolved'),
@@ -150,7 +150,7 @@ class _AdminSupportScreenState extends State<AdminSupportScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Text(
-                        'البوت لم يحل',
+                        'لم يُحل تلقائياً',
                         style: TextStyle(
                           color: AppTheme.accentColor,
                           fontSize: 9,
@@ -325,11 +325,11 @@ class _AdminSupportScreenState extends State<AdminSupportScreen> {
                   const Divider(),
                   const Row(
                     children: [
-                      Icon(Icons.smart_toy_outlined,
+                      Icon(Icons.forum_outlined,
                           size: 16, color: AppTheme.primaryColor),
                       SizedBox(width: 6),
                       Text(
-                        'سجل محادثة البوت',
+                        'سجل المحادثة الآلية',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 13,
@@ -348,7 +348,7 @@ class _AdminSupportScreenState extends State<AdminSupportScreen> {
                         final isBot = m['isBot'] == true ||
                             m['senderId']?.toString() == 'support_bot';
                         final sender = isBot
-                            ? '🤖 البوت'
+                            ? 'الرد التلقائي'
                             : m['senderId']?.toString() ?? 'مستخدم';
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 6),

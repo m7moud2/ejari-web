@@ -98,7 +98,7 @@ class UserAnalyticsScreen extends StatelessWidget {
 
             // Insights
             const Text(
-              'رؤى ذكية',
+              'ملاحظات',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),

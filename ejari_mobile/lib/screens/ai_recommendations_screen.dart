@@ -69,7 +69,7 @@ class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('توصيات ذكية لك'),
+        title: const Text('مقترحات لك'),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -86,7 +86,7 @@ class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // AI Header
+                  // Recommendations header
                   Container(
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
@@ -119,7 +119,7 @@ class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'توصيات مدعومة بالذكاء الاصطناعي',
+                                'مقترحات حسب اهتماماتك',
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
@@ -128,7 +128,7 @@ class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
                               ),
                               SizedBox(height: 4),
                               Text(
-                                'تم تحليل تفضيلاتك وسلوكك لإيجاد أفضل الخيارات',
+                                'بناءً على تفضيلاتك وسلوك التصفح',
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 12,
@@ -212,7 +212,7 @@ class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
           ),
           const SizedBox(height: 24),
           const Text(
-            'جاري تحليل تفضيلاتك...',
+            'جاري تجهيز المقترحات...',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -220,7 +220,7 @@ class _AIRecommendationsScreenState extends State<AIRecommendationsScreen> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'نستخدم الذكاء الاصطناعي لإيجاد أفضل الخيارات',
+            'نراجع تفضيلاتك لإيجاد خيارات مناسبة',
             style: TextStyle(
               color: AppTheme.textSecondary,
               fontSize: 14,

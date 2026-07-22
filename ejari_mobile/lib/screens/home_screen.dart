@@ -1782,7 +1782,7 @@ class _HomeContentState extends State<HomeContent> {
               _buildServiceCard(
                   context,
                   context.tr('ai_concierge'),
-                  Icons.smart_toy_rounded,
+                  Icons.support_agent_rounded,
                   AppTheme.primaryColor,
                   context.tr('ai_concierge_desc'),
                   0),
@@ -1854,7 +1854,11 @@ class _AnimatedGlassCardState extends State<_AnimatedGlassCard>
           context,
           MaterialPageRoute(
             builder: (context) => widget.title == context.tr('ai_concierge') ||
-                    widget.title == 'AI Concierge'
+                    widget.title == 'Help' ||
+                    widget.title == 'المساعدة' ||
+                    widget.title == 'AI Concierge' ||
+                    widget.title == 'Ejari Concierge' ||
+                    widget.title == 'إيجاري كونسيرج'
                 ? const AiConciergeScreen()
                 : ServiceDetailsScreen(
                     serviceName: widget.title,

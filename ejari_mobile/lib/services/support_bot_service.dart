@@ -4,34 +4,32 @@ import 'chat_service.dart';
 import 'data_service.dart';
 import 'support_service.dart';
 
-/// Automated support bot with shortcut replies and escalation to live agent.
+/// Automated support replies with shortcuts and escalation to live agent.
 class SupportBotService {
   static const String botSenderId = 'support_bot';
   static const int _escalationThreshold = 3;
 
   static const String welcomeMessage =
       'أهلاً بك في دعم إيجاري.\n'
-      'اختر موضوعاً من القائمة أو اكتب سؤالك — ولو محتاج موظف، اطلب التحويل في أي وقت.';
+      'اختر موضوعاً من القائمة أو اكتب سؤالك — ويمكنك طلب موظف في أي وقت.';
 
   static const List<SupportShortcut> shortcuts = [
     SupportShortcut(
       id: 'payment',
-      emoji: '💰',
       label: 'مشكلة في الدفع',
       response:
-          '💰 **مشاكل الدفع والمحفظة**\n\n'
-          '• طرق الدفع المتاحة: بطاقة بنكية، محفظة إيجاري، تحويل بنكي موثّق.\n'
-          '• إيصال الدفع يصلك فوراً في: **حجوزاتي ← تفاصيل الحجز ← الإيصال**.\n'
+          '**الدفع والمحفظة**\n\n'
+          '• طرق الدفع: بطاقة بنكية، محفظة إيجاري، تحويل بنكي موثّق.\n'
+          '• إيصال الدفع: **حجوزاتي ← تفاصيل الحجز ← الإيصال**.\n'
           '• إذا فشل الدفع: تأكد من رصيد البطاقة، ثم أعد المحاولة من نفس صفحة الحجز.\n'
           '• رصيد المحفظة: **الملف الشخصي ← المحفظة**.\n\n'
           'هل المشكلة مستمرة بعد إعادة المحاولة؟',
     ),
     SupportShortcut(
       id: 'booking',
-      emoji: '📅',
       label: 'مشكلة في الحجز',
       response:
-          '📅 **الحجوزات والإلغاء**\n\n'
+          '**الحجوزات والإلغاء**\n\n'
           '• تتبّع حالة حجزك من: **حجوزاتي** (مؤكد / قيد المراجعة / ملغي).\n'
           '• الإلغاء المجاني: خلال **48 ساعة** من تاريخ الحجز (حسب سياسة العقار).\n'
           '• بعد 48 ساعة: قد تُطبَّق رسوم إلغاء حسب شروط العقار.\n'
@@ -40,24 +38,22 @@ class SupportBotService {
     ),
     SupportShortcut(
       id: 'property',
-      emoji: '🏠',
       label: 'مشكلة في العقار',
       response:
-          '🏠 **مشاكل العقار أثناء الإقامة**\n\n'
-          '• للإبلاغ عن مشكلة: **طلب صيانة** من القائمة أو من تفاصيل الحجز.\n'
-          '• أرفق صوراً واضحة للمشكلة لتسريع المعالجة.\n'
+          '**مشاكل العقار أثناء الإقامة**\n\n'
+          '• للإبلاغ: **طلب صيانة** من القائمة أو من تفاصيل الحجز.\n'
+          '• أرفق صوراً واضحة لتسريع المعالجة.\n'
           '• للتواصل مع المالك: استخدم **الشات** من صفحة العقار (بعد تأكيد الحجز).\n'
           '• للحالات العاجلة: اختر **تحدث مع خدمة العملاء** أدناه.\n\n'
-          'ننصح بتوثيق المشكلة بالصور فور ملاحظتها.',
+          'يُفضّل توثيق المشكلة بالصور فور ملاحظتها.',
     ),
     SupportShortcut(
       id: 'kyc',
-      emoji: '🔐',
       label: 'توثيق الحساب',
       response:
-          '🔐 **توثيق الحساب (KYC)**\n\n'
+          '**توثيق الحساب**\n\n'
           '• ابدأ من: **الملف الشخصي ← توثيق الحساب**.\n'
-          '• المطلوب: صورة الهوية/الإقامة + صورة شخصية (سيلفي).\n'
+          '• المطلوب: صورة الهوية/الإقامة + صورة شخصية.\n'
           '• استخدم الكاميرا داخل التطبيق لالتقاط الصور بوضوح.\n'
           '• مدة المراجعة: عادةً **24–48 ساعة** في أيام العمل.\n'
           '• ستصلك إشعار عند القبول أو إذا طُلب تعديل.\n\n'
@@ -65,10 +61,9 @@ class SupportBotService {
     ),
     SupportShortcut(
       id: 'subscription',
-      emoji: '💳',
       label: 'الاشتراك والباقات',
       response:
-          '💳 **الاشتراكات والباقات**\n\n'
+          '**الاشتراكات والباقات**\n\n'
           '• باقات الملاك: **الملف الشخصي ← باقات الإعلان**.\n'
           '• الترقية: اختر الباقة الأعلى وادفع الفرق — تُفعَّل فوراً.\n'
           '• باقة المستأجر: مزايا إضافية في **الاشتراكات**.\n'
@@ -77,23 +72,21 @@ class SupportBotService {
     ),
     SupportShortcut(
       id: 'maintenance',
-      emoji: '🔧',
       label: 'طلب صيانة',
       response:
-          '🔧 **طلبات الصيانة**\n\n'
+          '**طلبات الصيانة**\n\n'
           '• أنشئ طلباً من: **الصيانة ← طلب جديد**.\n'
           '• حدّد نوع المشكلة (سباكة، كهرباء، تكييف، إلخ).\n'
           '• يمكنك متابعة الحالة: قيد الانتظار ← قيد التنفيذ ← مكتمل.\n'
           '• الفني يتواصل معك عبر التطبيق عند قبول الطلب.\n\n'
-          'افتح قسم الصيانة من القائمة الرئيسية لبدء طلبك الآن.',
+          'افتح قسم الصيانة من القائمة الرئيسية لبدء طلبك.',
       actionRoute: 'maintenance',
     ),
     SupportShortcut(
       id: 'contracts',
-      emoji: '📄',
       label: 'العقود والإيصالات',
       response:
-          '📄 **العقود والإيصالات**\n\n'
+          '**العقود والإيصالات**\n\n'
           '• العقود: **عقودي** — نسخة PDF موقعة إلكترونياً.\n'
           '• الإيصالات: **حجوزاتي ← تفاصيل الحجز ← عرض الإيصال**.\n'
           '• كشف الإيجار: متاح للعقود طويلة المدى من **عقودي**.\n'
@@ -103,17 +96,15 @@ class SupportBotService {
     ),
     SupportShortcut(
       id: 'other',
-      emoji: '❓',
       label: 'سؤال آخر',
       response:
-          '❓ **سؤال آخر**\n\n'
+          '**سؤال آخر**\n\n'
           'اكتب سؤالك بالتفصيل في مربع الرسائل أدناه.\n'
-          'سأحاول مطابقته مع الحلول المناسبة، وإذا لم أجد إجابة كافية '
-          'سأعرض عليك التحدث مع موظف خدمة العملاء.',
+          'سنحاول مطابقته مع الحلول المناسبة، وإذا لم نجد إجابة كافية '
+          'يمكنك التحدث مع موظف خدمة العملاء.',
     ),
     SupportShortcut(
       id: 'escalate',
-      emoji: '👤',
       label: 'تحدث مع خدمة العملاء',
       response: '',
       isEscalation: true,
@@ -156,7 +147,6 @@ class SupportBotService {
     return state['mode'] == 'escalated';
   }
 
-  /// Initialize a new support chat with welcome message and shortcuts marker.
   static Future<void> initializeChat(String chatId) async {
     final state = await getState(chatId);
     if (state['initialized'] == true) return;
@@ -172,7 +162,6 @@ class SupportBotService {
     await _saveState(chatId, state);
   }
 
-  /// Handle shortcut tap — returns bot reply metadata for UI.
   static Future<SupportBotAction> handleShortcut({
     required String chatId,
     required String shortcutId,
@@ -183,7 +172,7 @@ class SupportBotService {
     final shortcut = shortcutById(shortcutId);
     if (shortcut == null) {
       return const SupportBotAction(
-        botText: 'عذراً، لم أتعرف على هذا الخيار. اختر من القائمة أدناه.',
+        botText: 'عذراً، لم نتعرّف على هذا الخيار. اختر من القائمة أدناه.',
         showShortcuts: true,
       );
     }
@@ -206,7 +195,7 @@ class SupportBotService {
     await ChatService.sendMessage(
       chatId,
       userId,
-      '${shortcut.emoji} ${shortcut.label}',
+      shortcut.label,
       isShortcut: true,
       shortcutId: shortcutId,
     );
@@ -240,7 +229,6 @@ class SupportBotService {
     );
   }
 
-  /// Handle free-text user message in bot mode.
   static Future<SupportBotAction?> handleFreeText({
     required String chatId,
     required String text,
@@ -263,9 +251,9 @@ class SupportBotService {
       state['lastShortcutId'] = keywordMatch.id;
     } else {
       botReply =
-          'شكراً لتوضيحك. لم أجد إجابة دقيقة لسؤالك، لكن يمكنني مساعدتك عبر '
-          'الخيارات أدناه.\n\n'
-          'إذا استمرت المشكلة، اضغط **تحدث مع خدمة العملاء** وسيتواصل معك موظف.';
+          'شكراً لتوضيحك. لم نجد إجابة دقيقة لسؤالك بعد.\n\n'
+          'اختر من الخيارات أدناه، أو اضغط **تحدث مع خدمة العملاء** '
+          'ليتواصل معك موظف.';
       state['unresolvedCount'] = (state['unresolvedCount'] as int? ?? 0) + 1;
     }
 
@@ -288,7 +276,6 @@ class SupportBotService {
     );
   }
 
-  /// Handle "هل ساعدك هذا؟" feedback.
   static Future<SupportBotAction> handleFeedback({
     required String chatId,
     required bool helped,
@@ -312,7 +299,7 @@ class SupportBotService {
       state['unresolvedCount'] = 0;
       await _saveState(chatId, state);
       const thanks =
-          'سعداء بخدمتك! 😊\nهل تحتاج مساعدة في شيء آخر؟ اختر من القائمة:';
+          'تم. هل تحتاج مساعدة في شيء آخر؟ اختر من القائمة:';
       await ChatService.sendBotMessage(
         chatId,
         thanks,
@@ -334,7 +321,7 @@ class SupportBotService {
         userId: userId,
         userName: userName,
         userEmail: userEmail,
-        reason: 'البوت لم يحل المشكلة بعد $count محاولات',
+        reason: 'لم يُحل الطلب بعد $count محاولات',
         botCouldntResolve: true,
       );
     }
@@ -342,7 +329,7 @@ class SupportBotService {
     final retry =
         'نأسف أن الحل لم يكن كافياً. جرّب خياراً آخر من القائمة، '
         'أو اكتب تفاصيل أكثر.\n\n'
-        '${count >= 2 ? '💡 يمكنك أيضاً التحدث مع موظف خدمة العملاء مباشرة.' : ''}';
+        '${count >= 2 ? 'يمكنك أيضاً التحدث مع موظف خدمة العملاء مباشرة.' : ''}';
     await ChatService.sendBotMessage(
       chatId,
       retry,
@@ -357,7 +344,6 @@ class SupportBotService {
     );
   }
 
-  /// Escalate chat to live admin agent.
   static Future<SupportBotAction> escalateToLiveAgent({
     required String chatId,
     required String userId,
@@ -376,7 +362,7 @@ class SupportBotService {
         .map((m) {
           final sender = m['senderId']?.toString() ?? '';
           final label = sender == botSenderId
-              ? 'البوت'
+              ? 'الدعم'
               : sender == userId
                   ? userName
                   : sender;
@@ -407,28 +393,27 @@ class SupportBotService {
     await ChatService.setSupportMode(chatId, 'live');
 
     const escalationMsg =
-        '✅ **تم تحويلك لموظف خدمة العملاء**\n\n'
+        '**تم تحويلك لموظف خدمة العملاء**\n\n'
         'سيرد عليك أحد ممثلي الدعم في أقرب وقت. '
-        'يمكنك متابعة كتابة رسائلك هنا وسيتم إبلاغ الفريق فوراً.\n\n'
-        'شكراً لصبرك! 🙏';
+        'يمكنك متابعة الكتابة هنا وسيتم إبلاغ الفريق.\n\n'
+        'شكراً لصبرك.';
 
     await ChatService.sendBotMessage(chatId, escalationMsg);
 
     await DataService.addNotificationToUser(
       SupportService.adminEmail,
-      'تصعيد دعم — يحتاج موظف 👤',
+      'تصعيد دعم — يحتاج موظف',
       '$userName: $reason',
       type: 'support',
       refId: chatId,
       adminFeed: true,
     );
 
-    // Mirror escalation summary for admin chat context.
     if (historySummary.isNotEmpty) {
       await ChatService.sendMessage(
         chatId,
         SupportService.adminEmail,
-        '📋 ملخص محادثة البوت:\n$historySummary',
+        'ملخص المحادثة:\n$historySummary',
         isSystem: true,
       );
     }
@@ -467,7 +452,6 @@ class SupportBotService {
     return shortcuts
         .map((s) => {
               'id': s.id,
-              'emoji': s.emoji,
               'label': s.label,
               'isEscalation': s.isEscalation,
             })
@@ -477,7 +461,6 @@ class SupportBotService {
 
 class SupportShortcut {
   final String id;
-  final String emoji;
   final String label;
   final String response;
   final bool isEscalation;
@@ -485,7 +468,6 @@ class SupportShortcut {
 
   const SupportShortcut({
     required this.id,
-    required this.emoji,
     required this.label,
     required this.response,
     this.isEscalation = false,

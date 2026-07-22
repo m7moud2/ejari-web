@@ -234,7 +234,7 @@ class _ServiceProviderProfileScreenState
   }
 
   Widget _buildExpertiseSection() {
-    final skills = ['صيانة تكييف', 'كهرباء منازل', 'أنظمة ذكية', 'طوارئ 24/7'];
+    final skills = ['صيانة تكييف', 'كهرباء منازل', 'أتمتة منزلية', 'طوارئ 24/7'];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

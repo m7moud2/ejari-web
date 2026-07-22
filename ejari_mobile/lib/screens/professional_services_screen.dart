@@ -93,7 +93,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
           'استكشف العقار بشكل مستقل 360° بتقنية الواقع الافتراضي في أي وقت.',
       'icon': Icons.vrpano_rounded,
       'color': AppTheme.primaryColor,
-      'badge': 'ثوري',
+      'badge': 'تجريبي',
     },
   ];
 
@@ -249,9 +249,9 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.auto_awesome_rounded, size: 16),
+                            Icon(Icons.handyman_rounded, size: 16),
                             SizedBox(width: 4),
-                            Text('ابتكارات')
+                            Text('أدوات')
                           ],
                         ),
                       ),
@@ -660,58 +660,58 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
         _buildInnovationBanner(
           icon: Icons.chair_rounded,
           gradient: [AppTheme.primaryColor, AppTheme.primaryColor],
-          title: 'AR Staging — أثّث بدون شراء',
-          subtitle: 'ثوري في مصر 🇪🇬',
+          title: 'معاينة التأثيث (AR)',
+          subtitle: 'تجريبي',
           desc:
-              'صوّر أي غرفة فارغة بكاميرا موبايلك وشاهد كيف ستبدو مؤثثة بالكامل باستخدام الذكاء الاصطناعي والواقع المعزز (AR). اختر أسلوبك من: مودرن، كلاسيك، مينيمال.',
-          features: ['أثاث مودرن', 'كلاسيك فاخر', 'مينيمال', 'إسكانديناقي'],
-          buttonText: 'جرّب AR Staging',
+              'صوّر غرفة فارغة وشاهد كيف قد تبدو مؤثثة. اختر أسلوباً: مودرن، كلاسيك، أو مينيمال.',
+          features: ['أثاث مودرن', 'كلاسيك', 'مينيمال', 'إسكانديناقي'],
+          buttonText: 'جرّب معاينة التأثيث',
           onTap: () => _showArStagingDialog(context),
         ),
         const SizedBox(height: 16),
         _buildInnovationBanner(
-          icon: Icons.psychology_rounded,
+          icon: Icons.calculate_rounded,
           gradient: [AppTheme.primaryColor, AppTheme.primaryColor],
-          title: 'AI تقييم فوري للعقار',
-          subtitle: 'ذكاء اصطناعي',
+          title: 'تقدير إيجار العقار',
+          subtitle: 'تقدير سريع',
           desc:
-              'أدخل بيانات عقارك (الحي، المساحة، عمر المبنى، التشطيب) واحصل خلال 5 ثواني على تقدير عادل لإيجاره وفق أسعار السوق الحالية في منطقتك.',
+              'أدخل الحي والمساحة وعمر المبنى والتشطيب للحصول على تقدير تقريبي للإيجار وفق أسعار المنطقة.',
           features: [
-            'سعر عادل',
-            'مقارنة السوق',
+            'سعر تقريبي',
+            'مقارنة المنطقة',
             'اتجاهات الأسعار',
             'عائد الاستثمار'
           ],
-          buttonText: 'قيّم عقارك مجاناً',
+          buttonText: 'قدّر الإيجار',
           onTap: () => _showAiValuationDialog(context),
         ),
         const SizedBox(height: 16),
         _buildInnovationBanner(
           icon: Icons.document_scanner_rounded,
           gradient: [AppTheme.primaryColor, AppTheme.primaryColor],
-          title: 'مسح العقد الذكي',
-          subtitle: 'توثيق فوري',
+          title: 'مسح العقد',
+          subtitle: 'توثيق المستند',
           desc:
-              'صوّر أي عقد إيجار ورقي وسيستخرج الذكاء الاصطناعي تلقائياً كل بياناته: الأطراف، المدة، الإيجار، والشروط، ويحفظها في سجلاتك الرقمية مباشرة.',
+              'صوّر عقد إيجار ورقي لاستخراج البيانات الأساسية: الأطراف، المدة، الإيجار، والشروط، وحفظها في سجلاتك.',
           features: [
             'استخراج البيانات',
-            'تشفير كامل',
+            'تشفير',
             'تخزين سحابي',
             'تنبيهات التجديد'
           ],
-          buttonText: 'امسح عقداً الآن',
+          buttonText: 'امسح عقداً',
           onTap: () => _showContractScannerDialog(context),
         ),
         const SizedBox(height: 16),
         _buildInnovationBanner(
           icon: Icons.location_on_rounded,
           gradient: [AppTheme.borderColor, AppTheme.borderColor],
-          title: 'تقرير الحي الذكي',
-          subtitle: 'تحليل شامل',
+          title: 'تقرير الحي',
+          subtitle: 'ملخص المنطقة',
           desc:
-              'قبل اتخاذ قرار الإيجار، احصل على تقرير تفصيلي للحي: نسبة الأمان، قرب المدارس والمستشفيات، ازدحام المرور في الساعات المختلفة، ومستوى الضوضاء.',
+              'قبل قرار الإيجار، اطّلع على ملخص للحي: الأمان، قرب المدارس والمستشفيات، المرور، ومستوى الضوضاء.',
           features: ['الأمان', 'التعليم', 'المواصلات', 'الهدوء'],
-          buttonText: 'حلّل الحي',
+          buttonText: 'عرض تقرير الحي',
           onTap: () => _showNeighborhoodReportDialog(context),
         ),
         const SizedBox(height: 30),
@@ -1048,7 +1048,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                       color: AppTheme.primaryColor,
                       borderRadius: BorderRadius.circular(2))),
               const SizedBox(height: 20),
-              const Text('AI تقييم فوري للعقار',
+              const Text('تقدير إيجار العقار',
                   style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w900,
@@ -1148,10 +1148,10 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
   void _showArStagingDialog(BuildContext context) {
     int selectedStyle = 0;
     final styles = [
-      {'name': 'مودرن ذهبي', 'icon': '🛋️', 'color': AppTheme.borderColor},
-      {'name': 'كلاسيك ملكي', 'icon': '🏛️', 'color': AppTheme.primaryColor},
-      {'name': 'مينيمال أبيض', 'icon': '⬜', 'color': AppTheme.textPrimary},
-      {'name': 'إسكانديناقي', 'icon': '🌿', 'color': AppTheme.primaryColor},
+      {'name': 'مودرن', 'icon': 'M', 'color': AppTheme.borderColor},
+      {'name': 'كلاسيك', 'icon': 'C', 'color': AppTheme.primaryColor},
+      {'name': 'مينيمال', 'icon': '—', 'color': AppTheme.textPrimary},
+      {'name': 'إسكانديناقي', 'icon': 'S', 'color': AppTheme.primaryColor},
     ];
     showModalBottomSheet(
       context: context,
@@ -1215,7 +1215,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                             width: sel ? 2 : 1),
                       ),
                       child: Row(children: [
-                        Text(safeStr(s['icon'], '✨'),
+                        Text(safeStr(s['icon'], '•'),
                             style: const TextStyle(fontSize: 22)),
                         const SizedBox(width: 8),
                         Text(safeStr(s['name'], ''),
@@ -1238,7 +1238,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                       content: Text(
-                          '✨ تم تطبيق أسلوب "${safeStr(styles[selectedStyle]['name'], 'عصري')}" على عقارك — النتيجة جاهزة!'),
+                          'تم تطبيق أسلوب "${safeStr(styles[selectedStyle]['name'], 'عصري')}" — يمكنك مراجعة النتيجة.'),
                       backgroundColor: styles[selectedStyle]['color'] as Color,
                       behavior: SnackBarBehavior.floating,
                       duration: const Duration(seconds: 3),
@@ -1290,12 +1290,12 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                 const Icon(Icons.document_scanner_rounded,
                     size: 60, color: AppTheme.primaryColor),
                 const SizedBox(height: 16),
-                const Text('مسح العقد الذكي',
+                const Text('مسح العقد',
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 8),
                 const Text(
-                    'صوّر العقد الورقي وسيستخرج الذكاء الاصطناعي بياناته فوراً',
+                    'صوّر العقد الورقي لاستخراج البيانات الأساسية',
                     style: TextStyle(color: AppTheme.primaryColor),
                     textAlign: TextAlign.center),
                 const SizedBox(height: 24),
@@ -1328,14 +1328,14 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                   const Column(children: [
                     CircularProgressIndicator(color: AppTheme.primaryColor),
                     SizedBox(height: 12),
-                    Text('جاري تحليل العقد بالذكاء الاصطناعي...',
+                    Text('جاري قراءة بيانات العقد...',
                         style: TextStyle(color: AppTheme.primaryColor))
                   ]),
               ] else ...[
                 const Icon(Icons.check_circle_rounded,
                     size: 60, color: AppTheme.primaryColor),
                 const SizedBox(height: 12),
-                const Text('تم استخراج البيانات بنجاح ✅',
+                const Text('تم استخراج البيانات بنجاح',
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 16),
@@ -1407,10 +1407,11 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                           borderRadius: BorderRadius.circular(2)))),
               const SizedBox(height: 20),
               const Row(children: [
-                Text('📍', style: TextStyle(fontSize: 28)),
+                Icon(Icons.location_on_rounded,
+                    size: 28, color: AppTheme.primaryColor),
                 SizedBox(width: 12),
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text('تقرير الحي الذكي',
+                  Text('تقرير الحي',
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
                   Text('حي المعادي — القاهرة',

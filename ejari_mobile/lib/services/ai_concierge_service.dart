@@ -4,20 +4,16 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import '../services/data_service.dart';
 import 'smart_pricing_service.dart';
 
-/// خدمة الذكاء الاصطناعي لمساعد كونسيرج إيجاري
-/// تستخدم Gemini API محلياً عبر حزمة google_generative_ai
+/// Property / booking help chat — Gemini when configured, local search otherwise.
 class AiConciergeService {
-  // ⚠️ ضع مفتاح Gemini API الخاص بك هنا من Google AI Studio
   static const String _geminiApiKey = 'your_gemini_api_key_here';
 
-  /// إرسال رسالة للنموذج واسترجاع الرد والعقارات المقترحة
-  /// يعود بـ Map يحتوي على:
-  ///   - 'reply': String — نص رد المساعد الذكي
-  ///   - 'properties': List<Map> — العقارات المقترحة من قاعدة البيانات
+  /// Returns:
+  ///   - 'reply': String
+  ///   - 'properties': List<Map>
   static Future<Map<String, dynamic>> getChatResponse(
       String userMessage) async {
     try {
-      // إذا لم يتم وضع المفتاح بعد، ارجع للبحث المحلي الافتراضي
       if (_geminiApiKey == 'your_gemini_api_key_here' ||
           _geminiApiKey.trim().isEmpty) {
         if (kDebugMode) {
@@ -33,27 +29,25 @@ class AiConciergeService {
           responseMimeType: 'application/json',
         ),
         systemInstruction: Content.system('''
-أنت المساعد الذكي النخبوّي لمنصة "إيجاري" (Ejari) للخدمات العقارية الفاخرة في مصر.
-مهمتك هي الإجابة عن استفسارات المستخدمين ومساعدتهم في إيجاد العقار المثالي بأرقى الأساليب.
-تحدث باللغة العربية الفصحى الراقية مع لمسة ودية ولطيفة تناسب النخبة، واستخدم الرموز التعبيرية (Emojis) الفاخرة مثل 💎, ✨, 🏠, 📍, 💼.
+أنت موظف دعم في منصة "إيجاري" للعقارات في مصر.
+أجب باختصار ووضوح بالعربية، بدون مبالغة تسويقية وبدون رموز تعبيرية.
+ساعد المستخدم في البحث عن عقار أو فهم الحجز والخطوات التالية.
 
 التعليمات:
-1. قم بتحليل رسالة المستخدم وتفضيلاته (السعر، الغرف، الموقع، الفرش، النوع).
-2. اختر العقارات الأكثر مطابقةً لطلبه من القائمة المتاحة أدناه وضع معرفاتها الـ (IDs) في حقل matchedIds.
-3. اكتب رداً محترفاً وجذاباً باللغة العربية يوجه للمستخدم ويشرح له لماذا هذه العقارات المقترحة تناسب طلبه.
-4. إذا لم تجد عقارات مطابقة، أجب بشكل رائع واجعل حقل matchedIds فارغاً [].
-5. ردك يجب أن يكون بصيغة JSON فقط بهذا الهيكل الدقيق:
+1. حلّل رسالة المستخدم (السعر، الغرف، الموقع، الفرش، النوع).
+2. اختر العقارات الأكثر مطابقة من القائمة وضع معرفاتها في matchedIds.
+3. اكتب رداً مهنياً يشرح لماذا تناسب المقترحات الطلب.
+4. إن لم تجد تطابقاً، أوضح ذلك واترك matchedIds فارغاً [].
+5. الرد JSON فقط:
 {
-  "reply": "نص الرد باللغة العربية...",
-  "matchedIds": ["معرف_العقار_الأول", "معرف_العقار_الثاني"]
+  "reply": "نص الرد...",
+  "matchedIds": ["id1", "id2"]
 }
 '''),
       );
 
-      // جلب العقارات من قاعدة البيانات المحلية / السحابية
       final availableProperties = await DataService.getAllProperties();
 
-      // تنسيق العقارات لتناسب فهم الـ Model
       final propertiesList = availableProperties
           .map((p) => {
                 'id': p['id'],
@@ -84,9 +78,8 @@ ${jsonEncode(propertiesList)}
 
       final List<dynamic> rawMatchedIds = parsedResult['matchedIds'] ?? [];
       final String reply = parsedResult['reply'] ??
-          'أهلاً بك في إيجاري كونسيرج 🔑 كيف يمكنني مساعدتك؟';
+          'أهلاً بك في مساعدة إيجاري. كيف يمكننا مساعدتك؟';
 
-      // مطابقة ה IDs المرجعة من الذكاء الاصطناعي مع العقارات الفعلية
       final List<Map<String, dynamic>> matchedProperties = availableProperties
           .where((p) => rawMatchedIds.contains(p['id']))
           .toList();
@@ -99,12 +92,10 @@ ${jsonEncode(propertiesList)}
       if (kDebugMode) {
         print('Gemini API Error: $e');
       }
-      // 🔄 الـ Fallback المحلي — يُفعَّل عند انقطاع الاتصال أو خطأ في النموذج
       return await _localFallback(userMessage);
     }
   }
 
-  /// نظام السقوط الآمن المحلي — يعمل عند تعذّر الاتصال بالخادم
   static Future<Map<String, dynamic>> _localFallback(String query) async {
     await Future.delayed(const Duration(milliseconds: 800));
 
@@ -154,10 +145,10 @@ ${jsonEncode(propertiesList)}
     String reply;
     if (results.isNotEmpty) {
       reply =
-          'أهلاً يا فندم! 🔑 وجدت لك ${results.length} عقار يناسب طلبك. (ملاحظة: النظام يعمل حالياً بالبحث المحلي لعدم تفعيل Gemini)';
+          'وجدت ${results.length} عقاراً يناسب طلبك. يمكنك فتح أي بطاقة للتفاصيل أو الحجز.';
     } else {
       reply =
-          'عذراً يا فندم، لم أجد عقارات تطابق "$query" حالياً. (ملاحظة: النظام يعمل حالياً بالبحث المحلي لعدم تفعيل Gemini) 🔑';
+          'لم أجد عقارات تطابق "$query" حالياً. جرّب تغيير المنطقة أو نوع العقار، أو تواصل مع الدعم.';
     }
 
     return {'reply': reply, 'properties': results};

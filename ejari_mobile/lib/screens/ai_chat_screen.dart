@@ -26,7 +26,7 @@ class _AiChatScreenState extends State<AiChatScreen>
         AnimationController(vsync: this, duration: const Duration(seconds: 2))
           ..repeat(reverse: true);
     _addBotMessage(
-        'أهلاً بك يا سيدي في "إيجاري كونسيرج" 🔑\nأنا مساعدك النخبوي.. كيف يمكنني ترتيب احتياجاتك اليوم؟');
+        'أهلاً بك في مساعدة إيجاري.\nاسأل عن عقار، حجز، أو خدمة — وسنوجّهك للخطوة المناسبة.');
   }
 
   @override
@@ -97,30 +97,17 @@ class _AiChatScreenState extends State<AiChatScreen>
           backgroundColor: AppTheme.primaryColor,
           elevation: 0,
           centerTitle: true,
-          title: Row(
+          title: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              AnimatedBuilder(
-                animation: _pulseController,
-                builder: (context, child) {
-                  return Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [],
-                    ),
-                    child: const Icon(Icons.stars_rounded,
-                        color: AppTheme.primaryColor, size: 24),
-                  );
-                },
-              ),
-              const SizedBox(width: 8),
-              const Text('Ejari Concierge',
+              Icon(Icons.support_agent_rounded,
+                  color: Colors.white, size: 22),
+              SizedBox(width: 8),
+              Text('المساعدة',
                   style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                      fontFamily: 'Serif')),
+                      fontSize: 18)),
             ],
           ),
           leading: IconButton(
@@ -172,12 +159,12 @@ class _AiChatScreenState extends State<AiChatScreen>
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _buildQuickAction('عقارات مميزة',
+                        _buildQuickAction('عقارات متاحة',
                             'اعرض لي أفضل العقارات المتاحة حالياً'),
                         _buildQuickAction(
-                            'سيارات فارهة 🏎️', 'أرغب في استئجار سيارة رياضية'),
+                            'تأجير سيارة', 'أرغب في استئجار سيارة'),
                         _buildQuickAction(
-                            'تنظيف فندقي 🧹', 'احتاج لخدمة تنظيف فندقية'),
+                            'تنظيف', 'أحتاج لخدمة تنظيف للوحدة'),
                       ],
                     ),
                   ),
@@ -208,7 +195,7 @@ class _AiChatScreenState extends State<AiChatScreen>
                 padding: const EdgeInsets.all(8),
                 decoration: const BoxDecoration(
                     color: AppTheme.textPrimary, shape: BoxShape.circle),
-                child: const Icon(Icons.auto_awesome,
+                child: const Icon(Icons.support_agent_rounded,
                     color: AppTheme.primaryColor, size: 18),
               ),
               const SizedBox(width: 8),
@@ -428,7 +415,7 @@ class _AiChatScreenState extends State<AiChatScreen>
               color: AppTheme.textPrimary,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: const Text('يفكر...',
+            child: const Text('جارٍ الرد...',
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 13,
@@ -481,7 +468,7 @@ class _AiChatScreenState extends State<AiChatScreen>
                 controller: _controller,
                 style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(
-                  hintText: 'اطلب من الكونسيرج...',
+                  hintText: 'اكتب سؤالك هنا...',
                   hintStyle: TextStyle(color: Colors.white70),
                   border: InputBorder.none,
                   contentPadding:

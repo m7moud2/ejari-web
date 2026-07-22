@@ -196,7 +196,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
               radius: 18,
               backgroundColor: AppTheme.surfaceColor,
               child: Icon(
-                _escalated ? Icons.support_agent : Icons.smart_toy_outlined,
+                _escalated ? Icons.support_agent : Icons.help_outline,
                 size: 20,
                 color: AppTheme.primaryColor,
               ),
@@ -582,7 +582,6 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
             children: shortcuts.map((s) {
               final isEsc = s['isEscalation'] == true;
               return ActionChip(
-                avatar: Text(s['emoji']?.toString() ?? ''),
                 label: Text(
                   s['label']?.toString() ?? '',
                   style: TextStyle(
