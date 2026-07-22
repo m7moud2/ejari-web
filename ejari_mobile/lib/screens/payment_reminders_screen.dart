@@ -399,15 +399,16 @@ class _EmptyReminders extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final message = filter == 'متأخر'
-        ? 'لا توجد دفعات متأخرة — أحسنت!'
+        ? 'لا توجد دفعات متأخرة'
         : filter == 'قادم'
-            ? 'لا توجد دفعات قادمة خلال الـ 60 يوماً القادمة'
+            ? 'لا توجد دفعات قادمة خلال 60 يوماً'
             : 'لا توجد تذكيرات دفع حالياً';
 
     return EmptyStateView(
       icon: Icons.check_circle_outline_rounded,
       title: message,
-      subtitle: 'ستظهر هنا أقساط الإيجار والعربون المستحقة من حجوزاتك.',
+      subtitle:
+          'أقساط الإيجار والعربون من حجوزاتك تظهر هنا مع رابط مباشر للدفع.',
       actionLabel: 'عرض حجوزاتي',
       actionIcon: Icons.calendar_month_rounded,
       onAction: () {

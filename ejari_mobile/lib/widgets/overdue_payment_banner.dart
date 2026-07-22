@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
-import '../screens/tenant_installments_screen.dart';
+import '../screens/payment_reminders_screen.dart';
 import '../screens/notification_center_screen.dart';
 
 /// بانر push-style عند تأخر الدفع.
@@ -49,7 +49,7 @@ class _OverduePaymentBannerState extends State<OverduePaymentBanner> {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => const TenantInstallmentsScreen(),
+              builder: (_) => const PaymentRemindersScreen(),
             ),
           ),
           child: Padding(
@@ -71,7 +71,7 @@ class _OverduePaymentBannerState extends State<OverduePaymentBanner> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _overdue!['title']?.toString() ?? 'تأخر في الدفع ⚠️',
+                        _overdue!['title']?.toString() ?? 'تأخر في الدفع',
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,

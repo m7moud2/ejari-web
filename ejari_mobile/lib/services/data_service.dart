@@ -1554,7 +1554,7 @@ class DataService {
     if (prefs.getBool(key) == true) return;
     await addNotificationToUser(
       tenantEmail,
-      'تأخر في الدفع ⚠️',
+      'تأخر في الدفع',
       'قسط الإيجار متأخر — ادفع الآن لتجنب الغرامات',
       type: 'payment_overdue',
       refId: 'demo_req_1',

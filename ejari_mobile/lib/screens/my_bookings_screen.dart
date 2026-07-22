@@ -288,7 +288,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         icon: Icons.calendar_today_outlined,
         title: 'لا توجد حجوزات حالياً',
         subtitle:
-            'أول ما تعمل حجز أو تدفع عربون، هتظهر الحالة هنا بشكل واضح، ومعها المتبقي أو الاسترداد لو حصل تغيير.',
+            'من هنا تتابع حالة كل حجز: عربون، موافقة، دفع، QR للاستلام، والخروج.',
         actionLabel: 'استكشف العقارات',
         actionIcon: Icons.search_rounded,
         onAction: () {

@@ -224,9 +224,9 @@ class OwnerHomeView extends StatelessWidget {
         page: const OwnerCollectionScreen(),
       ),
       (
-        label: 'شجرة الأسرّة',
-        icon: Icons.account_tree_rounded,
-        page: const BedHierarchyScreen(),
+        label: 'صيانة',
+        icon: Icons.build_circle_rounded,
+        page: const MaintenanceRequestsScreen(),
       ),
     ];
   }
@@ -236,6 +236,14 @@ class OwnerHomeView extends StatelessWidget {
       context,
       title: 'المزيد من الأدوات',
       items: [
+        (
+          label: 'شجرة الأسرّة',
+          icon: Icons.account_tree_rounded,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const BedHierarchyScreen()),
+          ),
+        ),
         (
           label: 'تحقق QR للاستلام',
           icon: Icons.qr_code_scanner_rounded,
@@ -306,16 +314,6 @@ class OwnerHomeView extends StatelessWidget {
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const MyContractsScreen()),
-          ),
-        ),
-        (
-          label: 'متابعة الصيانة',
-          icon: Icons.build_circle_rounded,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const MaintenanceRequestsScreen(),
-            ),
           ),
         ),
         (

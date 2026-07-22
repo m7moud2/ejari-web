@@ -19,7 +19,7 @@ class ViewingAppointmentService {
   ViewingAppointmentService._();
 
   static const _storageKey = 'viewing_appointments_v1';
-  static const _demoSeededKey = 'viewing_appointments_demo_v1';
+  static const _demoSeededKey = 'viewing_appointments_demo_v2';
 
   static bool get _useFirestore => !AppConfig.demoMode;
 
@@ -53,27 +53,61 @@ class ViewingAppointmentService {
     if (_useFirestore) return;
     final prefs = await SharedPreferences.getInstance();
     if (prefs.getBool(_demoSeededKey) == true) return;
-    final existing = await _loadAllLocal();
-    if (existing.isNotEmpty) {
-      await prefs.setBool(_demoSeededKey, true);
-      return;
-    }
 
-    final slot = DateTime.now().add(const Duration(days: 2, hours: 2));
-    final demo = ViewingAppointment(
-      id: 'view_demo_1',
-      propertyId: 'egy1',
-      propertyTitle: 'شقة فاخرة على النيل - المعادي',
-      propertyImage: 'assets/images/home1.jpg',
-      tenantEmail: 'user@ejari.app',
-      tenantName: 'مستأجر تجريبي',
-      ownerEmail: 'owner@ejari.app',
-      scheduledAt: DateTime(slot.year, slot.month, slot.day, 16, 0),
-      status: ViewingStatus.requested,
-      createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-      note: 'معاينة تجريبية — بانتظار موافقة المالك',
+    final existing = await _loadAllLocal();
+    final byId = {for (final a in existing) a.id: a};
+
+    final slotRequested =
+        DateTime.now().add(const Duration(days: 2, hours: 2));
+    final slotConfirmed =
+        DateTime.now().add(const Duration(days: 1, hours: 3));
+
+    byId.putIfAbsent(
+      'view_demo_1',
+      () => ViewingAppointment(
+        id: 'view_demo_1',
+        propertyId: 'egy1',
+        propertyTitle: 'شقة فاخرة على النيل - المعادي',
+        propertyImage: 'assets/images/home1.jpg',
+        tenantEmail: 'user@ejari.app',
+        tenantName: 'مستأجر تجريبي',
+        ownerEmail: 'owner@ejari.app',
+        scheduledAt: DateTime(
+          slotRequested.year,
+          slotRequested.month,
+          slotRequested.day,
+          16,
+          0,
+        ),
+        status: ViewingStatus.requested,
+        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
+        note: 'معاينة تجريبية — بانتظار موافقة المالك',
+      ),
     );
-    await _saveAllLocal([demo]);
+    byId.putIfAbsent(
+      'view_demo_confirmed',
+      () => ViewingAppointment(
+        id: 'view_demo_confirmed',
+        propertyId: 'egy2',
+        propertyTitle: 'فيلا مستقلة التجمع الخامس',
+        propertyImage: 'assets/images/home2.jpg',
+        tenantEmail: 'user@ejari.app',
+        tenantName: 'مستأجر تجريبي',
+        ownerEmail: 'owner@ejari.app',
+        scheduledAt: DateTime(
+          slotConfirmed.year,
+          slotConfirmed.month,
+          slotConfirmed.day,
+          11,
+          0,
+        ),
+        status: ViewingStatus.confirmed,
+        createdAt: DateTime.now().subtract(const Duration(days: 1)),
+        note: 'موعد مؤكد — جاهز لتأكيد الحضور أو الحجز',
+      ),
+    );
+
+    await _saveAllLocal(byId.values.toList());
     await prefs.setBool(_demoSeededKey, true);
   }
 

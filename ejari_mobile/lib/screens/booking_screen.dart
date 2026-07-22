@@ -1279,13 +1279,13 @@ class _BookingScreenState extends State<BookingScreen> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text('التحقق الرقمي الآمن',
+                                        Text('التحقق من الهوية',
                                             style: TextStyle(
                                                 color: Colors.white,
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16)),
                                         Text(
-                                            'نستخدم أحدث تقنيات الذكاء الاصطناعي لمطابقة الهوية.',
+                                            'ارفع سيلفي وصورة الهوية لمراجعة الطلب قبل تأكيد الحجز.',
                                             style: TextStyle(
                                                 color: Colors.white70,
                                                 fontSize: 12)),

@@ -23,7 +23,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
     {
       'isMe': false,
       'text':
-          'أهلاً بك في خدمات إيجاري، كيف يمكنني مساعدتك في استثمارك القادم؟',
+          'أهلاً بك في دعم إيجاري. كيف نقدر نساعدك في حجز أو عقار أو دفعة؟',
       'time': DateTime.now().subtract(const Duration(minutes: 5)).toString(),
     },
   ];

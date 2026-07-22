@@ -118,7 +118,7 @@ class _MyViewingsScreenState extends State<MyViewingsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(result['success'] == true
-            ? 'تم تأكيد حضورك — اكتملت المعاينة ✅'
+            ? 'تم تأكيد حضورك — اكتملت المعاينة'
             : result['message']?.toString() ?? 'تعذر التأكيد'),
         backgroundColor: result['success'] == true
             ? AppTheme.primaryColor

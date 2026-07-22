@@ -10,7 +10,7 @@
     ar: {
       "meta.title": "إيجاري — إدارة الإيجار في مصر",
       "meta.desc":
-        "إيجاري تطبيق لإدارة الإيجار: عقود، دفع، معاينة، صيانة، ومحفظة — للمستأجر والمالك. الإصدار 1.3.13 لأندرويد.",
+        "إيجاري تطبيق لإدارة الإيجار: عقود، دفع، معاينة، صيانة، ومحفظة — للمستأجر والمالك. الإصدار 1.3.14 لأندرويد.",
       "a11y.skip": "تخطّي إلى المحتوى",
       "nav.brand": "إيجاري",
       "nav.trust": "ليه إيجاري",
@@ -90,11 +90,11 @@
       "dl.lede":
         "الإصدار الحالي متاح كملف APK. قريباً على Google Play.",
       "dl.version":
-        "أندرويد <strong>1.3.13</strong> · حجم تقريبي حسب جهازك · أندرويد فقط حالياً",
-      "dl.apk": "تنزيل APK · 1.3.13",
+        "أندرويد <strong>1.3.14</strong> · حجم تقريبي حسب جهازك · أندرويد فقط حالياً",
+      "dl.apk": "تنزيل APK · 1.3.14",
       "dl.howto": "تعليمات التثبيت",
       "dl.upgrade":
-        "لو عندك نسخة قديمة: احذفها الأول، بعدين ثبّت 1.3.13 عشان ما يحصلش تعارض توقيع.",
+        "لو عندك نسخة قديمة: احذفها الأول، بعدين ثبّت 1.3.14 عشان ما يحصلش تعارض توقيع.",
       "dl.caption":
         "صورة توضيحية — استبدلوها بصور وحداتكم الرسمية لاحقاً.",
       "dl.photoAlt": "شقة سكنية",
@@ -119,30 +119,30 @@
       "footer.download": "التحميل",
       "footer.howto": "تعليمات التثبيت",
       "footer.releases": "أحدث الإصدارات",
-      "footer.copy": "© 2026 إيجاري · الإصدار 1.3.13",
+      "footer.copy": "© 2026 إيجاري · الإصدار 1.3.14",
       "footer.tag": "Ejari — rental ops for Egypt",
 
       "sticky.aria": "تحميل سريع",
-      "sticky.title": "إيجاري 1.3.13",
+      "sticky.title": "إيجاري 1.3.14",
       "sticky.sub": "APK لأندرويد",
       "sticky.cta": "تحميل",
 
-      "dlpage.title": "تحميل إيجاري 1.3.13 — تعليمات التثبيت",
+      "dlpage.title": "تحميل إيجاري 1.3.14 — تعليمات التثبيت",
       "dlpage.meta":
-        "حمّل إيجاري 1.3.13 لأندرويد وثبّته خطوة بخطوة. ملف APK مباشر.",
+        "حمّل إيجاري 1.3.14 لأندرويد وثبّته خطوة بخطوة. ملف APK مباشر.",
       "dlpage.aria": "تحميل التطبيق",
-      "dlpage.brandSub": "v1.3.13",
+      "dlpage.brandSub": "v1.3.14",
       "dlpage.line": "ثبّت إيجاري على أندرويد.",
       "dlpage.sub":
         "ملف APK مباشر من إصدارنا الرسمي. لو عندك نسخة قديمة — امسحها الأول.",
-      "dlpage.cta": "تنزيل ejari-1.3.13.apk",
+      "dlpage.cta": "تنزيل ejari-1.3.14.apk",
       "dlpage.back": "العودة للموقع",
       "dlpage.stepsTitle": "خطوات التثبيت",
       "dlpage.stepsLede":
         "صفحة مساعدة قصيرة — زي ما بنرد على واتساب لما حد يسأل «إزاي أثبّت؟».",
       "dlpage.s1.title": "نزّل الملف",
       "dlpage.s1.body":
-        "اضغط زر التنزيل واحفظ <strong>ejari-1.3.13.apk</strong> على الموبايل.",
+        "اضغط زر التنزيل واحفظ <strong>ejari-1.3.14.apk</strong> على الموبايل.",
       "dlpage.s2.title": "اسمح بالتثبيت من المصدر",
       "dlpage.s2.body":
         "أندرويد هيطلب إذن تثبيت من المتصفح أو مدير الملفات (مصادر غير معروفة). وافق مرة للمتصفح اللي نزّلت منه — ده سلوك طبيعي لأي APK برا المتجر.",
@@ -150,7 +150,7 @@
       "dlpage.s3.body":
         "افتح الـ APK من الإشعارات أو التحميلات، واضغط تثبيت. بعدين افتح إيجاري من الشاشة الرئيسية.",
       "dlpage.note":
-        "لو التثبيت فشل بسبب تعارض التوقيع: امسح أي نسخة قديمة من إيجاري، بعدين ثبّت 1.3.13 من جديد.",
+        "لو التثبيت فشل بسبب تعارض التوقيع: امسح أي نسخة قديمة من إيجاري، بعدين ثبّت 1.3.14 من جديد.",
       "dlpage.retry": "تنزيل مرة تانية",
       "dlpage.privacy": "الخصوصية",
       "dlpage.terms": "الشروط",
@@ -159,11 +159,11 @@
       "dlpage.support": "الدعم:",
       "dlpage.footerTag": "تحميل APK لأندرويد",
       "dlpage.honest":
-        "أندرويد 1.3.13 — قريباً على Google Play. التحميل الحالي عبر ملف APK موقّع من إيجاري.",
+        "أندرويد 1.3.14 — قريباً على Google Play. التحميل الحالي عبر ملف APK موقّع من إيجاري.",
       "dlpage.beforeTitle": "قبل ما تبدأ",
       "dlpage.beforeBody":
         "أندرويد فقط. لو عندك إيجاري قديم — امسحه من إعدادات التطبيقات الأول عشان التوقيع ما يتعارضش.",
-      "dlpage.fileChip": "ejari-1.3.13.apk",
+      "dlpage.fileChip": "ejari-1.3.14.apk",
       "dlpage.needTitle": "هتحتاج",
       "dlpage.need1": "موبايل أندرويد واتصال بالنت",
       "dlpage.need2": "سماح لمرة واحدة بالتثبيت من المتصفح أو مدير الملفات",
@@ -183,7 +183,7 @@
     en: {
       "meta.title": "Ejari — Rental management in Egypt",
       "meta.desc":
-        "Ejari helps tenants and owners manage rentals: contracts, payments, viewing, maintenance, and wallet. Android 1.3.13.",
+        "Ejari helps tenants and owners manage rentals: contracts, payments, viewing, maintenance, and wallet. Android 1.3.14.",
       "a11y.skip": "Skip to content",
       "nav.brand": "Ejari",
       "nav.trust": "Why Ejari",
@@ -269,11 +269,11 @@
       "dl.lede":
         "The current release is available as an APK. Coming soon on Google Play.",
       "dl.version":
-        "Android <strong>1.3.13</strong> · size depends on your device · Android only for now",
-      "dl.apk": "Download APK · 1.3.13",
+        "Android <strong>1.3.14</strong> · size depends on your device · Android only for now",
+      "dl.apk": "Download APK · 1.3.14",
       "dl.howto": "Install guide",
       "dl.upgrade":
-        "If you have an older build: uninstall it first, then install 1.3.13 to avoid a signature conflict.",
+        "If you have an older build: uninstall it first, then install 1.3.14 to avoid a signature conflict.",
       "dl.caption":
         "Illustrative photo — replace with your official unit photos later.",
       "dl.photoAlt": "Apartment interior",
@@ -298,30 +298,30 @@
       "footer.download": "Download",
       "footer.howto": "Install guide",
       "footer.releases": "Latest releases",
-      "footer.copy": "© 2026 Ejari · version 1.3.13",
+      "footer.copy": "© 2026 Ejari · version 1.3.14",
       "footer.tag": "Ejari — rental ops for Egypt",
 
       "sticky.aria": "Quick download",
-      "sticky.title": "Ejari 1.3.13",
+      "sticky.title": "Ejari 1.3.14",
       "sticky.sub": "Android APK",
       "sticky.cta": "Download",
 
-      "dlpage.title": "Download Ejari 1.3.13 — install guide",
+      "dlpage.title": "Download Ejari 1.3.14 — install guide",
       "dlpage.meta":
-        "Download Ejari 1.3.13 for Android and install step by step. Direct APK.",
+        "Download Ejari 1.3.14 for Android and install step by step. Direct APK.",
       "dlpage.aria": "App download",
-      "dlpage.brandSub": "v1.3.13",
+      "dlpage.brandSub": "v1.3.14",
       "dlpage.line": "Install Ejari on Android.",
       "dlpage.sub":
         "Direct APK from our official release. If you already have an older build — remove it first.",
-      "dlpage.cta": "Download ejari-1.3.13.apk",
+      "dlpage.cta": "Download ejari-1.3.14.apk",
       "dlpage.back": "Back to site",
       "dlpage.stepsTitle": "Install steps",
       "dlpage.stepsLede":
         "A short help page — the same answer we give on WhatsApp when someone asks how to install.",
       "dlpage.s1.title": "Download the file",
       "dlpage.s1.body":
-        "Tap download and save <strong>ejari-1.3.13.apk</strong> on your phone.",
+        "Tap download and save <strong>ejari-1.3.14.apk</strong> on your phone.",
       "dlpage.s2.title": "Allow install from that source",
       "dlpage.s2.body":
         "Android will ask for permission to install from the browser or file manager (unknown sources). Allow it once for the app you downloaded with — normal for any APK outside the Play Store.",
@@ -329,7 +329,7 @@
       "dlpage.s3.body":
         "Open the APK from notifications or Downloads, tap Install, then open Ejari from your home screen.",
       "dlpage.note":
-        "If install fails due to a signature conflict: remove any older Ejari build, then install 1.3.13 again.",
+        "If install fails due to a signature conflict: remove any older Ejari build, then install 1.3.14 again.",
       "dlpage.retry": "Download again",
       "dlpage.privacy": "Privacy",
       "dlpage.terms": "Terms",
@@ -338,11 +338,11 @@
       "dlpage.support": "Support:",
       "dlpage.footerTag": "Android APK download",
       "dlpage.honest":
-        "Android 1.3.13 — coming soon on Google Play. Current download is a signed Ejari APK.",
+        "Android 1.3.14 — coming soon on Google Play. Current download is a signed Ejari APK.",
       "dlpage.beforeTitle": "Before you start",
       "dlpage.beforeBody":
         "Android only. If you already have an older Ejari build — uninstall it first so the signature does not conflict.",
-      "dlpage.fileChip": "ejari-1.3.13.apk",
+      "dlpage.fileChip": "ejari-1.3.14.apk",
       "dlpage.needTitle": "You will need",
       "dlpage.need1": "An Android phone and a network connection",
       "dlpage.need2": "One-time permission to install from the browser or file manager",

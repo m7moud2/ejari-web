@@ -23,6 +23,7 @@ import '../rental_statement_screen.dart';
 import '../favorites_screen.dart';
 import '../my_viewings_screen.dart';
 import '../advanced_filters_screen.dart';
+import '../payment_reminders_screen.dart';
 import '../../services/demo_flow_service.dart';
 import '../../services/data_service.dart';
 import '../../services/location_service.dart';
@@ -146,15 +147,13 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                   const SizedBox(height: AppTheme.spaceSm),
                   _buildSearchCard(context),
                   const SizedBox(height: AppTheme.spaceSm),
-                  if (pendingViewings > 0) ...[
-                    _buildViewingCta(context, pendingViewings),
-                    const SizedBox(height: AppTheme.spaceSm),
-                  ],
+                  _buildViewingCta(context, pendingViewings),
+                  const SizedBox(height: AppTheme.spaceSm),
                   if (stats['contextualAction'] != null) ...[
                     _buildContextualAction(context, stats),
                     const SizedBox(height: AppTheme.spaceSm),
                   ],
-                  HomeQuickLookRow(tiles: _quickLookTiles(stats)),
+                  HomeQuickLookRow(tiles: _quickLookTiles(context, stats)),
                   const SizedBox(height: AppTheme.spaceSm),
                   HomePrimaryActionRow(actions: _primaryActions(context, stats)),
                   const SizedBox(height: AppTheme.spaceMd),
@@ -322,8 +321,11 @@ class _TenantHomeViewState extends State<TenantHomeView> {
   }
 
   Widget _buildViewingCta(BuildContext context, int count) {
+    final urgent = count > 0;
     return Material(
-      color: AppTheme.accentColor.withOpacity(0.12),
+      color: urgent
+          ? AppTheme.accentColor.withOpacity(0.12)
+          : AppTheme.primaryColor.withOpacity(0.06),
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
@@ -335,17 +337,37 @@ class _TenantHomeViewState extends State<TenantHomeView> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
             children: [
-              const Icon(Icons.visibility_rounded, color: AppTheme.accentColor),
+              Icon(
+                Icons.visibility_rounded,
+                color: urgent ? AppTheme.accentColor : AppTheme.primaryColor,
+              ),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  count == 1
-                      ? 'لديك موعد معاينة بانتظار المتابعة'
-                      : 'لديك $count مواعيد معاينة',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 13,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      urgent
+                          ? (count == 1
+                              ? 'موعد معاينة بانتظار المتابعة'
+                              : '$count مواعيد معاينة')
+                          : 'معاينة العقار',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                      ),
+                    ),
+                    Text(
+                      urgent
+                          ? 'افتح المواعيد للتأكيد أو الإلغاء'
+                          : 'اطلب موعداً من صفحة العقار أو تابع مواعيدك هنا',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const Icon(Icons.chevron_left_rounded),
@@ -356,10 +378,14 @@ class _TenantHomeViewState extends State<TenantHomeView> {
     );
   }
 
-  List<HomeQuickLookTile> _quickLookTiles(Map<String, dynamic> stats) {
+  List<HomeQuickLookTile> _quickLookTiles(
+    BuildContext context,
+    Map<String, dynamic> stats,
+  ) {
     final hasBooking = stats['activeBooking'] == true;
     final trust = (stats['trustScore'] as num?)?.toInt() ?? 0;
     final nextAmount = (stats['nextInstallmentAmount'] as num?)?.toInt() ?? 0;
+    final bookingId = stats['bookingId']?.toString() ?? '';
 
     return [
       HomeQuickLookTile(
@@ -367,16 +393,35 @@ class _TenantHomeViewState extends State<TenantHomeView> {
         value: hasBooking ? 'نشط' : 'لا يوجد',
         hint: hasBooking
             ? (stats['nextActionLabel']?.toString() ?? 'قيد المتابعة')
-            : 'ابدأ البحث',
+            : 'افتح حجوزاتي',
         icon: Icons.event_available_rounded,
         color: AppTheme.accentColor,
+        onTap: () {
+          if (hasBooking && bookingId.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BookingTrackScreen(bookingId: bookingId),
+              ),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MyBookingsScreen()),
+            );
+          }
+        },
       ),
       HomeQuickLookTile(
-        label: 'المحفظة',
+        label: 'الدفع',
         value: nextAmount > 0 ? '$nextAmount ج.م' : 'محدّث',
-        hint: 'القسط القادم',
-        icon: Icons.account_balance_wallet_rounded,
+        hint: nextAmount > 0 ? 'قسط قادم — تذكيرات' : 'تذكيرات الدفع',
+        icon: Icons.notifications_active_outlined,
         color: const Color(0xFFB58D3D),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PaymentRemindersScreen()),
+        ),
       ),
       HomeQuickLookTile(
         label: 'الثقة',
@@ -391,6 +436,15 @@ class _TenantHomeViewState extends State<TenantHomeView> {
         hint: _unreadNotifications > 0 ? 'جديد' : 'لا جديد',
         icon: Icons.notifications_rounded,
         color: const Color(0xFF2D6A5A),
+        onTap: () async {
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const NotificationCenterScreen(),
+            ),
+          );
+          _loadExtras();
+        },
       ),
     ];
   }
@@ -400,14 +454,15 @@ class _TenantHomeViewState extends State<TenantHomeView> {
     Map<String, dynamic> stats,
   ) {
     // Avoid duplicating bottom-nav primaries (استكشف / حجوزاتي / المحفظة).
+    // معاينة is not in the tab bar — keep it on the home surface.
     return [
       HomePrimaryAction(
-        label: 'عقودي',
-        icon: Icons.description_outlined,
+        label: 'معاينة',
+        icon: Icons.visibility_rounded,
         color: const Color(0xFF0F3A30),
         onTap: () => Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const MyContractsScreen()),
+          MaterialPageRoute(builder: (_) => const MyViewingsScreen()),
         ),
       ),
       HomePrimaryAction(
@@ -441,6 +496,14 @@ class _TenantHomeViewState extends State<TenantHomeView> {
       title: 'اختصارات المستأجر',
       items: [
         (
+          label: 'عقودي',
+          icon: Icons.description_outlined,
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MyContractsScreen()),
+          ),
+        ),
+        (
           label: 'المفضلة',
           icon: Icons.favorite_border_rounded,
           onTap: () => Navigator.push(
@@ -449,11 +512,11 @@ class _TenantHomeViewState extends State<TenantHomeView> {
           ),
         ),
         (
-          label: 'مواعيدي',
-          icon: Icons.visibility_rounded,
+          label: 'تذكيرات الدفع',
+          icon: Icons.notifications_active_outlined,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const MyViewingsScreen()),
+            MaterialPageRoute(builder: (_) => const PaymentRemindersScreen()),
           ),
         ),
         (
