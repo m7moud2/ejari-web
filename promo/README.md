@@ -18,7 +18,7 @@ English deep link: https://m7moud2.github.io/ejari-web/promo/?lang=en
 
 APK (keep this URL until the next release):
 
-`https://github.com/m7moud2/ejari-web/releases/download/v1.3.10/ejari-1.3.10.apk`
+`https://github.com/m7moud2/ejari-web/releases/download/v1.3.13/ejari-1.3.13.apk`
 
 Install help: [download.html](./download.html)  
 Download counter: Firestore `public_stats/downloads` via `js/download-stats.js`
