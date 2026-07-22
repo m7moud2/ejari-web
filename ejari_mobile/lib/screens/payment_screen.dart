@@ -170,12 +170,40 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<void> _loadSavedPaymentMethod() async {
+    final preferred = widget.itemData['preferredPaymentMethod']?.toString();
     final saved = await PaymentMethodsService.getSelectedMethod();
     final defaultCard = await PaymentMethodsService.getDefaultCard();
     if (!mounted) return;
+
+    String category = saved['category'] ?? 'cards';
+    String subMethod = saved['subMethod'] ?? 'visa';
+
+    if (preferred != null && preferred.isNotEmpty) {
+      switch (preferred) {
+        case 'visa':
+        case 'mastercard':
+          category = 'cards';
+          subMethod = preferred;
+          break;
+        case 'apple_pay':
+        case 'google_pay':
+          category = 'cards';
+          subMethod = preferred;
+          break;
+        case 'instapay':
+          category = 'wallets';
+          subMethod = 'instapay';
+          break;
+        case 'wallet':
+          category = 'wallet_balance';
+          subMethod = 'wallet';
+          break;
+      }
+    }
+
     setState(() {
-      _selectedCategory = saved['category'] ?? 'cards';
-      _selectedSubMethod = saved['subMethod'] ?? 'visa';
+      _selectedCategory = category;
+      _selectedSubMethod = subMethod;
     });
     if (defaultCard != null && _selectedCategory == 'cards') {
       final num = defaultCard['number']?.toString() ?? '';

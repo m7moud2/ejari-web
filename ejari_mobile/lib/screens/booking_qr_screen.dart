@@ -4,6 +4,7 @@ import '../models/booking_status.dart';
 import '../theme/app_theme.dart';
 import '../services/booking_qr_service.dart';
 import '../widgets/ejari_section.dart';
+import 'payment_screen.dart';
 
 /// عرض QR للحجز — payload حقيقي يمكن للمالك مسحه/التحقق منه ثم تأكيد الاستلام.
 class BookingQrScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class _BookingQrScreenState extends State<BookingQrScreen> {
   Map<String, dynamic>? _qr;
   bool get _ready => BookingQrService.isQrReady(widget.booking);
   bool get _alreadyIn => widget.booking['checkedInAt'] != null;
+  bool get _showLiveQr => _ready || _alreadyIn;
 
   @override
   void initState() {
@@ -29,6 +31,34 @@ class _BookingQrScreenState extends State<BookingQrScreen> {
   Future<void> _generate() async {
     final qr = await BookingQrService.generateForBooking(widget.booking);
     if (mounted) setState(() => _qr = qr);
+  }
+
+  double get _payAmount {
+    final raw = widget.booking['remainingAmount'] ??
+        widget.booking['depositAmount'] ??
+        widget.booking['preEntryAmount'] ??
+        widget.booking['price'] ??
+        0;
+    if (raw is num) return raw.toDouble();
+    return double.tryParse(raw.toString().replaceAll(RegExp(r'[^0-9.]'), '')) ??
+        0;
+  }
+
+  void _openPayment() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentScreen(
+          itemType: 'property',
+          itemData: widget.booking,
+          amount: _payAmount > 0 ? _payAmount : 500,
+          paymentStage: widget.booking['status']?.toString() ==
+                  BookingStatus.approved
+              ? 'remaining'
+              : 'deposit',
+        ),
+      ),
+    );
   }
 
   @override
@@ -48,7 +78,7 @@ class _BookingQrScreenState extends State<BookingQrScreen> {
               padding: const EdgeInsets.all(AppTheme.screenPadding),
               child: Column(
                 children: [
-                  if (!_ready && !_alreadyIn)
+                  if (!_showLiveQr)
                     EjariSurfaceCard(
                       elevated: false,
                       child: Text(
@@ -63,7 +93,7 @@ class _BookingQrScreenState extends State<BookingQrScreen> {
                         textAlign: TextAlign.center,
                       ),
                     ),
-                  if (!_ready && !_alreadyIn) const SizedBox(height: 12),
+                  if (!_showLiveQr) const SizedBox(height: 12),
                   if (_alreadyIn)
                     const EjariSurfaceCard(
                       elevated: false,
@@ -83,12 +113,13 @@ class _BookingQrScreenState extends State<BookingQrScreen> {
                       children: [
                         EjariSectionHeader(
                           title: widget.booking['title']?.toString() ?? 'حجز',
-                          subtitle: 'اعرض هذا الرمز للمالك عند الاستلام',
+                          subtitle: _showLiveQr
+                              ? 'اعرض هذا الرمز للمالك عند الاستلام'
+                              : 'الرمز غير مفعّل بعد — أكمل الدفع أولاً',
                         ),
                         const SizedBox(height: 20),
-                        Opacity(
-                          opacity: _ready || _alreadyIn ? 1 : 0.45,
-                          child: Container(
+                        if (_showLiveQr) ...[
+                          Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: Colors.white,
@@ -113,44 +144,104 @@ class _BookingQrScreenState extends State<BookingQrScreen> {
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _qr!['displayCode']?.toString() ?? '',
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 4,
-                            color: AppTheme.primaryColor,
+                          const SizedBox(height: 16),
+                          Text(
+                            _qr!['displayCode']?.toString() ?? '',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 4,
+                              color: AppTheme.primaryColor,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'معرّف الحجز: ${_qr!['bookingId']}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppTheme.textSecondary,
+                          const SizedBox(height: 8),
+                          Text(
+                            'معرّف الحجز: ${_qr!['bookingId']}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        SelectableText(
-                          _qr!['qrData']?.toString() ?? '',
-                          style: const TextStyle(
-                            fontSize: 9,
-                            color: AppTheme.textSecondary,
+                          const SizedBox(height: 8),
+                          SelectableText(
+                            _qr!['qrData']?.toString() ?? '',
+                            style: const TextStyle(
+                              fontSize: 9,
+                              color: AppTheme.textSecondary,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
-                        ),
+                        ] else ...[
+                          Container(
+                            width: 200,
+                            height: 200,
+                            decoration: BoxDecoration(
+                              color: AppTheme.backgroundColor,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: AppTheme.borderColor.withOpacity(0.35),
+                              ),
+                            ),
+                            child: const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.lock_rounded,
+                                  size: 48,
+                                  color: AppTheme.textSecondary,
+                                ),
+                                SizedBox(height: 12),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                  child: Text(
+                                    'QR مقفل\nحتى اكتمال الدفع والموافقة',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      height: 1.4,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'معرّف الحجز: ${_qr!['bookingId']}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            width: double.infinity,
+                            height: AppTheme.ctaHeight,
+                            child: ElevatedButton.icon(
+                              onPressed: _openPayment,
+                              icon: const Icon(Icons.payment_rounded),
+                              label: Text(
+                                status == BookingStatus.approved
+                                    ? 'إكمال الدفع لتفعيل الرمز'
+                                    : 'الدفع الآن لتفعيل الرمز',
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const EjariSurfaceCard(
+                  EjariSurfaceCard(
                     elevated: false,
                     child: Text(
-                      'المالك يمسح الرمز من شاشة «التحقق من QR» ثم يضغط '
-                      '«تأكيد الاستلام» لتسجيل دخولك.',
-                      style: TextStyle(
+                      _showLiveQr
+                          ? 'المالك يمسح الرمز من شاشة «التحقق من QR» ثم يضغط '
+                              '«تأكيد الاستلام» لتسجيل دخولك.'
+                          : 'لن يظهر رمز قابل للمسح قبل تفعيل الحجز — تجنّباً للالتباس.',
+                      style: const TextStyle(
                         fontSize: 12,
                         color: AppTheme.textSecondary,
                         height: 1.4,

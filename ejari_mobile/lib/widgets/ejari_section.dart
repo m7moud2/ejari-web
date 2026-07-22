@@ -283,6 +283,7 @@ class EjariStepIndicator extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
+                flex: 5,
                 child: Column(
                   children: [
                     AnimatedContainer(
@@ -340,10 +341,11 @@ class EjariStepIndicator extends StatelessWidget {
                     Text(
                       labels[index],
                       textAlign: TextAlign.center,
-                      maxLines: 1,
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 10,
+                        height: 1.15,
                         fontWeight:
                             isActive ? FontWeight.w800 : FontWeight.w600,
                         color: isActive
@@ -358,9 +360,10 @@ class EjariStepIndicator extends StatelessWidget {
               ),
               if (index < labels.length - 1)
                 Expanded(
+                  flex: 2,
                   child: Container(
                     height: 2,
-                    margin: const EdgeInsets.only(bottom: 18),
+                    margin: const EdgeInsets.only(bottom: 22),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(999),
                       color: isDone

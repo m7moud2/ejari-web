@@ -8,6 +8,7 @@ import 'insurance_selection_screen.dart';
 import 'contract_screen.dart';
 import '../services/wallet_service.dart';
 import 'booking_confirmation_screen.dart';
+import 'payment_screen.dart';
 import '../utils/auth_gate.dart';
 import '../utils/date_utils.dart';
 import '../utils/rental_schedule_utils.dart';
@@ -163,15 +164,15 @@ class _BookingScreenState extends State<BookingScreen> {
     if (_isCar) return ['المدة', 'التحقق', 'العقد', 'الدفع'];
     switch (_rentalTier) {
       case RentalDurationTier.daily:
-        return ['إيجار يومي', 'دفع مقدم', 'العقد', 'الدفع'];
+        return ['يومي', 'مقدم', 'العقد', 'الدفع'];
       case RentalDurationTier.weekly:
-        return ['إيجار أسبوعي', 'دفع مقدم', 'العقد', 'الدفع'];
+        return ['أسبوعي', 'مقدم', 'العقد', 'الدفع'];
       case RentalDurationTier.shortTerm:
-        return ['قصير المدى', 'دفع مقدم', 'العقد', 'الدفع'];
+        return ['قصير', 'مقدم', 'العقد', 'الدفع'];
       case RentalDurationTier.medium:
-        return ['٦+ شهور', 'المستندات', 'العقد', 'الأقساط'];
+        return ['٦+ شهور', 'مستندات', 'العقد', 'أقساط'];
       case RentalDurationTier.longTerm:
-        return ['سنة فأكثر', 'المستندات', 'العقد', 'الأقساط'];
+        return ['سنوي', 'مستندات', 'العقد', 'أقساط'];
     }
   }
 
@@ -301,6 +302,9 @@ class _BookingScreenState extends State<BookingScreen> {
     }
   }
 
+  bool get _paysViaPaymentScreen =>
+      _selectedPaymentMethod != 'wallet' && _selectedPaymentMethod != 'cash';
+
   Future<void> _submitBooking() async {
     final messenger = ScaffoldMessenger.of(context);
     final allowed = await AuthGate.requireLogin(
@@ -320,22 +324,11 @@ class _BookingScreenState extends State<BookingScreen> {
       return;
     }
 
-    // 2. Payment Detail Validation
-    if (_selectedPaymentMethod != 'wallet' &&
-        _selectedPaymentMethod != 'cash') {
-      if (_paymentDetailController.text.isEmpty) {
-        messenger.showSnackBar(
-          const SnackBar(
-              content: Text('يرجى إدخال بيانات وسيلة الدفع المختارة'),
-              backgroundColor: AppTheme.errorColor),
-        );
-        return;
-      }
-    }
-
-    // 3. OTP Simulation
-    if (_selectedPaymentMethod != 'cash') {
-      bool otpConfirmed = await _showOtpDialog();
+    // بطاقة/InstaPay/Apple… تُدخل بياناتها في شاشة الدفع بعد إنشاء الطلب.
+    if (_selectedPaymentMethod == 'cash') {
+      // لا حاجة لـ OTP
+    } else if (_selectedPaymentMethod == 'wallet') {
+      final otpConfirmed = await _showOtpDialog();
       if (!otpConfirmed) return;
       if (!mounted) return;
     }
@@ -352,7 +345,21 @@ class _BookingScreenState extends State<BookingScreen> {
     final payAmount = _bookingDepositAmount;
     final provisionalBookingId = 'BK-${DateTime.now().millisecondsSinceEpoch}';
 
-    // 1. Process Payment
+    if (_paysViaPaymentScreen) {
+      // أنشئ الطلب ثم افتح شاشة الدفع بالبطاقة بسلاسة.
+      setState(() => _isLoading = false);
+      if (!mounted) return;
+      await _finalizeBooking(
+        '',
+        payAmount: payAmount,
+        provisionalBookingId: provisionalBookingId,
+        markDepositPaid: false,
+        openPaymentScreen: true,
+      );
+      return;
+    }
+
+    // 1. Process Payment (محفظة أو نقداً)
     if (_selectedPaymentMethod == 'wallet') {
       success = await WalletService.payFromWallet(
         title: 'عربون ${widget.itemData['title']}',
@@ -366,6 +373,9 @@ class _BookingScreenState extends State<BookingScreen> {
       } else {
         transactionId = 'WAL-${DateTime.now().millisecondsSinceEpoch}';
       }
+    } else if (_selectedPaymentMethod == 'cash') {
+      success = true;
+      transactionId = 'CASH-${DateTime.now().millisecondsSinceEpoch}';
     } else if (AppConfig.demoMode) {
       // وضع العرض فقط: محاكاة بوابة دفع خارجية.
       await Future.delayed(const Duration(milliseconds: 800));
@@ -380,12 +390,11 @@ class _BookingScreenState extends State<BookingScreen> {
         bookingId: provisionalBookingId,
       );
     } else {
-      message =
-          'الدفع بالبطاقة متاح عبر شاشة الدفع بعد إنشاء الطلب. استخدم المحفظة أو أكمل الدفع لاحقاً.';
+      message = 'تعذر إتمام الدفع. حاول مرة أخرى أو استخدم المحفظة.';
       success = false;
     }
 
-    if (success) {
+    if (success && _selectedPaymentMethod == 'wallet') {
       // ضمان العربون فقط (وليس كامل أول فترة).
       await WalletService.holdBookingDeposit(
         title: 'عربون ${widget.itemData['title']}',
@@ -424,6 +433,8 @@ class _BookingScreenState extends State<BookingScreen> {
     String transactionId, {
     required double payAmount,
     required String provisionalBookingId,
+    bool markDepositPaid = true,
+    bool openPaymentScreen = false,
   }) async {
     setState(() => _isLoading = true);
     final durationMeta = RentalScheduleUtils.describeDuration(
@@ -492,13 +503,15 @@ class _BookingScreenState extends State<BookingScreen> {
       'endDate': leaseEndDate.toIso8601String(),
       'ownerId': ownerIdRaw,
       'ownerEmail': ownerEmail,
-      'status': BookingStatus.depositPaid,
-      'paymentStatus': 'deposit_paid',
+      'status': markDepositPaid
+          ? BookingStatus.depositPaid
+          : BookingStatus.submitted,
+      'paymentStatus': markDepositPaid ? 'deposit_paid' : 'pending',
       'paymentPhase': 'deposit',
-      'depositPaid': true,
+      'depositPaid': markDepositPaid,
       'firstPeriodPaid': false,
       'preEntryPaid': false,
-      'preEntryStatus': 'deposit_only',
+      'preEntryStatus': markDepositPaid ? 'deposit_only' : 'awaiting_payment',
       'preEntryAmount': payAmount.toStringAsFixed(0),
       'securityDeposit': _bookingDepositAmount,
       if (_selectedBedId != null) 'bedId': _selectedBedId,
@@ -508,8 +521,9 @@ class _BookingScreenState extends State<BookingScreen> {
         'bedId': widget.itemData['selectedBedId'],
       if (widget.itemData['bedLabel'] != null && _selectedBedLabel == null)
         'bedLabel': widget.itemData['bedLabel'],
-      'transactionId': transactionId,
+      if (transactionId.isNotEmpty) 'transactionId': transactionId,
       'paymentMethod': _selectedPaymentMethod,
+      'preferredPaymentMethod': _selectedPaymentMethod,
       if (_selectedInsuranceType != null) 'insurance': _selectedInsuranceType,
       if (_insurancePrice > 0) 'insuranceCost': _insurancePrice,
       ...RentalRules.bookingTierPayload(
@@ -535,13 +549,15 @@ class _BookingScreenState extends State<BookingScreen> {
 
     if (result['success'] != true) {
       // استرداد العربون إذا فشل إنشاء الحجز بعد الخصم.
-      try {
-        await WalletService.refundBookingDeposit(
-          title: 'استرداد عربون — فشل إنشاء الحجز',
-          amount: payAmount,
-          bookingId: provisionalBookingId,
-        );
-      } catch (_) {}
+      if (markDepositPaid && payAmount > 0) {
+        try {
+          await WalletService.refundBookingDeposit(
+            title: 'استرداد عربون — فشل إنشاء الحجز',
+            amount: payAmount,
+            bookingId: provisionalBookingId,
+          );
+        } catch (_) {}
+      }
       if (!mounted) return;
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -559,11 +575,31 @@ class _BookingScreenState extends State<BookingScreen> {
 
     final bookingId =
         (result['id'] ?? result['bookingId'])?.toString();
-    // Navigate to confirmation with next steps
     final confirmedBooking = {
       ...bookingPayload,
-      if (bookingId != null && bookingId.isNotEmpty) 'id': bookingId,
+      'id': (bookingId != null && bookingId.isNotEmpty)
+          ? bookingId
+          : provisionalBookingId,
     };
+
+    if (openPaymentScreen) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PaymentScreen(
+            itemType: widget.itemType,
+            itemData: confirmedBooking,
+            amount: payAmount,
+            paymentStage: 'deposit',
+            totalAmount: _leaseTotalAmount,
+            depositAmount: _bookingDepositAmount,
+            remainingAmount: _remainingAfterDepositAmount,
+          ),
+        ),
+      );
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -671,7 +707,8 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             Expanded(
               child: Container(
-                margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                clipBehavior: Clip.hardEdge,
+                margin: const EdgeInsets.fromLTRB(12, 8, 12, 12),
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceColor,
                   borderRadius: BorderRadius.circular(28),
@@ -688,6 +725,7 @@ class _BookingScreenState extends State<BookingScreen> {
                 child: Stepper(
                   type: StepperType.vertical,
                   currentStep: _currentStep,
+                  physics: const ClampingScrollPhysics(),
                   onStepContinue: () async {
                     if (_currentStep == 1) {
                       if (_selfieImage == null) {
@@ -796,8 +834,9 @@ class _BookingScreenState extends State<BookingScreen> {
                     }
                   },
                   controlsBuilder: (context, details) {
+                    final isLast = _currentStep == 3;
                     return Padding(
-                      padding: const EdgeInsets.only(top: 24),
+                      padding: const EdgeInsets.only(top: 24, bottom: 8),
                       child: Row(
                         children: [
                           Expanded(
@@ -818,8 +857,12 @@ class _BookingScreenState extends State<BookingScreen> {
                                         width: 20,
                                         child: CircularProgressIndicator(
                                             color: Colors.white))
-                                    : Text(_currentStep == 3
-                                        ? 'إرسال الطلب'
+                                    : Text(isLast
+                                        ? (isSale
+                                            ? 'تقديم طلب الشراء'
+                                            : _paysViaPaymentScreen
+                                                ? 'إنشاء الطلب والدفع'
+                                                : 'إتمام الحجز والدفع')
                                         : 'التالي'),
                               ),
                             ),
@@ -1741,7 +1784,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                 ],
                               ),
                               if (!isSale &&
-                                  _selectedPaymentMethod != 'cash') ...[
+                                  _selectedPaymentMethod == 'wallet') ...[
                                 const SizedBox(height: 24),
                                 _buildPaymentInput(),
                               ],
@@ -1759,26 +1802,21 @@ class _BookingScreenState extends State<BookingScreen> {
                                       color: AppTheme.textSecondary,
                                       height: 1.4)),
                             ],
-                            const SizedBox(height: AppTheme.spaceXl),
-                            SizedBox(
-                              width: double.infinity,
-                              height: AppTheme.ctaHeight,
-                              child: ElevatedButton(
-                                onPressed: _isLoading ? null : _submitBooking,
-                                style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(16))),
-                                child: _isLoading
-                                    ? const CircularProgressIndicator(
-                                        color: Colors.white)
-                                    : Text(isSale
-                                        ? 'تقديم طلب الشراء'
-                                        : 'إتمام الحجز والدفع'),
+                            if (_paysViaPaymentScreen && !isSale) ...[
+                              const SizedBox(height: 16),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withOpacity(0.06),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Text(
+                                  'بعد إنشاء الطلب ستُفتح شاشة الدفع لإكمال العربون بالبطاقة أو المحفظة الخارجية.',
+                                  style: TextStyle(fontSize: 12, height: 1.4),
+                                ),
                               ),
-                            ),
+                            ],
                           ],
                         ),
                       ),

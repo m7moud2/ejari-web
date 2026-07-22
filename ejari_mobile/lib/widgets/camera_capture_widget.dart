@@ -179,14 +179,52 @@ class VerificationImage extends StatelessWidget {
     this.height,
   });
 
-  bool get _isLocalPath =>
-      data.startsWith('/') || data.contains(':\\') || data.startsWith('file:');
+  /// JPEG/PNG/GIF base64 often starts with `/9j/`, `iVBOR`, `R0lGOD` —
+  /// must not be treated as filesystem paths.
+  bool get _looksLikeBase64 {
+    final trimmed = data.trim();
+    if (trimmed.startsWith('data:image')) return true;
+    if (trimmed.startsWith('/9j/')) return true; // JPEG
+    if (trimmed.startsWith('iVBOR')) return true; // PNG
+    if (trimmed.startsWith('R0lGOD')) return true; // GIF
+    if (trimmed.startsWith('UklGR')) return true; // WEBP
+    // Long payloads without path separators are almost certainly base64.
+    if (trimmed.length > 256 &&
+        !trimmed.contains('/') &&
+        !trimmed.contains('\\')) {
+      return true;
+    }
+    return false;
+  }
+
+  bool get _isLocalPath {
+    final trimmed = data.trim();
+    if (_looksLikeBase64) return false;
+    if (trimmed.startsWith('file:')) return true;
+    if (trimmed.contains(':\\')) return true;
+    // Real device paths: /data/, /storage/, /var/, /Users/, etc.
+    if (trimmed.startsWith('/') &&
+        trimmed.length < 512 &&
+        (trimmed.contains('/data/') ||
+            trimmed.contains('/storage/') ||
+            trimmed.contains('/var/') ||
+            trimmed.contains('/Users/') ||
+            trimmed.contains('/tmp/') ||
+            trimmed.contains('/cache/'))) {
+      return true;
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final trimmed = data.trim();
     if (_isLocalPath) {
+      final path = trimmed.startsWith('file://')
+          ? Uri.parse(trimmed).toFilePath()
+          : trimmed;
       return EjariImage(
-        path: data,
+        path: path,
         isLocalFile: true,
         fit: fit,
         width: width,
@@ -195,7 +233,10 @@ class VerificationImage extends StatelessWidget {
     }
 
     try {
-      final bytes = base64Decode(data);
+      final payload = trimmed.startsWith('data:image')
+          ? trimmed.substring(trimmed.indexOf(',') + 1)
+          : trimmed;
+      final bytes = base64Decode(payload);
       return Image.memory(
         bytes,
         fit: fit,
