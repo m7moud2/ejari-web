@@ -90,7 +90,7 @@ class AboutAppScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'تسهيل رحلة الإيجار من أول البحث والحجز لحد العقد والصيانة. إيجاري يجمع المستأجر والمالك ومقدّم الخدمة في تجربة واحدة أوضح وأسرع.',
+                    'من البحث والحجز للعقد والصيانة — إيجاري يجمع المستأجر والمالك ومقدّم الخدمة في مسار واحد.',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                         fontSize: 14,
@@ -182,7 +182,7 @@ class AboutAppScreen extends StatelessWidget {
 
             // Footer
             const Text(
-              'صُنع لتسهيل رحلة السكن',
+              'إيجاري — حجز ودفع ومتابعة',
               style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
             ),
             const SizedBox(height: 20),

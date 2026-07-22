@@ -212,7 +212,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    _escalated ? 'موظف خدمة العملاء' : 'المساعد الذكي',
+                    _escalated ? 'موظف خدمة العملاء' : 'رد آلي',
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
@@ -247,7 +247,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
       child: Row(
         children: [
           Icon(
-            _escalated ? Icons.verified_user_outlined : Icons.auto_awesome,
+            _escalated ? Icons.verified_user_outlined : Icons.support_agent_outlined,
             color: _escalated ? AppTheme.successColor : AppTheme.primaryColor,
             size: 18,
           ),
@@ -341,11 +341,11 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.smart_toy_outlined,
+                Icon(Icons.chat_bubble_outline,
                     size: 14, color: AppTheme.primaryColor),
                 SizedBox(width: 4),
                 Text(
-                  'مساعد إيجاري',
+                  'دعم إيجاري',
                   style: TextStyle(
                     fontSize: 10,
                     color: AppTheme.textSecondary,
@@ -510,7 +510,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
           ),
           SizedBox(width: 8),
           Text(
-            'المساعد يكتب...',
+            'جاري الرد...',
             style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
           ),
         ],
@@ -573,7 +573,7 @@ class _SupportChatScreenState extends State<SupportChatScreen> {
             title: _suggestEscalation ? 'جرب خياراً آخر' : 'اختر موضوعاً',
             subtitle: _suggestEscalation
                 ? 'أو تحدث مع موظف خدمة العملاء'
-                : 'اختصارات سريعة للمساعدة',
+                : 'مواضيع شائعة',
           ),
           const SizedBox(height: 10),
           Wrap(

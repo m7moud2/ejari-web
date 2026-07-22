@@ -222,7 +222,7 @@ class ChatService {
   static Future<String> getOrCreateSupportChat(
     String userId,
     String userName, {
-    String subtitle = 'دعم إيجاري الذكي',
+    String subtitle = 'دعم إيجاري',
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final chatsJson = prefs.getStringList(_chatsKey) ?? [];
@@ -302,6 +302,6 @@ class ChatService {
       return 'العفو! أنا هنا دائماً لمساعدتك. 😊';
     }
 
-    return 'أهلاً بك في "إيجاري"! 👋\nأنا مساعدك الذكي. كيف يمكنني خدمتك اليوم؟\n\n- استفسار عن الأسعار\n- كيفية الحجز\n- عقود الإيجار\n- الدعم الفني';
+    return 'أهلاً بك في إيجاري.\nكيف نقدر نساعدك؟\n\n- الأسعار والحجز\n- العقود\n- الدفع والمحفظة\n- الدعم الفني';
   }
 }

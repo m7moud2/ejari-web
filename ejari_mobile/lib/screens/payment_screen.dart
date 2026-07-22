@@ -1148,8 +1148,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const EjariSectionHeader(
-            title: 'تأكيد نهائي قبل الدفع',
-            subtitle: 'راجع الملخص ووافق للمتابعة بأمان',
+            title: 'تأكيد قبل الدفع',
+            subtitle: 'راجع الملخص ووافق للمتابعة',
           ),
           const SizedBox(height: AppTheme.spaceSm),
           CheckboxListTile(
@@ -1545,7 +1545,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
             ),
             child: _receiptPath == null
                 ? const Center(
-                    child: Text('اضغط لرفع صورة الإيصال 📸',
+                    child: Text('اضغط لرفع صورة الإيصال',
                         style: TextStyle(color: AppTheme.primaryColor)))
                 : null,
           ),

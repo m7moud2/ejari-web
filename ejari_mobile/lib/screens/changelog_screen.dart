@@ -8,6 +8,15 @@ class ChangelogScreen extends StatelessWidget {
   static const List<({String version, String date, List<String> items})>
       releases = [
     (
+      version: '1.3.12',
+      date: 'يوليو 2026',
+      items: [
+        'واجهة أوضح بلا نصوص تسويقية: شاشة الحجز تعرض العقار والعربون بدل شعارات «رحلة»',
+        'ملخص الحجز بدل «المساعد الذكي» — خطوات مهنية: مدة، عربون، عقد، دفع',
+        'الرئيسية والدعم والعروض بنبرة تشغيلية (حجز، معاينة، محفظة) بدل لغة تسويقية',
+      ],
+    ),
+    (
       version: '1.3.10',
       date: 'يوليو 2026',
       items: [

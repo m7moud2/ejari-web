@@ -130,8 +130,8 @@ class OwnerHomeView extends StatelessWidget {
                   ),
                   const SizedBox(height: AppTheme.spaceSm),
                   HomeExpandableSection(
-                    title: 'ذكاء الأعمال',
-                    subtitle: 'تسعير ذكي، ثقة، وتوقعات الإيراد',
+                    title: 'التسعير والإيراد',
+                    subtitle: 'مقارنة المنطقة ومتابعة التحصيل',
                     child: _buildBusinessIntelligence(
                       context,
                       stats,

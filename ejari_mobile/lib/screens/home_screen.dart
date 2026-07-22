@@ -980,36 +980,23 @@ class _HomeContentState extends State<HomeContent> {
           ],
         ),
         const SizedBox(height: 18),
-        RichText(
-          text: const TextSpan(
-            children: [
-              TextSpan(
-                text: 'ابدأ الآن.. ',
-                style: TextStyle(
-                  color: AppTheme.primaryColor,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              TextSpan(
-                text: 'تجربة إيجار أسهل وأكثر أماناً',
-                style: TextStyle(
-                  color: AppTheme.textPrimary,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
+        const Text(
+          'حجز ومعاينة ودفع من مكان واحد',
+          style: TextStyle(
+            color: AppTheme.textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            height: 1.35,
           ),
         ),
         const SizedBox(height: 10),
         const Text(
-          'منصة ذكية تربط بين المستأجرين والمالكين في مكان واحد، لتجربة إيجار متكاملة وموثوقة.',
+          'منصة إيجار بين المستأجر والمالك — عربون، عقد، ومتابعة الصيانة.',
           style: TextStyle(
-            color: AppTheme.textPrimary,
-            fontSize: 14,
-            height: 1.75,
-            fontWeight: FontWeight.w600,
+            color: AppTheme.textSecondary,
+            fontSize: 13,
+            height: 1.55,
+            fontWeight: FontWeight.w500,
           ),
         ),
         const SizedBox(height: 14),
@@ -1036,7 +1023,7 @@ class _HomeContentState extends State<HomeContent> {
                   ),
                 ),
                 icon: const Icon(Icons.campaign_outlined),
-                label: const Text('ارفع إعلانك المميز'),
+                label: const Text('أضف عقاراً'),
               ),
           ],
         ),
@@ -1343,106 +1330,73 @@ class _HomeContentState extends State<HomeContent> {
   Widget _buildFeatureStorySection(BuildContext context) {
     final items = [
       (
-        icon: Icons.home_rounded,
-        title: 'ابحث بسهولة عن العقار المناسب',
-        subtitle: 'شقق، فيلات، مكاتب، ومحلات',
+        icon: Icons.search_rounded,
+        title: 'بحث عن عقار',
+        subtitle: 'شقق، غرف، مكاتب، ومحلات',
       ),
       (
-        icon: Icons.description_outlined,
-        title: 'عقود إلكترونية موثوقة',
-        subtitle: 'تحافظ على الحقوق وتوضح التفاصيل',
+        icon: Icons.event_available_outlined,
+        title: 'معاينة وحجز',
+        subtitle: 'عربون ثم تأكيد بعد المعاينة',
       ),
       (
-        icon: Icons.account_balance_wallet_rounded,
-        title: 'دفع إلكتروني آمن',
-        subtitle: 'طرق دفع متعددة ومتابعة واضحة',
+        icon: Icons.account_balance_wallet_outlined,
+        title: 'دفع ومحفظة',
+        subtitle: 'بطاقة، تحويل، أو رصيد المحفظة',
       ),
       (
-        icon: Icons.handyman_rounded,
-        title: 'خدمات صيانة معتمدة',
-        subtitle: 'فنيون موثوقون يصلون إليك',
-      ),
-      (
-        icon: Icons.forum_rounded,
-        title: 'تواصل مباشر بين الأطراف',
-        subtitle: 'المستأجر والمالك ومقدمو الخدمة',
+        icon: Icons.build_outlined,
+        title: 'صيانة',
+        subtitle: 'اطلب فني وتابع حالة الطلب',
       ),
     ];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.screenPadding),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(AppTheme.spaceMd),
         decoration: BoxDecoration(
           color: AppTheme.surfaceColor,
-          borderRadius: BorderRadius.circular(30),
+          borderRadius: BorderRadius.circular(AppTheme.cardRadius),
           border: Border.all(color: AppTheme.borderColor.withOpacity(0.45)),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.primaryColor.withOpacity(0.06),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.10),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Icon(Icons.auto_awesome_rounded,
-                      color: AppTheme.primaryColor),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'إيجاري يسهّل عليك كل خطوة',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        'رحلة واضحة من أول بحث لحد الحجز والمتابعة.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            const Text(
+              'من إيجاري تقدر',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textPrimary,
+              ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 4),
+            const Text(
+              'بحث، حجز، دفع، ومتابعة العقد والصيانة.',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppTheme.textSecondary,
+              ),
+            ),
+            const SizedBox(height: AppTheme.spaceMd),
             ...items.map(
               (item) => Column(
                 children: [
                   Row(
                     children: [
                       Container(
-                        width: 54,
-                        height: 54,
+                        width: 40,
+                        height: 40,
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.10),
-                          shape: BoxShape.circle,
+                          color: AppTheme.primaryColor.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                         child: Icon(item.icon,
-                            color: AppTheme.primaryColor, size: 28),
+                            color: AppTheme.primaryColor, size: 22),
                       ),
-                      const SizedBox(width: 14),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1450,12 +1404,12 @@ class _HomeContentState extends State<HomeContent> {
                             Text(
                               item.title,
                               style: const TextStyle(
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w900,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
                                 color: AppTheme.textPrimary,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 2),
                             Text(
                               item.subtitle,
                               style: const TextStyle(
@@ -1472,78 +1426,13 @@ class _HomeContentState extends State<HomeContent> {
                   if (item != items.last)
                     Padding(
                       padding: const EdgeInsetsDirectional.only(
-                          start: 68, top: 14, bottom: 14),
+                          start: 52, top: 12, bottom: 12),
                       child: Divider(
                         height: 1,
                         thickness: 1,
                         color: AppTheme.borderColor.withOpacity(0.45),
                       ),
                     ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppTheme.primaryColor,
-                    AppTheme.primaryColor.withOpacity(0.9),
-                    AppTheme.accentColor,
-                  ],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                borderRadius: BorderRadius.circular(26),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.primaryColor.withOpacity(0.16),
-                    blurRadius: 24,
-                    offset: const Offset(0, 12),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'سجّل بياناتك الآن',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        SizedBox(height: 6),
-                        Text(
-                          'وأكن من أوائل المستفيدين عند الإطلاق الرسمي.',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w600,
-                            height: 1.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    width: 58,
-                    height: 58,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.16),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: Colors.white.withOpacity(0.22)),
-                    ),
-                    child: const Icon(Icons.qr_code_2_rounded,
-                        color: Colors.white, size: 32),
-                  ),
                 ],
               ),
             ),

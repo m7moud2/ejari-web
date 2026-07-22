@@ -41,9 +41,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
   static const List<_OnboardingSlide> _pages = [
     _OnboardingSlide(
-      title: 'إيجار ذكي',
+      title: 'ابحث واحجز',
       body:
-          'اكتشف وحدات قريبة وإقامات قصيرة بأسعار واضحة وموقع دقيق قبل ما تتحرك خطوة.',
+          'شوف الوحدات القريبة والإقامات القصيرة بأسعار واضحة وموقع دقيق قبل ما تتحرك.',
       icon: Icons.travel_explore_rounded,
       gradient: [Color(0xFF0F3A30), Color(0xFF1B594B)],
       accent: Color(0xFFB58D3D),

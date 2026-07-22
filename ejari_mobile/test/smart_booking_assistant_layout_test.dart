@@ -29,7 +29,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      final titleFinder = find.text('مساعد الحجز الذكي');
+      final titleFinder = find.text('ملخص الحجز');
       expect(titleFinder, findsOneWidget);
 
       final titleSize = tester.getSize(titleFinder);

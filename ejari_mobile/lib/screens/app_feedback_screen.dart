@@ -67,7 +67,7 @@ class _AppFeedbackScreenState extends State<AppFeedbackScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('رأيك يهمنا ✨'),
+        title: const Text('رأيك يهمنا'),
         elevation: 0,
       ),
       body: SingleChildScrollView(

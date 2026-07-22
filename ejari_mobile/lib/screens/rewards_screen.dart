@@ -43,7 +43,7 @@ class RewardsScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      'استخدم نقاطك في خصومات وخدمات تساعدك داخل رحلة الإيجار نفسها.',
+                      'استخدم نقاطك في خصومات على الحجز والدفع داخل التطبيق.',
                       style: TextStyle(
                           color: AppTheme.textSecondary,
                           fontSize: 12,

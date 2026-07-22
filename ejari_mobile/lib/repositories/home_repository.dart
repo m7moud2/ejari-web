@@ -245,7 +245,7 @@ class HomeRepository {
             {
               'icon': 'search',
               'title': 'ابحث عن عقار',
-              'subtitle': 'ابدأ رحلة البحث من الصفحة الرئيسية.',
+              'subtitle': 'ابحث من الصفحة الرئيسية.',
             },
             {
               'icon': 'notifications',

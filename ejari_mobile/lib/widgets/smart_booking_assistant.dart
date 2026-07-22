@@ -7,7 +7,7 @@ import '../models/rental_duration_tier.dart';
 import '../models/tenant_type.dart';
 import 'ejari_section.dart';
 
-/// مساعد الحجز الذكي — يقترح المدة، يعرض الاسترداد، وقائمة المستندات.
+/// ملخص الحجز — المدة، الاسترداد، وقائمة المستندات المطلوبة.
 class SmartBookingAssistant extends StatelessWidget {
   final RentalDurationTier tier;
   final TenantType tenantType;
@@ -119,22 +119,22 @@ class SmartBookingAssistant extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppTheme.accentColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppTheme.primaryColor.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
-                  Icons.auto_awesome_rounded,
-                  color: AppTheme.accentColor,
+                  Icons.fact_check_outlined,
+                  color: AppTheme.primaryColor,
                   size: 20,
                 ),
               ),
               const SizedBox(width: 10),
               const Expanded(
                 child: Text(
-                  'مساعد الحجز الذكي',
+                  'ملخص الحجز',
                   softWrap: true,
                   style: TextStyle(
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w800,
                     fontSize: 14,
                     color: AppTheme.textPrimary,
                   ),
@@ -147,7 +147,7 @@ class SmartBookingAssistant extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: AppTheme.primaryColor.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     tier.arabicLabel,
@@ -155,7 +155,7 @@ class SmartBookingAssistant extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 10,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                       color: AppTheme.primaryColor,
                     ),
                   ),
@@ -176,7 +176,7 @@ class SmartBookingAssistant extends StatelessWidget {
           _infoRow(
             icon: Icons.timer_outlined,
             title: _isRefundableNow
-                ? 'مؤهل للاسترداد الكامل'
+                ? 'الاسترداد متاح'
                 : 'انتهت مهلة الاسترداد',
             subtitle: _isRefundableNow
                 ? refundWindow.inHours > 0
@@ -190,8 +190,8 @@ class SmartBookingAssistant extends StatelessWidget {
           if (suggestion != null) ...[
             const SizedBox(height: AppTheme.spaceSm),
             _infoRow(
-              icon: Icons.lightbulb_outline_rounded,
-              title: 'اقتراح ذكي',
+              icon: Icons.schedule_outlined,
+              title: 'اقتراح مدة',
               subtitle: suggestion,
               color: AppTheme.accentColor,
               action: onApplySuggestion != null
@@ -206,7 +206,7 @@ class SmartBookingAssistant extends StatelessWidget {
           Row(
             children: [
               const Text(
-                'قائمة المستندات',
+                'المستندات المطلوبة',
                 style: TextStyle(
                   fontWeight: FontWeight.w800,
                   fontSize: 12,
@@ -270,9 +270,9 @@ class SmartBookingAssistant extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.06),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.15)),
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.14)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

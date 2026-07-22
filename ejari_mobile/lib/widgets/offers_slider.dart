@@ -17,21 +17,20 @@ class _OffersSliderState extends State<OffersSlider> {
 
   final List<Map<String, String>> _offers = [
     {
-      'title': 'أطلق العنان لعقارك',
-      'description': 'اشترك بـ باقات إيجاري للوصول لـ 10,000 مستثمر يومياً.',
+      'title': 'انشر عقارك على إيجاري',
+      'description': 'وصل لمستأجرين يدورون على وحدات قريبة وإقامات قصيرة.',
       'image': 'assets/images/home1.jpg',
       'color': '0xFF47736E',
     },
     {
-      'title': 'نظام العمولة المبتكر',
-      'description': '0 ج.م مقدماً، ادفع فقط عند إتمام الإيجار.',
+      'title': 'عمولة عند الإتمام فقط',
+      'description': '0 ج.م مقدماً — تدفع عند إتمام الإيجار.',
       'image': 'assets/images/home7.jpg',
       'color': '0xFF334441',
     },
     {
-      'title': 'تقييم عقاري مجاني',
-      'description':
-          'اطلب تقييماً وتسعيراً دقيقاً لعقارك مع خبرائنا المتخصصين.',
+      'title': 'تقييم عقاري',
+      'description': 'اطلب تسعيراً مقارناً بالمنطقة من داخل التطبيق.',
       'image': 'assets/images/home5.jpg',
       'color': '0xFF47736E',
     },

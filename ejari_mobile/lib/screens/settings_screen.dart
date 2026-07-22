@@ -148,7 +148,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           _buildListTile(
             title: 'المظهر',
-            subtitle: _darkMode ? 'الوضع الداكن مفعّل' : 'ألوان إيجاري الهادئة مفعّلة',
+            subtitle: _darkMode ? 'الوضع الداكن مفعّل' : 'الوضع الفاتح مفعّل',
             icon: Icons.palette_outlined,
           ),
           const Divider(height: 32),

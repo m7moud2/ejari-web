@@ -73,7 +73,7 @@ class AboutScreen extends StatelessWidget {
                   // Vision
                   _buildSection(
                     'رؤيتنا',
-                    'أن نكون المنصة الرائدة في مصر والشرق الأوسط لتسهيل عمليات الإيجار وتوفير حلول سكنية ومواصلات مبتكرة للجميع.',
+                    'أن نكون المنصة الموثوقة في مصر لتسهيل الإيجار والحجز والدفع بين المستأجر والمالك.',
                     Icons.visibility,
                     AppTheme.primaryColor,
                   ),

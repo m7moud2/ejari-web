@@ -10,9 +10,8 @@ class SupportBotService {
   static const int _escalationThreshold = 3;
 
   static const String welcomeMessage =
-      'أهلاً بك في دعم إيجاري 👋\n'
-      'أنا مساعدك الذكي. اختر الموضوع الأقرب لمشكلتك وسأحاول مساعدتك فوراً.\n'
-      'إذا لم تجد الحل، يمكنك التحدث مع موظف خدمة العملاء في أي وقت.';
+      'أهلاً بك في دعم إيجاري.\n'
+      'اختر موضوعاً من القائمة أو اكتب سؤالك — ولو محتاج موظف، اطلب التحويل في أي وقت.';
 
   static const List<SupportShortcut> shortcuts = [
     SupportShortcut(

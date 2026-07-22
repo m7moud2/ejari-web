@@ -160,19 +160,16 @@ class _BookingScreenState extends State<BookingScreen> {
           : RentalRules.advanceDepositLabel(_rentalTier);
 
   List<String> get _stepLabels {
-    if (isSale) return ['التملك', 'الأمان', 'التوثيق', 'التأكيد'];
+    if (isSale) return ['التملك', 'التحقق', 'التوثيق', 'التأكيد'];
     if (_isCar) return ['المدة', 'التحقق', 'العقد', 'الدفع'];
     switch (_rentalTier) {
       case RentalDurationTier.daily:
-        return ['يومي', 'مقدم', 'العقد', 'الدفع'];
       case RentalDurationTier.weekly:
-        return ['أسبوعي', 'مقدم', 'العقد', 'الدفع'];
       case RentalDurationTier.shortTerm:
-        return ['قصير', 'مقدم', 'العقد', 'الدفع'];
+        return ['المدة', 'العربون', 'العقد', 'الدفع'];
       case RentalDurationTier.medium:
-        return ['٦+ شهور', 'مستندات', 'العقد', 'أقساط'];
       case RentalDurationTier.longTerm:
-        return ['سنوي', 'مستندات', 'العقد', 'أقساط'];
+        return ['المدة', 'المستندات', 'العقد', 'الأقساط'];
     }
   }
 
@@ -642,33 +639,39 @@ class _BookingScreenState extends State<BookingScreen> {
                 AppTheme.spaceSm,
               ),
               child: EjariSurfaceCard(
-                padding: const EdgeInsets.all(AppTheme.spaceLg),
-                radius: AppTheme.cardRadiusLg,
+                padding: const EdgeInsets.all(AppTheme.spaceMd),
+                radius: AppTheme.cardRadius,
+                elevated: false,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.itemType == 'property'
-                          ? 'رحلة حجز هادئة وواضحة'
-                          : 'رحلة حجز السيارة بخطوات بسيطة',
+                      widget.itemData['title']?.toString().trim().isNotEmpty ==
+                              true
+                          ? widget.itemData['title'].toString()
+                          : (widget.itemType == 'property'
+                              ? 'حجز عقار'
+                              : 'حجز سيارة'),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: AppTheme.textPrimary,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       isSale
-                          ? 'نوضح التملك والرسوم والدفعة الأولى قبل أي التزام.'
-                          : 'نرتب العربون، المدة، والتحقق في نفس المسار بدون تشويش.',
+                          ? 'راجع الرسوم والدفعة الأولى قبل التأكيد.'
+                          : 'عربون الآن · معاينة · المتبقي عند الاستلام.',
                       style: const TextStyle(
                         color: AppTheme.textSecondary,
-                        height: 1.5,
+                        height: 1.4,
                         fontSize: 12,
                       ),
                     ),
-                    const SizedBox(height: AppTheme.spaceMd),
+                    const SizedBox(height: AppTheme.spaceSm),
                     Wrap(
                       spacing: AppTheme.spaceXs,
                       runSpacing: AppTheme.spaceXs,
@@ -708,19 +711,17 @@ class _BookingScreenState extends State<BookingScreen> {
             Expanded(
               child: Container(
                 clipBehavior: Clip.hardEdge,
-                margin: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                margin: const EdgeInsets.fromLTRB(
+                  AppTheme.screenPadding,
+                  AppTheme.spaceXs,
+                  AppTheme.screenPadding,
+                  AppTheme.spaceSm,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.surfaceColor,
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(AppTheme.cardRadius),
                   border:
-                      Border.all(color: AppTheme.borderColor.withOpacity(0.22)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppTheme.primaryColor.withOpacity(0.04),
-                      blurRadius: 18,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
+                      Border.all(color: AppTheme.borderColor.withOpacity(0.35)),
                 ),
                 child: Stepper(
                   type: StepperType.vertical,
@@ -1686,7 +1687,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                     _buildWhiteSummaryRow('نوع المستأجر',
                                         _tenantType.arabicLabel),
                                   _buildWhiteSummaryRow('النوع',
-                                      isSale ? 'شراء نهائي' : 'إيجار ذكي'),
+                                      isSale ? 'شراء نهائي' : 'إيجار'),
                                   ...[
                                     const SizedBox(height: 8),
                                     _buildWhiteSummaryRow(
@@ -1871,27 +1872,27 @@ class _BookingScreenState extends State<BookingScreen> {
   Widget _buildBookingTrustCard() {
     final accent = isSale ? AppTheme.borderColor : AppTheme.primaryColor;
     final firstLine = isSale
-        ? 'أنت هنا في خطوة التملك، والمبلغ يوضح الإجمالي بشكل كامل قبل الاستمرار.'
-        : 'أنت هنا في خطوة المعاينة والحجز، والعربون يُحجز مؤقتًا إلى حين قرارك النهائي.';
+        ? 'الإجمالي والرسوم ظاهرة قبل تأكيد الطلب.'
+        : 'العربون يُحجز مؤقتاً حتى تأكيد المعاينة.';
     final secondLine = isSale
-        ? 'سترى العمولة، الرسوم، والإجمالي النهائي بوضوح قبل توقيع الطلب.'
-        : 'بعد المعاينة، لو قررت الاستكمال يظهر لك المتبقي فقط بدون أي التباس.';
+        ? 'العمولة والدفعة الأولى ضمن الملخص قبل التوقيع.'
+        : 'بعد المعاينة تدفع المتبقي فقط إن أكملت الحجز.';
 
     return EjariSurfaceCard(
       elevated: false,
       child: Row(
         children: [
           Container(
-            width: 46,
-            height: 46,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-              color: accent.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(14),
+              color: accent.withOpacity(0.10),
+              borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               isSale ? Icons.storefront_rounded : Icons.how_to_reg_rounded,
               color: accent,
-              size: 24,
+              size: 22,
             ),
           ),
           const SizedBox(width: AppTheme.spaceSm),
@@ -1900,7 +1901,7 @@ class _BookingScreenState extends State<BookingScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 EjariSectionHeader(
-                  title: isSale ? 'ملخص التملك والرسوم' : 'ملخص الحجز والعربون',
+                  title: isSale ? 'التملك والرسوم' : 'الحجز والعربون',
                   subtitle: firstLine,
                 ),
                 const SizedBox(height: 3),
@@ -1908,7 +1909,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   secondLine,
                   style: const TextStyle(
                     fontSize: 12,
-                    height: 1.45,
+                    height: 1.4,
                     color: AppTheme.textSecondary,
                   ),
                 ),
@@ -2329,17 +2330,17 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Widget _buildHeaderChip(String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.10),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withOpacity(0.22)),
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.20)),
       ),
       child: Text(
         label,
         style: TextStyle(
           color: color == AppTheme.surfaceColor ? AppTheme.textPrimary : color,
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w700,
           fontSize: 11,
         ),
       ),
