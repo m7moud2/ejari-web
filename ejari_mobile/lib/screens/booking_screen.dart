@@ -25,6 +25,7 @@ import '../widgets/ejari_section.dart';
 import '../widgets/smart_booking_assistant.dart';
 import '../widgets/sale_listing_widgets.dart';
 import '../l10n/app_localizations.dart';
+import 'request_verification_screen.dart';
 
 class BookingScreen extends StatefulWidget {
   final String itemType; // 'property' or 'car'
@@ -59,10 +60,10 @@ class _BookingScreenState extends State<BookingScreen> {
   double _finalTotal = 0;
   RentalPricingResult? _pricingResult;
 
-  // Verification
-  String? _selfieImage;
-  String? _idFrontImage;
-  String? _idBackImage;
+  // Profile KYC (identity lives on profile — not re-uploaded per booking)
+  bool _profileKycComplete = false;
+  Map<String, String> _kycStatus = {'status': 'none', 'label': 'ناقص'};
+  Map<String, dynamic>? _identitySnapshot;
   bool _isPromissorySigned = false;
   String? _incomeLetterImage;
   String? _bankStatementImage;
@@ -160,8 +161,8 @@ class _BookingScreenState extends State<BookingScreen> {
           : RentalRules.advanceDepositLabel(_rentalTier);
 
   List<String> get _stepLabels {
-    if (isSale) return ['التملك', 'التحقق', 'التوثيق', 'التأكيد'];
-    if (_isCar) return ['المدة', 'التحقق', 'العقد', 'الدفع'];
+    if (isSale) return ['التملك', 'العربون', 'التوثيق', 'التأكيد'];
+    if (_isCar) return ['المدة', 'العربون', 'العقد', 'الدفع'];
     switch (_rentalTier) {
       case RentalDurationTier.daily:
       case RentalDurationTier.weekly:
@@ -169,7 +170,7 @@ class _BookingScreenState extends State<BookingScreen> {
         return ['المدة', 'العربون', 'العقد', 'الدفع'];
       case RentalDurationTier.medium:
       case RentalDurationTier.longTerm:
-        return ['المدة', 'المستندات', 'العقد', 'الأقساط'];
+        return ['المدة', 'الملاءة', 'العقد', 'الأقساط'];
     }
   }
 
@@ -237,7 +238,87 @@ class _BookingScreenState extends State<BookingScreen> {
 
   Future<void> _loadUser() async {
     final user = await AuthService.getCurrentUser();
-    setState(() => _currentUser = user);
+    final email = user?['email']?.toString() ?? '';
+    Map<String, String> kyc = {'status': 'none', 'label': 'ناقص'};
+    Map<String, dynamic>? snapshot;
+    var complete = false;
+    if (email.isNotEmpty) {
+      kyc = await DataService.getIdentityVerificationStatus(email);
+      complete = DataService.isProfileDocsComplete(kyc);
+      snapshot = await DataService.getBookingIdentitySnapshot(email);
+    }
+    if (!mounted) return;
+    setState(() {
+      _currentUser = user;
+      _kycStatus = kyc;
+      _profileKycComplete = complete;
+      _identitySnapshot = snapshot;
+    });
+  }
+
+  /// Blocks booking until identity docs exist on the user profile (once).
+  Future<bool> _ensureProfileKyc() async {
+    final email = _currentUser?['email']?.toString() ?? '';
+    if (email.isEmpty) {
+      final allowed = await AuthGate.requireLogin(
+        context,
+        actionLabel: 'إتمام الحجز',
+      );
+      if (!allowed || !mounted) return false;
+      await _loadUser();
+    }
+
+    final currentEmail = _currentUser?['email']?.toString() ?? '';
+    if (currentEmail.isNotEmpty) {
+      final kyc =
+          await DataService.getIdentityVerificationStatus(currentEmail);
+      final complete = DataService.isProfileDocsComplete(kyc);
+      final snapshot =
+          await DataService.getBookingIdentitySnapshot(currentEmail);
+      if (mounted) {
+        setState(() {
+          _kycStatus = kyc;
+          _profileKycComplete = complete;
+          _identitySnapshot = snapshot;
+        });
+      }
+      if (complete) return true;
+    }
+
+    if (!mounted) return false;
+    final go = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('أكمل توثيق حسابك'),
+        content: const Text(
+          'الحجز يتطلب رفع مستندات الهوية مرة واحدة في الملف الشخصي '
+          '(بطاقة الهوية وجهان + سيلفي).\n\n'
+          'لن نطلبها مجدداً في كل حجز.',
+          style: TextStyle(height: 1.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('لاحقاً'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('إكمال التوثيق'),
+          ),
+        ],
+      ),
+    );
+
+    if (go == true && mounted) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const RequestVerificationScreen()),
+      );
+      await _loadUser();
+      return _profileKycComplete;
+    }
+    return false;
   }
 
   void _calculatePrice() {
@@ -303,7 +384,6 @@ class _BookingScreenState extends State<BookingScreen> {
       _selectedPaymentMethod != 'wallet' && _selectedPaymentMethod != 'cash';
 
   Future<void> _submitBooking() async {
-    final messenger = ScaffoldMessenger.of(context);
     final allowed = await AuthGate.requireLogin(
       context,
       actionLabel: 'إتمام الحجز والدفع',
@@ -311,15 +391,9 @@ class _BookingScreenState extends State<BookingScreen> {
     if (!allowed) return;
     if (!mounted) return;
 
-    // 1. Validation
-    if (_selfieImage == null) {
-      messenger.showSnackBar(
-        const SnackBar(
-            content: Text('يرجى التقاط صورة سيلفي للتحقق من هويتك'),
-            backgroundColor: AppTheme.errorColor),
-      );
-      return;
-    }
+    final kycOk = await _ensureProfileKyc();
+    if (!kycOk) return;
+    if (!mounted) return;
 
     // بطاقة/InstaPay/Apple… تُدخل بياناتها في شاشة الدفع بعد إنشاء الطلب.
     if (_selectedPaymentMethod == 'cash') {
@@ -533,9 +607,7 @@ class _BookingScreenState extends State<BookingScreen> {
       ),
       'governorate': widget.itemData['governorate'] ?? '',
       'verification': {
-        'selfie': _selfieImage,
-        'idFront': _idFrontImage,
-        'idBack': _idBackImage,
+        ...?_identitySnapshot,
         'incomeLetter': _incomeLetterImage,
         'bankStatement': _bankStatementImage,
         'employmentLetter': _employmentLetterImage,
@@ -728,26 +800,12 @@ class _BookingScreenState extends State<BookingScreen> {
                   currentStep: _currentStep,
                   physics: const ClampingScrollPhysics(),
                   onStepContinue: () async {
+                    if (_currentStep == 0) {
+                      final kycOk = await _ensureProfileKyc();
+                      if (!kycOk || !mounted) return;
+                    }
                     if (_currentStep == 1) {
-                      if (_selfieImage == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text(
-                                  'يرجى التقاط صورة سيلفي للتحقق من هويتك'),
-                              backgroundColor: AppTheme.errorColor),
-                        );
-                        return;
-                      }
-                      if (_idFrontImage == null || _idBackImage == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text(
-                                  'يرجى إرفاق الوجهين لبطاقة الهوية/الرخصة'),
-                              backgroundColor: AppTheme.errorColor),
-                        );
-                        return;
-                      }
-                      // For Properties (Rent): Tenant Validation
+                      // For Properties (Rent): income docs when required — ID is on profile.
                       if (_isPropertyRent) {
                         if (_requiresIncomeProof) {
                           if (_incomeLetterImage == null ||
@@ -756,13 +814,13 @@ class _BookingScreenState extends State<BookingScreen> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                   content: Text(
-                                      'يرجى إكمال قائمة المستندات: هوية، إثبات دخل، وعقد عمل'),
+                                      'يرجى إكمال مستندات الدخل وعقد العمل'),
                                   backgroundColor: AppTheme.errorColor),
                             );
                             return;
                           }
                         } else if (_requiresAdvanceOnly) {
-                          // Short-term: only ID + selfie required, advance payment shown
+                          // Short-term: profile KYC + advance payment only
                         } else if (_hasFinancialDocs) {
                           if (_incomeLetterImage == null ||
                               _bankStatementImage == null) {
@@ -783,33 +841,6 @@ class _BookingScreenState extends State<BookingScreen> {
                           return;
                         }
                       }
-
-                      // Simulate Admin Approval Delay
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (ctx) => const AlertDialog(
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              CircularProgressIndicator(),
-                              SizedBox(height: 16),
-                              Text(
-                                  'جاري إرسال البيانات ومراجعتها من قبل الإدارة...'),
-                            ],
-                          ),
-                        ),
-                      );
-
-                      await Future.delayed(const Duration(seconds: 3));
-                      if (!context.mounted) return;
-                      Navigator.pop(context); // close dialog
-
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text(
-                              'تمت الموافقة من قبل الإدارة! ✅ يمكنك الآن متابعة التعاقد.'),
-                          backgroundColor: AppTheme.primaryColor));
                     }
                     if (!context.mounted) return;
                     if (_currentStep == 2 && !_isContractSigned) {
@@ -920,9 +951,9 @@ class _BookingScreenState extends State<BookingScreen> {
                                 durationType: _selectedDurationType,
                                 duration: _duration,
                                 checkInDate: _checkInDate,
-                                hasSelfie: _selfieImage != null,
-                                hasIdFront: _idFrontImage != null,
-                                hasIdBack: _idBackImage != null,
+                                profileKycComplete: _profileKycComplete,
+                                profileKycLabel:
+                                    _kycStatus['label'] ?? 'ناقص',
                                 hasIncomeProof: _incomeLetterImage != null &&
                                     _bankStatementImage != null,
                                 pricingResult: _pricingResult,
@@ -935,6 +966,16 @@ class _BookingScreenState extends State<BookingScreen> {
                                           _calculatePrice();
                                         })
                                     : null,
+                                onCompleteKyc: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const RequestVerificationScreen(),
+                                    ),
+                                  );
+                                  await _loadUser();
+                                },
                               ),
                             ],
                             const SizedBox(height: 16),
@@ -1249,140 +1290,40 @@ class _BookingScreenState extends State<BookingScreen> {
                       isActive: _currentStep >= 0,
                     ),
 
-                    // Step 2: Security & Verification
+                    // Step 2: Deposit summary / income docs (identity is on profile)
                     Step(
                       title: Text(_stepTitle(1),
                           overflow: TextOverflow.ellipsis, maxLines: 1),
                       content: SingleChildScrollView(
                         child: Column(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [
-                                    AppTheme.primaryColor,
-                                    AppTheme.primaryColor
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: const Row(
-                                children: [
-                                  Icon(Icons.fingerprint,
-                                      color: Colors.white, size: 30),
-                                  SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text('التحقق من الهوية',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16)),
-                                        Text(
-                                            'ارفع سيلفي وصورة الهوية لمراجعة الطلب قبل تأكيد الحجز.',
-                                            style: TextStyle(
-                                                color: Colors.white70,
-                                                fontSize: 12)),
-                                      ],
-                                    ),
-                                  ),
-                                  Icon(Icons.verified_user,
-                                      color: AppTheme.primaryColor),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            _buildVerificationCard(
-                              title: 'صورة السيلفي (التحقق الفوري)',
-                              description: 'يرجى التقاط صورة واضحة لوجهك.',
-                              icon: Icons.face,
-                              isDone: _selfieImage != null,
-                              onTap: () {
-                                final imageWidget = ImageUploadWidget(
-                                  label: 'صورة السيلفي',
-                                  icon: Icons.camera_alt,
-                                  onImageSelected: (path) =>
-                                      setState(() => _selfieImage = path),
-                                );
-                                showModalBottomSheet(
-                                    context: context,
-                                    builder: (_) => Container(
-                                        padding: const EdgeInsets.all(20),
-                                        child: imageWidget));
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            _buildVerificationCard(
-                              title: isSale
-                                  ? 'الهوية الوطنية (الوجه الأمامي)'
-                                  : (widget.itemType == 'car'
-                                      ? 'رخصة القيادة (أمامي)'
-                                      : 'الهوية الوطنية (أمامي)'),
-                              description: 'يرجى تصوير الوجه الأمامي بوضوح.',
-                              icon: Icons.credit_card,
-                              isDone: _idFrontImage != null,
-                              onTap: () {
-                                final imageWidget = ImageUploadWidget(
-                                  label: 'الوجه الأمامي',
-                                  icon: Icons.document_scanner,
-                                  onImageSelected: (path) =>
-                                      setState(() => _idFrontImage = path),
-                                );
-                                showModalBottomSheet(
-                                    context: context,
-                                    builder: (_) => Container(
-                                        padding: const EdgeInsets.all(20),
-                                        child: imageWidget));
-                              },
-                            ),
-                            const SizedBox(height: 16),
-                            _buildVerificationCard(
-                              title: isSale
-                                  ? 'الهوية الوطنية (الخلفي)'
-                                  : (widget.itemType == 'car'
-                                      ? 'رخصة القيادة (الخلفي)'
-                                      : 'الهوية الوطنية (الخلفي)'),
-                              description: 'يرجى تصوير الوجه الخلفي بوضوح.',
-                              icon: Icons.credit_card,
-                              isDone: _idBackImage != null,
-                              onTap: () {
-                                final imageWidget = ImageUploadWidget(
-                                  label: 'الوجه الخلفي',
-                                  icon: Icons.document_scanner,
-                                  onImageSelected: (path) =>
-                                      setState(() => _idBackImage = path),
-                                );
-                                showModalBottomSheet(
-                                    context: context,
-                                    builder: (_) => Container(
-                                        padding: const EdgeInsets.all(20),
-                                        child: imageWidget));
-                              },
-                            ),
+                            _buildProfileKycBanner(),
+                            const SizedBox(height: 20),
                             if (widget.itemType == 'property' && !isSale) ...[
-                              const SizedBox(height: 24),
-                              const Divider(),
-                              const SizedBox(height: 16),
                               if (_requiresIncomeProof) ...[
                                 DocumentChecklistStep(
-                                  hasId: _idFrontImage != null && _idBackImage != null,
-                                  hasIncome: _incomeLetterImage != null && _bankStatementImage != null,
-                                  hasEmployment: _employmentLetterImage != null,
-                                  onTapItem: (key) {
+                                  hasId: _profileKycComplete,
+                                  hasIncome: _incomeLetterImage != null &&
+                                      _bankStatementImage != null,
+                                  hasEmployment:
+                                      _employmentLetterImage != null,
+                                  onTapItem: (key) async {
                                     if (key == 'id') {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('ارفع الهوية من البطاقات أعلاه')),
+                                      await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const RequestVerificationScreen(),
+                                        ),
                                       );
+                                      await _loadUser();
                                     } else if (key == 'income') {
-                                      _pickDoc((p) => _incomeLetterImage = p, 'خطاب الدخل');
+                                      _pickDoc((p) => _incomeLetterImage = p,
+                                          'خطاب الدخل');
                                     } else if (key == 'employment') {
-                                      _pickDoc((p) => _employmentLetterImage = p, 'عقد العمل');
+                                      _pickDoc(
+                                          (p) => _employmentLetterImage = p,
+                                          'عقد العمل');
                                     }
                                   },
                                 ),
@@ -1390,20 +1331,29 @@ class _BookingScreenState extends State<BookingScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    color: AppTheme.accentColor.withOpacity(0.08),
+                                    color:
+                                        AppTheme.accentColor.withOpacity(0.08),
                                     borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: AppTheme.accentColor.withOpacity(0.2)),
+                                    border: Border.all(
+                                        color: AppTheme.accentColor
+                                            .withOpacity(0.2)),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      const Text('دفع مقدم (بدون حزمة مستندات كاملة)',
-                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                      Text(
+                                          '$_paymentStageLabel — بدون إعادة رفع الهوية',
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14)),
                                       const SizedBox(height: 8),
                                       Text(
                                         'للمدة أقل من ٦ شهور: المطلوب هو $_paymentStageLabel '
-                                        'بقيمة ${_bookingDepositAmount.toStringAsFixed(0)} ج.م فقط.',
-                                        style: const TextStyle(fontSize: 12, height: 1.5),
+                                        'بقيمة ${_bookingDepositAmount.toStringAsFixed(0)} ج.م. '
+                                        'الهوية تُؤخذ مرة واحدة من ملفك الشخصي.',
+                                        style: const TextStyle(
+                                            fontSize: 12, height: 1.5),
                                       ),
                                       const SizedBox(height: 8),
                                       const RefundRuleTooltip(),
@@ -1411,150 +1361,172 @@ class _BookingScreenState extends State<BookingScreen> {
                                   ),
                                 ),
                               ] else ...[
-                              const Align(
-                                  alignment: Alignment.centerRight,
-                                  child: Text(
-                                      'الملاءة المالية (إلزامي للإيجار)',
-                                      style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold))),
-                              const SizedBox(height: 12),
-                              SwitchListTile(
-                                title: const Text(
-                                    'أمتلك إثبات دخل وكشف حساب بنكي'),
-                                subtitle:
-                                    const Text('لتسريع الموافقة على الحجز'),
-                                value: _hasFinancialDocs,
-                                activeColor: AppTheme.primaryColor,
-                                onChanged: (val) =>
-                                    setState(() => _hasFinancialDocs = val),
-                              ),
-                              if (_hasFinancialDocs) ...[
-                                const SizedBox(height: 16),
-                                _buildVerificationCard(
-                                  title: 'خطاب إثبات دخل أو جهة عمل',
-                                  description:
-                                      'مستند حديث يثبت الراتب أو الدخل.',
-                                  icon: Icons.work_outline,
-                                  isDone: _incomeLetterImage != null,
-                                  onTap: () => _pickDoc(
-                                      (p) => _incomeLetterImage = p, 'خطاب الدخل'),
-                                ),
-                                const SizedBox(height: 16),
-                                _buildVerificationCard(
-                                  title: 'كشف حساب بنكي (آخر 3 شهور)',
-                                  description:
-                                      'للتأكد من القدرة على الالتزام بالإيجار.',
-                                  icon: Icons.account_balance,
-                                  isDone: _bankStatementImage != null,
-                                  onTap: () => _pickDoc(
-                                      (p) => _bankStatementImage = p, 'كشف الحساب'),
-                                ),
-                              ] else ...[
+                                const Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Text(
+                                        'الملاءة المالية (إلزامي للإيجار)',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold))),
                                 const SizedBox(height: 12),
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color:
-                                        AppTheme.borderColor.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border:
-                                        Border.all(color: AppTheme.borderColor),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      const Row(
-                                        children: [
-                                          Icon(Icons.warning_amber_rounded,
-                                              color: AppTheme.borderColor),
-                                          SizedBox(width: 12),
-                                          Expanded(
-                                            child: Text(
-                                              'في حال عدم توفر مستندات الملاءة المالية، سيُطلب منك التوقيع الإلكتروني على "إقرار التزام مالي / سند لأمر" لضمان تسديد الإيجار شهرياً كشرط أساسي.',
-                                              style: TextStyle(
-                                                  color: AppTheme.borderColor,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 16),
-                                      if (_isPromissorySigned)
-                                        Container(
-                                          padding: const EdgeInsets.all(12),
-                                          decoration: BoxDecoration(
-                                              color: AppTheme.primaryColor
-                                                  .withOpacity(0.1),
-                                              borderRadius:
-                                                  BorderRadius.circular(8)),
-                                          child: const Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              Icon(Icons.check_circle,
-                                                  color: AppTheme.primaryColor),
-                                              SizedBox(width: 8),
-                                              Text(
-                                                  'تم توقيع الإقرار المالي بنجاح ✅',
-                                                  style: TextStyle(
-                                                      color:
-                                                          AppTheme.primaryColor,
-                                                      fontWeight:
-                                                          FontWeight.bold)),
-                                            ],
-                                          ),
-                                        )
-                                      else
-                                        SizedBox(
-                                          width: double.infinity,
-                                          child: ElevatedButton.icon(
-                                            onPressed: () async {
-                                              final result =
-                                                  await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      ContractScreen(
-                                                    itemLabel: 'سند لأمر',
-                                                    ownerName:
-                                                        'إدارة إيجاري (الضامن)',
-                                                    tenantName:
-                                                        _currentUser?['name'] ??
-                                                            'المستأجر',
-                                                    propertyTitle:
-                                                        'إقرار بالالتزام الشهري في موعده',
-                                                    price: _totalPrice
-                                                        .toStringAsFixed(0),
-                                                    startDate: DateTime.now()
-                                                        .toIso8601String()
-                                                        .split('T')[0],
-                                                    duration:
-                                                        'حتى نهاية التعاقد',
-                                                  ),
-                                                ),
-                                              );
-                                              if (result == true) {
-                                                setState(() =>
-                                                    _isPromissorySigned = true);
-                                              }
-                                            },
-                                            icon:
-                                                const Icon(Icons.edit_document),
-                                            label: const Text(
-                                                'توقيع السند لأمر الآن'),
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  AppTheme.borderColor,
-                                              foregroundColor: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
+                                SwitchListTile(
+                                  title: const Text(
+                                      'أمتلك إثبات دخل وكشف حساب بنكي'),
+                                  subtitle:
+                                      const Text('لتسريع الموافقة على الحجز'),
+                                  value: _hasFinancialDocs,
+                                  activeColor: AppTheme.primaryColor,
+                                  onChanged: (val) =>
+                                      setState(() => _hasFinancialDocs = val),
                                 ),
+                                if (_hasFinancialDocs) ...[
+                                  const SizedBox(height: 16),
+                                  _buildVerificationCard(
+                                    title: 'خطاب إثبات دخل أو جهة عمل',
+                                    description:
+                                        'مستند حديث يثبت الراتب أو الدخل.',
+                                    icon: Icons.work_outline,
+                                    isDone: _incomeLetterImage != null,
+                                    onTap: () => _pickDoc(
+                                        (p) => _incomeLetterImage = p,
+                                        'خطاب الدخل'),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  _buildVerificationCard(
+                                    title: 'كشف حساب بنكي (آخر 3 شهور)',
+                                    description:
+                                        'للتأكد من القدرة على الالتزام بالإيجار.',
+                                    icon: Icons.account_balance,
+                                    isDone: _bankStatementImage != null,
+                                    onTap: () => _pickDoc(
+                                        (p) => _bankStatementImage = p,
+                                        'كشف الحساب'),
+                                  ),
+                                ] else ...[
+                                  const SizedBox(height: 12),
+                                  Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.borderColor
+                                          .withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                          color: AppTheme.borderColor),
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        const Row(
+                                          children: [
+                                            Icon(Icons.warning_amber_rounded,
+                                                color: AppTheme.borderColor),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                'في حال عدم توفر مستندات الملاءة المالية، سيُطلب منك التوقيع الإلكتروني على "إقرار التزام مالي / سند لأمر" لضمان تسديد الإيجار شهرياً كشرط أساسي.',
+                                                style: TextStyle(
+                                                    color:
+                                                        AppTheme.borderColor,
+                                                    fontSize: 12,
+                                                    fontWeight:
+                                                        FontWeight.bold),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                        if (_isPromissorySigned)
+                                          Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                                color: AppTheme.primaryColor
+                                                    .withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(8)),
+                                            child: const Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Icon(Icons.check_circle,
+                                                    color:
+                                                        AppTheme.primaryColor),
+                                                SizedBox(width: 8),
+                                                Text(
+                                                    'تم توقيع الإقرار المالي بنجاح ✅',
+                                                    style: TextStyle(
+                                                        color: AppTheme
+                                                            .primaryColor,
+                                                        fontWeight:
+                                                            FontWeight.bold)),
+                                              ],
+                                            ),
+                                          )
+                                        else
+                                          SizedBox(
+                                            width: double.infinity,
+                                            child: ElevatedButton.icon(
+                                              onPressed: () async {
+                                                final result =
+                                                    await Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        ContractScreen(
+                                                      itemLabel: 'سند لأمر',
+                                                      ownerName:
+                                                          'إدارة إيجاري (الضامن)',
+                                                      tenantName: _currentUser?[
+                                                              'name'] ??
+                                                          'المستأجر',
+                                                      propertyTitle:
+                                                          'إقرار بالالتزام الشهري في موعده',
+                                                      price: _totalPrice
+                                                          .toStringAsFixed(0),
+                                                      startDate: DateTime.now()
+                                                          .toIso8601String()
+                                                          .split('T')[0],
+                                                      duration:
+                                                          'حتى نهاية التعاقد',
+                                                    ),
+                                                  ),
+                                                );
+                                                if (result == true) {
+                                                  setState(() =>
+                                                      _isPromissorySigned =
+                                                          true);
+                                                }
+                                              },
+                                              icon: const Icon(
+                                                  Icons.edit_document),
+                                              label: const Text(
+                                                  'توقيع السند لأمر الآن'),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    AppTheme.borderColor,
+                                                foregroundColor: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ],
-                            ],
+                            ] else ...[
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color:
+                                      AppTheme.primaryColor.withOpacity(0.06),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  'العربون المطلوب: ${_bookingDepositAmount.toStringAsFixed(0)} ج.م\n'
+                                  'الهوية محفوظة في ملفك الشخصي ولن تُطلب مرة أخرى هنا.',
+                                  style: const TextStyle(
+                                      fontSize: 13, height: 1.5),
+                                ),
+                              ),
                             ],
                           ],
                         ),
@@ -2343,6 +2315,72 @@ class _BookingScreenState extends State<BookingScreen> {
           fontWeight: FontWeight.w700,
           fontSize: 11,
         ),
+      ),
+    );
+  }
+
+  Widget _buildProfileKycBanner() {
+    final complete = _profileKycComplete;
+    final label = _kycStatus['label'] ?? 'ناقص';
+    final color =
+        complete ? AppTheme.primaryColor : AppTheme.borderColor;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.35)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            complete ? Icons.verified_user_rounded : Icons.badge_outlined,
+            color: color,
+            size: 28,
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  complete
+                      ? 'توثيق الملف الشخصي: $label'
+                      : 'توثيق الملف الشخصي ناقص',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  complete
+                      ? 'الهوية والسيلفي محفوظة في ملفك — لن نطلبها في كل حجز.'
+                      : 'ارفع البطاقة (وجهان) والسيلفي من الملف الشخصي مرة واحدة.',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppTheme.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (!complete)
+            TextButton(
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const RequestVerificationScreen(),
+                  ),
+                );
+                await _loadUser();
+              },
+              child: const Text('أكمل'),
+            ),
+        ],
       ),
     );
   }

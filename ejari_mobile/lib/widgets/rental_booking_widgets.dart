@@ -217,10 +217,11 @@ class DocumentChecklistStep extends StatelessWidget {
         children: [
           const EjariSectionHeader(
             title: 'قائمة المستندات المطلوبة',
-            subtitle: 'للإيجار ٦ شهور فأكثر — أكمل القائمة لتسريع الموافقة',
+            subtitle:
+                'الهوية من الملف الشخصي مرة واحدة — وللإيجار ٦ شهور فأكثر: مستندات الدخل',
           ),
           const SizedBox(height: 12),
-          _item('الهوية الوطنية (وجهان)', hasId, 'id'),
+          _item('توثيق الهوية (من الملف الشخصي)', hasId, 'id'),
           _item('إثبات دخل / كشف حساب', hasIncome, 'income'),
           _item('عقد عمل أو خطاب جهة العمل', hasEmployment, 'employment'),
         ],

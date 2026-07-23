@@ -131,18 +131,30 @@ class BookingValidator {
     required RentalDurationTier tier,
     required Map<String, dynamic>? verification,
     bool corporateMode = false,
+    bool profileDocsComplete = false,
   }) {
     if (corporateMode) return null;
-    if (!RentalRules.requiresIncomeProof(tier)) return null;
 
     final v = verification ?? {};
+    final profileOk = profileDocsComplete ||
+        v['docsUploaded'] == true ||
+        v['verified'] == true ||
+        v['status']?.toString() == 'approved' ||
+        v['status']?.toString() == 'pending';
+
+    if (!profileOk) {
+      return {
+        'valid': false,
+        'message':
+            'أكمل توثيق الهوية من الملف الشخصي أولاً (بطاقة + سيلفي) قبل الحجز',
+      };
+    }
+
+    if (!RentalRules.requiresIncomeProof(tier)) return null;
+
     final hasIncome = v['incomeLetter'] != null && v['bankStatement'] != null;
     final hasEmployment = v['employmentLetter'] != null;
-    final hasId = v['idFront'] != null && v['idBack'] != null;
 
-    if (!hasId) {
-      return {'valid': false, 'message': 'يرجى إرفاق الهوية (وجهان)'};
-    }
     if (!hasIncome || !hasEmployment) {
       return {
         'valid': false,

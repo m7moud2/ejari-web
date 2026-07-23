@@ -427,10 +427,11 @@ class HomeRepository {
         'actionKey': stats['nextActionKey'],
       };
     }
-    if ((stats['verificationStatus'] ?? '').toString().contains('غير موثق')) {
+    if ((stats['verificationStatus'] ?? '').toString().contains('ناقص') ||
+        (stats['verificationStatus'] ?? '').toString().contains('غير موثق')) {
       return {
         'title': 'وثّق هويتك',
-        'subtitle': 'ارفع مستنداتك للحجز بثقة',
+        'subtitle': 'مرة واحدة في الملف الشخصي — مطلوبة قبل الحجز',
         'icon': 'kyc',
       };
     }

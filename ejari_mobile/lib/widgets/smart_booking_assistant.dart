@@ -7,18 +7,18 @@ import '../models/rental_duration_tier.dart';
 import '../models/tenant_type.dart';
 import 'ejari_section.dart';
 
-/// ملخص الحجز — المدة، الاسترداد، وقائمة المستندات المطلوبة.
+/// ملخص الحجز — المدة، الاسترداد، وحالة التوثيق من الملف الشخصي.
 class SmartBookingAssistant extends StatelessWidget {
   final RentalDurationTier tier;
   final TenantType tenantType;
   final String durationType;
   final int duration;
   final DateTime checkInDate;
-  final bool hasSelfie;
-  final bool hasIdFront;
-  final bool hasIdBack;
+  final bool profileKycComplete;
+  final String profileKycLabel;
   final bool hasIncomeProof;
   final VoidCallback? onApplySuggestion;
+  final VoidCallback? onCompleteKyc;
   final RentalPricingResult? pricingResult;
   final double? monthlyRent;
 
@@ -29,11 +29,11 @@ class SmartBookingAssistant extends StatelessWidget {
     required this.durationType,
     required this.duration,
     required this.checkInDate,
-    this.hasSelfie = false,
-    this.hasIdFront = false,
-    this.hasIdBack = false,
+    this.profileKycComplete = false,
+    this.profileKycLabel = 'ناقص',
     this.hasIncomeProof = false,
     this.onApplySuggestion,
+    this.onCompleteKyc,
     this.pricingResult,
     this.monthlyRent,
   });
@@ -64,7 +64,7 @@ class SmartBookingAssistant extends StatelessWidget {
       return 'قربت من ٦ شهور — عندها تُفعَّل الأقساط الشهرية بدل الدفع المقدم الكامل.';
     }
     if (durationType == 'شهر' && duration >= 6) {
-      return 'مدة ممتازة — ستُطلب مستندات وإثبات دخل مع خطة أقساط شهرية.';
+      return 'مدة ممتازة — ستُطلب مستندات دخل مع خطة أقساط شهرية (الهوية من الملف الشخصي).';
     }
     return null;
   }
@@ -79,9 +79,11 @@ class SmartBookingAssistant extends StatelessWidget {
 
   List<({String label, bool done, bool required})> get _docChecklist {
     final docs = <({String label, bool done, bool required})>[
-      (label: 'صورة شخصية (سيلفي)', done: hasSelfie, required: true),
-      (label: 'بطاقة الهوية — الوجه', done: hasIdFront, required: true),
-      (label: 'بطاقة الهوية — الظهر', done: hasIdBack, required: true),
+      (
+        label: 'توثيق الملف الشخصي ($profileKycLabel)',
+        done: profileKycComplete,
+        required: true,
+      ),
     ];
     if (RentalRules.requiresIncomeProof(tier)) {
       docs.add((
@@ -206,7 +208,7 @@ class SmartBookingAssistant extends StatelessWidget {
           Row(
             children: [
               const Text(
-                'المستندات المطلوبة',
+                'متطلبات الحجز',
                 style: TextStyle(
                   fontWeight: FontWeight.w800,
                   fontSize: 12,
@@ -255,6 +257,17 @@ class SmartBookingAssistant extends StatelessWidget {
                   ],
                 ),
               )),
+          if (!profileKycComplete && onCompleteKyc != null) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: TextButton.icon(
+                onPressed: onCompleteKyc,
+                icon: const Icon(Icons.verified_user_outlined, size: 16),
+                label: const Text('إكمال التوثيق من الملف الشخصي'),
+              ),
+            ),
+          ],
         ],
       ),
     );

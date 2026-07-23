@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
+import '../services/data_service.dart';
 import '../widgets/ejari_auth_header.dart';
 import '../widgets/ejari_section.dart';
 import '../widgets/image_upload_widget.dart';
@@ -35,6 +36,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   // Documents
   String? _nationalIdImage;
+  String? _nationalIdBackImage;
   String? _selfieImage;
   String? _proofImage;
 
@@ -72,10 +74,13 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<void> _submit({bool skipVerification = false}) async {
     if (!skipVerification &&
-        (_nationalIdImage == null || _selfieImage == null)) {
+        (_nationalIdImage == null ||
+            _nationalIdBackImage == null ||
+            _selfieImage == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('يرجى رفع صور الهوية أو اضغط تخطي الآن')),
+            content: Text(
+                'ارفع وجهي البطاقة والسيلفي، أو اضغط «تخطي الآن» وأكملها لاحقاً من الملف الشخصي')),
       );
       return;
     }
@@ -94,12 +99,29 @@ class _SignupScreenState extends State<SignupScreen> {
       if (!skipVerification) {
         payload['documents'] = {
           'nationalId': _nationalIdImage,
+          'nationalIdBack': _nationalIdBackImage,
           'selfie': _selfieImage,
           'proof': _proofImage,
         };
       }
       // AuthService owns Firebase timeouts + local demo signup fallback.
       await AuthService.signUp(payload);
+
+      if (!skipVerification &&
+          _nationalIdImage != null &&
+          _nationalIdBackImage != null &&
+          _selfieImage != null) {
+        await DataService.submitIdentityVerification(
+          userId: _emailController.text.trim().toLowerCase(),
+          userName: _nameController.text.trim(),
+          userType: _userType,
+          email: _emailController.text.trim().toLowerCase(),
+          phone: _phoneController.text.trim(),
+          idFront: _nationalIdImage!,
+          idBack: _nationalIdBackImage!,
+          selfie: _selfieImage!,
+        );
+      }
 
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -341,7 +363,7 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget _buildStep2() {
     return _buildStepContainer(
       title: 'التوثيق',
-      subtitle: 'اختياري — يمكنك إكماله من الملف الشخصي',
+      subtitle: 'مرة واحدة في الملف الشخصي — مطلوبة قبل أي حجز',
       child: Column(
         children: [
           Container(
@@ -374,6 +396,12 @@ class _SignupScreenState extends State<SignupScreen> {
               icon: Icons.badge_outlined,
               onImageSelected: (path) =>
                   setState(() => _nationalIdImage = path)),
+          const SizedBox(height: 16),
+          ImageUploadWidget(
+              label: 'بطاقة الهوية (الوجه الخلفي)',
+              icon: Icons.credit_card_rounded,
+              onImageSelected: (path) =>
+                  setState(() => _nationalIdBackImage = path)),
           const SizedBox(height: 16),
           ImageUploadWidget(
               label: 'صورة سيلفي',

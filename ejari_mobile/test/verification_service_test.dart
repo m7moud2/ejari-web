@@ -95,7 +95,7 @@ void main() {
       expect(ok, isTrue);
 
       final status = await DataService.getIdentityVerificationStatus(testEmail);
-      expect(status['label'], 'موافق');
+      expect(status['label'], 'مكتمل');
 
       final prefs = await SharedPreferences.getInstance();
       final userJson = prefs.getString('user_$testEmail');
@@ -130,7 +130,8 @@ void main() {
       expect(ok, isTrue);
 
       final status = await DataService.getIdentityVerificationStatus(testEmail);
-      expect(status['label'], 'مرفوض');
+      expect(status['label'], 'ناقص');
+      expect(status['status'], 'rejected');
       expect(status['reason'], 'الصورة غير واضحة');
 
       final prefs = await SharedPreferences.getInstance();

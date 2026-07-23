@@ -111,9 +111,9 @@ void main() {
     expect(find.textContaining('شقة فاخرة'), findsWidgets);
   });
 
-  test('changelog starts with 1.3.14', () {
+  test('changelog starts with 1.3.15', () {
     final latest = ChangelogScreen.releases.first;
-    expect(latest.version, '1.3.14');
-    expect(latest.items.any((i) => i.contains('معاينة')), isTrue);
+    expect(latest.version, '1.3.15');
+    expect(latest.items.any((i) => i.contains('توثيق')), isTrue);
   });
 }

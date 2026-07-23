@@ -162,6 +162,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _buildAccountIdCard(),
                   const SizedBox(height: AppTheme.spaceMd),
                   _buildAccountSnapshot(),
+                  const SizedBox(height: AppTheme.spaceMd),
+                  _buildVerificationCtaCard(),
                   if (_isOwner && _subscriptionSummary != null) ...[
                     const SizedBox(height: AppTheme.spaceMd),
                     _buildSubscriptionCard(),
@@ -468,13 +470,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'توثيق الحساب',
         Icons.verified_user_outlined,
         AppTheme.accentColor,
-        () {
-          Navigator.push(
+        () async {
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => const RequestVerificationScreen(),
             ),
           );
+          _loadUserData();
         },
       ),
       _buildEjariMenuItem('مركز الإشعارات', Icons.notifications_outlined,
@@ -800,6 +803,103 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 )),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVerificationCtaCard() {
+    final status = _verificationStatus['status'] ?? 'none';
+    final label = _verificationStatus['label'] ?? 'ناقص';
+    final complete = DataService.isProfileDocsComplete(_verificationStatus);
+    final color = status == 'approved'
+        ? AppTheme.primaryColor
+        : status == 'pending'
+            ? AppTheme.borderColor
+            : AppTheme.errorColor;
+    final reason = _verificationStatus['reason'];
+
+    return EjariSurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                complete
+                    ? Icons.verified_rounded
+                    : Icons.verified_user_outlined,
+                color: color,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'توثيق الهوية',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      complete ? 'مكتمل — $label' : 'ناقص — أكمل المستندات',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: color,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            complete
+                ? 'مستنداتك محفوظة في الملف الشخصي ولن تُطلب مجدداً عند كل حجز.'
+                : 'ارفع بطاقة الهوية (وجهان) والسيلفي مرة واحدة — مطلوب قبل إتمام أي حجز.',
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppTheme.textSecondary,
+              height: 1.45,
+            ),
+          ),
+          if (reason != null && reason.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              'السبب: $reason',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppTheme.errorColor,
+              ),
+            ),
+          ],
+          if (!complete || status == 'rejected') ...[
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const RequestVerificationScreen(),
+                    ),
+                  );
+                  _loadUserData();
+                },
+                icon: const Icon(Icons.badge_outlined),
+                label: Text(
+                  status == 'rejected' ? 'إعادة إرسال المستندات' : 'إكمال التوثيق',
+                ),
+              ),
+            ),
           ],
         ],
       ),

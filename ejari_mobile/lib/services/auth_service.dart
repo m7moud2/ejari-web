@@ -499,6 +499,15 @@ class AuthService {
         offlineSignup: true,
         accountId: accountId,
       )..addAll(registrationRoleFields);
+      if (userData['phone'] != null) {
+        fallbackUser['phone'] = userData['phone'];
+      }
+      if (userData['documents'] is Map) {
+        fallbackUser['documents'] =
+            Map<String, dynamic>.from(userData['documents'] as Map);
+      }
+      fallbackUser['isVerified'] = userData['isVerified'] == true;
+      fallbackUser['verified'] = userData['isVerified'] == true;
       await _storeLocalAccount(
         fallbackUser,
         token: 'local-demo-token',
@@ -1247,6 +1256,13 @@ class AuthService {
         'password': account['password'],
         'accountId': account['accountId'],
       });
+
+      // Demo tenant is pre-verified so QA can book without re-uploading KYC.
+      if (email == 'user@ejari.app' || account['role'] == 'admin') {
+        merged['isVerified'] = true;
+        merged['verified'] = true;
+        merged['verifiedAt'] ??= DateTime.now().toIso8601String();
+      }
 
       await prefs.setString('user_$email', jsonEncode(merged));
     }

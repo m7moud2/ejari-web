@@ -3897,35 +3897,74 @@ class DataService {
 
   static Future<Map<String, String>> getIdentityVerificationStatus(
       String email) async {
+    final submission = await getIdentityVerificationForUser(email);
+    if (submission != null) {
+      final status = submission['status']?.toString() ?? 'pending';
+      if (status == 'approved') {
+        return {'status': 'approved', 'label': 'مكتمل'};
+      }
+      if (status == 'rejected') {
+        final reason = submission['rejectionReason']?.toString() ??
+            submission['adminNote']?.toString() ??
+            '';
+        return {
+          'status': 'rejected',
+          'label': 'ناقص',
+          'reason': reason,
+        };
+      }
+      return {'status': 'pending', 'label': 'قيد المراجعة'};
+    }
+
     final prefs = await SharedPreferences.getInstance();
     final userJson = prefs.getString('user_$email');
     if (userJson != null) {
       final user = jsonDecode(userJson) as Map<String, dynamic>;
       if (user['isVerified'] == true || user['verified'] == true) {
-        return {'status': 'approved', 'label': 'موافق'};
+        return {'status': 'approved', 'label': 'مكتمل'};
       }
     }
 
+    return {'status': 'none', 'label': 'ناقص'};
+  }
+
+  /// Docs uploaded once in profile (approved or awaiting admin review).
+  static bool isProfileDocsComplete(Map<String, String> status) {
+    final s = status['status'];
+    return s == 'approved' || s == 'pending';
+  }
+
+  static Future<bool> hasCompletedProfileDocuments(String email) async {
+    if (email.trim().isEmpty) return false;
+    final status = await getIdentityVerificationStatus(email);
+    return isProfileDocsComplete(status);
+  }
+
+  /// Snapshot for booking docs — references profile KYC, no re-upload.
+  static Future<Map<String, dynamic>> getBookingIdentitySnapshot(
+      String email) async {
+    final status = await getIdentityVerificationStatus(email);
     final submission = await getIdentityVerificationForUser(email);
-    if (submission == null) {
-      return {'status': 'none', 'label': 'غير موثق'};
+    final prefs = await SharedPreferences.getInstance();
+    final userJson = prefs.getString('user_$email');
+    Map<String, dynamic>? user;
+    if (userJson != null) {
+      try {
+        user = jsonDecode(userJson) as Map<String, dynamic>;
+      } catch (_) {}
     }
 
-    final status = submission['status']?.toString() ?? 'pending';
-    if (status == 'approved') {
-      return {'status': 'approved', 'label': 'موافق'};
-    }
-    if (status == 'rejected') {
-      final reason = submission['rejectionReason']?.toString() ??
-          submission['adminNote']?.toString() ??
-          '';
-      return {
-        'status': 'rejected',
-        'label': 'مرفوض',
-        'reason': reason,
-      };
-    }
-    return {'status': 'pending', 'label': 'قيد المراجعة'};
+    return {
+      'status': status['status'] ?? 'none',
+      'label': status['label'] ?? 'ناقص',
+      'verified': status['status'] == 'approved',
+      'docsUploaded': isProfileDocsComplete(status),
+      'verifiedAt': user?['verifiedAt'] ??
+          submission?['reviewedAt'] ??
+          submission?['submittedAt'],
+      'verificationRequestId': submission?['id'],
+      'docType': submission?['docType'],
+    };
   }
 
   static Future<Map<String, dynamic>> submitIdentityVerification({
@@ -4083,6 +4122,28 @@ class DataService {
 
     final email = rejected!['email']?.toString() ?? '';
     final userName = rejected!['userName']?.toString() ?? 'مستخدم';
+
+    final userKey = 'user_$email';
+    final userJson = prefs.getString(userKey);
+    if (userJson != null) {
+      final userData = jsonDecode(userJson) as Map<String, dynamic>;
+      userData['isVerified'] = false;
+      userData['verified'] = false;
+      userData.remove('verifiedAt');
+      await prefs.setString(userKey, jsonEncode(userData));
+    }
+
+    final currentEmail = prefs.getString(_currentUserKey);
+    if (currentEmail == email) {
+      final sessionRaw = prefs.getString('user_data');
+      if (sessionRaw != null) {
+        final session = jsonDecode(sessionRaw) as Map<String, dynamic>;
+        session['isVerified'] = false;
+        session['verified'] = false;
+        session.remove('verifiedAt');
+        await prefs.setString('user_data', jsonEncode(session));
+      }
+    }
 
     await addNotificationToUser(
       email,

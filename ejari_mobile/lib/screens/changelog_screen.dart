@@ -8,6 +8,16 @@ class ChangelogScreen extends StatelessWidget {
   static const List<({String version, String date, List<String> items})>
       releases = [
     (
+      version: '1.3.15',
+      date: 'يوليو 2026',
+      items: [
+        'توثيق الهوية مرة واحدة في الملف الشخصي (بطاقة + سيلفي) بدل تكرارها في كل حجز',
+        'الحجز يُمنع حتى اكتمال التوثيق — مع توجيه لشاشة التوثيق',
+        'الملف الشخصي يعرض حالة مكتمل / ناقص مع زر إكمال واضح',
+        'حساب المستأجر التجريبي موثّق مسبقاً لتجربة الحجز في وضع العرض',
+      ],
+    ),
+    (
       version: '1.3.14',
       date: 'يوليو 2026',
       items: [
