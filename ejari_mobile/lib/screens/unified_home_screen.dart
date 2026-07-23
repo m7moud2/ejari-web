@@ -108,21 +108,12 @@ class _UnifiedHomeScreenState extends State<UnifiedHomeScreen> {
               currentView = const TenantHomeView();
           }
 
-          if (userRole == 'technician') {
-            return DecoratedBox(
-              decoration:
-                  const BoxDecoration(color: AppTheme.backgroundColor),
-              child: currentView,
-            );
-          }
-
+          // Role views own their RefreshIndicator + scroll physics.
+          // Nesting another RefreshIndicator here fought gestures and made
+          // home scroll feel incomplete / stuck on web.
           return DecoratedBox(
             decoration: const BoxDecoration(color: AppTheme.backgroundColor),
-            child: RefreshIndicator(
-              onRefresh: _onRefresh,
-              color: AppTheme.primaryColor,
-              child: currentView,
-            ),
+            child: currentView,
           );
         },
       ),

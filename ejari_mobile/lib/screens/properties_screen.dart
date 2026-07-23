@@ -298,7 +298,9 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
                           )
                         else
                           SliverPadding(
-                            padding: const EdgeInsets.only(bottom: 24),
+                            padding: const EdgeInsets.only(
+                              bottom: AppTheme.homeBottomClearance,
+                            ),
                             sliver: SliverList(
                               delegate: SliverChildBuilderDelegate(
                                 (context, index) {

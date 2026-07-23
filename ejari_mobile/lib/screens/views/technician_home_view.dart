@@ -117,8 +117,15 @@ class _TechnicianHomeViewState extends State<TechnicianHomeView> {
       color: AppTheme.primaryColor,
       onRefresh: _load,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
-        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(
+          16,
+          12,
+          16,
+          AppTheme.homeBottomClearance,
+        ),
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
         children: [
           HomeCompactHeader(
             greeting: 'لوحة الفني',

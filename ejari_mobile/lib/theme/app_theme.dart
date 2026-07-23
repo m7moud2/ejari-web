@@ -39,6 +39,9 @@ class AppTheme {
   static const double cardRadiusLg = 24;
   static const double ctaHeight = 52;
 
+  /// Clears the floating pill bottom nav (`extendBody: true`, ~76 + SafeArea + pad).
+  static const double homeBottomClearance = 120;
+
   static BoxDecoration surfaceCardDecoration({
     Color? color,
     double radius = cardRadius,

@@ -349,92 +349,112 @@ class LocationService {
         return StatefulBuilder(
           builder: (ctx, setModal) {
             final cities = EgyptLocations.citiesFor(selectedGov);
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 16,
-                bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'اختر محافظتك ومدينة',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                    ),
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 20,
+                  right: 20,
+                  top: 16,
+                  bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.sizeOf(ctx).height * 0.7,
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'سنعرض أقرب الوحدات حسب اختيارك',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 12,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(
+                      parent: BouncingScrollPhysics(),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: selectedGov,
-                    decoration: const InputDecoration(
-                      labelText: 'المحافظة',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: EgyptLocations.allGovernorates
-                        .map(
-                          (g) => DropdownMenuItem(value: g, child: Text(g)),
-                        )
-                        .toList(),
-                    onChanged: (v) {
-                      setModal(() {
-                        selectedGov = v;
-                        selectedCity = null;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    value: selectedCity,
-                    decoration: const InputDecoration(
-                      labelText: 'المدينة / الحي',
-                      border: OutlineInputBorder(),
-                    ),
-                    items: [
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text('كل المدن'),
-                      ),
-                      ...cities.map(
-                        (c) => DropdownMenuItem(value: c, child: Text(c)),
-                      ),
-                    ],
-                    onChanged: selectedGov == null
-                        ? null
-                        : (v) => setModal(() => selectedCity = v),
-                  ),
-                  const SizedBox(height: 20),
-                  FilledButton(
-                    onPressed: selectedGov == null
-                        ? null
-                        : () async {
-                            await saveManualSelection(
-                              governorate: selectedGov!,
-                              city: selectedCity,
-                            );
-                            final snap = await loadSaved();
-                            if (ctx.mounted) Navigator.pop(ctx, snap);
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Text(
+                          'اختر محافظتك ومدينة',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'سنعرض أقرب الوحدات حسب اختيارك',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: selectedGov,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            labelText: 'المحافظة',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: EgyptLocations.allGovernorates
+                              .map(
+                                (g) => DropdownMenuItem(
+                                  value: g,
+                                  child: Text(g, overflow: TextOverflow.ellipsis),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (v) {
+                            setModal(() {
+                              selectedGov = v;
+                              selectedCity = null;
+                            });
                           },
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        const SizedBox(height: 12),
+                        DropdownButtonFormField<String>(
+                          value: selectedCity,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            labelText: 'المدينة / الحي',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: [
+                            const DropdownMenuItem(
+                              value: null,
+                              child: Text('كل المدن'),
+                            ),
+                            ...cities.map(
+                              (c) => DropdownMenuItem(
+                                value: c,
+                                child: Text(c, overflow: TextOverflow.ellipsis),
+                              ),
+                            ),
+                          ],
+                          onChanged: selectedGov == null
+                              ? null
+                              : (v) => setModal(() => selectedCity = v),
+                        ),
+                        const SizedBox(height: 20),
+                        FilledButton(
+                          onPressed: selectedGov == null
+                              ? null
+                              : () async {
+                                  await saveManualSelection(
+                                    governorate: selectedGov!,
+                                    city: selectedCity,
+                                  );
+                                  final snap = await loadSaved();
+                                  if (ctx.mounted) Navigator.pop(ctx, snap);
+                                },
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppTheme.primaryColor,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          child: const Text('حفظ وعرض الوحدات القريبة'),
+                        ),
+                      ],
                     ),
-                    child: const Text('حفظ وعرض الوحدات القريبة'),
                   ),
-                ],
+                ),
               ),
             );
           },

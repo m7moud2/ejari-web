@@ -31,8 +31,15 @@ class AdminHomeView extends StatelessWidget {
       color: AppTheme.primaryColor,
       onRefresh: () => context.read<HomeProvider>().loadHomeData('admin'),
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(
+          16,
+          12,
+          16,
+          AppTheme.homeBottomClearance,
+        ),
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
         children: [
           _buildHero(context, stats),
           const SizedBox(height: 12),

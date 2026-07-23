@@ -118,7 +118,7 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
                   AppTheme.screenPadding,
                   AppTheme.spaceSm,
                   AppTheme.screenPadding,
-                  120,
+                  AppTheme.homeBottomClearance,
                 ),
                 children: [
                   _buildBalanceCard(),

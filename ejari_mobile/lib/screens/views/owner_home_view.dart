@@ -49,7 +49,9 @@ class OwnerHomeView extends StatelessWidget {
       onRefresh: () => context.read<HomeProvider>().loadHomeData('owner'),
       child: ListView(
         padding: EdgeInsets.zero,
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
         children: [
           HomeCompactHeader(
             greeting: 'مرحباً ${stats['userName'] ?? 'بك'}',
@@ -148,7 +150,7 @@ class OwnerHomeView extends StatelessWidget {
               AppTheme.spaceMd,
               0,
               AppTheme.spaceMd,
-              AppTheme.spaceXl,
+              AppTheme.homeBottomClearance,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

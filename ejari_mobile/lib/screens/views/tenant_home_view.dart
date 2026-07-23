@@ -117,7 +117,9 @@ class _TenantHomeViewState extends State<TenantHomeView> {
       },
       child: ListView(
         padding: EdgeInsets.zero,
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
         children: [
           HomeCompactHeader(
             greeting: 'مرحباً ${stats['userName'] ?? 'بك'} 👋',
@@ -254,7 +256,7 @@ class _TenantHomeViewState extends State<TenantHomeView> {
               ),
             ),
           ),
-          const SizedBox(height: AppTheme.spaceXl),
+          const SizedBox(height: AppTheme.homeBottomClearance),
         ],
       ),
     );
@@ -1046,6 +1048,7 @@ class _TenantHomeViewState extends State<TenantHomeView> {
             )
           : ListView.separated(
               scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
               itemCount: items.length,
               separatorBuilder: (_, __) => const SizedBox(width: 12),
               itemBuilder: (context, index) {
@@ -1066,6 +1069,7 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                     ),
                     child: Container(
                       width: 200,
+                      clipBehavior: Clip.antiAlias,
                       decoration: AppTheme.surfaceCardDecoration(
                         radius: AppTheme.cardRadiusLg,
                       ).copyWith(
@@ -1150,45 +1154,49 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                                 ),
                             ],
                           ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item['title'] ?? '',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 13,
-                                    color: AppTheme.textPrimary,
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item['title'] ?? '',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 13,
+                                      color: AppTheme.textPrimary,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  item['location'] ?? '',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: AppTheme.textSecondary,
-                                    fontSize: 11,
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    item['location'] ?? '',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: AppTheme.textSecondary,
+                                      fontSize: 11,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  isSale
-                                      ? '${item['price'] ?? ''} ج.م'
-                                      : (item['dailyPrice'] != null
-                                          ? '${item['dailyPrice']} ج.م / يوم'
-                                          : '${item['price'] ?? ''} ج.م / شهر'),
-                                  style: const TextStyle(
-                                    color: AppTheme.primaryColor,
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 12,
+                                  const Spacer(),
+                                  Text(
+                                    isSale
+                                        ? '${item['price'] ?? ''} ج.م'
+                                        : (item['dailyPrice'] != null
+                                            ? '${item['dailyPrice']} ج.م / يوم'
+                                            : '${item['price'] ?? ''} ج.م / شهر'),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: AppTheme.primaryColor,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 12,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ],

@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -179,6 +180,8 @@ class _EjariAppState extends State<EjariApp> {
               darkTheme: AppTheme.darkTheme,
               themeMode: currentMode,
               locale: currentLocale,
+              // Web: allow mouse/trackpad drag so home lists feel flexible.
+              scrollBehavior: const _EjariScrollBehavior(),
               builder: (context, child) =>
                   DemoModeBanner(child: child ?? const SizedBox.shrink()),
               localizationsDelegates: const [
@@ -198,4 +201,17 @@ class _EjariAppState extends State<EjariApp> {
       },
     );
   }
+}
+
+/// Enables drag scrolling with mouse/trackpad (needed for Flutter web).
+class _EjariScrollBehavior extends MaterialScrollBehavior {
+  const _EjariScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.trackpad,
+        PointerDeviceKind.stylus,
+      };
 }

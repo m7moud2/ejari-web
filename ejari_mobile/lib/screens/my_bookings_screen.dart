@@ -177,7 +177,10 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                   AppTheme.screenPadding,
                   AppTheme.spaceMd,
                   AppTheme.screenPadding,
-                  AppTheme.spaceXl,
+                  AppTheme.homeBottomClearance,
+                ),
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
                 ),
                 children: [
                   _buildOverviewCard(),
