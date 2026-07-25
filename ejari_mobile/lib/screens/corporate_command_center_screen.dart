@@ -5,6 +5,7 @@ import '../services/data_service.dart';
 import '../models/booking_status.dart';
 import 'corporate_booking_screen.dart';
 import 'my_bookings_screen.dart';
+import '../utils/currency_formatter.dart';
 
 /// حساب الشركات — موافقات الحجوزات، الفواتير، وحجوزات الفريق.
 class CorporateCommandCenterScreen extends StatefulWidget {
@@ -416,7 +417,7 @@ class _CorporateCommandCenterScreenState
             ),
             const SizedBox(height: 6),
             Text(
-              '$name${rent.toString().isNotEmpty ? ' • $rent ج.م' : ''}',
+              '$name${rent.toString().isNotEmpty ? ' • $rent ${CurrencyFormatter.symbol}' : ''}',
               style: const TextStyle(
                 fontSize: 12,
                 color: AppTheme.textSecondary,
@@ -598,14 +599,14 @@ class _CorporateCommandCenterScreenState
                   style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
                 ),
                 Text(
-                  'الرصيد: ${_wallet['balance'] ?? 0} ج.م',
+                  'الرصيد: ${_wallet['balance'] ?? 0} ${CurrencyFormatter.symbol}',
                   style: const TextStyle(
                     fontWeight: FontWeight.w800,
                     color: AppTheme.primaryColor,
                   ),
                 ),
                 Text(
-                  'إجمالي الإنفاق: ${_wallet['totalSpend'] ?? _summary['totalSpend'] ?? 0} ج.م',
+                  'إجمالي الإنفاق: ${_wallet['totalSpend'] ?? _summary['totalSpend'] ?? 0} ${CurrencyFormatter.symbol}',
                   style: const TextStyle(
                     fontSize: 11,
                     color: AppTheme.textSecondary,
@@ -637,13 +638,13 @@ class _CorporateCommandCenterScreenState
           Row(
             children: [
               _invoiceStat('فواتير', '${_bulkInvoice['invoiceCount'] ?? 0}'),
-              _invoiceStat('إيجار', '${_bulkInvoice['totalRent'] ?? 0} ج.م'),
-              _invoiceStat('عربون', '${_bulkInvoice['depositTotal'] ?? 0} ج.م'),
+              _invoiceStat('إيجار', '${_bulkInvoice['totalRent'] ?? 0} ${CurrencyFormatter.symbol}'),
+              _invoiceStat('عربون', '${_bulkInvoice['depositTotal'] ?? 0} ${CurrencyFormatter.symbol}'),
             ],
           ),
           const Divider(height: 16),
           Text(
-            'الإجمالي: ${_bulkInvoice['grandTotal'] ?? 0} ج.م',
+            'الإجمالي: ${_bulkInvoice['grandTotal'] ?? 0} ${CurrencyFormatter.symbol}',
             style: const TextStyle(
               fontWeight: FontWeight.w900,
               color: AppTheme.accentColor,

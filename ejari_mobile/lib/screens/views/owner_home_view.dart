@@ -30,6 +30,7 @@ import '../changelog_screen.dart';
 import '../../services/auth_service.dart';
 import '../../services/data_service.dart';
 import '../../services/pdf_export_service.dart';
+import '../../utils/currency_formatter.dart';
 
 class OwnerHomeView extends StatelessWidget {
   const OwnerHomeView({super.key});
@@ -73,7 +74,7 @@ class OwnerHomeView extends StatelessWidget {
                   HomeQuickLookRow(tiles: [
                     HomeQuickLookTile(
                       label: 'إيراد اليوم',
-                      value: '${stats['todayIncome'] ?? 0} ج.م',
+                      value: '${stats['todayIncome'] ?? 0} ${CurrencyFormatter.symbol}',
                       icon: Icons.today_rounded,
                       color: AppTheme.accentColor,
                     ),
@@ -386,7 +387,7 @@ class OwnerHomeView extends StatelessWidget {
               child: EjariStatTile(
                 icon: Icons.calendar_month_rounded,
                 label: 'إيراد الشهر',
-                value: '${stats['monthlyRevenue'] ?? 0} ج.م',
+                value: '${stats['monthlyRevenue'] ?? 0} ${CurrencyFormatter.symbol}',
                 accentColor: AppTheme.primaryColor,
                 compact: true,
               ),
@@ -423,7 +424,7 @@ class OwnerHomeView extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'توقع إيراد الشهر القادم: ${stats['revenueForecast']} ج.م',
+                    'توقع إيراد الشهر القادم: ${stats['revenueForecast']} ${CurrencyFormatter.symbol}',
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -693,7 +694,7 @@ class OwnerHomeView extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12),
             ),
             subtitle: Text(
-              '${v['propertyTitle'] ?? ''} — $suggested ج.م',
+              '${v['propertyTitle'] ?? ''} — $suggested ${CurrencyFormatter.symbol}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 10),
@@ -784,7 +785,7 @@ class OwnerHomeView extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '${p['revenue'] ?? 0} ج.م',
+                      '${p['revenue'] ?? 0} ${CurrencyFormatter.symbol}',
                       style: const TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,

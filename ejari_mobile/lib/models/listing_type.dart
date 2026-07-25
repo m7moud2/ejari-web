@@ -1,3 +1,4 @@
+import '../utils/currency_formatter.dart';
 /// نوع الإعلان: إيجار أو بيع.
 enum ListingType {
   rent,
@@ -48,5 +49,5 @@ String listingPriceLabel(Map<String, dynamic> property) {
 }
 
 String listingPriceSuffix(Map<String, dynamic> property) {
-  return isSaleListing(property) ? 'ج.م إجمالي' : 'ج.م / شهر';
+  return isSaleListing(property) ? '${CurrencyFormatter.symbol} إجمالي' : '${CurrencyFormatter.symbol} / شهر';
 }

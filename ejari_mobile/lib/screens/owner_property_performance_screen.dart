@@ -7,6 +7,7 @@ import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import '../utils/safe_parse.dart';
 import '../widgets/ejari_section.dart';
+import '../utils/currency_formatter.dart';
 
 /// أداء العقارات — مشاهدات، حجوزات، إيراد، إشغال، تصدير، ومقارنة سوقية.
 class OwnerPropertyPerformanceScreen extends StatefulWidget {
@@ -53,7 +54,7 @@ class _OwnerPropertyPerformanceScreenState
     final now = DateTime.now();
     final rows = _items.map((p) {
       return '<tr><td>${safeStr(p['title'])}</td><td>${p['views']}</td>'
-          '<td>${p['bookings']}</td><td>${p['revenue']} ج.م</td>'
+          '<td>${p['bookings']}</td><td>${p['revenue']} ${CurrencyFormatter.symbol}</td>'
           '<td>${p['occupancy']}%</td></tr>';
     }).join();
 
@@ -66,7 +67,7 @@ th,td{border:1px solid #ddd;padding:8px;text-align:right}
 th{background:#0F3A30;color:#fff}</style></head><body>
 <h1>تقرير أداء العقارات</h1>
 <p>التاريخ: ${now.day}/${now.month}/${now.year}</p>
-<p>إيراد شهري: ${summary['monthlyRevenue']} ج.م | مستأجرون: ${summary['tenantCount']}</p>
+<p>إيراد شهري: ${summary['monthlyRevenue']} ${CurrencyFormatter.symbol} | مستأجرون: ${summary['tenantCount']}</p>
 <table><thead><tr><th>العقار</th><th>مشاهدات</th><th>حجوزات</th><th>إيراد</th><th>إشغال</th></tr></thead>
 <tbody>$rows</tbody></table></body></html>''';
 
@@ -160,7 +161,7 @@ th{background:#0F3A30;color:#fff}</style></head><body>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'متوسط المنطقة ${_areaAvg['area'] ?? ''}: $avg ج.م',
+                  'متوسط المنطقة ${_areaAvg['area'] ?? ''}: $avg ${CurrencyFormatter.symbol}',
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 13,
@@ -168,8 +169,8 @@ th{background:#0F3A30;color:#fff}</style></head><body>
                 ),
                 Text(
                   better
-                      ? 'أداؤك أعلى بـ ${diff.abs()} ج.م من المتوسط'
-                      : 'أقل بـ ${diff.abs()} ج.م — فرصة لرفع السعر',
+                      ? 'أداؤك أعلى بـ ${diff.abs()} ${CurrencyFormatter.symbol} من المتوسط'
+                      : 'أقل بـ ${diff.abs()} ${CurrencyFormatter.symbol} — فرصة لرفع السعر',
                   style: TextStyle(
                     fontSize: 11,
                     color: better ? AppTheme.successColor : AppTheme.errorColor,
@@ -337,7 +338,7 @@ th{background:#0F3A30;color:#fff}</style></head><body>
                 EjariStatTile(
                   icon: Icons.payments_rounded,
                   label: 'إيراد',
-                  value: '${p['revenue'] ?? 0} ج.م',
+                  value: '${p['revenue'] ?? 0} ${CurrencyFormatter.symbol}',
                   accentColor: AppTheme.accentColor,
                   compact: true,
                 ),

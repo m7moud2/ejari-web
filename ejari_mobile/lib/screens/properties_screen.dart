@@ -15,6 +15,7 @@ import '../widgets/sale_listing_widgets.dart';
 import '../models/accommodation_type.dart';
 import '../services/offline_cache_service.dart';
 import '../widgets/offline_banner.dart';
+import '../utils/currency_formatter.dart';
 
 enum _ExploreSort { newest, priceAsc, priceDesc, rating }
 
@@ -709,7 +710,7 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                'من $daily ج.م / يوم',
+                                'من $daily ${CurrencyFormatter.symbol} / يوم',
                                 style: const TextStyle(
                                   color: AppTheme.primaryColor,
                                   fontWeight: FontWeight.w800,
@@ -839,7 +840,7 @@ class _PropertiesScreenState extends State<PropertiesScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                '$price ج.م',
+                                '$price ${CurrencyFormatter.symbol}',
                                 style: const TextStyle(
                                   color: AppTheme.primaryColor,
                                   fontWeight: FontWeight.w800,

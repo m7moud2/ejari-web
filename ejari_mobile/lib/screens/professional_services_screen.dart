@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import '../services/support_service.dart';
 import '../services/data_service.dart';
 import '../utils/safe_parse.dart';
+import '../utils/currency_formatter.dart';
 
 class ProfessionalServicesScreen extends StatefulWidget {
   final Map<String, dynamic>? property;
@@ -294,7 +295,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
         if (_selectedPhotoPackage >= 0)
           _buildBookingButton(
             'احجز باقة ${_photoPackages[_selectedPhotoPackage]['title']}',
-            '${_photoPackages[_selectedPhotoPackage]['price']} ج.م',
+            '${_photoPackages[_selectedPhotoPackage]['price']} ${CurrencyFormatter.symbol}',
             () => _showBookingConfirmation(
                 context, _photoPackages[_selectedPhotoPackage]['title']),
           ),
@@ -382,7 +383,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text('${pkg['price']} ج.م',
+                    Text('${pkg['price']} ${CurrencyFormatter.symbol}',
                         style: TextStyle(
                             fontWeight: FontWeight.w900,
                             fontSize: 18,
@@ -1117,7 +1118,7 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                           setS(() {
                             isLoading = false;
                             result =
-                                '📍 ${locationCtrl.text}  |  📐 $area م²\n\n💰 الإيجار المقدر:\n$minPrice — $maxPrice ج.م / شهرياً\n\n📈 الأسعار في هذه المنطقة ارتفعت 12% خلال الـ 6 أشهر الماضية.';
+                                '📍 ${locationCtrl.text}  |  📐 $area م²\n\n💰 الإيجار المقدر:\n$minPrice — $maxPrice ${CurrencyFormatter.symbol} / شهرياً\n\n📈 الأسعار في هذه المنطقة ارتفعت 12% خلال الـ 6 أشهر الماضية.';
                           });
                         },
                   style: ElevatedButton.styleFrom(
@@ -1345,16 +1346,18 @@ class _ProfessionalServicesScreenState extends State<ProfessionalServicesScreen>
                       color: AppTheme.backgroundColor,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: AppTheme.backgroundColor)),
-                  child: const Column(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _InfoRow(label: 'المستأجر', value: 'محمود عبدالقوي'),
-                      _InfoRow(label: 'المالك', value: 'أحمد محمد السيد'),
-                      _InfoRow(
+                      const _InfoRow(label: 'المستأجر', value: 'محمود عبدالقوي'),
+                      const _InfoRow(label: 'المالك', value: 'أحمد محمد السيد'),
+                      const _InfoRow(
                           label: 'العقار', value: 'شقة المعادي — الدور الثالث'),
-                      _InfoRow(label: 'الإيجار الشهري', value: '8,500 ج.م'),
-                      _InfoRow(label: 'مدة العقد', value: '12 شهراً'),
-                      _InfoRow(label: 'تاريخ البداية', value: '1 مايو 2025'),
+                      _InfoRow(
+                          label: 'الإيجار الشهري',
+                          value: '8,500 ${CurrencyFormatter.symbol}'),
+                      const _InfoRow(label: 'مدة العقد', value: '12 شهراً'),
+                      const _InfoRow(label: 'تاريخ البداية', value: '1 مايو 2025'),
                     ],
                   ),
                 ),

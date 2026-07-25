@@ -10,6 +10,7 @@ import 'admin_financials_screen.dart';
 import 'chat_list_screen.dart';
 import '../services/data_service.dart';
 import '../utils/auth_gate.dart';
+import '../utils/currency_formatter.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -201,7 +202,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen>
             Icons.home_work, AppTheme.borderColor),
         _buildMetricCard(
             'حجم التداول',
-            '${(_totalRevenue / 1000).toStringAsFixed(1)}K ج.م',
+            '${(_totalRevenue / 1000).toStringAsFixed(1)}K ${CurrencyFormatter.symbol}',
             Icons.attach_money,
             AppTheme.primaryColor),
         _buildMetricCard('بلاغات معلقة', '$_reportedIssues',

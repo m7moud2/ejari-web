@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/currency_formatter.dart';
 
 class RewardsScreen extends StatelessWidget {
   const RewardsScreen({super.key});
@@ -131,7 +132,7 @@ class RewardsScreen extends StatelessWidget {
                   const SizedBox(height: 16),
                   _buildRewardItem(
                     context,
-                    'خصم 500 ج.م على الإيجار',
+                    'خصم 500 ${CurrencyFormatter.symbol} على الإيجار',
                     '5,000 نقطة',
                     AppTheme.primaryColor,
                     Icons.home,

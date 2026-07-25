@@ -19,6 +19,7 @@ import '../verification_screen.dart';
 import '../../widgets/admin_operations_feed.dart';
 import '../../services/data_service.dart';
 import '../../services/pdf_export_service.dart';
+import '../../utils/currency_formatter.dart';
 
 class AdminHomeView extends StatelessWidget {
   const AdminHomeView({super.key});
@@ -53,7 +54,7 @@ class AdminHomeView extends StatelessWidget {
             HomeQuickLookTile(
               label: 'الأرباح',
               value: '${stats['platformRevenue'] ?? 0}',
-              hint: 'ج.م',
+              hint: CurrencyFormatter.symbol,
               icon: Icons.payments_rounded,
               color: AppTheme.accentColor,
             ),
@@ -353,7 +354,7 @@ class AdminHomeView extends StatelessWidget {
         EjariStatTile(
           icon: Icons.lock_rounded,
           label: 'الضمان',
-          value: '${stats['escrowBalance'] ?? 0} ج.م',
+          value: '${stats['escrowBalance'] ?? 0} ${CurrencyFormatter.symbol}',
           compact: true,
         ),
         EjariStatTile(

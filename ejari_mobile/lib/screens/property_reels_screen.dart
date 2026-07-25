@@ -3,6 +3,7 @@ import '../services/firestore_property_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ejari_image.dart';
 import 'property_details_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class PropertyReelsScreen extends StatefulWidget {
   const PropertyReelsScreen({super.key});
@@ -233,7 +234,7 @@ class _PropertyReelsScreenState extends State<PropertyReelsScreen> {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        '${item['price'] ?? '0'} ج.م',
+                        '${item['price'] ?? '0'} ${CurrencyFormatter.symbol}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,

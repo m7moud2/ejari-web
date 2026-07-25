@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../utils/auth_gate.dart';
 import 'my_service_requests_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class ServiceDetailsScreen extends StatelessWidget {
   final String serviceName;
@@ -134,7 +135,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                                     fontSize: 13)),
                             const SizedBox(height: 4),
                             Text(
-                              '${basePrice > 0 ? basePrice : '---'} ج.م',
+                              '${basePrice > 0 ? basePrice : '---'} ${CurrencyFormatter.symbol}',
                               style: TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.w900,

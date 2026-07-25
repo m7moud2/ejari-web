@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../services/wallet_service.dart';
 import '../services/pdf_export_service.dart';
+import '../utils/currency_formatter.dart';
 
 class AdminFinancialsScreen extends StatefulWidget {
   const AdminFinancialsScreen({super.key});
@@ -90,9 +91,9 @@ class _AdminFinancialsScreenState extends State<AdminFinancialsScreen>
               final text = '''
 تقرير رسوم منصة إيجاري
 الفترة: ${report['period']}
-إجمالي التداول: ${(report['totalVolume'] as num).toStringAsFixed(0)} ج.م
+إجمالي التداول: ${(report['totalVolume'] as num).toStringAsFixed(0)} ${CurrencyFormatter.symbol}
 نسبة الرسوم: ${report['platformFeePercent']}%
-أرباح المنصة: ${(report['platformFee'] as num).toStringAsFixed(0)} ج.م
+أرباح المنصة: ${(report['platformFee'] as num).toStringAsFixed(0)} ${CurrencyFormatter.symbol}
 عدد المعاملات: ${report['transactionCount']}
 تاريخ التوليد: ${report['generatedAt']}
 ''';
@@ -135,12 +136,12 @@ class _AdminFinancialsScreenState extends State<AdminFinancialsScreen>
             children: [
               _buildSmallStatCard(
                   'أرباح المنصة',
-                  '${_platformEarnings.toStringAsFixed(0)} ج.م',
+                  '${_platformEarnings.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                   AppTheme.primaryColor),
               const SizedBox(width: 12),
               _buildSmallStatCard(
                   'قيد التسوية',
-                  '${(_totalVolume * 0.05).toStringAsFixed(0)} ج.م',
+                  '${(_totalVolume * 0.05).toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                   AppTheme.borderColor),
             ],
           ),
@@ -149,7 +150,7 @@ class _AdminFinancialsScreenState extends State<AdminFinancialsScreen>
             children: [
               _buildSmallStatCard(
                   'رصيد escrow',
-                  '${_escrowBalance.toStringAsFixed(0)} ج.م',
+                  '${_escrowBalance.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                   AppTheme.primaryColor),
               const SizedBox(width: 12),
               _buildSmallStatCard(
@@ -212,7 +213,7 @@ class _AdminFinancialsScreenState extends State<AdminFinancialsScreen>
           const Text('إجمالي حجم التداول المدار',
               style: TextStyle(color: Colors.white70, fontSize: 13)),
           const SizedBox(height: 8),
-          Text('${_totalVolume.toStringAsFixed(0)} ج.م',
+          Text('${_totalVolume.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
               style: const TextStyle(
                   color: Colors.white,
                   fontSize: 32,
@@ -224,11 +225,11 @@ class _AdminFinancialsScreenState extends State<AdminFinancialsScreen>
             children: [
               _buildWalletDetail(
                   'قيد التسوية',
-                  '${_escrowBalance.toStringAsFixed(0)} ج.م',
+                  '${_escrowBalance.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                   AppTheme.borderColor),
               _buildWalletDetail(
                   'جاهز للسحب',
-                  '${(_platformEarnings * 0.8).toStringAsFixed(0)} ج.م',
+                  '${(_platformEarnings * 0.8).toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                   AppTheme.primaryColor),
             ],
           ),
@@ -459,7 +460,7 @@ class _AdminFinancialsScreenState extends State<AdminFinancialsScreen>
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('${tx['amount']} ج.م',
+              Text('${tx['amount']} ${CurrencyFormatter.symbol}',
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: isPositive

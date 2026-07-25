@@ -4,6 +4,7 @@ import '../services/maintenance_service.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import '../utils/safe_parse.dart';
+import '../utils/currency_formatter.dart';
 
 class AdminServiceRequestsScreen extends StatefulWidget {
   const AdminServiceRequestsScreen({super.key});
@@ -400,7 +401,7 @@ class _AdminServiceRequestsScreenState
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        '${request['estimatedCost'] ?? 0} ج.م',
+                        '${request['estimatedCost'] ?? 0} ${CurrencyFormatter.symbol}',
                         style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,
@@ -708,7 +709,7 @@ class _AdminServiceRequestsScreenState
               _buildDetailRow('الوقت', safeStr(request['time'], '—')),
               _buildDetailRow(
                   'السعر',
-                  '${safeStr(request['price'] ?? request['estimatedCost'], '0')} ج.م'),
+                  '${safeStr(request['price'] ?? request['estimatedCost'], '0')} ${CurrencyFormatter.symbol}'),
               _buildDetailRow(
                   'العنوان',
                   safeStr(request['address'] ??

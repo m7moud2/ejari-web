@@ -5,6 +5,7 @@ import '../services/firestore_property_service.dart';
 import 'property_details_screen.dart';
 import 'booking_screen.dart';
 import 'map_search_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class NearbyScreen extends StatefulWidget {
   const NearbyScreen({super.key});
@@ -253,7 +254,7 @@ class _NearbyScreenState extends State<NearbyScreen>
                         child: Text(item['title'],
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 16))),
-                    Text('${item['price']} ${isProperty ? '' : 'ج.م'}',
+                    Text('${item['price']} ${isProperty ? '' : CurrencyFormatter.symbol}',
                         style: const TextStyle(
                             color: AppTheme.primaryColor,
                             fontWeight: FontWeight.bold,

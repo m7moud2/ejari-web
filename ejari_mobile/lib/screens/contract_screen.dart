@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'signature_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class ContractScreen extends StatefulWidget {
   final String? contractId;
@@ -123,7 +124,7 @@ class _ContractScreenState extends State<ContractScreen> {
                               _buildSummaryChip('النوع', widget.itemLabel),
                               _buildSummaryChip('المدة', widget.duration),
                               _buildSummaryChip('البدء', widget.startDate),
-                              _buildSummaryChip('القيمة', '${widget.price} ج.م'),
+                              _buildSummaryChip('القيمة', '${widget.price} ${CurrencyFormatter.symbol}'),
                               if (widget.rentalTierLabel != null)
                                 _buildSummaryChip('فئة الإيجار', widget.rentalTierLabel!),
                               if (widget.tenantTypeLabel != null)
@@ -174,10 +175,10 @@ class _ContractScreenState extends State<ContractScreen> {
                           _buildContractRow('مدة الإيجار:', widget.duration),
                           _buildContractRow('تاريخ البدء:', widget.startDate),
                           _buildContractRow(
-                              'القيمة الإيجارية:', '${widget.price} ج.م'),
+                              'القيمة الإيجارية:', '${widget.price} ${CurrencyFormatter.symbol}'),
                           if (widget.deposit != null) ...[
                             _buildContractRow(
-                                'العربون:', '${widget.deposit} ج.م'),
+                                'العربون:', '${widget.deposit} ${CurrencyFormatter.symbol}'),
                           ],
                           const Divider(),
                           const SizedBox(height: 10),

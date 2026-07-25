@@ -9,6 +9,7 @@ import '../models/rental_duration_tier.dart';
 import '../models/booking_status.dart';
 import '../models/tenant_type.dart';
 import 'success_payment_screen.dart';
+import '../utils/currency_formatter.dart';
 
 /// حجز جماعي لموظفين في محافظات مختلفة — MVP مع بيانات تجريبية.
 class CorporateBookingScreen extends StatefulWidget {
@@ -268,7 +269,7 @@ class _CorporateBookingScreenState extends State<CorporateBookingScreen> {
                         _chip('$_assignedCount معيّن', AppTheme.primaryColor),
                         _chip('${_employees.length} موظف', AppTheme.accentColor),
                         _chip(
-                          '${_totalCorporateAmount.toStringAsFixed(0)} ج.م عربون',
+                          '${_totalCorporateAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol} عربون',
                           AppTheme.borderColor,
                         ),
                       ],
@@ -341,7 +342,7 @@ class _CorporateBookingScreenState extends State<CorporateBookingScreen> {
                       child: _isProcessing
                           ? const CircularProgressIndicator(color: Colors.white)
                           : Text(
-                              'تأكيد الحجز الجماعي (${_totalCorporateAmount.toStringAsFixed(0)} ج.م)'),
+                              'تأكيد الحجز الجماعي (${_totalCorporateAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol})'),
                     ),
                   ),
                 ],
@@ -424,7 +425,7 @@ class _CorporateBookingScreenState extends State<CorporateBookingScreen> {
                     ),
                   ),
                   Text(
-                    '${emp['monthlyRent']} ج.م/شهر',
+                    '${emp['monthlyRent']} ${CurrencyFormatter.symbol}/شهر',
                     style: const TextStyle(
                         fontSize: 11, color: AppTheme.primaryColor),
                   ),
@@ -443,7 +444,7 @@ class _CorporateBookingScreenState extends State<CorporateBookingScreen> {
                   .map((p) => DropdownMenuItem(
                         value: p['id'].toString(),
                         child: Text(
-                          '${p['title']} — ${p['price']} ج.م',
+                          '${p['title']} — ${p['price']} ${CurrencyFormatter.symbol}',
                           overflow: TextOverflow.ellipsis,
                         ),
                       ))

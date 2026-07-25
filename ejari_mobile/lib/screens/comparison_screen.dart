@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/currency_formatter.dart';
 
 class ComparisonScreen extends StatefulWidget {
   final List<Map<String, dynamic>> items;
@@ -101,7 +102,7 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
     if (widget.type == 'property') {
       return [
         _buildDataRow(
-            'السعر', widget.items.map((e) => '${e['price']} ج.م').toList()),
+            'السعر', widget.items.map((e) => '${e['price']} ${CurrencyFormatter.symbol}').toList()),
         _buildDataRow(
             'الموقع',
             widget.items
@@ -127,7 +128,7 @@ class _ComparisonScreenState extends State<ComparisonScreen> {
       // Car comparison
       return [
         _buildDataRow('السعر اليومي',
-            widget.items.map((e) => '${e['price']} ج.م').toList()),
+            widget.items.map((e) => '${e['price']} ${CurrencyFormatter.symbol}').toList()),
         _buildDataRow(
             'الموديل', widget.items.map((e) => '${e['year'] ?? '-'}').toList()),
         _buildDataRow('النوع',

@@ -1,3 +1,4 @@
+import '../utils/currency_formatter.dart';
 /// نوع الوحدة المؤجرة: شقة كاملة، غرفة مشتركة، أو سرير.
 enum AccommodationType {
   fullUnit,
@@ -73,10 +74,10 @@ String accommodationPriceSuffix(Map<String, dynamic> property) {
   final t = accommodationTypeFromProperty(property);
   switch (t) {
     case AccommodationType.bed:
-      return 'ج.م / سرير / شهر';
+      return '${CurrencyFormatter.symbol} / سرير / شهر';
     case AccommodationType.sharedRoom:
-      return 'ج.م / غرفة / شهر';
+      return '${CurrencyFormatter.symbol} / غرفة / شهر';
     case AccommodationType.fullUnit:
-      return 'ج.م / شهر';
+      return '${CurrencyFormatter.symbol} / شهر';
   }
 }

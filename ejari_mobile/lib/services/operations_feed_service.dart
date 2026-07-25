@@ -4,6 +4,7 @@ import 'data_service.dart';
 import 'maintenance_service.dart';
 import 'live_sync_service.dart';
 import '../models/booking_status.dart';
+import '../utils/currency_formatter.dart';
 
 /// بث العمليات الحي للإدارة — حجوزات، مدفوعات، توثيق، نزاعات.
 class OperationsFeedService {
@@ -30,7 +31,7 @@ class OperationsFeedService {
       _event(
         type: 'booking',
         title: 'حجز بعربون مدفوع',
-        detail: 'شقة المعادي — ٣٥٠٠ ج.م في الضمان',
+        detail: 'شقة المعادي — ٣٥٠٠ ${CurrencyFormatter.symbol} في الضمان',
         refId: 'BK-DEMO-01',
         at: now.subtract(const Duration(minutes: 28)),
         priority: 'normal',
@@ -38,7 +39,7 @@ class OperationsFeedService {
       _event(
         type: 'payment',
         title: 'دفعة إيجار مستلمة',
-        detail: 'قسط شهري — ٨٠٠٠ ج.م للمالك (بعد عمولة المنصة)',
+        detail: 'قسط شهري — ٨٠٠٠ ${CurrencyFormatter.symbol} للمالك (بعد عمولة المنصة)',
         refId: 'PAY-8842',
         at: now.subtract(const Duration(hours: 1)),
         priority: 'normal',

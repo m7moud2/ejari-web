@@ -7,6 +7,7 @@ import '../services/auth_service.dart';
 import 'create_maintenance_request_screen.dart';
 import 'my_service_requests_screen.dart';
 import '../utils/auth_gate.dart';
+import '../utils/currency_formatter.dart';
 
 class MaintenanceRequestsScreen extends StatefulWidget {
   const MaintenanceRequestsScreen({super.key});
@@ -225,7 +226,7 @@ class _MaintenanceRequestsScreenState extends State<MaintenanceRequestsScreen> {
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(
-                'تقدير: ${req['estimatedCost']} ج.م',
+                'تقدير: ${req['estimatedCost']} ${CurrencyFormatter.symbol}',
                 style: const TextStyle(
                     color: AppTheme.primaryColor,
                     fontWeight: FontWeight.w800),

@@ -6,6 +6,7 @@ import '../models/tenant_type.dart';
 import '../utils/rental_pricing.dart';
 import '../utils/rental_rules.dart';
 import 'ejari_section.dart';
+import '../utils/currency_formatter.dart';
 
 /// شارات الثقة على شاشات الحجز والدفع والعقار.
 class EjariTrustBadges extends StatelessWidget {
@@ -149,18 +150,18 @@ class DurationCostHint extends StatelessWidget {
     final fairDaily = RentalPricing.premiumDailyRate(monthlyRent);
     final lines = <String>[
       'فئة التسعير: ${pricing.tier.arabicLabel}',
-      'سعر اليوم الفعلي: ${pricing.effectiveDailyRate.toStringAsFixed(0)} ج.م/يوم',
-      'إجمالي الفترة: ${totalPrice.toStringAsFixed(0)} ج.م لـ ${pricing.totalDays} يوم',
+      'سعر اليوم الفعلي: ${pricing.effectiveDailyRate.toStringAsFixed(0)} ${CurrencyFormatter.symbol}/يوم',
+      'إجمالي الفترة: ${totalPrice.toStringAsFixed(0)} ${CurrencyFormatter.symbol} لـ ${pricing.totalDays} يوم',
     ];
     if (pricing.savingsVsPremiumDaily > 0) {
       lines.add(
-        'توفير مقارنة باليومي: ${pricing.savingsVsPremiumDaily.toStringAsFixed(0)} ج.م '
-        '(بدلاً من ${pricing.naivePremiumTotal.toStringAsFixed(0)} ج.م)',
+        'توفير مقارنة باليومي: ${pricing.savingsVsPremiumDaily.toStringAsFixed(0)} ${CurrencyFormatter.symbol} '
+        '(بدلاً من ${pricing.naivePremiumTotal.toStringAsFixed(0)} ${CurrencyFormatter.symbol})',
       );
     } else if (pricing.tier == RentalPricingTier.daily) {
       lines.add(
-        'السعر اليومي المميز: ${pricing.premiumDailyRate.toStringAsFixed(0)} ج.م '
-        '(مقابل ${fairDaily.toStringAsFixed(0)} ج.م حصة عادلة)',
+        'السعر اليومي المميز: ${pricing.premiumDailyRate.toStringAsFixed(0)} ${CurrencyFormatter.symbol} '
+        '(مقابل ${fairDaily.toStringAsFixed(0)} ${CurrencyFormatter.symbol} حصة عادلة)',
       );
     }
 
@@ -281,18 +282,18 @@ class BookingSummaryCard extends StatelessWidget {
             _row('فئة التسعير', pricingResult!.tier.arabicLabel),
             _row(
               'سعر اليوم الفعلي',
-              '${pricingResult!.effectiveDailyRate.toStringAsFixed(0)} ج.م',
+              '${pricingResult!.effectiveDailyRate.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
             ),
             if (pricingResult!.savingsVsPremiumDaily > 0)
               _row(
                 'توفير مقارنة باليومي',
-                '${pricingResult!.savingsVsPremiumDaily.toStringAsFixed(0)} ج.م',
+                '${pricingResult!.savingsVsPremiumDaily.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
               ),
           ],
           _row('نوع المستأجر', tenantType.arabicLabel),
           _row('نموذج الدفع', tier.paymentModelArabic),
-          _row('المطلوب الآن', '${depositAmount.toStringAsFixed(0)} ج.م'),
-          _row('إجمالي التعاقد', '${totalPrice.toStringAsFixed(0)} ج.م'),
+          _row('المطلوب الآن', '${depositAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
+          _row('إجمالي التعاقد', '${totalPrice.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
           _row('المستندات', needsDocs ? 'مستندات + إثبات دخل' : 'بدون حزمة كاملة'),
           if (needsAdvance)
             _row('الدفع المقدم', RentalRules.advanceDepositLabel(tier)),

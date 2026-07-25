@@ -8,6 +8,7 @@ import 'contract_view_screen.dart';
 import 'receipt_screen.dart';
 import '../models/payment_receipt.dart';
 import '../services/booking_qr_service.dart';
+import '../utils/currency_formatter.dart';
 
 /// شاشة تأكيد الحجز مع الخطوات التالية: QR، العقد، مواعيد الدخول.
 class BookingConfirmationScreen extends StatelessWidget {
@@ -120,7 +121,7 @@ class BookingConfirmationScreen extends StatelessWidget {
                       subtitle: 'تم استلام العربون — بانتظار موافقة المالك',
                     ),
                     const SizedBox(height: 8),
-                    _row('المبلغ', '${amount.toStringAsFixed(0)} ج.م'),
+                    _row('المبلغ', '${amount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
                     _row('رقم العملية', transactionId),
                     _row('وسيلة الدفع', _methodLabel(paymentMethod)),
                     if (checkIn != null)

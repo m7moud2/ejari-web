@@ -6,6 +6,7 @@ import '../services/wallet_service.dart';
 import '../theme/app_theme.dart';
 import '../utils/date_utils.dart';
 import '../utils/rental_schedule_utils.dart';
+import '../utils/currency_formatter.dart';
 
 class RentalStatementScreen extends StatefulWidget {
   const RentalStatementScreen({super.key});
@@ -225,16 +226,16 @@ class _RentalStatementScreenState extends State<RentalStatementScreen>
                 runSpacing: 8,
                 children: [
                   _statChip('القسط الشهري',
-                      '${(snapshot['monthlyRent'] as num).toStringAsFixed(0)} ج.م'),
+                      '${(snapshot['monthlyRent'] as num).toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
                   _statChip('أقرب دفعة',
-                      '${(snapshot['nextDueAmount'] as num).toStringAsFixed(0)} ج.م'),
+                      '${(snapshot['nextDueAmount'] as num).toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
                   _statChip('موعدها', nextDueDate),
                   _statChip('المتبقي', '$remainingUnits $unitLabel'),
                 ],
               ),
               const SizedBox(height: 10),
               Text(
-                'أنقضى $elapsedUnits من $totalUnits $unitLabel • المبلغ المتبقي الحالي: ${(snapshot['remainingAmount'] as num).toStringAsFixed(0)} ج.م',
+                'أنقضى $elapsedUnits من $totalUnits $unitLabel • المبلغ المتبقي الحالي: ${(snapshot['remainingAmount'] as num).toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                 style: const TextStyle(
                   color: AppTheme.primaryColor,
                   fontWeight: FontWeight.bold,
@@ -345,7 +346,7 @@ class _RentalStatementScreenState extends State<RentalStatementScreen>
                   ),
                 ),
                 Text(
-                  '${isExpense ? '-' : '+'}${NumberFormat('#,##0').format(amount.abs())} ج.م',
+                  '${isExpense ? '-' : '+'}${NumberFormat('#,##0').format(amount.abs())} ${CurrencyFormatter.symbol}',
                   style: TextStyle(
                     color:
                         isExpense ? AppTheme.errorColor : AppTheme.primaryColor,
@@ -562,7 +563,7 @@ class _RentalStatementScreenState extends State<RentalStatementScreen>
             runSpacing: 8,
             children: [
               _statChip('القسط القادم',
-                  '${_activeSummary?['nextDueAmount']?.toString() ?? '0'} ج.م'),
+                  '${_activeSummary?['nextDueAmount']?.toString() ?? '0'} ${CurrencyFormatter.symbol}'),
               _statChip('تاريخه', nextDueText),
               _statChip('المدفوع', '${_activeSummary?['paidMonths'] ?? 0} شهر'),
               _statChip(

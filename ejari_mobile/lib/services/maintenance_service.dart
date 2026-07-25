@@ -6,6 +6,7 @@ import '../utils/safe_parse.dart';
 import 'data_service.dart';
 import 'financial_service.dart';
 import 'wallet_service.dart';
+import '../utils/currency_formatter.dart';
 
 /// حالات دورة حياة طلب الصيانة الموحّدة.
 class MaintenanceStatus {
@@ -794,7 +795,7 @@ class MaintenanceService {
       requestId,
       MaintenanceStatus.submitted,
       extra: {'budgetCap': budgetCap, 'ownerApproved': true},
-      note: 'وافق المالك على ميزانية بحد $budgetCap ج.م',
+      note: 'وافق المالك على ميزانية بحد $budgetCap ${CurrencyFormatter.symbol}',
       actor: ownerId,
     );
   }
@@ -903,7 +904,7 @@ class MaintenanceService {
       requestId,
       MaintenanceStatus.pendingClientConfirm,
       extra: {'finalCost': finalCost, 'actualCost': finalCost},
-      note: 'أنهى الفني العمل — التكلفة النهائية $finalCost ج.م',
+      note: 'أنهى الفني العمل — التكلفة النهائية $finalCost ${CurrencyFormatter.symbol}',
       actor: techId,
     );
     if (ok) {

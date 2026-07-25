@@ -8,6 +8,7 @@ import '../widgets/property_image.dart';
 import 'property_details_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:math' as math;
+import '../utils/currency_formatter.dart';
 
 class MapSearchScreen extends StatefulWidget {
   const MapSearchScreen({super.key});
@@ -300,7 +301,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
-                              '${prop['price']} ج.م',
+                              '${prop['price']} ${CurrencyFormatter.symbol}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
@@ -474,7 +475,7 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
                       children: [
                         Flexible(
                           child: Text(
-                            '${prop['price']} ج.م',
+                            '${prop['price']} ${CurrencyFormatter.symbol}',
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(

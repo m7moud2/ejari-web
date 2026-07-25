@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/smart_pricing_service.dart';
 import 'ejari_section.dart';
+import '../utils/currency_formatter.dart';
 
 /// تلميح تسعير ذكي — مقارنة منطقة، تعديل مقترح، موسمي، وتوقع إيراد.
 class SmartPricingHintWidget extends StatelessWidget {
@@ -63,7 +64,7 @@ class SmartPricingHintWidget extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          'متوسط ${a['location']}: ${a['areaAverage']} ج.م',
+                          'متوسط ${a['location']}: ${a['areaAverage']} ${CurrencyFormatter.symbol}',
                           style: const TextStyle(
                             fontSize: 10,
                             color: AppTheme.textSecondary,
@@ -76,7 +77,7 @@ class SmartPricingHintWidget extends StatelessWidget {
                     TextButton(
                       onPressed: onApplySuggestion,
                       child: Text(
-                        '${a['suggestedPrice']} ج.م',
+                        '${a['suggestedPrice']} ${CurrencyFormatter.symbol}',
                         style: TextStyle(fontSize: 11, color: color),
                       ),
                     ),
@@ -87,8 +88,8 @@ class SmartPricingHintWidget extends StatelessWidget {
                 spacing: 6,
                 runSpacing: 4,
                 children: [
-                  _chip('تعديل مقترح', '${a['suggestedPrice']} ج.م', color),
-                  _chip('توقع الشهر', '$forecast ج.م', AppTheme.primaryColor),
+                  _chip('تعديل مقترح', '${a['suggestedPrice']} ${CurrencyFormatter.symbol}', color),
+                  _chip('توقع الشهر', '$forecast ${CurrencyFormatter.symbol}', AppTheme.primaryColor),
                   _chip('موسم الصيف', '+8%', AppTheme.accentColor),
                 ],
               ),

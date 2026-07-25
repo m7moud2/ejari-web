@@ -10,6 +10,7 @@ import 'rental_statement_screen.dart';
 import 'tenant_installments_screen.dart';
 import '../widgets/empty_state_view.dart';
 import 'properties_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class MyContractsScreen extends StatefulWidget {
   const MyContractsScreen({super.key});
@@ -201,7 +202,7 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
                   buffer.writeln('— ${c['id']} — ${c['propertyTitle']}');
                   buffer.writeln('  المستأجر: ${c['tenantName']}');
                   buffer.writeln('  المالك: ${c['ownerName']}');
-                  buffer.writeln('  السعر: ${c['price']} ج.م');
+                  buffer.writeln('  السعر: ${c['price']} ${CurrencyFormatter.symbol}');
                   buffer.writeln('  من ${c['startDate']} إلى ${c['endDate']}');
                   buffer.writeln();
                 }
@@ -345,7 +346,7 @@ class _MyContractsScreenState extends State<MyContractsScreen> {
                       Expanded(
                         child: _buildMetricTile(
                           'القيمة الشهرية',
-                          '${contract['price']} ج.م',
+                          '${contract['price']} ${CurrencyFormatter.symbol}',
                           AppTheme.primaryColor,
                         ),
                       ),

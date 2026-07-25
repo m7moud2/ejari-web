@@ -6,6 +6,7 @@ import '../services/firestore_property_service.dart';
 import '../services/search_filters_service.dart';
 import '../utils/short_stay_discovery.dart';
 import '../data/egypt_locations.dart';
+import '../utils/currency_formatter.dart';
 
 class AdvancedFiltersScreen extends StatefulWidget {
   const AdvancedFiltersScreen({super.key});
@@ -969,7 +970,7 @@ class _AdvancedFiltersScreenState extends State<AdvancedFiltersScreen> {
                 fontSize: 11,
                 fontWeight: FontWeight.bold)),
         Text(
-            '${price.round().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} ج.م',
+            '${price.round().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} ${CurrencyFormatter.symbol}',
             style: const TextStyle(
                 fontWeight: FontWeight.w900,
                 fontSize: 14,

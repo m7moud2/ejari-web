@@ -10,6 +10,7 @@ import '../widgets/skeleton_list_loader.dart';
 import '../widgets/empty_state_view.dart';
 import 'payment_screen.dart';
 import 'my_bookings_screen.dart';
+import '../utils/currency_formatter.dart';
 
 /// قائمة تذكيرات الدفع للمستأجر — مستقلة عن المحفظة.
 class PaymentRemindersScreen extends StatefulWidget {
@@ -325,7 +326,7 @@ class _ReminderCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${NumberFormat('#,##0.00').format(amount)} ج.م',
+                      '${NumberFormat('#,##0.00').format(amount)} ${CurrencyFormatter.symbol}',
                       style: TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: 18,

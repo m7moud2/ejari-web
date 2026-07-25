@@ -13,6 +13,7 @@ import 'chat_list_screen.dart';
 import 'merchant_requests_screen.dart';
 import '../utils/safe_parse.dart';
 import '../widgets/property_image.dart';
+import '../utils/currency_formatter.dart';
 
 class OwnerHomeScreen extends StatefulWidget {
   const OwnerHomeScreen({super.key});
@@ -191,9 +192,9 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
-                                  '18,500 ج.م',
-                                  style: TextStyle(
+                                Text(
+                                  '18,500 ${CurrencyFormatter.symbol}',
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 32,
                                     fontWeight: FontWeight.bold,
@@ -726,7 +727,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                 Text(request['title'] ?? 'عقار',
                     style: const TextStyle(fontSize: 16)),
                 const SizedBox(height: 4),
-                Text('السعر: ${request['price']} ج.م',
+                Text('السعر: ${request['price']} ${CurrencyFormatter.symbol}',
                     style: const TextStyle(
                         color: AppTheme.primaryColor,
                         fontWeight: FontWeight.bold)),
@@ -798,7 +799,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                     style: const TextStyle(fontWeight: FontWeight.bold),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis),
-                Text('${safeStr(property['price'], '0')} ج.م',
+                Text('${safeStr(property['price'], '0')} ${CurrencyFormatter.symbol}',
                     style: const TextStyle(
                         color: AppTheme.primaryColor,
                         fontSize: 12,

@@ -6,6 +6,7 @@ import 'booking_qr_service.dart';
 import 'data_service.dart';
 import 'firestore_booking_service.dart';
 import 'wallet_service.dart';
+import '../utils/currency_formatter.dart';
 
 /// تسجيل الدخول/الخروج وإطلاق العربون.
 ///
@@ -221,7 +222,7 @@ class CheckInOutService {
     await DataService.addNotificationToUser(
       booking['ownerEmail']?.toString() ?? '',
       'خروج مستأجر — تم إطلاق العربون ✓',
-      'تم إطلاق ${deposit.toStringAsFixed(0)} ج.م للمحفظة',
+      'تم إطلاق ${deposit.toStringAsFixed(0)} ${CurrencyFormatter.symbol} للمحفظة',
       type: 'check_out',
       refId: bookingId,
     );

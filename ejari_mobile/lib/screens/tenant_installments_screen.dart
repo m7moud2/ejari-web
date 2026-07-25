@@ -7,6 +7,7 @@ import 'rental_statement_screen.dart';
 import 'payment_screen.dart';
 import '../utils/rental_schedule_utils.dart';
 import '../utils/safe_parse.dart';
+import '../utils/currency_formatter.dart';
 
 class TenantInstallmentsScreen extends StatefulWidget {
   const TenantInstallmentsScreen({super.key});
@@ -281,7 +282,7 @@ class _TenantInstallmentsScreenState extends State<TenantInstallmentsScreen> {
           const Text('القسط القادم',
               style: TextStyle(color: Colors.white70, fontSize: 12)),
           const SizedBox(height: 6),
-          Text('${_monthlyRent.toStringAsFixed(0)} ج.م',
+          Text('${_monthlyRent.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
               style: const TextStyle(
                   color: Colors.white,
                   fontSize: 34,
@@ -296,9 +297,9 @@ class _TenantInstallmentsScreenState extends State<TenantInstallmentsScreen> {
             runSpacing: 8,
             children: [
               _pill('قيمة الإيجار الشهري', AppTheme.surfaceColor),
-              _pill('إجمالي المدفوع: ${_totalPaid.toStringAsFixed(0)} ج.م',
+              _pill('إجمالي المدفوع: ${_totalPaid.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                   AppTheme.accentColor),
-              _pill('المتبقي: ${_totalRemaining.toStringAsFixed(0)} ج.م',
+              _pill('المتبقي: ${_totalRemaining.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                   AppTheme.surfaceColor),
               _pill('الشهور المدفوعة: $paidCount', AppTheme.accentColor),
             ],
@@ -344,12 +345,12 @@ class _TenantInstallmentsScreenState extends State<TenantInstallmentsScreen> {
         SizedBox(
           width: (MediaQuery.of(context).size.width - 44) / 2,
           child: _statCard(
-              'إجمالي المدفوع', '${_totalPaid.toStringAsFixed(0)} ج.م'),
+              'إجمالي المدفوع', '${_totalPaid.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
         ),
         SizedBox(
           width: (MediaQuery.of(context).size.width - 44) / 2,
           child: _statCard(
-              'إجمالي المتبقي', '${_totalRemaining.toStringAsFixed(0)} ج.م'),
+              'إجمالي المتبقي', '${_totalRemaining.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
         ),
       ],
     );
@@ -608,7 +609,7 @@ class _TenantInstallmentsScreenState extends State<TenantInstallmentsScreen> {
             children: [
               SizedBox(
                 width: 170,
-                child: _installmentMeta('المبلغ', '${inst['amount']} ج.م'),
+                child: _installmentMeta('المبلغ', '${inst['amount']} ${CurrencyFormatter.symbol}'),
               ),
               if (isPaid)
                 TextButton.icon(
@@ -656,10 +657,10 @@ class _TenantInstallmentsScreenState extends State<TenantInstallmentsScreen> {
               children: [
                 if ((inst['lateFees'] ?? 0) > 0)
                   _miniBadge(
-                      'غرامة: ${inst['lateFees']} ج.م', AppTheme.errorColor),
+                      'غرامة: ${inst['lateFees']} ${CurrencyFormatter.symbol}', AppTheme.errorColor),
                 if ((inst['discount'] ?? 0) > 0)
                   _miniBadge(
-                      'خصم: ${inst['discount']} ج.م', AppTheme.primaryColor),
+                      'خصم: ${inst['discount']} ${CurrencyFormatter.symbol}', AppTheme.primaryColor),
               ],
             ),
           ],
@@ -826,7 +827,7 @@ class _TenantInstallmentsScreenState extends State<TenantInstallmentsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('رقم الإيصال: ${inst['receiptId'] ?? 'REC-DEMO'}'),
-            Text('المبلغ: ${inst['amount']} ج.م'),
+            Text('المبلغ: ${inst['amount']} ${CurrencyFormatter.symbol}'),
             Text(
               'تاريخ الاستحقاق: ${DateFormat('yyyy/MM/dd').format(dueDate)}',
             ),

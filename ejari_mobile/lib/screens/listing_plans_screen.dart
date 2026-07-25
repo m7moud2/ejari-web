@@ -8,6 +8,7 @@ import '../utils/auth_gate.dart';
 import '../widgets/ejari_section.dart';
 import '../widgets/sale_listing_widgets.dart';
 import 'subscription_payment_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class ListingPlansScreen extends StatefulWidget {
   final bool isFromWizard;
@@ -285,7 +286,7 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      price == 0 ? 'مجاناً' : '$price ج.م/شهر',
+                      price == 0 ? 'مجاناً' : '$price ${CurrencyFormatter.symbol}/شهر',
                       style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
                     ),
                     const SizedBox(height: 14),
@@ -371,7 +372,7 @@ class _ListingPlansScreenState extends State<ListingPlansScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                '$price ج.م/شهر',
+                '$price ${CurrencyFormatter.symbol}/شهر',
                 style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 12),

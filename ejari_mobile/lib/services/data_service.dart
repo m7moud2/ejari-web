@@ -14,12 +14,14 @@ import 'activity_log_service.dart';
 import 'auth_service.dart';
 import 'firestore_booking_service.dart';
 import 'mock_data_seeder.dart';
+import 'region_service.dart';
 import '../utils/property_image_resolver.dart';
 import 'wallet_service.dart';
 import 'financial_service.dart';
 import 'maintenance_service.dart';
 import 'subscription_service.dart';
 import 'live_sync_service.dart';
+import '../utils/currency_formatter.dart';
 
 class DataService {
   /// true عندما يُحمَّل كatalog العقارات من التخزين المحلي بدل الشبكة.
@@ -93,7 +95,7 @@ class DataService {
 
   static const String _propsVersionKey = 'properties_version';
   static const int _currentPropsVersion =
-      11; // bumped — ensure coastal / short-stay catalog for demo
+      12; // bumped — MENA regional demo catalogs (EG/SA/AE)
 
   /// Seed cross-role demo bookings so owner dashboard shows real pending requests.
   static Future<void> initDemoBookings() async {
@@ -898,9 +900,13 @@ class DataService {
     ];
 
     final merged = _mergePropertyCatalog(
-      defaults,
+      defaults.map((p) => {
+            ...p,
+            'countryCode': p['countryCode'] ?? 'EG',
+            'currencyCode': p['currencyCode'] ?? 'EGP',
+          }).toList(),
       [
-        ...MockDataSeeder.getEgyptianProperties(),
+        ...MockDataSeeder.getAllRegionalProperties(),
         MockDataSeeder.getSharedAccommodationProperty(),
       ],
     ).map(_ensurePropertyImage).toList();
@@ -1036,9 +1042,11 @@ class DataService {
         .map((item) =>
             _normalizeProperty(jsonDecode(item) as Map<String, dynamic>))
         .toList();
-    list = _mergePropertyCatalog(list, MockDataSeeder.getEgyptianProperties())
+    list = _mergePropertyCatalog(list, MockDataSeeder.getAllRegionalProperties())
         .reversed
         .toList();
+
+    list = RegionService.filterProperties(list);
 
     if (approvedOnly) {
       return list
@@ -1262,7 +1270,7 @@ class DataService {
     await addNotificationToUser(
       payer,
       'إيصال دفع جديد 🧾',
-      'تم إصدار إيصال ${receipt.id} بمبلغ ${amount.toStringAsFixed(0)} ج.م',
+      'تم إصدار إيصال ${receipt.id} بمبلغ ${amount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
       type: 'payment',
       refId: receipt.id,
     );
@@ -1861,7 +1869,7 @@ class DataService {
     return {
       'balance': balance.round(),
       'totalSpend': totalSpend,
-      'currency': 'ج.م',
+      'currency': CurrencyFormatter.symbol,
       'lastTopUp': prefs.getString('corporate_wallet_last_topup') ??
           DateTime.now().subtract(const Duration(days: 7)).toIso8601String(),
     };
@@ -2240,7 +2248,7 @@ class DataService {
       notifyAdmin: true,
       adminTitle: 'حجز جديد للمراجعة',
       adminBody:
-          'طلب حجز ${request['title']} — ${request['depositAmount'] ?? ''} ج.م عربون.',
+          'طلب حجز ${request['title']} — ${request['depositAmount'] ?? ''} ${CurrencyFormatter.symbol} عربون.',
     );
 
     return {'success': true, 'id': request['id']?.toString()};
@@ -2450,7 +2458,7 @@ class DataService {
           type: 'payment',
           notifyAdmin: _isHighValueBooking(updatedBooking),
           adminTitle: 'دفعة عربون — $title',
-          adminBody: 'عربون ${updatedBooking['depositAmount'] ?? ''} ج.م.',
+          adminBody: 'عربون ${updatedBooking['depositAmount'] ?? ''} ${CurrencyFormatter.symbol}.',
         );
       } else if (normalizedStatus == BookingStatus.paid ||
           normalizedStatus == BookingStatus.completed ||
@@ -2465,7 +2473,7 @@ class DataService {
           notifyAdmin: _isHighValueBooking(updatedBooking),
           adminTitle: 'حجز مؤكد — $title',
           adminBody:
-              'تم إتمام دفع حجز بقيمة ${updatedBooking['price'] ?? ''} ج.م.',
+              'تم إتمام دفع حجز بقيمة ${updatedBooking['price'] ?? ''} ${CurrencyFormatter.symbol}.',
         );
       } else if (normalizedStatus == BookingStatus.depositRefunded) {
         await _notifyBookingParties(
@@ -2517,7 +2525,7 @@ class DataService {
             ...b,
             'propertyTitle': b['title'] ?? b['propertyTitle'] ?? 'عقار',
             'date': b['requestDate'] ?? b['startDate'] ?? '',
-            'amount': '${price.toStringAsFixed(0)} ج.م',
+            'amount': '${price.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
             'revenue': b['revenue'] ?? price,
           };
         }).toList();
@@ -2555,7 +2563,7 @@ class DataService {
             ...b,
             'propertyTitle': b['title'] ?? b['propertyTitle'] ?? 'عقار',
             'date': b['requestDate'] ?? b['startDate'] ?? '',
-            'amount': '${price.toStringAsFixed(0)} ج.م',
+            'amount': '${price.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
             'revenue': b['revenue'] ?? price,
           };
         })
@@ -2574,7 +2582,7 @@ class DataService {
       if (rev is num) {
         total += rev;
       } else if (rev is String) {
-        // Try to parse "12,000 ج.م"
+        // Try to parse "12,000 ${CurrencyFormatter.symbol}"
         String clean = rev.replaceAll(RegExp(r'[^0-9.]'), '');
         total += double.tryParse(clean) ?? 0.0;
       }
@@ -2592,7 +2600,7 @@ class DataService {
       'available': summary['balance'] ?? revenue * 0.8,
       'pending': summary['pending'] ?? revenue * 0.15,
       'escrow': summary['escrow'] ?? revenue * 0.05,
-      'currency': 'ج.م',
+      'currency': CurrencyFormatter.symbol,
     };
   }
 
@@ -3048,16 +3056,18 @@ class DataService {
             _normalizeProperty(jsonDecode(item) as Map<String, dynamic>))
         .toList();
     final before = list.length;
-    list = _mergePropertyCatalog(list, MockDataSeeder.getEgyptianProperties());
+    list = _mergePropertyCatalog(list, MockDataSeeder.getAllRegionalProperties());
     if (list.length == before) {
-      // Still verify known coastal ids exist.
-      const coastalIds = {
+      // Still verify known coastal + Gulf demo ids exist.
+      const catalogIds = {
         'egy7',
         'vac_matrouh_1',
         'vac_matrouh_2',
+        'ksa_riyadh_1',
+        'uae_dubai_1',
       };
       final have = list.map((p) => p['id']?.toString()).toSet();
-      if (coastalIds.every(have.contains)) return;
+      if (catalogIds.every(have.contains)) return;
     }
     await prefs.setStringList(
       _propertiesKey,
@@ -3302,7 +3312,7 @@ class DataService {
           'id': data['id']?.toString(),
           'title': data['title']?.toString() ?? 'إيصال دفع',
           'subtitle':
-              '${data['amount']} ج.م — ${data['payer'] ?? ''}',
+              '${data['amount']} ${CurrencyFormatter.symbol} — ${data['payer'] ?? ''}',
           'data': data,
         });
       }
@@ -3613,7 +3623,7 @@ class DataService {
     await addNotificationToUser(
       technicianId,
       'تم استلام أجر الصيانة 💰',
-      '${breakdown.providerAmount.toStringAsFixed(0)} ج.م أُضيفت لمحفظتك',
+      '${breakdown.providerAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol} أُضيفت لمحفظتك',
       type: 'maintenance',
       refId: requestId,
     );
@@ -3694,7 +3704,7 @@ class DataService {
     await prefs.setStringList(_manualPaymentsKey, list);
 
     await addNotification('تم إرسال إيصال الدفع 💸',
-        'جاري مراجعة التحويل للمبلغ ${paymentData['amount']} ج.م. سيتم التفعيل فور التأكد.');
+        'جاري مراجعة التحويل للمبلغ ${paymentData['amount']} ${CurrencyFormatter.symbol}. سيتم التفعيل فور التأكد.');
   }
 
   static Future<List<Map<String, dynamic>>> getManualPayments() async {
@@ -3848,7 +3858,7 @@ class DataService {
       return loc.contains(area) || area.contains(loc.split('،').first);
     }).toList();
     if (matches.isEmpty) {
-      return {'area': area, 'average': 8500, 'count': 0, 'currency': 'ج.م'};
+      return {'area': area, 'average': 8500, 'count': 0, 'currency': CurrencyFormatter.symbol};
     }
     final prices = matches
         .map((p) => safeDouble(p['price'], 0))
@@ -3861,7 +3871,7 @@ class DataService {
       'area': area,
       'average': avg.round(),
       'count': matches.length,
-      'currency': 'ج.م',
+      'currency': CurrencyFormatter.symbol,
     };
   }
 

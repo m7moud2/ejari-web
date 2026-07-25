@@ -10,6 +10,7 @@ import '../provider_timeline_screen.dart';
 import '../provider_wallet_screen.dart';
 import '../tech_job_screen.dart';
 import '../../widgets/empty_state_view.dart';
+import '../../utils/currency_formatter.dart';
 
 class TechnicianHomeView extends StatefulWidget {
   const TechnicianHomeView({super.key});
@@ -153,14 +154,14 @@ class _TechnicianHomeViewState extends State<TechnicianHomeView> {
                   HomeQuickLookTile(
                     label: 'أرباح اليوم',
                     value: '${_stats['todayEarnings'] ?? 0}',
-                    hint: 'ج.م',
+                    hint: CurrencyFormatter.symbol,
                     icon: Icons.payments_rounded,
                     color: AppTheme.accentColor,
                   ),
                   HomeQuickLookTile(
                     label: 'المحفظة',
                     value: '${_stats['availableBalance'] ?? 0}',
-                    hint: 'ج.م',
+                    hint: CurrencyFormatter.symbol,
                     icon: Icons.account_balance_wallet_rounded,
                     color: const Color(0xFF2D6A5A),
                   ),
@@ -221,7 +222,7 @@ class _TechnicianHomeViewState extends State<TechnicianHomeView> {
                         ),
                         (
                           label:
-                              'أرباح الشهر: ${_stats['monthlyEarnings'] ?? 0} ج.م',
+                              'أرباح الشهر: ${_stats['monthlyEarnings'] ?? 0} ${CurrencyFormatter.symbol}',
                           icon: Icons.calendar_month_rounded,
                           onTap: () {},
                         ),

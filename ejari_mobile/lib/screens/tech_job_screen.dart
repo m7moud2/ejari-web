@@ -5,6 +5,7 @@ import '../services/maintenance_service.dart';
 import '../services/auth_service.dart';
 import '../utils/safe_parse.dart';
 import 'provider_wallet_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class TechJobScreen extends StatefulWidget {
   final String? requestId;
@@ -116,10 +117,10 @@ class _TechJobScreenState extends State<TechJobScreen> {
                         _row('العميل', safeStr(_job!['tenantId'])),
                         _row('الوصف', safeStr(_job!['description'])),
                         const Divider(height: 24),
-                        _row('تقديري', '${_job!['estimatedCost'] ?? 0} ج.م'),
+                        _row('تقديري', '${_job!['estimatedCost'] ?? 0} ${CurrencyFormatter.symbol}'),
                         if ((_job!['finalCost'] as num?) != null &&
                             (_job!['finalCost'] as num) > 0)
-                          _row('نهائي', '${_job!['finalCost']} ج.م'),
+                          _row('نهائي', '${_job!['finalCost']} ${CurrencyFormatter.symbol}'),
                       ],
                     ),
                   ),
@@ -335,9 +336,9 @@ class _TechJobScreenState extends State<TechJobScreen> {
             TextField(
               controller: controller,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'التكلفة النهائية',
-                suffixText: 'ج.م',
+                suffixText: CurrencyFormatter.symbol,
               ),
             ),
             const SizedBox(height: 10),

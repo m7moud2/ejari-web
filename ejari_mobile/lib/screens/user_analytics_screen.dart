@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/currency_formatter.dart';
 
 class UserAnalyticsScreen extends StatelessWidget {
   const UserAnalyticsScreen({super.key});
@@ -79,9 +80,9 @@ class UserAnalyticsScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
             _buildPreferenceCard('نطاق الأسعار', [
-              {'name': '5000-8000 ج.م', 'percentage': 50},
-              {'name': '8000-12000 ج.م', 'percentage': 30},
-              {'name': 'أكثر من 12000 ج.م', 'percentage': 20},
+              {'name': '5000-8000 ${CurrencyFormatter.symbol}', 'percentage': 50},
+              {'name': '8000-12000 ${CurrencyFormatter.symbol}', 'percentage': 30},
+              {'name': 'أكثر من 12000 ${CurrencyFormatter.symbol}', 'percentage': 20},
             ]),
 
             const SizedBox(height: 24),

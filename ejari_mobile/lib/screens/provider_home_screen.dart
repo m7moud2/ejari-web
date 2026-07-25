@@ -7,6 +7,7 @@ import 'provider_jobs_screen.dart';
 import 'provider_wallet_screen.dart';
 import 'provider_timeline_screen.dart';
 import 'service_provider_profile_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class ServiceProviderHomeScreen extends StatefulWidget {
   const ServiceProviderHomeScreen({super.key});
@@ -94,7 +95,7 @@ class _ServiceProviderHomeScreenState extends State<ServiceProviderHomeScreen> {
                               children: [
                                 _buildHeaderStat(
                                     'الأرباح',
-                                    '${safeDouble(_stats?['earnings']).toStringAsFixed(0)} ج.م',
+                                    '${safeDouble(_stats?['earnings']).toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                                     Icons.account_balance_wallet),
                                 const SizedBox(width: 24),
                                 _buildHeaderStat('التقييم',

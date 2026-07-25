@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../theme/app_theme.dart';
+import '../utils/currency_formatter.dart';
 
 class FinancialCalculatorScreen extends StatefulWidget {
   final double initialPropertyPrice;
@@ -161,11 +162,11 @@ class _FinancialCalculatorScreenState extends State<FinancialCalculatorScreen> {
                   ),
                   const SizedBox(height: 24),
                   _buildInputField(
-                      'قيمة الوحدة الإجمالية (ج.م)', _priceController),
+                      'قيمة الوحدة الإجمالية (${CurrencyFormatter.symbol})', _priceController),
                   _buildInputField(
-                      'الإيجار الشهري المتوقع (ج.م)', _rentController),
+                      'الإيجار الشهري المتوقع (${CurrencyFormatter.symbol})', _rentController),
                   _buildInputField(
-                      'الدفعة المقدمة للاستثمار (ج.م)', _downPaymentController),
+                      'الدفعة المقدمة للاستثمار (${CurrencyFormatter.symbol})', _downPaymentController),
                   Row(
                     children: [
                       Expanded(
@@ -212,7 +213,7 @@ class _FinancialCalculatorScreenState extends State<FinancialCalculatorScreen> {
         Expanded(
           child: _buildResultCard(
             'القسط الشهري المتوقع',
-            '${_monthlyPayment.toStringAsFixed(0)} ج.م',
+            '${_monthlyPayment.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
             Icons.account_balance_wallet_rounded,
             AppTheme.borderColor,
           ),
@@ -329,7 +330,7 @@ class _FinancialCalculatorScreenState extends State<FinancialCalculatorScreen> {
                       fontSize: 13,
                       fontWeight:
                           isBold ? FontWeight.bold : FontWeight.normal))),
-          Text('${amount.toStringAsFixed(0)} ج.م',
+          Text('${amount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
               style: TextStyle(
                   color: textColor, fontSize: 14, fontWeight: FontWeight.bold)),
         ],

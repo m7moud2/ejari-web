@@ -4,6 +4,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import '../models/payment_receipt.dart';
+import '../utils/currency_formatter.dart';
 
 /// تصدير إيصالات وعقود بصيغة PDF — مشاركة أو تحميل.
 class PdfExportService {
@@ -47,7 +48,7 @@ class PdfExportService {
               pw.Divider(thickness: 1),
               pw.SizedBox(height: 12),
               _pdfRow(font, 'رقم الإيصال', receipt.id),
-              _pdfRow(font, 'المبلغ', '${receipt.amount.toStringAsFixed(0)} ج.م', bold: true),
+              _pdfRow(font, 'المبلغ', '${receipt.amount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}', bold: true),
               _pdfRow(font, 'التاريخ', dateStr),
               _pdfRow(font, 'مرجع الحجز', receipt.bookingRef),
               _pdfRow(font, 'الدافع', receipt.payer),
@@ -169,7 +170,7 @@ class PdfExportService {
               _pdfRow(
                 font,
                 'إيراد المنصة',
-                '${report['platformRevenue'] ?? 0} ج.م',
+                '${report['platformRevenue'] ?? 0} ${CurrencyFormatter.symbol}',
                 bold: true,
               ),
               _pdfRow(font, 'نزاعات مفتوحة', '${report['openDisputes'] ?? 0}'),
@@ -200,7 +201,7 @@ class PdfExportService {
               _pdfRow(
                 font,
                 'رصيد الضمان',
-                '${report['escrowBalance'] ?? 0} ج.م',
+                '${report['escrowBalance'] ?? 0} ${CurrencyFormatter.symbol}',
               ),
               _pdfRow(
                 font,
@@ -263,24 +264,24 @@ class PdfExportService {
           _pdfRow(
             font,
             'إيراد الشهر',
-            '${report['monthlyRevenue'] ?? 0} ج.م',
+            '${report['monthlyRevenue'] ?? 0} ${CurrencyFormatter.symbol}',
             bold: true,
           ),
-          _pdfRow(font, 'إيراد اليوم', '${report['todayIncome'] ?? 0} ج.م'),
+          _pdfRow(font, 'إيراد اليوم', '${report['todayIncome'] ?? 0} ${CurrencyFormatter.symbol}'),
           _pdfRow(
             font,
             'رصيد متاح',
-            '${report['walletAvailable'] ?? 0} ج.م',
+            '${report['walletAvailable'] ?? 0} ${CurrencyFormatter.symbol}',
           ),
           _pdfRow(
             font,
             'رصيد الضمان',
-            '${report['escrowBalance'] ?? 0} ج.م',
+            '${report['escrowBalance'] ?? 0} ${CurrencyFormatter.symbol}',
           ),
           _pdfRow(
             font,
             'مدفوعات معلّقة',
-            '${report['pendingPayouts'] ?? 0} ج.م',
+            '${report['pendingPayouts'] ?? 0} ${CurrencyFormatter.symbol}',
           ),
           pw.SizedBox(height: 16),
           pw.Text('العقارات والحجوزات',

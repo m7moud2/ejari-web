@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/insurance_service.dart';
+import '../utils/currency_formatter.dart';
 
 class InsuranceSelectionScreen extends StatefulWidget {
   final double rentalPrice;
@@ -95,7 +96,7 @@ class _InsuranceSelectionScreenState extends State<InsuranceSelectionScreen> {
                       const Text('تكلفة التأمين:',
                           style: TextStyle(fontSize: 16)),
                       Text(
-                        '${InsuranceService.calculateInsuranceCost(_selectedInsurance!, widget.rentalPrice).toStringAsFixed(2)} ج.م',
+                        '${InsuranceService.calculateInsuranceCost(_selectedInsurance!, widget.rentalPrice).toStringAsFixed(2)} ${CurrencyFormatter.symbol}',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -229,7 +230,7 @@ class _InsuranceSelectionScreenState extends State<InsuranceSelectionScreen> {
                         style: TextStyle(
                             fontSize: 12, color: AppTheme.textSecondary)),
                     Text(
-                      'حتى ${insurance['coverage']} ج.م',
+                      'حتى ${insurance['coverage']} ${CurrencyFormatter.symbol}',
                       style: const TextStyle(
                           fontSize: 16, fontWeight: FontWeight.bold),
                     ),
@@ -242,7 +243,7 @@ class _InsuranceSelectionScreenState extends State<InsuranceSelectionScreen> {
                         style: TextStyle(
                             fontSize: 12, color: AppTheme.textSecondary)),
                     Text(
-                      '${cost.toStringAsFixed(2)} ج.م',
+                      '${cost.toStringAsFixed(2)} ${CurrencyFormatter.symbol}',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

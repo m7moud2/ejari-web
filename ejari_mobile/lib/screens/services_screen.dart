@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import 'service_details_screen.dart';
 import 'my_service_requests_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class ServicesScreen extends StatelessWidget {
   const ServicesScreen({super.key});
@@ -163,7 +164,7 @@ class ServicesScreen extends StatelessWidget {
                     'تنظيف شامل',
                     Icons.cleaning_services,
                     AppTheme.primaryColor,
-                    '150 ج.م/ساعة',
+                    '150 ${CurrencyFormatter.symbol}/ساعة',
                   ),
                   _buildServiceCard(
                     context,
@@ -171,7 +172,7 @@ class ServicesScreen extends StatelessWidget {
                     'كهرباء وسباكة',
                     Icons.build,
                     AppTheme.borderColor,
-                    '200 ج.م/زيارة',
+                    '200 ${CurrencyFormatter.symbol}/زيارة',
                   ),
                   _buildServiceCard(
                     context,
@@ -179,7 +180,7 @@ class ServicesScreen extends StatelessWidget {
                     'فك وتركيب',
                     Icons.local_shipping,
                     AppTheme.primaryColor,
-                    '500 ج.م',
+                    '500 ${CurrencyFormatter.symbol}',
                   ),
                   _buildServiceCard(
                     context,
@@ -187,7 +188,7 @@ class ServicesScreen extends StatelessWidget {
                     'قضاء تام',
                     Icons.bug_report,
                     AppTheme.errorColor,
-                    '300 ج.م',
+                    '300 ${CurrencyFormatter.symbol}',
                   ),
                   _buildServiceCard(
                     context,

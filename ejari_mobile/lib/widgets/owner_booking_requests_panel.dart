@@ -6,6 +6,7 @@ import '../services/data_service.dart';
 import '../services/live_sync_service.dart';
 import '../widgets/ejari_section.dart';
 import '../widgets/tenant_score_card.dart';
+import '../utils/currency_formatter.dart';
 
 /// طلبات الحجز الواردة للمالك — قبول/رفض مع سبب ودرجة المستأجر.
 class OwnerBookingRequestsPanel extends StatefulWidget {
@@ -234,7 +235,7 @@ class _OwnerBookingRequestsPanelState extends State<OwnerBookingRequestsPanel> {
                       style: const TextStyle(
                           fontSize: 11, color: AppTheme.textSecondary)),
                 Text(
-                  '${r['durationLabel'] ?? r['duration'] ?? ''} — عربون ${r['depositAmount'] ?? ''} ج.م',
+                  '${r['durationLabel'] ?? r['duration'] ?? ''} — عربون ${r['depositAmount'] ?? ''} ${CurrencyFormatter.symbol}',
                   style: const TextStyle(
                       fontSize: 11, color: AppTheme.textSecondary),
                 ),

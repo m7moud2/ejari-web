@@ -6,6 +6,7 @@ import '../config/app_config.dart';
 import '../utils/date_utils.dart';
 import 'financial_service.dart';
 import 'firestore_wallet_service.dart';
+import '../utils/currency_formatter.dart';
 
 /// مصدر الحقيقة الوحيد لأرصدة المحفظة — لكل مستخدم على حدة.
 ///
@@ -185,7 +186,7 @@ class WalletService {
       'available': _balance,
       'pending': _pendingBalance,
       'escrow': _escrowBalance,
-      'currency': 'ج.م',
+      'currency': CurrencyFormatter.symbol,
     };
   }
 

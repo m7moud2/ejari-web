@@ -30,6 +30,7 @@ import '../utils/first_run_tooltips.dart';
 import '../utils/haptic_utils.dart';
 import '../utils/short_stay_discovery.dart';
 import '../utils/rental_pricing.dart';
+import '../utils/currency_formatter.dart';
 
 class PropertyDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> property;
@@ -98,7 +99,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
     final text = "🔥 فرصة عقارية فاخرة من إيجاري!\n\n"
         "🏠 $title\n"
-        "💰 السعر: $price ج.م\n"
+        "💰 السعر: $price ${CurrencyFormatter.symbol}\n"
         "📍 الموقع: $location\n\n"
         "شاهد التفاصيل هنا:\n$link";
 
@@ -546,7 +547,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             ),
                             const SizedBox(height: AppTheme.spaceSm),
                             Text(
-                              isSale ? '$price ج.م' : '$price ج.م / شهر',
+                              isSale ? '$price ${CurrencyFormatter.symbol}' : '$price ${CurrencyFormatter.symbol} / شهر',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.w900,
@@ -602,21 +603,21 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                         ),
                                       ),
                                     Text(
-                                      'يومي: ${daily.toStringAsFixed(0)} ج.م/يوم',
+                                      'يومي: ${daily.toStringAsFixed(0)} ${CurrencyFormatter.symbol}/يوم',
                                       style: const TextStyle(
                                           fontSize: 12,
                                           color: AppTheme.textSecondary),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      'أسبوعي: ${weekly.toStringAsFixed(0)} ج.م',
+                                      'أسبوعي: ${weekly.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                                       style: const TextStyle(
                                           fontSize: 12,
                                           color: AppTheme.textSecondary),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      'شهري: ${monthly.toStringAsFixed(0)} ج.م',
+                                      'شهري: ${monthly.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                                       style: const TextStyle(
                                           fontSize: 12,
                                           color: AppTheme.textSecondary),
@@ -624,7 +625,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                     if (dp?['seasonalRate'] != null) ...[
                                       const SizedBox(height: 4),
                                       Text(
-                                        '${dp!['seasonalLabel'] ?? 'سعر موسمي'}: ${(dp['seasonalRate'] as num).toStringAsFixed(0)} ج.م',
+                                        '${dp!['seasonalLabel'] ?? 'سعر موسمي'}: ${(dp['seasonalRate'] as num).toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                                         style: const TextStyle(
                                             fontSize: 12,
                                             color: AppTheme.accentColor,
@@ -634,7 +635,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                     if (property['depositAmount'] != null) ...[
                                       const SizedBox(height: 4),
                                       Text(
-                                        'عربون (إسكرو): ${property['depositAmount']} ج.م',
+                                        'عربون (إسكرو): ${property['depositAmount']} ${CurrencyFormatter.symbol}',
                                         style: const TextStyle(
                                             fontSize: 11,
                                             color: AppTheme.textSecondary),
@@ -1251,7 +1252,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             fontWeight: FontWeight.w800, fontSize: 13)),
                     const SizedBox(height: 2),
                     Text(
-                      '$days أيام مربوطة بالحجز · $perDay ج.م / يوم',
+                      '$days أيام مربوطة بالحجز · $perDay ${CurrencyFormatter.symbol} / يوم',
                       style: const TextStyle(
                           fontSize: 11, color: AppTheme.textSecondary),
                     ),
@@ -1292,13 +1293,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         spacing: 8,
         runSpacing: 8,
         children: [
-          _packageChip('١ يوم', '${daily.round()} ج.م'),
-          _packageChip('٣ أيام', '${(daily * 3).round()} ج.م'),
+          _packageChip('١ يوم', '${daily.round()} ${CurrencyFormatter.symbol}'),
+          _packageChip('٣ أيام', '${(daily * 3).round()} ${CurrencyFormatter.symbol}'),
           _packageChip(
             '٧ أيام',
             property['packageHalfWeek'] != null
-                ? '${property['packageHalfWeek']} ج.م'
-                : '${(daily * 7 * 0.85).round()} ج.م',
+                ? '${property['packageHalfWeek']} ${CurrencyFormatter.symbol}'
+                : '${(daily * 7 * 0.85).round()} ${CurrencyFormatter.symbol}',
           ),
         ],
       );
@@ -1323,13 +1324,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       spacing: 8,
       runSpacing: 8,
       children: [
-        _packageChip('١ يوم', '${one.totalRent.round()} ج.م'),
-        _packageChip('٣ أيام', '${three.totalRent.round()} ج.م'),
+        _packageChip('١ يوم', '${one.totalRent.round()} ${CurrencyFormatter.symbol}'),
+        _packageChip('٣ أيام', '${three.totalRent.round()} ${CurrencyFormatter.symbol}'),
         _packageChip(
           '٧ أيام',
           halfWeek != null
-              ? '$halfWeek ج.م'
-              : '${seven.totalRent.round()} ج.م',
+              ? '$halfWeek ${CurrencyFormatter.symbol}'
+              : '${seven.totalRent.round()} ${CurrencyFormatter.symbol}',
         ),
       ],
     );
@@ -1421,7 +1422,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   ) {
     final bg = isSale ? const Color(0xFFB58D3D) : AppTheme.primaryColor;
     final priceLabel =
-        isSale ? '$price ج.م — للبيع' : '$price ج.م / شهر — للإيجار';
+        isSale ? '$price ${CurrencyFormatter.symbol} — للبيع' : '$price ${CurrencyFormatter.symbol} / شهر — للإيجار';
 
     return Container(
       width: double.infinity,

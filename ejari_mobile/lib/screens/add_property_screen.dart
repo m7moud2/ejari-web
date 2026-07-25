@@ -11,6 +11,7 @@ import '../models/accommodation_type.dart';
 import '../widgets/ejari_section.dart';
 import '../widgets/sale_listing_widgets.dart';
 import 'listing_plans_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class AddPropertyScreen extends StatefulWidget {
   final Map<String, dynamic>? initialData;
@@ -457,7 +458,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         children: [
                           Expanded(
                             child: _buildTextField(
-                              label: 'يومي (ج.م)',
+                              label: 'يومي (${CurrencyFormatter.symbol})',
                               hint: '150',
                               initialValue: _priceDaily > 0
                                   ? _priceDaily.toStringAsFixed(0)
@@ -470,7 +471,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                           const SizedBox(width: 8),
                           Expanded(
                             child: _buildTextField(
-                              label: 'أسبوعي (ج.م)',
+                              label: 'أسبوعي (${CurrencyFormatter.symbol})',
                               hint: '800',
                               initialValue: _priceWeekly > 0
                                   ? _priceWeekly.toStringAsFixed(0)
@@ -512,7 +513,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
-                    label: _listingMode == 'for_sale' ? 'سعر العرض (ج.م)' : 'الإيجار الشهري (ج.م)',
+                    label: _listingMode == 'for_sale' ? 'سعر العرض (${CurrencyFormatter.symbol})' : 'الإيجار الشهري (${CurrencyFormatter.symbol})',
                     hint: 'مثال: 500000',
                     initialValue: price == 0.0 ? '' : price.toString(),
                     isNumber: true,

@@ -5,6 +5,7 @@ import '../services/pdf_export_service.dart';
 import '../utils/date_utils.dart';
 import '../utils/rental_schedule_utils.dart';
 import 'signature_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class ContractViewScreen extends StatefulWidget {
   final Map<String, dynamic> bookingDetails;
@@ -401,8 +402,8 @@ class _ContractViewScreenState extends State<ContractViewScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _leaseChip('القسط الشهري', '${monthlyRent.toStringAsFixed(0)} ج.م'),
-              _leaseChip('أقرب قسط', '${nextDueAmount.toStringAsFixed(0)} ج.م'),
+              _leaseChip('القسط الشهري', '${monthlyRent.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
+              _leaseChip('أقرب قسط', '${nextDueAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
               _leaseChip('موعد القسط', nextDueDate),
             ],
           ),

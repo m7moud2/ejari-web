@@ -23,6 +23,8 @@ import 'services/ros_notification_service.dart';
 import 'services/demo_flow_service.dart';
 import 'services/smart_pricing_service.dart';
 import 'services/bed_hierarchy_service.dart';
+import 'services/region_service.dart';
+import 'models/app_region.dart';
 
 import 'screens/splash_screen.dart';
 import 'config/app_config.dart';
@@ -35,12 +37,14 @@ import 'widgets/demo_mode_banner.dart';
 // Global Notifiers
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.light);
 final ValueNotifier<Locale> localeNotifier =
-    ValueNotifier(const Locale('ar', 'SA'));
+    ValueNotifier(const Locale('ar', 'EG'));
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ar');
+  await initializeDateFormatting('en');
   EjariErrorFallback.install();
+  await RegionService.load();
 
   // Safe Firebase Initialization — never block UI forever
   if (!AppConfig.demoMode) {
@@ -116,12 +120,13 @@ void main() async {
     }
   }
 
-  // Load Saved Language Preference
+  // Load Saved Language Preference (RTL Arabic / LTR English)
   try {
     final prefs = await SharedPreferences.getInstance();
     final savedLang = prefs.getString('language_code');
     if (savedLang != null && (savedLang == 'ar' || savedLang == 'en')) {
-      final countryCode = savedLang == 'ar' ? 'SA' : 'US';
+      final countryCode =
+          savedLang == 'ar' ? RegionService.current.countryCode : 'US';
       localeNotifier.value = Locale(savedLang, countryCode);
     }
     final darkMode = prefs.getBool('dark_mode') ?? false;
@@ -191,7 +196,9 @@ class _EjariAppState extends State<EjariApp> {
                 GlobalCupertinoLocalizations.delegate,
               ],
               supportedLocales: const [
+                Locale('ar', 'EG'),
                 Locale('ar', 'SA'),
+                Locale('ar', 'AE'),
                 Locale('en', 'US'),
               ],
               home: _startScreen,

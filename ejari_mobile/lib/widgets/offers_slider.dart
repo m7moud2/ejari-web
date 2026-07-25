@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import '../theme/app_theme.dart';
 import 'ejari_image.dart';
+import '../utils/currency_formatter.dart';
 
 class OffersSlider extends StatefulWidget {
   const OffersSlider({super.key});
@@ -24,7 +25,7 @@ class _OffersSliderState extends State<OffersSlider> {
     },
     {
       'title': 'عمولة عند الإتمام فقط',
-      'description': '0 ج.م مقدماً — تدفع عند إتمام الإيجار.',
+      'description': '0 ${CurrencyFormatter.symbol} مقدماً — تدفع عند إتمام الإيجار.',
       'image': 'assets/images/home7.jpg',
       'color': '0xFF334441',
     },

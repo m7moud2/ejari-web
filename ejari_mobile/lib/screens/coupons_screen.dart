@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
+import '../utils/currency_formatter.dart';
 
 class CouponsScreen extends StatefulWidget {
   const CouponsScreen({super.key});
@@ -25,7 +26,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
     },
     {
       'code': 'SUMMER50',
-      'discount': '50 ج.م',
+      'discount': '50 ${CurrencyFormatter.symbol}',
       'title': 'عرض الصيف',
       'description': 'خصم 50 جنيه على أي حجز',
       'expiry': '2024-08-31',
@@ -45,7 +46,7 @@ class _CouponsScreenState extends State<CouponsScreen> {
     },
     {
       'code': 'FRIEND100',
-      'discount': '100 ج.م',
+      'discount': '100 ${CurrencyFormatter.symbol}',
       'title': 'إحالة صديق',
       'description': 'خصم 100 جنيه عند إحالة صديق',
       'expiry': '2024-12-31',

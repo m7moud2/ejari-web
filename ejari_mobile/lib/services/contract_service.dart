@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 
 import '../utils/rental_pricing.dart';
+import '../utils/currency_formatter.dart';
 
 class ContractService {
   static String generateContract({
@@ -83,10 +84,10 @@ class ContractService {
 دورية السداد: $cycleText
 
 رابعاً: قيمة العربون والرصيد المتبقي
-اتفق الطرفان على أن تكون $rentLabel مبلغ وقدره ${monthlyValue.toStringAsFixed(0)} ج.م.
-ويبلغ إجمالي مدة التعاقد التقديري ($monthsValue شهر/شهور) مبلغ ${leaseTotal.toStringAsFixed(0)} ج.م.
-تم سداد عربون المعاينة المبدئي بقيمة ${bookingDeposit.toStringAsFixed(0)} ج.م عبر منصة "إيجاري".
-ويتبقى مبلغ ${bookingRemaining.toStringAsFixed(0)} ج.م يتم سداده لاستكمال الدفعة التالية فقط، $continuationText
+اتفق الطرفان على أن تكون $rentLabel مبلغ وقدره ${monthlyValue.toStringAsFixed(0)} ${CurrencyFormatter.symbol}.
+ويبلغ إجمالي مدة التعاقد التقديري ($monthsValue شهر/شهور) مبلغ ${leaseTotal.toStringAsFixed(0)} ${CurrencyFormatter.symbol}.
+تم سداد عربون المعاينة المبدئي بقيمة ${bookingDeposit.toStringAsFixed(0)} ${CurrencyFormatter.symbol} عبر منصة "إيجاري".
+ويتبقى مبلغ ${bookingRemaining.toStringAsFixed(0)} ${CurrencyFormatter.symbol} يتم سداده لاستكمال الدفعة التالية فقط، $continuationText
 
 خامساً: التزامات الأطراف
 1. يلتزم المستأجر بالمحافظة على العين المؤجرة واستخدامها في الغرض المخصص لها.

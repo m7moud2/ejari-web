@@ -8,6 +8,7 @@ import '../utils/wallet_category_labels.dart';
 import '../utils/safe_parse.dart';
 import '../widgets/empty_state_view.dart';
 import 'provider_jobs_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class ProviderWalletScreen extends StatefulWidget {
   const ProviderWalletScreen({super.key});
@@ -127,7 +128,7 @@ class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
               style: TextStyle(color: Colors.white70, fontSize: 14)),
           const SizedBox(height: 8),
           Text(
-            '${safeDouble(_stats?['earnings']).toStringAsFixed(0)} ج.م',
+            '${safeDouble(_stats?['earnings']).toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
             style: const TextStyle(
                 color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold),
           ),
@@ -202,7 +203,7 @@ class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
             ),
           ),
           Text(
-            '+${amount.toStringAsFixed(0)} ج.م',
+            '+${amount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
             style: const TextStyle(
                 color: AppTheme.primaryColor,
                 fontWeight: FontWeight.bold,
@@ -246,7 +247,7 @@ class _ProviderWalletScreenState extends State<ProviderWalletScreen> {
             ),
           ),
           Text(
-            '+${job['price']} ج.م',
+            '+${job['price']} ${CurrencyFormatter.symbol}',
             style: const TextStyle(
                 color: AppTheme.primaryColor,
                 fontWeight: FontWeight.bold,

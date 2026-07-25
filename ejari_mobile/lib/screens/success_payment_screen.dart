@@ -4,6 +4,7 @@ import '../models/payment_receipt.dart';
 import 'contract_view_screen.dart';
 import 'receipt_screen.dart';
 import 'package:intl/intl.dart';
+import '../utils/currency_formatter.dart';
 
 class SuccessPaymentScreen extends StatefulWidget {
   final double amount;
@@ -130,7 +131,7 @@ class _SuccessPaymentScreenState extends State<SuccessPaymentScreen>
                     ),
                     const Divider(height: 28),
                     _buildDetailRow('المبلغ الإجمالي',
-                        '${widget.amount.toStringAsFixed(0)} ج.م',
+                        '${widget.amount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                         isBold: true),
                     const SizedBox(height: 14),
                     _buildDetailRow('رقم العملية', widget.transactionId),
@@ -173,7 +174,7 @@ class _SuccessPaymentScreenState extends State<SuccessPaymentScreen>
                             title: const Text('إيصال الدفع'),
                             content: Text(
                               'رقم: ${widget.transactionId}\n'
-                              'المبلغ: ${widget.amount.toStringAsFixed(0)} ج.م\n'
+                              'المبلغ: ${widget.amount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}\n'
                               'الوسيلة: ${_getPaymentMethodName(widget.paymentMethod)}',
                             ),
                             actions: [

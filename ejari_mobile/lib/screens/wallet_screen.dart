@@ -4,6 +4,7 @@ import '../services/data_service.dart';
 import '../services/auth_service.dart';
 import '../services/wallet_service.dart';
 import '../utils/safe_parse.dart';
+import '../utils/currency_formatter.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -176,7 +177,7 @@ class _WalletScreenState extends State<WalletScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            '${_totalBalance.toStringAsFixed(0)} ج.م',
+            '${_totalBalance.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 36,
@@ -188,7 +189,7 @@ class _WalletScreenState extends State<WalletScreen>
             children: [
               _buildBalanceDetail(
                   'متاح للسحب',
-                  '${_available.toStringAsFixed(0)} ج.م',
+                  '${_available.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                   Icons.check_circle_outline,
                   AppTheme.accentColor),
               Container(
@@ -198,7 +199,7 @@ class _WalletScreenState extends State<WalletScreen>
                   margin: const EdgeInsets.symmetric(horizontal: 10)),
               _buildBalanceDetail(
                   'معلق (Escrow)',
-                  '${_escrow.toStringAsFixed(0)} ج.م',
+                  '${_escrow.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                   Icons.access_time,
                   AppTheme.borderColor),
             ],
@@ -329,7 +330,7 @@ class _WalletScreenState extends State<WalletScreen>
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '${item['amount']} ج.م',
+                  '${item['amount']} ${CurrencyFormatter.symbol}',
                   style: TextStyle(
                     color:
                         isDeposit ? AppTheme.primaryColor : AppTheme.errorColor,
@@ -502,13 +503,13 @@ class _WalletScreenState extends State<WalletScreen>
               decoration: BoxDecoration(
                   color: AppTheme.primaryColor,
                   borderRadius: BorderRadius.circular(8)),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.info, color: AppTheme.primaryColor, size: 20),
-                  SizedBox(width: 8),
+                  const Icon(Icons.info, color: AppTheme.primaryColor, size: 20),
+                  const SizedBox(width: 8),
                   Expanded(
-                      child: Text('الحد الأدنى للسحب 500 ج.م',
-                          style: TextStyle(
+                      child: Text('الحد الأدنى للسحب 500 ${CurrencyFormatter.symbol}',
+                          style: const TextStyle(
                               fontSize: 12, color: AppTheme.primaryColor))),
                 ],
               ),
@@ -517,10 +518,10 @@ class _WalletScreenState extends State<WalletScreen>
             TextField(
               controller: controller,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'المبلغ المراد سحبه',
-                suffixText: 'ج.م',
-                border: OutlineInputBorder(
+                suffixText: CurrencyFormatter.symbol,
+                border: const OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(12))),
               ),
             ),
@@ -576,7 +577,7 @@ class _WalletScreenState extends State<WalletScreen>
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(ok
-                            ? 'تم تقديم طلب سحب ${controller.text} ج.م عبر $method'
+                            ? 'تم تقديم طلب سحب ${controller.text} ${CurrencyFormatter.symbol} عبر $method'
                             : 'تعذر تقديم طلب السحب — تحقق من الرصيد'),
                       ),
                     ],
@@ -620,9 +621,9 @@ class _WalletScreenState extends State<WalletScreen>
             TextField(
               controller: amountController,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'المبلغ (ج.م)',
-                border: OutlineInputBorder(
+              decoration: InputDecoration(
+                labelText: 'المبلغ (${CurrencyFormatter.symbol})',
+                border: const OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
               ),
@@ -657,7 +658,7 @@ class _WalletScreenState extends State<WalletScreen>
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text('تم شحن ${amount.toStringAsFixed(0)} ج.م بنجاح'),
+                  content: Text('تم شحن ${amount.toStringAsFixed(0)} ${CurrencyFormatter.symbol} بنجاح'),
                   backgroundColor: AppTheme.primaryColor,
                   behavior: SnackBarBehavior.floating,
                 ),

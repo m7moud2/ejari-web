@@ -11,6 +11,7 @@ import 'notifications_screen.dart';
 import 'profile_screen.dart';
 import 'owner_collection_screen.dart';
 import 'notification_center_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class EnhancedOwnerHomeScreen extends StatefulWidget {
   const EnhancedOwnerHomeScreen({super.key});
@@ -236,7 +237,7 @@ class _EnhancedOwnerHomeScreenState extends State<EnhancedOwnerHomeScreen> {
               height: 140,
               child: _buildStatCard(
                   'العوائد الشهرية',
-                  '${_monthlyRevenue.toStringAsFixed(0)} ج.م',
+                  '${_monthlyRevenue.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                   Icons.account_balance_wallet_rounded,
                   AppTheme.accentColor),
             ),
@@ -612,7 +613,7 @@ class _EnhancedOwnerHomeScreenState extends State<EnhancedOwnerHomeScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(booking['amount'] ?? '0 ج.م',
+              Text(booking['amount'] ?? '0 ${CurrencyFormatter.symbol}',
                   style: const TextStyle(
                       color: AppTheme.primaryColor,
                       fontWeight: FontWeight.bold,

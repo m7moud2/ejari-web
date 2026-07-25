@@ -4,6 +4,7 @@ import 'booking_qr_service.dart';
 import 'check_in_out_service.dart';
 import 'data_service.dart';
 import 'wallet_service.dart';
+import '../utils/currency_formatter.dart';
 
 /// تدفق حجز تجريبي متصل — من البحث حتى تقييم المالك.
 class DemoFlowService {
@@ -225,7 +226,7 @@ class DemoFlowService {
     await DataService.addNotificationToUser(
       tenantEmail,
       'تم دفع العربون 💳',
-      'عربون 500 ج.م — بانتظار موافقة المالك ثم إكمال المتبقي',
+      'عربون 500 ${CurrencyFormatter.symbol} — بانتظار موافقة المالك ثم إكمال المتبقي',
       type: 'payment',
       refId: bookingId,
     );
@@ -315,7 +316,7 @@ class DemoFlowService {
     await DataService.addNotificationToUser(
       tenantEmail,
       'تم إطلاق العربون 🔓',
-      '${deposit.toStringAsFixed(0)} ج.م عادت إلى محفظتك بعد تسجيل الخروج',
+      '${deposit.toStringAsFixed(0)} ${CurrencyFormatter.symbol} عادت إلى محفظتك بعد تسجيل الخروج',
       type: 'refund',
       refId: bookingId,
     );

@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'auth_service.dart';
 import 'data_service.dart';
 import 'activity_log_service.dart';
+import '../utils/currency_formatter.dart';
 
 /// نقاط الولاء والإحالات والكوبونات — مخزنة لكل مستخدم.
 class LoyaltyService {
@@ -12,7 +13,7 @@ class LoyaltyService {
   static const String _couponsKeyPrefix = 'loyalty_coupons_';
   static const String _seededKeyPrefix = 'loyalty_seeded_';
 
-  static const List<Map<String, dynamic>> defaultCoupons = [
+  static List<Map<String, dynamic>> get defaultCoupons => [
     {
       'code': 'WELCOME20',
       'discount': '20%',
@@ -25,9 +26,9 @@ class LoyaltyService {
     },
     {
       'code': 'SUMMER50',
-      'discount': '50 ج.م',
+      'discount': '50 ${CurrencyFormatter.symbol}',
       'title': 'عرض الصيف',
-      'description': 'خصم 50 جنيه على أي حجز',
+      'description': 'خصم 50 على أي حجز',
       'expiry': '2026-08-31',
       'minAmount': '500',
       'isUsed': false,
@@ -35,9 +36,9 @@ class LoyaltyService {
     },
     {
       'code': 'FRIEND100',
-      'discount': '100 ج.م',
+      'discount': '100 ${CurrencyFormatter.symbol}',
       'title': 'إحالة صديق',
-      'description': 'خصم 100 جنيه عند إحالة صديق',
+      'description': 'خصم 100 عند إحالة صديق',
       'expiry': '2026-12-31',
       'minAmount': '1000',
       'isUsed': false,

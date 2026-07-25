@@ -7,6 +7,7 @@ import '../services/maintenance_service.dart';
 import '../utils/safe_parse.dart';
 import '../widgets/sla_timer_chip.dart';
 import 'payment_screen.dart';
+import '../utils/currency_formatter.dart';
 
 /// شاشة تتبع طلب صيانة للمستأجر — خط زمني كامل + تأكيد ودفع.
 class MaintenanceRequestDetailScreen extends StatefulWidget {
@@ -150,7 +151,7 @@ class _MaintenanceRequestDetailScreenState
                 if (cost > 0) ...[
                   const SizedBox(height: 8),
                   Text(
-                    'التكلفة: ${cost.toStringAsFixed(0)} ج.م',
+                    'التكلفة: ${cost.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                     style: const TextStyle(
                       fontWeight: FontWeight.w800,
                       color: AppTheme.primaryColor,
@@ -270,7 +271,7 @@ class _MaintenanceRequestDetailScreenState
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'تم التأكيد — ادفع ${cost.toStringAsFixed(0)} ج.م من المحفظة',
+            'تم التأكيد — ادفع ${cost.toStringAsFixed(0)} ${CurrencyFormatter.symbol} من المحفظة',
             style: const TextStyle(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 12),

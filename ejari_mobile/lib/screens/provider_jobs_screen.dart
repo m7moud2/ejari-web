@@ -7,6 +7,7 @@ import '../services/auth_service.dart';
 import '../utils/safe_parse.dart';
 import 'tech_job_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../utils/currency_formatter.dart';
 
 class ProviderJobsScreen extends StatefulWidget {
   const ProviderJobsScreen({super.key});
@@ -188,7 +189,7 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
                       'موقع غير محدد',
                     )),
                 _info(Icons.payments_outlined,
-                    '${job['estimatedCost'] ?? 0} ج.م تقديري'),
+                    '${job['estimatedCost'] ?? 0} ${CurrencyFormatter.symbol} تقديري'),
                 if (safeStr(job['description']).isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
@@ -372,7 +373,7 @@ class _ProviderJobsScreenState extends State<ProviderJobsScreen> {
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(suffixText: 'ج.م'),
+          decoration: InputDecoration(suffixText: CurrencyFormatter.symbol),
         ),
         actions: [
           TextButton(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/currency_formatter.dart';
 
 class InsuranceScreen extends StatefulWidget {
   const InsuranceScreen({super.key});
@@ -19,7 +20,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
       'period': 'شهرياً',
       'color': AppTheme.primaryColor,
       'features': [
-        'تأمين ضد الأضرار حتى 10,000 ج.م',
+        'تأمين ضد الأضرار حتى 10,000 ${CurrencyFormatter.symbol}',
         'صيانة طارئة مجانية',
         'تغطية الأجهزة المنزلية',
         'دعم فني 24/7',
@@ -32,7 +33,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
       'period': 'شهرياً',
       'color': AppTheme.primaryColor,
       'features': [
-        'تأمين ضد الأضرار حتى 25,000 ج.م',
+        'تأمين ضد الأضرار حتى 25,000 ${CurrencyFormatter.symbol}',
         'صيانة دورية مجانية',
         'تغطية شاملة للمحتويات',
         'استبدال فوري للأجهزة',
@@ -47,7 +48,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
       'period': 'شهرياً',
       'color': AppTheme.borderColor,
       'features': [
-        'تأمين ضد الأضرار حتى 50,000 ج.م',
+        'تأمين ضد الأضرار حتى 50,000 ${CurrencyFormatter.symbol}',
         'صيانة شاملة مجانية',
         'تغطية كاملة ضد الكوارث',
         'تأمين ضد السرقة',
@@ -313,7 +314,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
                           Padding(
                             padding: const EdgeInsets.only(bottom: 6),
                             child: Text(
-                              'ج.م/${plan['period']}',
+                              '${CurrencyFormatter.symbol}/${plan['period']}',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: color,
@@ -397,7 +398,7 @@ class _InsuranceScreenState extends State<InsuranceScreen> {
             Text('الباقة: ${selectedPlan['name']}'),
             const SizedBox(height: 8),
             Text(
-                'السعر: ${selectedPlan['price']} ج.م/${selectedPlan['period']}'),
+                'السعر: ${selectedPlan['price']} ${CurrencyFormatter.symbol}/${selectedPlan['period']}'),
             const SizedBox(height: 16),
             const Text(
               'ستحصل على فترة تجريبية مجانية لمدة 7 أيام',

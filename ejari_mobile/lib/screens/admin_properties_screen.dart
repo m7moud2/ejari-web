@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/firestore_property_service.dart';
 import '../widgets/ejari_image.dart';
 import '../theme/app_theme.dart';
+import '../utils/currency_formatter.dart';
 
 class AdminPropertiesScreen extends StatefulWidget {
   const AdminPropertiesScreen({super.key});
@@ -190,7 +191,7 @@ class _AdminPropertiesScreenState extends State<AdminPropertiesScreen>
                       decoration: BoxDecoration(
                           color: AppTheme.textPrimary,
                           borderRadius: BorderRadius.circular(10)),
-                      child: Text('${property['price']} ج.م',
+                      child: Text('${property['price']} ${CurrencyFormatter.symbol}',
                           style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold)),

@@ -6,6 +6,7 @@ import '../config/app_config.dart';
 import '../services/auth_service.dart';
 import '../services/data_service.dart';
 import '../services/mock_data_seeder.dart';
+import '../services/region_service.dart';
 import '../utils/property_image_resolver.dart';
 
 class FirestorePropertyService {
@@ -16,8 +17,10 @@ class FirestorePropertyService {
       {bool approvedOnly = true}) async {
     if (AppConfig.demoMode) {
       final local = await DataService.getAllProperties(approvedOnly: approvedOnly);
-      final demo = MockDataSeeder.getEgyptianProperties();
-      final merged = _mergePropertyCatalog(local, demo);
+      final demo = MockDataSeeder.getAllRegionalProperties();
+      final merged = RegionService.filterProperties(
+        _mergePropertyCatalog(local, demo),
+      );
       if (approvedOnly) {
         return merged
             .where((p) =>

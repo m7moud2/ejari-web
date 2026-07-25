@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../l10n/app_localizations.dart';
+import '../utils/currency_formatter.dart';
 
 class WealthDashboardScreen extends StatelessWidget {
   const WealthDashboardScreen({super.key});
@@ -282,7 +283,7 @@ class WealthDashboardScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('$value ج.م',
+              Text('$value ${CurrencyFormatter.symbol}',
                   style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: AppTheme.primaryColor,

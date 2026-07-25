@@ -27,6 +27,7 @@ import 'booking_track_screen.dart';
 import 'owner_rating_screen.dart';
 import '../widgets/empty_state_view.dart';
 import 'properties_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
@@ -383,15 +384,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             runSpacing: 8,
             children: [
               _buildTinyStat(
-                  'القسط الشهري', '${monthlyRent.toStringAsFixed(0)} ج.م'),
+                  'القسط الشهري', '${monthlyRent.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
               _buildTinyStat(
-                  'أقرب قسط', '${nextDueAmount.toStringAsFixed(0)} ج.م'),
+                  'أقرب قسط', '${nextDueAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
               _buildTinyStat('موعد القسط', nextDueDate),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            'المبلغ المتبقي الحالي: ${remainingAmount.toStringAsFixed(0)} ج.م',
+            'المبلغ المتبقي الحالي: ${remainingAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
             style: const TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w700,
@@ -600,14 +601,14 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                     fontSize: 12)),
                           const SizedBox(height: 4),
                           Text(
-                              '${booking['monthlyRent'] ?? booking['price']} ج.م${booking['itemType'] == 'car' ? '' : ' / شهر'}',
+                              '${booking['monthlyRent'] ?? booking['price']} ${CurrencyFormatter.symbol}${booking['itemType'] == 'car' ? '' : ' / شهر'}',
                               style: const TextStyle(
                                   color: AppTheme.primaryColor,
                                   fontWeight: FontWeight.bold)),
                           if (booking['leaseTotal'] != null) ...[
                             const SizedBox(height: 4),
                             Text(
-                              'إجمالي مدة التعاقد: ${booking['leaseTotal']} ج.م',
+                              'إجمالي مدة التعاقد: ${booking['leaseTotal']} ${CurrencyFormatter.symbol}',
                               style: const TextStyle(
                                   color: AppTheme.textSecondary, fontSize: 12),
                             ),
@@ -619,8 +620,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                               constraints: const BoxConstraints(maxWidth: 220),
                               child: Text(
                                 booking['itemType'] == 'car'
-                                    ? 'عربون: ${booking['depositAmount'] ?? '0'} ج.م • متبقي: ${booking['remainingAmount'] ?? '0'} ج.م'
-                                    : 'عربون: ${booking['depositAmount'] ?? '0'} ج.م • متبقي الشهر الأول: ${booking['remainingAmount'] ?? '0'} ج.م',
+                                    ? 'عربون: ${booking['depositAmount'] ?? '0'} ${CurrencyFormatter.symbol} • متبقي: ${booking['remainingAmount'] ?? '0'} ${CurrencyFormatter.symbol}'
+                                    : 'عربون: ${booking['depositAmount'] ?? '0'} ${CurrencyFormatter.symbol} • متبقي الشهر الأول: ${booking['remainingAmount'] ?? '0'} ${CurrencyFormatter.symbol}',
                                 style: const TextStyle(
                                     color: AppTheme.textSecondary,
                                     fontSize: 12,
@@ -1110,7 +1111,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           result['success'] != true
               ? result['message']?.toString() ?? 'تعذر الإلغاء'
               : result['refundable'] == true
-                  ? 'تم استرداد عربون بقيمة ${deposit.toStringAsFixed(0)} ج.م بنجاح'
+                  ? 'تم استرداد عربون بقيمة ${deposit.toStringAsFixed(0)} ${CurrencyFormatter.symbol} بنجاح'
                   : 'تم الإلغاء بدون استرداد — أقل من ٤٨ ساعة قبل الاستلام',
         ),
         backgroundColor: result['refundable'] == true

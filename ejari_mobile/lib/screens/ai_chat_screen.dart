@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import '../services/ai_concierge_service.dart';
 import '../screens/property_details_screen.dart';
 import '../utils/safe_parse.dart';
+import '../utils/currency_formatter.dart';
 
 class AiChatScreen extends StatefulWidget {
   const AiChatScreen({super.key});
@@ -324,7 +325,7 @@ class _AiChatScreenState extends State<AiChatScreen>
                                       fontSize: 14,
                                       color: Colors.white)),
                               const SizedBox(height: 4),
-                              Text('${item['price']} ج.م',
+                              Text('${item['price']} ${CurrencyFormatter.symbol}',
                                   style: const TextStyle(
                                       color: AppTheme.primaryColor,
                                       fontWeight: FontWeight.bold,

@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-
 class InsuranceService {
   static const String _insurancesKey = 'insurances';
 
@@ -10,7 +9,7 @@ class InsuranceService {
       'name': 'تأمين ضد الأضرار',
       'description': 'يغطي الأضرار التي قد تلحق بالعقار',
       'percentage': 5, // 5% من قيمة الإيجار
-      'coverage': 50000, // تغطية حتى 50,000 ج.م
+      'coverage': 50000, // تغطية حتى 50,000 ${CurrencyFormatter.symbol}
     },
     'theft': {
       'name': 'تأمين ضد السرقة',

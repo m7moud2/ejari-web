@@ -11,6 +11,7 @@ import 'create_maintenance_request_screen.dart';
 import 'maintenance_request_detail_screen.dart';
 import 'payment_screen.dart';
 import '../widgets/empty_state_view.dart';
+import '../utils/currency_formatter.dart';
 
 class MyServiceRequestsScreen extends StatefulWidget {
   const MyServiceRequestsScreen({super.key});
@@ -290,7 +291,7 @@ class _MyServiceRequestsScreenState extends State<MyServiceRequestsScreen> {
       return ElevatedButton.icon(
         onPressed: () => _pay(request, cost),
         icon: const Icon(Icons.payments_rounded, size: 18),
-        label: Text('ادفع ${cost.toStringAsFixed(0)} ج.م'),
+        label: Text('ادفع ${cost.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
         style: ElevatedButton.styleFrom(
             backgroundColor: AppTheme.accentColor,
             foregroundColor: Colors.white),

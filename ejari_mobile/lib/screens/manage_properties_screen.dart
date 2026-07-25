@@ -10,6 +10,7 @@ import 'add_property_screen.dart';
 import 'owner_property_performance_screen.dart';
 import '../widgets/property_image.dart';
 import '../widgets/empty_state_view.dart';
+import '../utils/currency_formatter.dart';
 
 class ManagePropertiesScreen extends StatefulWidget {
   const ManagePropertiesScreen({super.key});
@@ -365,7 +366,7 @@ class _ManagePropertiesScreenState extends State<ManagePropertiesScreen> {
                   spacing: 6,
                   runSpacing: 4,
                   children: [
-                    _badge('${property['price']} ج.م', AppTheme.primaryColor),
+                    _badge('${property['price']} ${CurrencyFormatter.symbol}', AppTheme.primaryColor),
                     _badge('$views مشاهدة', AppTheme.textSecondary),
                     if (perf != null)
                       _badge('${perf['bookings']} حجز', AppTheme.accentColor),

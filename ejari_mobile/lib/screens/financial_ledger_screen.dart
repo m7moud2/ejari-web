@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/currency_formatter.dart';
 
 class FinancialLedgerScreen extends StatefulWidget {
   final String role; // 'admin', 'tenant', 'owner', 'tech'
@@ -182,7 +183,7 @@ class _FinancialLedgerScreenState extends State<FinancialLedgerScreen> {
                   ],
                 ),
               ),
-              Text('${trx['amount']} ج.م',
+              Text('${trx['amount']} ${CurrencyFormatter.symbol}',
                   style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,

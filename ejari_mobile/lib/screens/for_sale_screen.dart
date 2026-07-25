@@ -3,6 +3,7 @@ import '../services/firestore_property_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/sale_listing_widgets.dart';
 import 'property_details_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class ForSaleScreen extends StatefulWidget {
   const ForSaleScreen({super.key});
@@ -387,7 +388,7 @@ class _ForSaleScreenState extends State<ForSaleScreen> {
                                       fontSize: 10)),
                               const SizedBox(height: 2),
                               FittedBox(
-                                  child: Text('$salePrice ج.م',
+                                  child: Text('$salePrice ${CurrencyFormatter.symbol}',
                                       style: TextStyle(
                                           color: Theme.of(context)
                                                   .textTheme

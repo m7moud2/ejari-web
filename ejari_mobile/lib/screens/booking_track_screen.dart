@@ -24,6 +24,7 @@ import 'contract_view_screen.dart';
 import 'my_viewings_screen.dart';
 import 'owner_rating_screen.dart';
 import 'payment_screen.dart';
+import '../utils/currency_formatter.dart';
 
 /// شاشة «تابع حجزك» — مسار كامل + تفاصيل + الخطوة التالية.
 class BookingTrackScreen extends StatefulWidget {
@@ -540,9 +541,9 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
             subtitle: 'المبالغ والتواريخ',
           ),
           const SizedBox(height: 8),
-          _row('المدفوع', '${paid.toStringAsFixed(0)} ج.م'),
-          _row('المتبقي', '${remaining.toStringAsFixed(0)} ج.م'),
-          _row('الإجمالي', '${total.toStringAsFixed(0)} ج.م'),
+          _row('المدفوع', '${paid.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
+          _row('المتبقي', '${remaining.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
+          _row('الإجمالي', '${total.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
           if (booking['duration'] != null)
             _row('المدة', booking['duration'].toString()),
           if (booking['id'] != null) _row('رقم الحجز', booking['id'].toString()),
@@ -566,9 +567,9 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
             subtitle: 'عربون ومتبقي',
           ),
           const SizedBox(height: 8),
-          _row('الإيجار الشهري', '${monthly.toStringAsFixed(0)} ج.م'),
-          _row('العربون / المقدم', '${deposit.toStringAsFixed(0)} ج.م'),
-          _row('المتبقي للاستكمال', '${remaining.toStringAsFixed(0)} ج.م'),
+          _row('الإيجار الشهري', '${monthly.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
+          _row('العربون / المقدم', '${deposit.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
+          _row('المتبقي للاستكمال', '${remaining.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
         ],
       ),
     );
@@ -965,7 +966,7 @@ class _BookingTrackScreenState extends State<BookingTrackScreen> {
           result['success'] != true
               ? result['message']?.toString() ?? 'تعذر الإلغاء'
               : result['refundable'] == true
-                  ? 'تم استرداد عربون بقيمة ${deposit.toStringAsFixed(0)} ج.م بنجاح'
+                  ? 'تم استرداد عربون بقيمة ${deposit.toStringAsFixed(0)} ${CurrencyFormatter.symbol} بنجاح'
                   : 'تم الإلغاء بدون استرداد — أقل من ٤٨ ساعة قبل الاستلام',
         ),
         backgroundColor: result['refundable'] == true

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import 'property_details_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class ChatDetailsScreen extends StatefulWidget {
   final String userName;
@@ -230,7 +231,7 @@ class _ChatDetailsScreenState extends State<ChatDetailsScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
-                  Text('${property['price']} ج.م / شهر',
+                  Text('${property['price']} ${CurrencyFormatter.symbol} / شهر',
                       style: const TextStyle(
                           color: AppTheme.primaryColor,
                           fontWeight: FontWeight.bold,

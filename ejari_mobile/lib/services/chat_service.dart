@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'data_service.dart';
+import '../utils/currency_formatter.dart';
 
 class ChatService {
   static const String _chatsKey = 'chats';
@@ -278,8 +279,8 @@ class ChatService {
         input.contains('تكلفة') ||
         input.contains('بكام')) {
       return 'تختلف الأسعار حسب العقار والمدة.\n\n'
-          '• الإيجار اليومي يبدأ من: **400 ج.م**\n'
-          '• الإيجار الشهري يبدأ من: **5,000 ج.م**\n\n'
+          '• الإيجار اليومي يبدأ من: **400 ${CurrencyFormatter.symbol}**\n'
+          '• الإيجار الشهري يبدأ من: **5,000 ${CurrencyFormatter.symbol}**\n\n'
           'هل تود رؤية العروض المتاحة؟';
     }
 

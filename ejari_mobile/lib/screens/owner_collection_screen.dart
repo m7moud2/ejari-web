@@ -8,6 +8,7 @@ import '../utils/safe_parse.dart';
 import '../utils/rental_schedule_utils.dart';
 import '../utils/date_utils.dart';
 import '../widgets/ejari_section.dart';
+import '../utils/currency_formatter.dart';
 
 class OwnerCollectionScreen extends StatefulWidget {
   const OwnerCollectionScreen({super.key});
@@ -160,9 +161,9 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('إيراد الشهر: ${summary['monthlyRevenue']} ج.م'),
+            Text('إيراد الشهر: ${summary['monthlyRevenue']} ${CurrencyFormatter.symbol}'),
             Text('متأخرات: ${summary['overdueCount']} مستأجر'),
-            Text('إجمالي المتأخر: ${summary['overdueTotal']} ج.م'),
+            Text('إجمالي المتأخر: ${summary['overdueTotal']} ${CurrencyFormatter.symbol}'),
             Text('عدد المستأجرين: ${summary['tenantCount']}'),
             const SizedBox(height: 8),
             Text(
@@ -273,7 +274,7 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
           const Text('إجمالي المتوقع تحصيله هذا الشهر',
               style: TextStyle(color: Colors.white70, fontSize: 12)),
           const SizedBox(height: 6),
-          Text('${expectedThisMonth.toStringAsFixed(0)} ج.م',
+          Text('${expectedThisMonth.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
               style: const TextStyle(
                   color: Colors.white,
                   fontSize: 34,
@@ -283,11 +284,11 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
             children: [
               Expanded(
                   child: _smallMetric('المحصّل',
-                      '${collectedThisMonth.toStringAsFixed(0)} ج.م')),
+                      '${collectedThisMonth.toStringAsFixed(0)} ${CurrencyFormatter.symbol}')),
               const SizedBox(width: 10),
               Expanded(
                   child: _smallMetric(
-                      'المتأخرات', '${lateAmount.toStringAsFixed(0)} ج.م')),
+                      'المتأخرات', '${lateAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}')),
             ],
           ),
         ],
@@ -447,7 +448,7 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
           ],
           if (isLate) ...[
             const SizedBox(height: 10),
-            _miniInfo('المبلغ المتأخر', '${tenant['lateAmount']} ج.م'),
+            _miniInfo('المبلغ المتأخر', '${tenant['lateAmount']} ${CurrencyFormatter.symbol}'),
           ],
           const SizedBox(height: 12),
           Row(
@@ -512,7 +513,7 @@ class _OwnerCollectionScreenState extends State<OwnerCollectionScreen> {
             Text(
               'آخر دفع: ${DateFormat('yyyy/MM/dd').format(tenant['lastPayment'] as DateTime)}',
             ),
-            Text('الإيجار الشهري: ${rent.toStringAsFixed(0)} ج.م'),
+            Text('الإيجار الشهري: ${rent.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
             Text(
               'الحالة: ${tenant['status'] == 'متأخر' ? 'متأخر' : tenant['status'] == 'مدفوع' ? 'مدفوع' : 'قريب الاستحقاق'}',
             ),

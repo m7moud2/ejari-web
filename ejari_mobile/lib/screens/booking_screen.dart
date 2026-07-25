@@ -26,6 +26,7 @@ import '../widgets/smart_booking_assistant.dart';
 import '../widgets/sale_listing_widgets.dart';
 import '../l10n/app_localizations.dart';
 import 'request_verification_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class BookingScreen extends StatefulWidget {
   final String itemType; // 'property' or 'car'
@@ -188,7 +189,7 @@ class _BookingScreenState extends State<BookingScreen> {
     _selectedBedLabel = widget.itemData['bedLabel']?.toString();
 
     try {
-      // Remove any non-numeric characters (except dot) to handle "2,500 ج.م" or similar
+      // Remove any non-numeric characters (except dot) to handle "2,500 ${CurrencyFormatter.symbol}" or similar
       String cleanPrice = widget.itemData['price']
           .toString()
           .replaceAll(RegExp(r'[^0-9.]'), '');
@@ -751,7 +752,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         _buildHeaderChip(
                             isSale ? 'تملك' : 'إيجار', AppTheme.primaryColor),
                         _buildHeaderChip(
-                            '${_bookingDepositAmount.toStringAsFixed(0)} ج.م عربون',
+                            '${_bookingDepositAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol} عربون',
                             AppTheme.accentColor),
                       ],
                     ),
@@ -1241,7 +1242,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                           const SizedBox(width: 8),
                                           Expanded(
                                             child: Text(
-                                              'مطلوب: عربون + أول فترة قبل الدخول (${_preEntryTotalAmount.toStringAsFixed(0)} ج.م)',
+                                              'مطلوب: عربون + أول فترة قبل الدخول (${_preEntryTotalAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol})',
                                               style: const TextStyle(
                                                 fontSize: 11,
                                                 fontWeight: FontWeight.w700,
@@ -1350,7 +1351,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                       const SizedBox(height: 8),
                                       Text(
                                         'للمدة أقل من ٦ شهور: المطلوب هو $_paymentStageLabel '
-                                        'بقيمة ${_bookingDepositAmount.toStringAsFixed(0)} ج.م. '
+                                        'بقيمة ${_bookingDepositAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}. '
                                         'الهوية تُؤخذ مرة واحدة من ملفك الشخصي.',
                                         style: const TextStyle(
                                             fontSize: 12, height: 1.5),
@@ -1521,7 +1522,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  'العربون المطلوب: ${_bookingDepositAmount.toStringAsFixed(0)} ج.م\n'
+                                  'العربون المطلوب: ${_bookingDepositAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}\n'
                                   'الهوية محفوظة في ملفك الشخصي ولن تُطلب مرة أخرى هنا.',
                                   style: const TextStyle(
                                       fontSize: 13, height: 1.5),
@@ -1951,17 +1952,17 @@ class _BookingScreenState extends State<BookingScreen> {
             children: [
               _buildPlanChip(
                 'الإيجار الشهري',
-                '${_monthlyRent.toStringAsFixed(0)} ج.م',
+                '${_monthlyRent.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                 AppTheme.primaryColor,
               ),
               _buildPlanChip(
                 'عربون الحجز',
-                '${_bookingDepositAmount.toStringAsFixed(0)} ج.م',
+                '${_bookingDepositAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                 AppTheme.borderColor,
               ),
               _buildPlanChip(
                 'إجمالي التعاقد',
-                '${_leaseTotalAmount.toStringAsFixed(0)} ج.م',
+                '${_leaseTotalAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                 AppTheme.textSecondary,
               ),
             ],

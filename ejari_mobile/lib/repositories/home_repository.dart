@@ -13,6 +13,7 @@ import '../services/maintenance_service.dart';
 import '../models/home_stats_model.dart';
 import '../models/booking_status.dart';
 import '../models/viewing_appointment.dart';
+import '../utils/currency_formatter.dart';
 
 class HomeRepository {
   Future<HomeStatsModel> fetchHomeStats(String role) async {
@@ -218,7 +219,7 @@ class HomeRepository {
               'icon': 'payments',
               'title': 'قسط مستحق قريب',
               'subtitle':
-                  'متبقي $nextDueDays أيام على ${snapshot['nextDueAmount']} ج.م',
+                  'متبقي $nextDueDays أيام على ${snapshot['nextDueAmount']} ${CurrencyFormatter.symbol}',
             },
             {
               'icon': 'contract',

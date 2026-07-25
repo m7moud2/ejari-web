@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../utils/rental_rules.dart';
+import '../utils/currency_formatter.dart';
 
 /// حاسبة سياسة الاسترداد عند الإلغاء.
 class RefundCalculatorDialog extends StatefulWidget {
@@ -101,7 +102,7 @@ class _RefundCalculatorDialogState extends State<RefundCalculatorDialog> {
                   const SizedBox(height: 6),
                   Text(
                     _isRefundable
-                        ? 'يحق لك استرداد ${widget.depositAmount.toStringAsFixed(0)} ج.م'
+                        ? 'يحق لك استرداد ${widget.depositAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'
                         : 'الإلغاء خلال يومين أو بعد الاستلام — لا استرداد',
                     textAlign: TextAlign.center,
                     style: const TextStyle(fontSize: 12, height: 1.4),
@@ -120,7 +121,7 @@ class _RefundCalculatorDialogState extends State<RefundCalculatorDialog> {
         if (_isRefundable)
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('تأكيد الاسترداد (${widget.depositAmount.toStringAsFixed(0)} ج.م)'),
+            child: Text('تأكيد الاسترداد (${widget.depositAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol})'),
           )
         else
           ElevatedButton(

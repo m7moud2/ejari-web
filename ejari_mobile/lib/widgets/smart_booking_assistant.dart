@@ -6,6 +6,7 @@ import '../utils/rental_rules.dart';
 import '../models/rental_duration_tier.dart';
 import '../models/tenant_type.dart';
 import 'ejari_section.dart';
+import '../utils/currency_formatter.dart';
 
 /// ملخص الحجز — المدة، الاسترداد، وحالة التوثيق من الملف الشخصي.
 class SmartBookingAssistant extends StatelessWidget {
@@ -48,12 +49,12 @@ class SmartBookingAssistant extends StatelessWidget {
         );
         final saving = pricingResult!.naivePremiumTotal - weekly.totalRent;
         if (saving > 0) {
-          return 'باقة أسبوع واحد (${weekly.totalRent.toStringAsFixed(0)} ج.م) '
-              'أوفر من $duration أيام يومية — وفّر حتى ${saving.toStringAsFixed(0)} ج.م.';
+          return 'باقة أسبوع واحد (${weekly.totalRent.toStringAsFixed(0)} ${CurrencyFormatter.symbol}) '
+              'أوفر من $duration أيام يومية — وفّر حتى ${saving.toStringAsFixed(0)} ${CurrencyFormatter.symbol}.';
         }
       }
       if (pricingResult!.savingsVsPremiumDaily > 100) {
-        return 'وفّرت ${pricingResult!.savingsVsPremiumDaily.toStringAsFixed(0)} ج.م '
+        return 'وفّرت ${pricingResult!.savingsVsPremiumDaily.toStringAsFixed(0)} ${CurrencyFormatter.symbol} '
             'مقارنة بالسعر اليومي المميز — ${pricingResult!.tier.arabicLabel}.';
       }
     }

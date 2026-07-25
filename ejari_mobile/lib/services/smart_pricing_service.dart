@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'data_service.dart';
 import 'bed_hierarchy_service.dart';
+import '../utils/currency_formatter.dart';
 
 /// تلميحات تسعير ذكية — مقارنة بالمنطقة + تخفيض تلقائي.
 class SmartPricingService {
@@ -235,7 +236,7 @@ class SmartPricingService {
       final discount = await suggestVacancyDiscount(ownerId);
       if (discount != null) {
         return 'عندك $vacantBeds سرير فاضي — ${discount['reason']}. '
-            'اقترح ${discount['discountedPrice']} ج.م/يوم بدلاً من ${discount['originalPrice']} ج.م.';
+            'اقترح ${discount['discountedPrice']} ${CurrencyFormatter.symbol}/يوم بدلاً من ${discount['originalPrice']} ${CurrencyFormatter.symbol}.';
       }
     }
 

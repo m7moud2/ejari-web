@@ -16,6 +16,7 @@ import 'payment_reminders_screen.dart';
 import 'payment_screen.dart';
 import 'receipt_screen.dart';
 import 'rental_statement_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class TenantWalletScreen extends StatefulWidget {
   const TenantWalletScreen({super.key});
@@ -193,7 +194,7 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerRight,
             child: Text(
-              '${NumberFormat('#,##0.00').format(_balance)} ج.م',
+              '${NumberFormat('#,##0.00').format(_balance)} ${CurrencyFormatter.symbol}',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 36,
@@ -282,7 +283,7 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
           const SizedBox(width: 8),
           Flexible(
             child: Text(
-              '${NumberFormat('#,##0').format(_escrow)} ج.م',
+              '${NumberFormat('#,##0').format(_escrow)} ${CurrencyFormatter.symbol}',
               textAlign: TextAlign.end,
               style: const TextStyle(
                 fontWeight: FontWeight.w900,
@@ -419,7 +420,7 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '${NumberFormat('#,##0').format(safeDouble(payment['amount']))} ج.م',
+                          '${NumberFormat('#,##0').format(safeDouble(payment['amount']))} ${CurrencyFormatter.symbol}',
                           style: TextStyle(
                             fontWeight: FontWeight.w900,
                             color: isOverdue
@@ -643,7 +644,7 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
                 children: presets
                     .map(
                       (p) => ActionChip(
-                        label: Text('${p.toStringAsFixed(0)} ج.م'),
+                        label: Text('${p.toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
                         onPressed: () =>
                             controller.text = p.toStringAsFixed(0),
                       ),
@@ -655,7 +656,7 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
                 controller: controller,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: 'المبلغ (ج.م)',
+                  labelText: 'المبلغ (${CurrencyFormatter.symbol})',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -677,7 +678,7 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          'تم شحن ${NumberFormat('#,##0').format(amount)} ج.م',
+                          'تم شحن ${NumberFormat('#,##0').format(amount)} ${CurrencyFormatter.symbol}',
                         ),
                         backgroundColor: AppTheme.primaryColor,
                       ),
@@ -733,7 +734,7 @@ class _TenantWalletScreenState extends State<TenantWalletScreen> {
               ),
               const SizedBox(height: 6),
               Text(
-                'المتاح: ${NumberFormat('#,##0.00').format(_balance)} ج.م',
+                'المتاح: ${NumberFormat('#,##0.00').format(_balance)} ${CurrencyFormatter.symbol}',
                 style: const TextStyle(
                   color: AppTheme.textSecondary,
                   fontSize: 13,

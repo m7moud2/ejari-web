@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
+import '../utils/currency_formatter.dart';
 
 // - [x] **Admin Reports Recovery**
 //     - [x] Implement CSV Export/Share simulation in `AdminReportsScreen`
@@ -49,7 +50,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
 الفترة: $_selectedPeriod
 
 الملخص المالي:
-- إجمالي الإيرادات: ${(_stats['totalRevenue'] ?? 0).toStringAsFixed(0)} ج.م
+- إجمالي الإيرادات: ${(_stats['totalRevenue'] ?? 0).toStringAsFixed(0)} ${CurrencyFormatter.symbol}
 - الحجوزات النشطة: ${_stats['activeBookings'] ?? 0}
 - التقييمات الجديدة: ${_stats['newFeedbackCount'] ?? 0}
 
@@ -190,7 +191,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
                         width: (MediaQuery.of(context).size.width - 52) / 2,
                         child: _buildMetricCard(
                           'إجمالي الإيرادات',
-                          '${(_stats['totalRevenue'] ?? 0).toStringAsFixed(0)} ج.م',
+                          '${(_stats['totalRevenue'] ?? 0).toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                           Icons.attach_money,
                           AppTheme.primaryColor,
                           '+12%',
@@ -488,7 +489,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _headerChip('إيرادات', '${(_stats['totalRevenue'] ?? 0).toStringAsFixed(0)} ج.م'),
+              _headerChip('إيرادات', '${(_stats['totalRevenue'] ?? 0).toStringAsFixed(0)} ${CurrencyFormatter.symbol}'),
               _headerChip('مستخدمين', '${_stats['totalUsers'] ?? 0}'),
               _headerChip('نشط', '${_stats['activeBookings'] ?? 0}'),
             ],
@@ -551,7 +552,7 @@ class _AdminReportsScreenState extends State<AdminReportsScreen> {
 
       // Data (Currently using UI static values for demonstration)
       sheet.getRangeByName('A2').setText('إجمالي الإيرادات');
-      sheet.getRangeByName('B2').setText('150,000 ج.م');
+      sheet.getRangeByName('B2').setText('150,000 ${CurrencyFormatter.symbol}');
       
       sheet.getRangeByName('A3').setText('عدد المستخدمين');
       sheet.getRangeByName('B3').setText('1,250');

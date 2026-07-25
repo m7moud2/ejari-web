@@ -27,6 +27,7 @@ import '../payment_reminders_screen.dart';
 import '../../services/demo_flow_service.dart';
 import '../../services/data_service.dart';
 import '../../services/location_service.dart';
+import '../../utils/currency_formatter.dart';
 
 class TenantHomeView extends StatefulWidget {
   const TenantHomeView({super.key});
@@ -416,7 +417,7 @@ class _TenantHomeViewState extends State<TenantHomeView> {
       ),
       HomeQuickLookTile(
         label: 'الدفع',
-        value: nextAmount > 0 ? '$nextAmount ج.م' : 'محدّث',
+        value: nextAmount > 0 ? '$nextAmount ${CurrencyFormatter.symbol}' : 'محدّث',
         hint: nextAmount > 0 ? 'قسط قادم — تذكيرات' : 'تذكيرات الدفع',
         icon: Icons.notifications_active_outlined,
         color: const Color(0xFFB58D3D),
@@ -960,7 +961,7 @@ class _TenantHomeViewState extends State<TenantHomeView> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'قسط مستحق خلال $nextDays يوم • $nextAmount ج.م',
+                  'قسط مستحق خلال $nextDays يوم • $nextAmount ${CurrencyFormatter.symbol}',
                   style: const TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 11,
@@ -1183,10 +1184,10 @@ class _TenantHomeViewState extends State<TenantHomeView> {
                                   const Spacer(),
                                   Text(
                                     isSale
-                                        ? '${item['price'] ?? ''} ج.م'
+                                        ? '${item['price'] ?? ''} ${CurrencyFormatter.symbol}'
                                         : (item['dailyPrice'] != null
-                                            ? '${item['dailyPrice']} ج.م / يوم'
-                                            : '${item['price'] ?? ''} ج.م / شهر'),
+                                            ? '${item['dailyPrice']} ${CurrencyFormatter.symbol} / يوم'
+                                            : '${item['price'] ?? ''} ${CurrencyFormatter.symbol} / شهر'),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: const TextStyle(

@@ -6,6 +6,7 @@ import '../utils/auth_gate.dart';
 import '../widgets/ejari_section.dart';
 import 'subscription_payment_screen.dart';
 import 'listing_plans_screen.dart';
+import '../utils/currency_formatter.dart';
 
 class SubscriptionsScreen extends StatefulWidget {
   const SubscriptionsScreen({super.key});
@@ -338,7 +339,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                         fontWeight: FontWeight.w900,
                         color: color)),
                 const SizedBox(height: 8),
-                Text('$price ج.م/شهر',
+                Text('$price ${CurrencyFormatter.symbol}/شهر',
                     style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,

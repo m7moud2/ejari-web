@@ -5,6 +5,7 @@ import '../models/payment_receipt.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
 import '../services/pdf_export_service.dart';
+import '../utils/currency_formatter.dart';
 
 /// عرض إيصال دفع — من الحجوزات أو المحفظة أو الإشعارات.
 class ReceiptScreen extends StatelessWidget {
@@ -87,7 +88,7 @@ class ReceiptScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           _row('رقم الإيصال', receipt.id),
-          _row('المبلغ', '${receipt.amount.toStringAsFixed(0)} ج.م',
+          _row('المبلغ', '${receipt.amount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
               bold: true),
           _row('التاريخ',
               DateFormat('yyyy/MM/dd - hh:mm a').format(receipt.date)),
@@ -124,7 +125,7 @@ class ReceiptScreen extends StatelessWidget {
                     final text = '''
 إيصال دفع إيجاري
 رقم: ${receipt.id}
-المبلغ: ${receipt.amount.toStringAsFixed(0)} ج.م
+المبلغ: ${receipt.amount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}
 التاريخ: ${DateFormat('yyyy/MM/dd').format(receipt.date)}
 مرجع الحجز: ${receipt.bookingRef}
 الدافع: ${receipt.payer}

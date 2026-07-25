@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/data_service.dart';
 import '../services/auth_service.dart';
+import '../utils/currency_formatter.dart';
 
 class RefundTrackerScreen extends StatefulWidget {
   const RefundTrackerScreen({super.key});
@@ -63,7 +64,7 @@ class _RefundTrackerScreenState extends State<RefundTrackerScreen> {
                                     fontWeight: FontWeight.bold, fontSize: 16)),
                             const SizedBox(height: 4),
                             Text(
-                              '${t['amount']?.toString() ?? '0'} ج.م — ${t['statusLabel'] ?? ''}',
+                              '${t['amount']?.toString() ?? '0'} ${CurrencyFormatter.symbol} — ${t['statusLabel'] ?? ''}',
                               style: const TextStyle(
                                   color: AppTheme.textSecondary, fontSize: 13),
                             ),

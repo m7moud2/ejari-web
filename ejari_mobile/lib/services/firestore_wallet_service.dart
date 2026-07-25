@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import '../config/app_config.dart';
 import '../utils/date_utils.dart';
+import '../utils/currency_formatter.dart';
 
 /// أرصدة ومعاملات المحفظة على Firestore (الإنتاج فقط).
 ///
@@ -76,7 +77,7 @@ class FirestoreWalletService {
             'balance': balance,
             'pending': pending,
             'escrow': escrow,
-            'currency': 'ج.م',
+            'currency': CurrencyFormatter.symbol,
             'updatedAt': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true))
           .timeout(AppConfig.authTimeout);

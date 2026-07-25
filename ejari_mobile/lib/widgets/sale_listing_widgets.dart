@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_theme.dart';
 import '../widgets/ejari_section.dart';
+import '../utils/currency_formatter.dart';
 
 /// إيجاري منصة إعلانات — لا تتدخل في عملية البيع ولا تحصل على عمولة.
 const String kSaleListingDisclaimer =
@@ -143,7 +144,7 @@ class SaleContactScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    '$price ج.م',
+                    '$price ${CurrencyFormatter.symbol}',
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w900,

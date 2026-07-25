@@ -6,6 +6,7 @@ import '../services/data_service.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/property_image_resolver.dart';
 import 'property_image.dart';
+import '../utils/currency_formatter.dart';
 
 class PropertyCard extends StatefulWidget {
   final String id;
@@ -351,7 +352,7 @@ class _PropertyCardState extends State<PropertyCard> {
                           ),
                           Text(
                             isSaleListing({'listingMode': widget.listingMode})
-                                ? ' ج.م'
+                                ? ' ${CurrencyFormatter.symbol}'
                                 : ' ${context.tr('price_egp')}',
                             style: const TextStyle(
                               color: AppTheme.primaryColor,

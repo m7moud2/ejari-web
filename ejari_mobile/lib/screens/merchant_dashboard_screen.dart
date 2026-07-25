@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import 'login_screen.dart';
 import 'settings_screen.dart';
 import 'dart:async';
+import '../utils/currency_formatter.dart';
 
 class MerchantDashboardScreen extends StatefulWidget {
   const MerchantDashboardScreen({super.key});
@@ -258,7 +259,7 @@ class _MerchantDashboardScreenState extends State<MerchantDashboardScreen>
                     Icons.pending_actions, AppTheme.borderColor),
                 _buildStatCard('مكتمل اليوم', '${_stats['completedToday']}',
                     Icons.check_circle, AppTheme.primaryColor),
-                _buildStatCard('إيرادات اليوم', '${_stats['todayRevenue']} ج.م',
+                _buildStatCard('إيرادات اليوم', '${_stats['todayRevenue']} ${CurrencyFormatter.symbol}',
                     Icons.attach_money, AppTheme.primaryColor),
               ],
             ),
@@ -404,7 +405,7 @@ class _MerchantDashboardScreenState extends State<MerchantDashboardScreen>
                 const Text('إجمالي الإيرادات (هذا الشهر)',
                     style: TextStyle(color: Colors.white70, fontSize: 14)),
                 const SizedBox(height: 8),
-                Text('${_stats['monthRevenue']} ج.م',
+                Text('${_stats['monthRevenue']} ${CurrencyFormatter.symbol}',
                     style: const TextStyle(
                         color: Colors.white,
                         fontSize: 32,
@@ -629,7 +630,7 @@ class _MerchantDashboardScreenState extends State<MerchantDashboardScreen>
                     _buildInfoRow(Icons.access_time,
                         '${order['scheduledTime']} • $timeAgo'),
                     const SizedBox(height: 8),
-                    _buildInfoRow(Icons.attach_money, '${order['price']} ج.م',
+                    _buildInfoRow(Icons.attach_money, '${order['price']} ${CurrencyFormatter.symbol}',
                         color: AppTheme.primaryColor),
                     if (!compact && order['status'] == 'new') ...[
                       const SizedBox(height: 16),
@@ -781,25 +782,25 @@ class _MerchantDashboardScreenState extends State<MerchantDashboardScreen>
         'date': 'اليوم، 10:30 ص',
         'description':
             'طلب #${_orders.isNotEmpty ? _orders[0]['id'] : 'ORD-001'}',
-        'amount': '+450 ج.م',
+        'amount': '+450 ${CurrencyFormatter.symbol}',
         'type': 'income'
       },
       {
         'date': 'اليوم، 09:15 ص',
         'description': 'طلب #ORD-998',
-        'amount': '+800 ج.م',
+        'amount': '+800 ${CurrencyFormatter.symbol}',
         'type': 'income'
       },
       {
         'date': 'أمس، 04:20 م',
         'description': 'سحب رصيد',
-        'amount': '-5000 ج.م',
+        'amount': '-5000 ${CurrencyFormatter.symbol}',
         'type': 'withdrawal'
       },
       {
         'date': 'أمس، 11:00 ص',
         'description': 'طلب #ORD-995',
-        'amount': '+1200 ج.م',
+        'amount': '+1200 ${CurrencyFormatter.symbol}',
         'type': 'income'
       },
     ];
@@ -938,7 +939,7 @@ class _MerchantDashboardScreenState extends State<MerchantDashboardScreen>
                     const SizedBox(height: 12),
                     _buildDetailRow('العنوان', order['address']),
                     _buildDetailRow('الموعد', order['scheduledTime']),
-                    _buildDetailRow('السعر', '${order['price']} ج.م'),
+                    _buildDetailRow('السعر', '${order['price']} ${CurrencyFormatter.symbol}'),
                     const SizedBox(height: 16),
                     const Text('الوصف',
                         style: TextStyle(
@@ -1048,7 +1049,7 @@ class _MerchantDashboardScreenState extends State<MerchantDashboardScreen>
                   'منذ 5 دقائق', Icons.shopping_bag, AppTheme.primaryColor),
               _buildNotificationItem('تقييم جديد', 'حصلت على تقييم 5 نجوم',
                   'منذ ساعة', Icons.star, AppTheme.borderColor),
-              _buildNotificationItem('دفعة جديدة', 'تم إضافة 450 ج.م لحسابك',
+              _buildNotificationItem('دفعة جديدة', 'تم إضافة 450 ${CurrencyFormatter.symbol} لحسابك',
                   'منذ ساعتين', Icons.attach_money, AppTheme.primaryColor),
             ],
           ),
