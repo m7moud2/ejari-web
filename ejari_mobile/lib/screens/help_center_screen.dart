@@ -89,6 +89,17 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               ],
             ),
             const SizedBox(height: 16),
+            Row(
+              children: [
+                _buildActionCard(
+                  Icons.shield_outlined,
+                  'أمان الحجز',
+                  AppTheme.accentColor,
+                  _openSafety,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             _buildLongActionCard(
               Icons.report_gmailerrorred_rounded,
               'تبليغ عن مشكلة فنية',
@@ -193,6 +204,16 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
         mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('تعذر فتح سياسة الخصوصية')),
+      );
+    }
+  }
+
+  Future<void> _openSafety() async {
+    final uri = Uri.parse(AppConfig.safetyUrl);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
+        mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تعذر فتح صفحة أمان الحجز')),
       );
     }
   }

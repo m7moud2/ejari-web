@@ -52,6 +52,12 @@ class AppConfig {
     defaultValue: 'https://m7moud2.github.io/ejari-web/docs/terms.html',
   );
 
+  /// Booking safety guide (promo page).
+  static const String safetyUrl = String.fromEnvironment(
+    'SAFETY_URL',
+    defaultValue: 'https://m7moud2.github.io/ejari-web/promo/safety.html',
+  );
+
   /// Public support contacts (override at build time if needed).
   static const String supportEmail = String.fromEnvironment(
     'SUPPORT_EMAIL',

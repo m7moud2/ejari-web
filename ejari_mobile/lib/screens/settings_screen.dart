@@ -285,6 +285,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           _buildListTile(
+            title: 'أمان الحجز',
+            icon: Icons.shield_outlined,
+            onTap: () async {
+              final uri = Uri.parse(AppConfig.safetyUrl);
+              final ok = await launchUrl(
+                uri,
+                mode: LaunchMode.externalApplication,
+              );
+              if (!ok && context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('تعذر فتح صفحة أمان الحجز')),
+                );
+              }
+            },
+          ),
+          _buildListTile(
             title: 'الشروط والأحكام',
             icon: Icons.gavel_outlined,
             onTap: () {
