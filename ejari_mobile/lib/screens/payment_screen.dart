@@ -18,10 +18,12 @@ import '../models/payment_receipt.dart';
 import '../services/auth_service.dart';
 import '../services/maintenance_service.dart';
 import '../services/payment_methods_service.dart';
-import '../services/paymob_service.dart';
+import '../services/payment/payment_gateway.dart';
 import 'success_payment_screen.dart';
 import 'booking_confirmation_screen.dart';
 import 'paymob_iframe_screen.dart';
+import '../utils/currency_formatter.dart';
+import '../widgets/region_trust_strip.dart';
 
 class PaymentScreen extends StatefulWidget {
   final String itemType;
@@ -239,7 +241,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     }
     if (_selectedCategory == 'cards') {
       // Paymob iframe collects the card — skip local PAN/CVV when gateway is on.
-      if (PaymobService.shouldUseGateway) return true;
+      if (PaymentGatewayRouter.shouldUseCardGateway) return true;
       return _cardNumberController.text.length >= 16 &&
           _expiryController.text.contains('/') &&
           _cvvController.text.length >= 3;
@@ -355,7 +357,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'رصيد المحفظة غير كافٍ (${balance.toStringAsFixed(0)} ج.م). اشحن المحفظة أو اختر وسيلة أخرى.',
+              'رصيد المحفظة غير كافٍ (${balance.toStringAsFixed(0)} ${CurrencyFormatter.symbol}). اشحن المحفظة أو اختر وسيلة أخرى.',
             ),
             backgroundColor: AppTheme.errorColor,
             behavior: SnackBarBehavior.floating,
@@ -383,12 +385,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
         BookingStatus.normalize(widget.itemData['status']?.toString()) ==
             BookingStatus.approved;
 
-    // Paymob for cards only when credentials are configured (production).
+    // Region-routed card gateway (Paymob EG / Gulf stub) when configured.
     // Fail closed: never mark paid locally if gateway was attempted and failed.
-    if (_selectedCategory == 'cards' && PaymobService.shouldUseGateway) {
+    if (_selectedCategory == 'cards' &&
+        PaymentGatewayRouter.shouldUseCardGateway) {
       try {
         final user = await AuthService.getCurrentUser();
-        final paymentUrl = await PaymobService.getPaymentUrl(
+        final paymentUrl = await PaymentGatewayRouter.getPaymentUrl(
           amount: _displayAmount,
           referenceId: bookingId.isNotEmpty
               ? bookingId
@@ -544,10 +547,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
         : pendingReview || _selectedCategory == 'manual'
             ? 'تم إرسال إيصال الدفع للمراجعة — لن يُعلَّم الحجز مدفوعاً حتى التأكيد.'
             : isDepositPhase
-                ? 'تم استلام العربون (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح.'
+                ? 'تم استلام العربون (${_displayAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}) بنجاح.'
                 : widget.paymentStage == 'remaining'
-                    ? 'تم استلام المتبقي (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح.'
-                    : 'تم الدفع (${_displayAmount.toStringAsFixed(0)} ج.م) بنجاح.';
+                    ? 'تم استلام المتبقي (${_displayAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}) بنجاح.'
+                    : 'تم الدفع (${_displayAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}) بنجاح.';
 
     if (pendingReview) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -847,6 +850,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
+                const RegionTrustStrip(compact: true),
+                const SizedBox(height: 12),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(18),
@@ -874,7 +879,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${_displayAmount.toStringAsFixed(0)} ج.م',
+                            CurrencyFormatter.format(_displayAmount),
                             style: const TextStyle(
                               color: AppTheme.primaryColor,
                               fontSize: 32,
@@ -947,7 +952,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
           const SizedBox(width: 12),
           Text(
-            '${value.toStringAsFixed(0)} ج.م',
+            '${value.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
             style: TextStyle(
               color: light ? Colors.white : AppTheme.textPrimary,
               fontSize: 12,
@@ -979,7 +984,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
             subtitle: Text(
               _splitDepositNow
-                  ? 'ادفع ${deposit.toStringAsFixed(0)} ج.م الآن — ${remaining.toStringAsFixed(0)} ج.م عند تسجيل الدخول'
+                  ? 'ادفع ${deposit.toStringAsFixed(0)} ${CurrencyFormatter.symbol} الآن — ${remaining.toStringAsFixed(0)} ${CurrencyFormatter.symbol} عند تسجيل الدخول'
                   : 'ادفع المبلغ كاملاً الآن',
               style: const TextStyle(fontSize: 11),
             ),
@@ -1080,24 +1085,24 @@ class _PaymentScreenState extends State<PaymentScreen> {
             children: [
               _buildPlanChip(
                 'إجمالي التعاقد',
-                '${_leaseTotalAmount.toStringAsFixed(0)} ج.م',
+                '${_leaseTotalAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                 AppTheme.textSecondary,
               ),
               _buildPlanChip(
                 'الآن',
-                '${_displayAmount.toStringAsFixed(0)} ج.م',
+                '${_displayAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                 AppTheme.primaryColor,
               ),
               _buildPlanChip(
                 'العربون',
-                '${(widget.depositAmount ?? widget.amount).toStringAsFixed(0)} ج.م',
+                '${(widget.depositAmount ?? widget.amount).toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                 AppTheme.borderColor,
               ),
               _buildPlanChip(
                 isRemaining ? 'بعدها' : 'المتبقي',
                 isRemaining
                     ? 'سداد شهري'
-                    : '${(widget.remainingAmount ?? 0).toStringAsFixed(0)} ج.م',
+                    : '${(widget.remainingAmount ?? 0).toStringAsFixed(0)} ${CurrencyFormatter.symbol}',
                 AppTheme.textSecondary,
               ),
             ],
@@ -1177,7 +1182,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Widget _buildPlayPaymentDisclosure() {
-    final paymobNote = PaymobService.shouldUseGateway
+    final paymobNote = PaymentGatewayRouter.shouldUseCardGateway
         ? 'مدفوعات البطاقة تُعالَج عبر بوابة Paymob الآمنة.'
         : 'مدفوعات البطاقة قد تمر عبر Paymob عند تفعيلها؛ وإلا يُستخدم مسار تجريبي/محلي.';
 
@@ -1357,7 +1362,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Widget _buildCardsForm() {
-    if (PaymobService.shouldUseGateway) {
+    if (PaymentGatewayRouter.shouldUseCardGateway) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(16),
@@ -1589,11 +1594,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   Widget _buildBottomPayBar() {
     final buttonText = widget.paymentStage == 'remaining'
-        ? 'تأكيد استكمال دفعة الشهر الأول (${_displayAmount.toStringAsFixed(0)} ج.م)'
+        ? 'تأكيد استكمال دفعة الشهر الأول (${_displayAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol})'
         : widget.paymentStage == 'deposit' ||
                 (widget.paymentStage == 'full' && _splitDepositNow)
-            ? 'تأكيد العربون (${_displayAmount.toStringAsFixed(0)} ج.م)'
-            : 'تأكيد الدفع (${_displayAmount.toStringAsFixed(0)} ج.م)';
+            ? 'تأكيد العربون (${_displayAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol})'
+            : 'تأكيد الدفع (${_displayAmount.toStringAsFixed(0)} ${CurrencyFormatter.symbol})';
     return Positioned(
       bottom: 0,
       left: 0,

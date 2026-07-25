@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../config/app_config.dart';
+import '../models/app_region.dart';
 
 /// Paymob Accept gateway (optional).
 ///
@@ -69,7 +70,7 @@ class PaymobService {
               'auth_token': authToken,
               'delivery_needed': 'false',
               'amount_cents': (amount * 100).round().toString(),
-              'currency': 'EGP',
+              'currency': AppRegion.egypt.currencyCode,
               'merchant_order_id': merchantOrderId,
               'items': [],
             }),
@@ -118,7 +119,7 @@ class PaymobService {
                 'last_name': billingData['last_name'] ?? 'User',
                 'state': 'NA',
               },
-              'currency': 'EGP',
+              'currency': AppRegion.egypt.currencyCode,
               'integration_id': int.tryParse(_integrationId) ?? _integrationId,
             }),
           )
