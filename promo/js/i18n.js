@@ -8,9 +8,9 @@
 
   var STR = {
     ar: {
-      "meta.title": "إيجاري — إدارة الإيجار في مصر",
+      "meta.title": "إيجاري — منصة إدارة الإيجار في الشرق الأوسط",
       "meta.desc":
-        "إيجاري تطبيق لإدارة الإيجار: عقود، دفع، معاينة، صيانة، ومحفظة — للمستأجر والمالك. الإصدار 1.3.15 لأندرويد.",
+        "منصة إدارة الإيجار في الشرق الأوسط: عقود، معاينة، دفع، صيانة، استلام بـ QR، وضمان مالي. ننطلق من مصر — قريبًا في السعودية والإمارات. الإصدار 1.3.15 لأندرويد.",
       "a11y.skip": "تخطّي إلى المحتوى",
       "nav.brand": "إيجاري",
       "nav.trust": "ليه إيجاري",
@@ -20,6 +20,41 @@
       "nav.contact": "تواصل",
       "nav.home": "الرئيسية",
       "nav.safety": "أمان الحجز",
+
+      "nav.markets": "التواجد",
+      "nav.assurance": "الثقة والأمان",
+
+      "markets.aria": "تواجد إيجاري في المنطقة",
+      "markets.kicker": "الشرق الأوسط",
+      "markets.title": "ننطلق من مصر — وقريبًا في الخليج",
+      "markets.lede": "منصة واحدة لإدارة الإيجار. الإطلاق الحالي في مصر، والتوسّع إلى السعودية والإمارات قادم.",
+      "markets.eg.label": "مصر",
+      "markets.eg.status": "الإطلاق",
+      "markets.eg.body": "القاهرة والأسواق المصرية — عقود ودفع بالجنيه المصري.",
+      "markets.sa.label": "السعودية",
+      "markets.sa.status": "قريبًا",
+      "markets.sa.body": "قريبًا في السعودية — دعم الريال السعودي مع الإطلاق.",
+      "markets.ae.label": "الإمارات",
+      "markets.ae.status": "قريبًا",
+      "markets.ae.body": "قريبًا في الإمارات — دعم الدرهم الإماراتي مع الإطلاق.",
+      "markets.currencies": "العملات عند التوسّع: EGP · SAR · AED",
+
+      "assurance.title": "ثقة مبنية على مسار واضح",
+      "assurance.lede": "لا ندّعي إزالة كل المخاطر. نوضّح المسار، ونربط الحجز بالتحقق والدفع والاستلام — مع قنوات دعم حقيقية.",
+      "assurance.safety.title": "أمان الحجز",
+      "assurance.safety.body": "إرشادات المعاينة والدفع والاستلام، مع أرقام الطوارئ في مصر.",
+      "assurance.safety.cta": "اقرأ إرشادات الأمان",
+      "assurance.privacy.title": "الخصوصية والشروط",
+      "assurance.privacy.body": "سياسة الخصوصية وشروط الاستخدام منشورة وقابلة للمراجعة قبل إنشاء الحساب.",
+      "assurance.privacy.cta": "سياسة الخصوصية",
+      "assurance.terms.cta": "الشروط والأحكام",
+      "assurance.support.title": "دعم مباشر",
+      "assurance.support.body": "واتساب أو البريد — للدعم والشراكات. اذكر رقم الإصدار عند مشاكل التثبيت.",
+      "assurance.support.wa": "واتساب · 01280083336",
+      "assurance.support.mail": "support@ejari.app",
+
+      "roles.4note": "أدوار المنتج: مستأجر، مالك، فني، وإدارة.",
+
       "nav.lang": "English",
       "nav.langAria": "التبديل إلى الإنجليزية",
       "nav.aria": "أقسام الصفحة",
@@ -34,35 +69,35 @@
 
       "hero.aria": "مقدمة إيجاري",
       "hero.brandSub": "Ejari",
-      "hero.line": "من العقد… لحد الصيانة.",
+      "hero.line": "منصة إدارة الإيجار في الشرق الأوسط.",
       "hero.sub":
-        "تطبيق مصري لإدارة الإيجار بين المستأجر والمالك — بدون لفّ ولا وعود فاضيّة.",
+        "منصة إدارة الإيجار بين المستأجر والمالك في الشرق الأوسط — ننطلق من مصر، وقريبًا في السعودية والإمارات.",
       "hero.cta": "حمّل التطبيق",
       "hero.secondary": "من نحن",
 
       "trust.title": "الإيجار محتاج ترتيب، مش شعارات",
       "trust.lede":
-        "في مصر الاتفاق بيتقال شفهي كتير. إيجاري بيرتّب العقد والدفع والصيانة في مكان واحد عشان الطرفين يشوفوا نفس الصورة.",
+        "العقود الشفهيّة واللفّ بين الطرفين مشكلة إقليمية. إيجاري يرتّب العقد والمعاينة والدفع والصيانة والاستلام في مسار واحد — بالجنيه والدولار السعودي والدرهم عند التوسّع.",
       "trust.1.title": "عقود واضحة",
       "trust.1.body":
         "بنود الإيجار والمدّة والمبلغ قدام الطرفين قبل ما يتأكد الحجز.",
-      "trust.2.title": "دفع منظم ومحفظة",
+      "trust.2.title": "دفع وضمان مالي",
       "trust.2.body":
-        "عربون وإيجار واسترداد بتتسجّل في المحفظة بحالة واضحة.",
+        "عربون وإيجار واسترداد تتسجّل في المحفظة بحالة ظاهرة، مع مسار ضمان مالي داخل التطبيق.",
       "trust.3.title": "صيانة ومتابعة",
       "trust.3.body":
         "طلبات الصيانة مربوطة بالوحدة، والفني يشتغل من نفس التطبيق.",
-      "trust.4.title": "أدوار منفصلة",
+      "trust.4.title": "تحقق مرة واحدة",
       "trust.4.body":
-        "مستأجر، مالك، فني، وإدارة — كل واحد يشوف اللي يخصّه.",
+        "التحقق من الملف الشخصي مرة واحدة قبل الحجز — وبعدها مسار واضح للمستأجر والمالك والفني.",
       "trust.photoAlt": "وحدة سكنية جاهزة للإيجار",
 
       "about.title": "من نحن",
       "about.lede":
-        "إيجاري مشروع مصري لتشغيل الإيجار اليومي: من الاتفاق على الوحدة لحد طلب الصيانة — بدون ما نبيع أرقام مستخدمين ولا وعود مش موجودة.",
+        "إيجاري منصة لإدارة الإيجار في الشرق الأوسط. ننطلق من القاهرة، مصر، ونوسّع إلى السعودية والإمارات — بدون أرقام مستخدمين مزيّفة ولا وعود مش موجودة.",
       "about.mission":
-        "هدفنا نقلّل سوء التفاهم بين المستأجر والمالك: بنود واضحة، دفع بحالة ظاهرة، وصيانة مربوطة بالوحدة مش بالواتساب المتفرّق.",
-      "about.place": "القاهرة، مصر",
+        "هدفنا تقليل سوء التفاهم بين المستأجر والمالك: بنود واضحة، معاينة مسجّلة، دفع بحالة ظاهرة، استلام بـ QR، وصيانة مربوطة بالوحدة.",
+      "about.place": "القاهرة، مصر · قريبًا: السعودية والإمارات",
       "about.contactLink": "تواصل للشراكات أو الدعم",
 
       "roles.title": "مين بيغطي التطبيق",
@@ -87,7 +122,7 @@
       "how.3.body":
         "رمز دخول عند الوصول، ومتابعة أي طلب صيانة من جوه التطبيق.",
 
-      "mission.strip": "وضوح بين الطرفين — أقل لفّ في الإيجار.",
+      "mission.strip": "وضوح بين الطرفين — من مصر إلى الخليج.",
 
       "dl.title": "حمّل إيجاري لأندرويد",
       "dl.lede":
@@ -113,8 +148,8 @@
         "الدعم عادةً خلال يوم عمل — اكتب رقم الإصدار لو فيه مشكلة تثبيت.",
 
       "footer.blurb":
-        "تطبيق لإدارة الإيجار والعقود في السوق المصري — من القاهرة.",
-      "footer.place": "القاهرة، مصر",
+        "منصة إدارة الإيجار في الشرق الأوسط — ننطلق من القاهرة، وقريبًا في السعودية والإمارات.",
+      "footer.place": "القاهرة، مصر · قريبًا: السعودية والإمارات",
       "footer.legal": "قانوني",
       "footer.privacy": "سياسة الخصوصية",
       "footer.terms": "الشروط والأحكام",
@@ -123,7 +158,7 @@
       "footer.howto": "تعليمات التثبيت",
       "footer.releases": "أحدث الإصدارات",
       "footer.copy": "© 2026 إيجاري · الإصدار 1.3.15",
-      "footer.tag": "Ejari — rental ops for Egypt",
+      "footer.tag": "إيجاري — إدارة الإيجار في الشرق الأوسط",
 
       "sticky.aria": "تحميل سريع",
       "sticky.title": "إيجاري 1.3.15",
@@ -174,7 +209,7 @@
 
       "safety.metaTitle": "أمان الحجز — إيجاري",
       "safety.metaDesc":
-        "إرشادات عملية للحجز والمعاينة والدفع والاستلام بأمان عبر إيجاري، مع أرقام الطوارئ في مصر.",
+        "إرشادات عملية للحجز والمعاينة والدفع والاستلام بأمان عبر إيجاري. أرقام الطوارئ الحالية لمصر؛ إرشادات الخليج تُضاف مع الإطلاق.",
       "safety.heroAria": "أمان الحجز",
       "safety.kicker": "إرشادات إيجاري",
       "safety.heroTitle": "أمان الحجز",
@@ -248,9 +283,9 @@
     },
 
     en: {
-      "meta.title": "Ejari — Rental management in Egypt",
+      "meta.title": "Ejari — Rental management across the Middle East",
       "meta.desc":
-        "Ejari helps tenants and owners manage rentals: contracts, payments, viewing, maintenance, and wallet. Android 1.3.15.",
+        "Rental management across the Middle East: contracts, viewing, payment, maintenance, QR handover, and escrow. Launching in Egypt — coming soon to Saudi Arabia & UAE. Android 1.3.15.",
       "a11y.skip": "Skip to content",
       "nav.brand": "Ejari",
       "nav.trust": "Why Ejari",
@@ -260,6 +295,41 @@
       "nav.contact": "Contact",
       "nav.home": "Home",
       "nav.safety": "Safety",
+
+      "nav.markets": "Presence",
+      "nav.assurance": "Trust & safety",
+
+      "markets.aria": "Ejari presence in the region",
+      "markets.kicker": "Middle East",
+      "markets.title": "Launching in Egypt — coming soon to the Gulf",
+      "markets.lede": "One rental-management platform. Live launch in Egypt; Saudi Arabia and the UAE are next.",
+      "markets.eg.label": "Egypt",
+      "markets.eg.status": "Live launch",
+      "markets.eg.body": "Cairo and the Egyptian market — contracts and payments in EGP.",
+      "markets.sa.label": "Saudi Arabia",
+      "markets.sa.status": "Coming soon",
+      "markets.sa.body": "Coming soon to KSA — SAR support at launch.",
+      "markets.ae.label": "UAE",
+      "markets.ae.status": "Coming soon",
+      "markets.ae.body": "Coming soon to the UAE — AED support at launch.",
+      "markets.currencies": "Currencies as we expand: EGP · SAR · AED",
+
+      "assurance.title": "Trust built on a clear process",
+      "assurance.lede": "We do not claim to remove every risk. We make the path visible — verification, payment, and handover — with real support channels.",
+      "assurance.safety.title": "Booking safety",
+      "assurance.safety.body": "Guidance for viewing, payment, and handover, with Egypt emergency numbers.",
+      "assurance.safety.cta": "Read safety guidance",
+      "assurance.privacy.title": "Privacy and terms",
+      "assurance.privacy.body": "Privacy policy and terms are published and reviewable before you create an account.",
+      "assurance.privacy.cta": "Privacy policy",
+      "assurance.terms.cta": "Terms of use",
+      "assurance.support.title": "Direct support",
+      "assurance.support.body": "WhatsApp or email — for support and partnerships. Include the app version for install issues.",
+      "assurance.support.wa": "WhatsApp · 01280083336",
+      "assurance.support.mail": "support@ejari.app",
+
+      "roles.4note": "Product roles: tenant, owner, technician, and admin.",
+
       "nav.lang": "عربي",
       "nav.langAria": "Switch to Arabic",
       "nav.aria": "Page sections",
@@ -274,35 +344,35 @@
 
       "hero.aria": "Ejari introduction",
       "hero.brandSub": "إيجاري",
-      "hero.line": "From contract to maintenance.",
+      "hero.line": "Rental management across the Middle East.",
       "hero.sub":
-        "An Egyptian app for rental management between tenants and owners — clear process, no empty promises.",
+        "A rental platform for tenants and owners across the Middle East — launching in Egypt, coming soon to Saudi Arabia and the UAE.",
       "hero.cta": "Download the app",
       "hero.secondary": "About us",
 
       "trust.title": "Renting needs order, not slogans",
       "trust.lede":
-        "In Egypt, deals are often verbal. Ejari keeps the contract, payments, and maintenance in one place so both sides see the same picture.",
+        "Verbal deals and unclear handovers are a regional problem. Ejari keeps contract, viewing, payment, maintenance, and handover in one process — with EGP, SAR, and AED as we expand.",
       "trust.1.title": "Clear contracts",
       "trust.1.body":
         "Terms, duration, and amount are visible to both sides before a booking is confirmed.",
-      "trust.2.title": "Payments and wallet",
+      "trust.2.title": "Payments and escrow",
       "trust.2.body":
-        "Deposits, rent, and refunds are recorded in the wallet with a clear status.",
+        "Deposits, rent, and refunds are recorded in the wallet with a clear status, plus an in-app escrow path.",
       "trust.3.title": "Maintenance tracking",
       "trust.3.body":
         "Maintenance requests are tied to the unit; technicians work from the same app.",
-      "trust.4.title": "Separate roles",
+      "trust.4.title": "One-time verification",
       "trust.4.body":
-        "Tenant, owner, technician, and admin — each sees what they need.",
+        "Profile verification once before booking — then a clear path for tenant, owner, and technician.",
       "trust.photoAlt": "Residential unit ready to rent",
 
       "about.title": "About us",
       "about.lede":
-        "Ejari is an Egyptian project for day-to-day rental operations: from agreeing on a unit to filing maintenance — without fake user counts or promises we cannot keep.",
+        "Ejari is a Middle East rental-management platform. We launch from Cairo, Egypt, and expand to Saudi Arabia and the UAE — without fake user counts or promises we cannot keep.",
       "about.mission":
-        "We aim to cut misunderstandings between tenant and owner: clear terms, visible payment status, and maintenance tied to the unit — not scattered WhatsApp threads.",
-      "about.place": "Cairo, Egypt",
+        "We aim to cut misunderstandings between tenant and owner: clear terms, recorded viewing, visible payment status, QR handover, and maintenance tied to the unit.",
+      "about.place": "Cairo, Egypt · Coming soon: KSA & UAE",
       "about.contactLink": "Contact for partnerships or support",
 
       "roles.title": "Who the app covers",
@@ -333,7 +403,7 @@
       "how.3.body":
         "An entry code at arrival, and any maintenance request from inside the app.",
 
-      "mission.strip": "Clarity between both sides — less friction in renting.",
+      "mission.strip": "Clarity between both sides — from Egypt to the Gulf.",
 
       "dl.title": "Download Ejari for Android",
       "dl.lede":
@@ -359,8 +429,8 @@
         "We usually reply within one business day — include the app version if you hit an install issue.",
 
       "footer.blurb":
-        "A rental and contract management app for the Egyptian market — based in Cairo.",
-      "footer.place": "Cairo, Egypt",
+        "Rental management across the Middle East — based in Cairo, coming soon to Saudi Arabia and the UAE.",
+      "footer.place": "Cairo, Egypt · Coming soon: KSA & UAE",
       "footer.legal": "Legal",
       "footer.privacy": "Privacy policy",
       "footer.terms": "Terms of use",
@@ -369,7 +439,7 @@
       "footer.howto": "Install guide",
       "footer.releases": "Latest releases",
       "footer.copy": "© 2026 Ejari · version 1.3.15",
-      "footer.tag": "Ejari — rental ops for Egypt",
+      "footer.tag": "Ejari — rental management across the Middle East",
 
       "sticky.aria": "Quick download",
       "sticky.title": "Ejari 1.3.15",
@@ -420,7 +490,7 @@
 
       "safety.metaTitle": "Booking safety — Ejari",
       "safety.metaDesc":
-        "Practical guidance for safer viewing, booking, payment, and handover through Ejari, with Egypt emergency numbers.",
+        "Practical guidance for safer viewing, booking, payment, and handover through Ejari. Current emergency numbers are for Egypt; Gulf guidance will be added at launch.",
       "safety.heroAria": "Booking safety",
       "safety.kicker": "Ejari guidance",
       "safety.heroTitle": "Booking safety",

@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>إيجاري — إدارة الإيجار في مصر</title>
-  <meta name="description" content="إيجاري تطبيق لإدارة الإيجار: عقود، دفع، معاينة، صيانة، ومحفظة — للمستأجر والمالك. الإصدار 1.3.15 لأندرويد." />
+  <title>إيجاري — منصة إدارة الإيجار في الشرق الأوسط</title>
+  <meta name="description" content="منصة إدارة الإيجار في الشرق الأوسط: عقود، معاينة، دفع، صيانة، استلام بـ QR، وضمان مالي. ننطلق من مصر — قريبًا في السعودية والإمارات. الإصدار 1.3.15 لأندرويد." />
   <meta name="theme-color" content="#0F3A30" />
 
   <!-- Canonical: update when pointing a custom domain at /promo/ (see README.md) -->
@@ -13,18 +13,18 @@
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="ar_AR" />
   <meta property="og:locale:alternate" content="en_US" />
-  <meta property="og:site_name" content="إيجاري" />
-  <meta property="og:title" content="إيجاري — إدارة الإيجار في مصر" />
-  <meta property="og:description" content="عقود أوضح، دفع منظم، ومتابعة صيانة. حمّل التطبيق لأندرويد — الإصدار 1.3.15" />
+  <meta property="og:site_name" content="إيجاري · Ejari" />
+  <meta property="og:title" content="إيجاري — منصة إدارة الإيجار في الشرق الأوسط" />
+  <meta property="og:description" content="عقود، معاينة، دفع، صيانة، واستلام بـ QR. ننطلق من مصر — قريبًا في السعودية والإمارات. EGP · SAR · AED" />
   <meta property="og:url" content="https://m7moud2.github.io/ejari-web/promo/" />
   <meta property="og:image" content="https://m7moud2.github.io/ejari-web/promo/assets/og-cover.jpg" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="إيجاري — إدارة الإيجار في مصر" />
+  <meta property="og:image:alt" content="إيجاري — منصة إدارة الإيجار في الشرق الأوسط" />
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="إيجاري — إدارة الإيجار في مصر" />
-  <meta name="twitter:description" content="عقود، دفع، صيانة، ومحفظة في تطبيق واحد. الإصدار 1.3.15" />
+  <meta name="twitter:title" content="إيجاري — منصة إدارة الإيجار في الشرق الأوسط" />
+  <meta name="twitter:description" content="إدارة الإيجار في الشرق الأوسط. الإطلاق في مصر — قريبًا في السعودية والإمارات. الإصدار 1.3.15" />
   <meta name="twitter:image" content="https://m7moud2.github.io/ejari-web/promo/assets/og-cover.jpg" />
 
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
@@ -34,7 +34,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap&subset=arabic,latin" rel="stylesheet" />
-  <link rel="stylesheet" href="css/site.css?v=20260726a" />
+  <link rel="stylesheet" href="css/site.css?v=20260726b" />
 </head>
 <body data-title-key="meta.title" data-desc-key="meta.desc">
   <a class="skip-link" href="#main" data-i18n="a11y.skip">تخطّي إلى المحتوى</a>
@@ -42,12 +42,14 @@
   <header class="site-nav" data-site-nav>
     <div class="wrap nav-bar">
       <a class="nav-mark" href="index.html">
-        <span class="nav-mark-badge" aria-hidden="true">إ</span>
+        <img class="nav-mark-logo" src="assets/logo-mark.svg" width="36" height="36" alt="" aria-hidden="true" />
         <span data-i18n="nav.brand">إيجاري</span>
       </a>
       <div class="nav-end">
         <nav class="nav-links" id="site-nav-links" data-i18n-aria="nav.aria" aria-label="أقسام الصفحة">
+          <a href="#markets" data-i18n="nav.markets">التواجد</a>
           <a href="#trust" data-i18n="nav.trust">ليه إيجاري</a>
+          <a href="#assurance" data-i18n="nav.assurance">الثقة والأمان</a>
           <a href="#about" data-i18n="nav.about">من نحن</a>
           <a href="#how" data-i18n="nav.how">كيف يشتغل</a>
           <a href="safety.html" data-i18n="nav.safety">أمان الحجز</a>
@@ -97,8 +99,8 @@
             <span data-i18n="nav.brand">إيجاري</span>
             <span class="hero-brand-sub" data-i18n="hero.brandSub">Ejari</span>
           </h1>
-          <p class="hero-line" data-i18n="hero.line">من العقد… لحد الصيانة.</p>
-          <p class="hero-sub" data-i18n="hero.sub">تطبيق مصري لإدارة الإيجار بين المستأجر والمالك — بدون لفّ ولا وعود فاضيّة.</p>
+          <p class="hero-line" data-i18n="hero.line">منصة إدارة الإيجار في الشرق الأوسط.</p>
+          <p class="hero-sub" data-i18n="hero.sub">منصة إدارة الإيجار بين المستأجر والمالك في الشرق الأوسط — ننطلق من مصر، وقريبًا في السعودية والإمارات.</p>
           <div class="hero-actions">
             <a
               class="btn btn-primary"
@@ -106,9 +108,35 @@
               data-i18n="hero.cta"
               href="https://github.com/m7moud2/ejari-web/releases/download/v1.3.15/ejari-1.3.15.apk"
             >حمّل التطبيق</a>
-            <a class="btn btn-ghost" href="#about" data-i18n="hero.secondary">من نحن</a>
+            <a class="btn btn-ghost" href="#markets" data-i18n="nav.markets">التواجد</a>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="markets" id="markets" data-i18n-aria="markets.aria" aria-label="تواجد إيجاري في المنطقة">
+      <div class="wrap">
+        <p class="section-label markets-kicker" data-i18n="markets.kicker">الشرق الأوسط</p>
+        <h2 data-i18n="markets.title">ننطلق من مصر — وقريبًا في الخليج</h2>
+        <p class="lede" data-i18n="markets.lede">منصة واحدة لإدارة الإيجار. الإطلاق الحالي في مصر، والتوسّع إلى السعودية والإمارات قادم.</p>
+        <div class="markets-grid">
+          <article class="market-item market-live reveal">
+            <span class="market-status" data-i18n="markets.eg.status">الإطلاق</span>
+            <h3 data-i18n="markets.eg.label">مصر</h3>
+            <p data-i18n="markets.eg.body">القاهرة والأسواق المصرية — عقود ودفع بالجنيه المصري.</p>
+          </article>
+          <article class="market-item reveal">
+            <span class="market-status" data-i18n="markets.sa.status">قريبًا</span>
+            <h3 data-i18n="markets.sa.label">السعودية</h3>
+            <p data-i18n="markets.sa.body">قريبًا في السعودية — دعم الريال السعودي مع الإطلاق.</p>
+          </article>
+          <article class="market-item reveal">
+            <span class="market-status" data-i18n="markets.ae.status">قريبًا</span>
+            <h3 data-i18n="markets.ae.label">الإمارات</h3>
+            <p data-i18n="markets.ae.body">قريبًا في الإمارات — دعم الدرهم الإماراتي مع الإطلاق.</p>
+          </article>
+        </div>
+        <p class="markets-currencies" data-i18n="markets.currencies">العملات عند التوسّع: EGP · SAR · AED</p>
       </div>
     </section>
 
@@ -116,7 +144,7 @@
       <div class="wrap trust-grid">
         <div class="reveal">
           <h2 data-i18n="trust.title">الإيجار محتاج ترتيب، مش شعارات</h2>
-          <p class="lede" data-i18n="trust.lede">في مصر الاتفاق بيتقال شفهي كتير. إيجاري بيرتّب العقد والدفع والصيانة في مكان واحد عشان الطرفين يشوفوا نفس الصورة.</p>
+          <p class="lede" data-i18n="trust.lede">العقود الشفهيّة واللفّ بين الطرفين مشكلة إقليمية. إيجاري يرتّب العقد والمعاينة والدفع والصيانة والاستلام في مسار واحد — بالجنيه والدولار السعودي والدرهم عند التوسّع.</p>
           <ul class="trust-list">
             <li>
               <span class="tick" aria-hidden="true">✓</span>
@@ -128,8 +156,8 @@
             <li>
               <span class="tick" aria-hidden="true">✓</span>
               <div>
-                <strong data-i18n="trust.2.title">دفع منظم ومحفظة</strong>
-                <p data-i18n="trust.2.body">عربون وإيجار واسترداد بتتسجّل في المحفظة بحالة واضحة.</p>
+                <strong data-i18n="trust.2.title">دفع وضمان مالي</strong>
+                <p data-i18n="trust.2.body">عربون وإيجار واسترداد تتسجّل في المحفظة بحالة ظاهرة، مع مسار ضمان مالي داخل التطبيق.</p>
               </div>
             </li>
             <li>
@@ -142,8 +170,8 @@
             <li>
               <span class="tick" aria-hidden="true">✓</span>
               <div>
-                <strong data-i18n="trust.4.title">أدوار منفصلة</strong>
-                <p data-i18n="trust.4.body">مستأجر، مالك، فني، وإدارة — كل واحد يشوف اللي يخصّه.</p>
+                <strong data-i18n="trust.4.title">تحقق مرة واحدة</strong>
+                <p data-i18n="trust.4.body">التحقق من الملف الشخصي مرة واحدة قبل الحجز — وبعدها مسار واضح للمستأجر والمالك والفني.</p>
               </div>
             </li>
           </ul>
@@ -162,20 +190,51 @@
       </div>
     </section>
 
+    <section class="section assurance-section" id="assurance">
+      <div class="wrap">
+        <h2 data-i18n="assurance.title">ثقة مبنية على مسار واضح</h2>
+        <p class="lede" data-i18n="assurance.lede">لا ندّعي إزالة كل المخاطر. نوضّح المسار، ونربط الحجز بالتحقق والدفع والاستلام — مع قنوات دعم حقيقية.</p>
+        <div class="assurance-grid">
+          <article class="assurance-item reveal">
+            <h3 data-i18n="assurance.safety.title">أمان الحجز</h3>
+            <p data-i18n="assurance.safety.body">إرشادات المعاينة والدفع والاستلام، مع أرقام الطوارئ في مصر.</p>
+            <a class="assurance-link" href="safety.html" data-i18n="assurance.safety.cta">اقرأ إرشادات الأمان</a>
+          </article>
+          <article class="assurance-item reveal">
+            <h3 data-i18n="assurance.privacy.title">الخصوصية والشروط</h3>
+            <p data-i18n="assurance.privacy.body">سياسة الخصوصية وشروط الاستخدام منشورة وقابلة للمراجعة قبل إنشاء الحساب.</p>
+            <div class="assurance-links">
+              <a class="assurance-link" href="../docs/privacy.html" data-i18n="assurance.privacy.cta">سياسة الخصوصية</a>
+              <a class="assurance-link" href="../docs/terms.html" data-i18n="assurance.terms.cta">الشروط والأحكام</a>
+            </div>
+          </article>
+          <article class="assurance-item reveal">
+            <h3 data-i18n="assurance.support.title">دعم مباشر</h3>
+            <p data-i18n="assurance.support.body">واتساب أو البريد — للدعم والشراكات. اذكر رقم الإصدار عند مشاكل التثبيت.</p>
+            <div class="assurance-links">
+              <a class="assurance-link" href="https://wa.me/201280083336" target="_blank" rel="noopener" data-i18n="assurance.support.wa">واتساب · 01280083336</a>
+              <a class="assurance-link" href="mailto:support@ejari.app" data-i18n="assurance.support.mail">support@ejari.app</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
     <!--
       Founder fill (do not invent values):
       - Legal company name → set text on [data-founder="legal-name"] and remove the `hidden` attribute
       - Commercial registry no. → [data-founder="registry"]
       - Street / building address → [data-founder="street"]
-      City line below stays as Cairo, Egypt until you replace it with a fuller address.
+      - Gulf legal entity / launch dates when ready
+      City line below stays as Cairo + coming soon until you replace it.
     -->
     <section class="section about-section" id="about">
       <div class="wrap about-grid">
         <div class="reveal">
           <h2 data-i18n="about.title">من نحن</h2>
-          <p class="lede" data-i18n="about.lede">إيجاري مشروع مصري لتشغيل الإيجار اليومي: من الاتفاق على الوحدة لحد طلب الصيانة — بدون ما نبيع أرقام مستخدمين ولا وعود مش موجودة.</p>
-          <p class="about-mission" data-i18n="about.mission">هدفنا نقلّل سوء التفاهم بين المستأجر والمالك: بنود واضحة، دفع بحالة ظاهرة، وصيانة مربوطة بالوحدة مش بالواتساب المتفرّق.</p>
-          <p class="about-place" data-i18n="about.place">القاهرة، مصر</p>
+          <p class="lede" data-i18n="about.lede">إيجاري منصة لإدارة الإيجار في الشرق الأوسط. ننطلق من القاهرة، مصر، ونوسّع إلى السعودية والإمارات — بدون أرقام مستخدمين مزيّفة ولا وعود مش موجودة.</p>
+          <p class="about-mission" data-i18n="about.mission">هدفنا تقليل سوء التفاهم بين المستأجر والمالك: بنود واضحة، معاينة مسجّلة، دفع بحالة ظاهرة، استلام بـ QR، وصيانة مربوطة بالوحدة.</p>
+          <p class="about-place" data-i18n="about.place">القاهرة، مصر · قريبًا: السعودية والإمارات</p>
           <p class="about-contact">
             <a href="#contact" data-i18n="about.contactLink">تواصل للشراكات أو الدعم</a>
           </p>
@@ -240,7 +299,7 @@
 
     <section class="mission" aria-hidden="false">
       <div class="wrap">
-        <p data-i18n="mission.strip">وضوح بين الطرفين — أقل لفّ في الإيجار.</p>
+        <p data-i18n="mission.strip">وضوح بين الطرفين — من مصر إلى الخليج.</p>
       </div>
     </section>
 
@@ -302,9 +361,12 @@
     <div class="wrap">
       <div class="footer-grid">
         <div>
-          <p class="footer-brand">إيجاري<small>EJARI</small></p>
-          <p class="footer-blurb" data-i18n="footer.blurb">تطبيق لإدارة الإيجار والعقود في السوق المصري — من القاهرة.</p>
-          <p class="footer-addr" data-i18n="footer.place">القاهرة، مصر</p>
+          <a class="footer-brand-link" href="index.html">
+            <img class="footer-logo" src="assets/logo-mark.svg" width="40" height="40" alt="" aria-hidden="true" />
+            <p class="footer-brand">إيجاري<small>EJARI</small></p>
+          </a>
+          <p class="footer-blurb" data-i18n="footer.blurb">منصة إدارة الإيجار في الشرق الأوسط — ننطلق من القاهرة، وقريبًا في السعودية والإمارات.</p>
+          <p class="footer-addr" data-i18n="footer.place">القاهرة، مصر · قريبًا: السعودية والإمارات</p>
           <!-- founder: un-hide and fill when ready — do not invent registry numbers -->
           <p class="footer-addr" data-founder="legal-name" hidden></p>
           <p class="footer-addr" data-founder="registry" hidden></p>
@@ -329,7 +391,7 @@
       </div>
       <div class="footer-bottom">
         <span data-i18n="footer.copy">© 2026 إيجاري · الإصدار 1.3.15</span>
-        <span class="footer-en" data-i18n="footer.tag">Ejari — rental ops for Egypt</span>
+        <span class="footer-en" data-i18n="footer.tag">إيجاري — إدارة الإيجار في الشرق الأوسط</span>
       </div>
     </div>
   </footer>
@@ -349,7 +411,7 @@
     </div>
   </div>
 
-  <script src="js/i18n.js?v=20260726a"></script>
+  <script src="js/i18n.js?v=20260726b"></script>
   <script src="js/site.js?v=20260718c" defer></script>
   <script src="js/download-stats.js?v=20260718c" defer></script>
 </body>

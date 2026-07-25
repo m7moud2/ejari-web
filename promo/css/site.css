@@ -7,16 +7,18 @@
   --green-deep: #0A2A22;
   --gold: #B58D3D;
   --gold-soft: #C9A45A;
-  --ink: #1C2B26;
-  --muted: #5A6B64;
-  --paper: #F7F5F1;
+  --ink: #1A2A24;
+  --muted: #4F635B;
+  --paper: #F3F5F4; /* cool off-white — not cream/terracotta */
   --line: rgba(15, 58, 48, 0.14);
   --white: #ffffff;
   --max: 1080px;
   --font: "Tajawal", "Segoe UI", Tahoma, sans-serif;
-  --space-section: clamp(3.5rem, 6vw, 5rem);
+  --space-section: clamp(3.75rem, 6.5vw, 5.5rem);
   --space-tight: clamp(2.75rem, 4vw, 3.5rem);
   --nav-offset: calc(3.55rem + env(safe-area-inset-top, 0px));
+  --type-h2: clamp(1.6rem, 2.6vw, 2.15rem);
+  --type-lede: 1.08rem;
 }
 
 *,
@@ -153,12 +155,19 @@ a {
 .nav-mark {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.6rem;
   font-weight: 800;
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   color: rgba(255, 255, 255, 0.96);
   letter-spacing: 0.02em;
   z-index: 2;
+}
+
+.nav-mark-logo {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 0.35rem;
 }
 
 .nav-mark-badge {
@@ -498,23 +507,27 @@ html[dir="ltr"] .hero-sub {
   padding: var(--space-tight) 0;
 }
 
-.section h2 {
+.section h2,
+.markets h2 {
   margin: 0;
-  font-size: clamp(1.55rem, 2.5vw, 2.05rem);
+  font-size: var(--type-h2);
   font-weight: 800;
   color: var(--green);
   line-height: 1.3;
+  letter-spacing: -0.01em;
 }
 
-.section .lede {
+.section .lede,
+.markets .lede {
   margin: 0.8rem 0 0;
   color: var(--muted);
-  max-width: 42ch;
-  font-size: 1.05rem;
+  max-width: 44ch;
+  font-size: var(--type-lede);
 }
 
-html[dir="ltr"] .section .lede {
-  max-width: 48ch;
+html[dir="ltr"] .section .lede,
+html[dir="ltr"] .markets .lede {
+  max-width: 50ch;
 }
 
 .reveal {
@@ -526,6 +539,140 @@ html[dir="ltr"] .section .lede {
 .reveal.is-in {
   opacity: 1;
   transform: none;
+}
+
+/* Markets — regional presence */
+.markets {
+  padding: var(--space-tight) 0;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
+.markets-kicker {
+  margin-bottom: 0.65rem;
+}
+
+.markets-grid {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+
+.market-item {
+  padding: 1.55rem 1.35rem 1.55rem 0;
+  border-bottom: 1px solid var(--line);
+  border-inline-end: 1px solid var(--line);
+}
+
+.market-item:last-child {
+  border-inline-end: 0;
+  padding-inline-end: 0;
+}
+
+html[dir="ltr"] .market-item {
+  padding: 1.55rem 0 1.55rem 1.35rem;
+}
+
+html[dir="ltr"] .market-item:first-child {
+  padding-inline-start: 0;
+}
+
+.market-status {
+  display: inline-block;
+  margin-bottom: 0.55rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.market-live .market-status {
+  color: #8A6A2C; /* gold on white — WCAG-friendly */
+}
+
+.market-item h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--green);
+}
+
+.market-item p {
+  margin: 0.45rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  max-width: 28ch;
+  line-height: 1.6;
+}
+
+.markets-currencies {
+  margin: 1.5rem 0 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 0.04em;
+}
+
+/* Assurance / trust links */
+.assurance-section {
+  background: var(--paper);
+}
+
+.assurance-grid {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.75rem 2.25rem;
+}
+
+.assurance-item {
+  padding-top: 1.15rem;
+  border-top: 2px solid var(--gold);
+}
+
+.assurance-item h3 {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: var(--green);
+}
+
+.assurance-item p {
+  margin: 0.55rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  max-width: 34ch;
+  line-height: 1.65;
+}
+
+.assurance-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.15rem;
+  margin-top: 0.95rem;
+}
+
+.assurance-link {
+  display: inline-block;
+  margin-top: 0.95rem;
+  color: var(--green);
+  font-size: 0.92rem;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(181, 141, 61, 0.55);
+  padding-bottom: 0.05rem;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.assurance-links .assurance-link {
+  margin-top: 0;
+}
+
+.assurance-link:hover {
+  color: #8A6A2C;
+  border-bottom-color: #8A6A2C;
 }
 
 /* Trust: uneven two-column */
@@ -916,11 +1063,25 @@ html[dir="ltr"] .mission p {
   gap: 1.85rem 2rem;
 }
 
+.footer-brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+}
+
+.footer-logo {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.4rem;
+  flex-shrink: 0;
+}
+
 .footer-brand {
   font-size: 1.35rem;
   font-weight: 800;
   color: #fff;
-  margin: 0 0 0.45rem;
+  margin: 0;
 }
 
 .footer-brand small {
@@ -991,7 +1152,7 @@ html[dir="ltr"] .footer-blurb {
   bottom: 0;
   z-index: 30;
   padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
-  background: rgba(247, 245, 241, 0.96);
+  background: rgba(243, 245, 244, 0.96);
   border-top: 1px solid var(--line);
   backdrop-filter: blur(8px);
   transform: translateY(0);
@@ -1355,9 +1516,20 @@ html[dir="ltr"] .warning-list li {
   .footer-grid,
   .about-grid,
   .safety-process,
-  .safety-warning-grid {
+  .safety-warning-grid,
+  .markets-grid,
+  .assurance-grid {
     grid-template-columns: 1fr;
   }
+
+  .market-item {
+    border-inline-end: 0;
+    padding-inline: 0;
+  }
+
+  .site-nav.is-open .nav-links a:nth-child(6) { transition-delay: 0.24s; }
+  .site-nav.is-open .nav-links a:nth-child(7) { transition-delay: 0.28s; }
+  .site-nav.is-open .nav-links a:nth-child(8) { transition-delay: 0.32s; }
 
   .trust-photo::after {
     display: none;

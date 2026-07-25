@@ -2,6 +2,8 @@
 
 Public face for domain, LinkedIn, and Facebook. Arabic by default (RTL), English via toggle.
 
+**Positioning:** Rental management across the Middle East — launching in Egypt, coming soon to Saudi Arabia & UAE (EGP · SAR · AED).
+
 **Live:** https://m7moud2.github.io/ejari-web/promo/
 
 English deep link: https://m7moud2.github.io/ejari-web/promo/?lang=en
@@ -21,6 +23,7 @@ APK (keep this URL until the next release):
 `https://github.com/m7moud2/ejari-web/releases/download/v1.3.15/ejari-1.3.15.apk`
 
 Install help: [download.html](./download.html)  
+Booking safety: [safety.html](./safety.html)  
 Download counter: Firestore `public_stats/downloads` via `js/download-stats.js`
 
 ## SEO (repo root)
@@ -30,7 +33,7 @@ GitHub Pages serves from the **repo root**, so these live at the site root:
 | File | Purpose |
 |------|---------|
 | `/robots.txt` | Allow crawl + sitemap pointer |
-| `/sitemap.xml` | Promo AR/EN (`?lang=en`), download, privacy, terms |
+| `/sitemap.xml` | Promo AR/EN (`?lang=en`), download, safety, privacy, terms |
 
 After a custom domain, update the absolute URLs inside both files and the `canonical` / `og:*` tags in HTML.
 
@@ -42,7 +45,7 @@ This folder is published from the repo root under `/promo/`.
 
 1. In the repo: **Settings → Pages** → source = `main` / root (current setup).
 2. Add a custom domain (e.g. `ejari.app`).
-3. Update every `canonical`, `og:url`, and `og:image` in `index.html` / `download.html` from  
+3. Update every `canonical`, `og:url`, and `og:image` in `index.html` / `download.html` / `safety.html` from  
    `https://m7moud2.github.io/ejari-web/promo/`  
    to  
    `https://YOUR-DOMAIN/promo/`  
@@ -60,15 +63,18 @@ DNS: add the `A` / `CNAME` records GitHub shows for Pages. Enable HTTPS after DN
 ## Brand
 
 - Green `#0F3A30` · Gold `#B58D3D`
+- Logo mark: `assets/logo-mark.svg` (home + key motif) — also favicon / apple-touch
 - Share image: `assets/og-cover.jpg` (1200×630)
-- Favicon: `assets/favicon.svg` (+ PNG fallback)
+- Type: Tajawal (Arabic-first)
 
 ## Founder placeholders (do not invent)
 
-Footer / About show **Cairo, Egypt** only. In `index.html`, HTML comments mark where to fill:
+Footer / About show **Cairo, Egypt · Coming soon: KSA & UAE**. In `index.html`, HTML comments mark where to fill:
 
 - Legal company name → `[data-founder="legal-name"]` (remove `hidden`, add text)
 - Commercial registry → `[data-founder="registry"]`
 - Street address → `[data-founder="street"]`
+- Official logo file (if replacing the web SVG mark)
+- Gulf legal entity + real market launch dates when ready
 
 Also replace illustrative unit photos with official ones when ready.
