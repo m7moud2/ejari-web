@@ -1132,11 +1132,230 @@ html[dir="ltr"] .footer-blurb {
   margin-top: 1.75rem;
 }
 
+/* Safety page */
+.page-safety .hero {
+  min-height: 72vh;
+  min-height: 72dvh;
+  background: var(--green-deep);
+}
+
+.page-safety .hero-copy {
+  max-width: 43rem;
+  padding-bottom: 4rem;
+}
+
+.page-safety .hero-brand {
+  font-size: clamp(2.75rem, 7vw, 4.75rem);
+}
+
+.hero-kicker,
+.section-label {
+  margin: 0 0 0.75rem;
+  color: var(--gold-soft);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.safety-intro {
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
+.safety-process {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: 2rem 3rem;
+  align-items: start;
+}
+
+.safety-version {
+  margin: 0;
+  padding: 1.2rem 1.3rem;
+  color: var(--muted);
+  background: rgba(15, 58, 48, 0.05);
+  border-inline-start: 3px solid var(--gold);
+  font-size: 0.92rem;
+}
+
+.safety-rules-section {
+  background: var(--paper);
+}
+
+.safety-rule-list {
+  margin-top: 2rem;
+  border-top: 1px solid var(--line);
+}
+
+.safety-rule {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  gap: 1.2rem;
+  padding: 1.55rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.safety-index {
+  color: var(--gold);
+  font-size: 1.65rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.safety-rule h3 {
+  margin: 0;
+  color: var(--green);
+  font-size: 1.12rem;
+  font-weight: 800;
+}
+
+.safety-rule p {
+  max-width: 62ch;
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+}
+
+.safety-warning-section {
+  color: #fff;
+  background: var(--green);
+}
+
+.safety-warning-grid {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 2.5rem 4rem;
+  align-items: start;
+}
+
+.safety-warning-section h2 {
+  color: #fff;
+}
+
+.safety-warning-section .lede {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.warning-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.warning-list li {
+  position: relative;
+  padding: 1rem 2rem 1rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 600;
+}
+
+html[dir="ltr"] .warning-list li {
+  padding: 1rem 0 1rem 2rem;
+}
+
+.warning-list li::before {
+  content: "!";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 1rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: grid;
+  place-items: center;
+  color: var(--green-deep);
+  background: var(--gold-soft);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.emergency-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: 2rem;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+
+.emergency-grid a {
+  display: grid;
+  gap: 0.25rem;
+  min-height: 8rem;
+  padding: 1.2rem;
+  align-content: center;
+  background: #fff;
+  transition: background 0.18s ease;
+}
+
+.emergency-grid a:hover {
+  background: rgba(181, 141, 61, 0.08);
+}
+
+.emergency-grid strong {
+  color: var(--gold);
+  font-size: 1.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.emergency-grid span {
+  color: var(--green);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.safety-support {
+  margin: 1.5rem 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.safety-support a {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.safety-cta {
+  padding: 3rem 0;
+  color: #fff;
+  background: var(--green-deep);
+  border-top: 1px solid rgba(181, 141, 61, 0.35);
+}
+
+.safety-cta-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem 2.5rem;
+}
+
+.safety-cta h2 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+}
+
+.safety-cta p {
+  max-width: 48ch;
+  margin: 0.5rem 0 0;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.safety-cta .dl-actions {
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
 @media (max-width: 860px) {
   .trust-grid,
   .download-inner,
   .footer-grid,
-  .about-grid {
+  .about-grid,
+  .safety-process,
+  .safety-warning-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1233,6 +1452,29 @@ html[dir="ltr"] .footer-blurb {
 
   .hero-copy {
     padding: calc(var(--nav-offset) + 2.4rem) 0 3.75rem;
+  }
+
+  .emergency-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .safety-cta-inner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .safety-rule {
+    grid-template-columns: 2.5rem minmax(0, 1fr);
+  }
+
+  .emergency-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .emergency-grid a {
+    min-height: 0;
   }
 }
 
