@@ -65,12 +65,19 @@ void main() {
     expect(snap.containsKey('selfie'), isFalse);
   });
 
-  test('version and changelog are 1.3.15', () {
-    expect(AppConfig.appVersion, '1.3.15');
-    expect(AppConfig.buildNumber, 31);
-    expect(ChangelogScreen.releases.first.version, '1.3.15');
+  test('version and changelog are 1.3.16', () {
+    expect(AppConfig.appVersion, '1.3.16');
+    expect(AppConfig.buildNumber, 32);
+    expect(ChangelogScreen.releases.first.version, '1.3.16');
     expect(
-      ChangelogScreen.releases.first.items.any((i) => i.contains('ملف الشخصي')),
+      ChangelogScreen.releases.first.items
+          .any((i) => i.contains('تعدد الدول') || i.contains('العملات')),
+      isTrue,
+    );
+    expect(
+      ChangelogScreen.releases.any((r) =>
+          r.version == '1.3.15' &&
+          r.items.any((i) => i.contains('ملف الشخصي'))),
       isTrue,
     );
   });

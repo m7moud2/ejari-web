@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import 'help_center_screen.dart';
 import '../main.dart';
@@ -16,6 +17,12 @@ import '../services/push_notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'wallet_screen.dart';
 import 'terms_screen.dart';
+import '../models/app_region.dart';
+import '../services/region_service.dart';
+import '../providers/property_provider.dart';
+import '../utils/currency_formatter.dart';
+import '../l10n/app_localizations.dart';
+import '../widgets/ejari_brand_mark.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -29,6 +36,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _biometricsEnabled = true;
   bool _darkMode = false;
   String _language = 'ar';
+  AppRegion _region = AppRegion.egypt;
   Map<PushNotificationCategory, bool> _categoryStates = {};
 
   final LocalAuthentication auth = LocalAuthentication();
@@ -37,6 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _language = localeNotifier.value.languageCode;
+    _region = RegionService.current;
     _darkMode = themeNotifier.value == ThemeMode.dark;
     _loadBiometricState();
     _loadNotificationState();
@@ -100,9 +109,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
             },
           ),
           const Divider(height: 32),
-          _buildSectionHeader('العامة'),
+          _buildSectionHeader(context.tr('general')),
           _buildListTile(
-            title: 'اللغة / Language',
+            title: context.tr('country_region'),
+            subtitle:
+                '${_region.displayName(arabic: _language == 'ar')} · ${CurrencyFormatter.symbolOf(_region)}',
+            icon: Icons.public_rounded,
+            trailing: DropdownButtonHideUnderline(
+              child: DropdownButton<AppRegion>(
+                value: _region,
+                items: AppRegion.values
+                    .map(
+                      (r) => DropdownMenuItem(
+                        value: r,
+                        child: Text(
+                          '${r.displayName(arabic: _language == 'ar')} (${r.currencyCode})',
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (val) async {
+                  if (val == null) return;
+                  setState(() => _region = val);
+                  await RegionService.setRegion(val);
+                  if (_language == 'ar') {
+                    localeNotifier.value = Locale('ar', val.countryCode);
+                  }
+                  if (context.mounted) {
+                    try {
+                      await context.read<PropertyProvider>().fetchAllProperties();
+                    } catch (_) {}
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          _language == 'ar'
+                              ? 'تم تغيير الدولة إلى ${val.nameAr} — الأسعار بـ ${val.currencySymbol}'
+                              : 'Region set to ${val.nameEn} — prices in ${val.currencyCode}',
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+          ),
+          _buildListTile(
+            title: context.tr('language'),
             subtitle: _language == 'ar' ? 'العربية' : 'English',
             icon: Icons.language,
             trailing: DropdownButtonHideUnderline(
@@ -115,7 +168,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 onChanged: (val) async {
                   if (val == null) return;
                   setState(() => _language = val);
-                  final countryCode = val == 'ar' ? 'SA' : 'US';
+                  final countryCode = val == 'ar'
+                      ? RegionService.current.countryCode
+                      : 'US';
                   localeNotifier.value = Locale(val, countryCode);
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.setString('language_code', val);
@@ -468,24 +523,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 14),
           Row(
             children: [
-              Container(
-                width: 60,
-                height: 60,
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryColor.withOpacity(0.10),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: const Icon(Icons.tune_rounded,
-                    color: AppTheme.primaryColor),
-              ),
+              const EjariBrandMark(size: 52),
               const SizedBox(width: 12),
               const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'اضبط التجربة على ذوقك',
+                      'إعدادات الحساب والمنطقة',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.w900,
@@ -494,7 +539,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      'اللغة، الأمان، والإشعارات كلها تحت تحكمك من هنا.',
+                      'الدولة، اللغة، الأمان، والإشعارات من مكان واحد.',
                       style: TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w600,

@@ -20,6 +20,7 @@ import 'rental_statement_screen.dart';
 import 'advanced_filters_screen.dart';
 import 'service_details_screen.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/region_trust_strip.dart';
 import 'ai_concierge_screen.dart';
 import 'my_service_requests_screen.dart';
 import 'my_bookings_screen.dart';
@@ -38,6 +39,7 @@ import 'provider_wallet_screen.dart';
 import '../utils/short_stay_discovery.dart';
 import '../utils/property_image_resolver.dart';
 import '../widgets/ejari_section.dart';
+import '../utils/currency_formatter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -421,7 +423,7 @@ class _HomeContentState extends State<HomeContent> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'من $daily ج.م / يوم',
+                              'من $daily ${CurrencyFormatter.symbol} / يوم',
                               style: const TextStyle(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.w800,
@@ -1034,9 +1036,11 @@ class _HomeContentState extends State<HomeContent> {
           children: [
             _heroChip(Icons.location_on_outlined, locationLabel),
             _heroChip(Icons.verified_outlined, 'عقود موثقة'),
-            _heroChip(Icons.security_rounded, 'دفع آمن'),
+            _heroChip(Icons.security_rounded, 'دفع بضمان'),
           ],
         ),
+        const SizedBox(height: 12),
+        const RegionTrustStrip(compact: true),
         const SizedBox(height: 18),
         ...bullets.map(
           (item) => Container(

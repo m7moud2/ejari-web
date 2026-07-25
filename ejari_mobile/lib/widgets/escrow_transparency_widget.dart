@@ -4,6 +4,7 @@ import '../models/booking_status.dart';
 import '../services/wallet_service.dart';
 import '../utils/safe_parse.dart';
 import 'ejari_section.dart';
+import '../utils/currency_formatter.dart';
 
 /// شفافية الضمان — يوضح أين المال (محجوز / مُفرج / مُسترد).
 class EscrowTransparencyWidget extends StatelessWidget {
@@ -35,7 +36,7 @@ class EscrowTransparencyWidget extends StatelessWidget {
               const SizedBox(width: 10),
               const Expanded(
                 child: Text(
-                  'شفافية الضمان',
+                  'حالة الضمان',
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 13,
@@ -45,7 +46,7 @@ class EscrowTransparencyWidget extends StatelessWidget {
               ),
               if (deposit > 0)
                 Text(
-                  '${deposit.toStringAsFixed(0)} ج.م',
+                  CurrencyFormatter.format(deposit),
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 13,
@@ -158,7 +159,7 @@ class EscrowTransparencyWidget extends StatelessWidget {
         color: AppTheme.accentColor,
         tenantLabel: 'تم خصم العربون من محفظتك',
         tenantActive: true,
-        escrowLabel: 'محجوز في الضمان — $deposit ج.م',
+        escrowLabel: 'محجوز في الضمان — $deposit ${CurrencyFormatter.symbol}',
         escrowActive: true,
         ownerLabel: status == BookingStatus.active ||
                 status == BookingStatus.paid ||
@@ -201,7 +202,7 @@ class EscrowTransparencyWidget extends StatelessWidget {
         color: AppTheme.errorColor,
         tenantLabel: 'نزاع مفتوح — المبلغ مجمّد',
         tenantActive: true,
-        escrowLabel: 'مجمّد في الضمان — $deposit ج.م',
+        escrowLabel: 'مجمّد في الضمان — $deposit ${CurrencyFormatter.symbol}',
         escrowActive: true,
         ownerLabel: 'بانتظار قرار الإدارة',
         ownerActive: false,
@@ -231,7 +232,7 @@ class EscrowTransparencyWidget extends StatelessWidget {
           color: AppTheme.accentColor,
           tenantLabel: 'تم خصم العربون من محفظتك',
           tenantActive: true,
-          escrowLabel: 'محجوز في الضمان — $deposit ج.م',
+          escrowLabel: 'محجوز في الضمان — $deposit ${CurrencyFormatter.symbol}',
           escrowActive: true,
           ownerLabel: 'يُفرج بعد موافقتك على الحجز',
           ownerActive: false,
@@ -247,9 +248,9 @@ class EscrowTransparencyWidget extends StatelessWidget {
           color: AppTheme.primaryColor,
           tenantLabel: 'العربون مؤكد — محجوز حتى الخروج',
           tenantActive: true,
-          escrowLabel: 'محجوز في الضمان — $deposit ج.م',
+          escrowLabel: 'محجوز في الضمان — $deposit ${CurrencyFormatter.symbol}',
           escrowActive: true,
-          ownerLabel: 'سيُفرج ~$ownerNet ج.م بعد الخروج (بعد عمولة المنصة)',
+          ownerLabel: 'سيُفرج ~$ownerNet ${CurrencyFormatter.symbol} بعد الخروج (بعد عمولة المنصة)',
           ownerActive: false,
           note: 'المنصة تحتفظ بـ ${(feePercent * 100).toInt()}% كعمولة خدمة عند الإفراج.',
         );
@@ -286,7 +287,7 @@ class EscrowTransparencyWidget extends StatelessWidget {
           color: AppTheme.errorColor,
           tenantLabel: 'نزاع مفتوح — المبلغ مجمّد',
           tenantActive: true,
-          escrowLabel: 'مجمّد في الضمان — $deposit ج.م',
+          escrowLabel: 'مجمّد في الضمان — $deposit ${CurrencyFormatter.symbol}',
           escrowActive: true,
           ownerLabel: 'بانتظار قرار الإدارة',
           ownerActive: false,

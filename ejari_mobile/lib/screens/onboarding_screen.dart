@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
+import '../widgets/region_picker_sheet.dart';
+import '../widgets/ejari_brand_mark.dart';
 import 'home_screen.dart';
 import 'login_screen.dart';
 import 'signup_screen.dart';
@@ -43,7 +45,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     _OnboardingSlide(
       title: 'ابحث واحجز',
       body:
-          'شوف الوحدات القريبة والإقامات القصيرة بأسعار واضحة وموقع دقيق قبل ما تتحرك.',
+          'وحدات قريبة وإقامات قصيرة بأسعار واضحة وموقع دقيق قبل الانتقال.',
       icon: Icons.travel_explore_rounded,
       gradient: [Color(0xFF0F3A30), Color(0xFF1B594B)],
       accent: Color(0xFFB58D3D),
@@ -59,9 +61,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
       chip: 'معاينة → حجز → متابعة',
     ),
     _OnboardingSlide(
-      title: 'دفع آمن',
+      title: 'دفع بضمان',
       body:
-          'ادفع عبر المحفظة بضمان واضح، واحصل على QR للدخول بعد إتمام العملية.',
+          'ادفع عبر المحفظة أو البطاقة بضمان واضح، ثم احصل على QR للتسليم بعد إتمام الدفع.',
       icon: Icons.account_balance_wallet_rounded,
       gradient: [Color(0xFF0A2E26), Color(0xFF1B594B)],
       accent: Color(0xFFB58D3D),
@@ -70,7 +72,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     _OnboardingSlide(
       title: 'صيانة وتتبع',
       body:
-          'اطلب صيانة معتمدة وتابع الفني خطوة بخطوة حتى الإغلاق — كل شيء من نفس التطبيق.',
+          'اطلب صيانة معتمدة وتابع الفني خطوة بخطوة حتى الإغلاق — من التطبيق نفسه.',
       icon: Icons.handyman_rounded,
       gradient: [Color(0xFF0F3A30), Color(0xFF143D34)],
       accent: Color(0xFFD4AF6A),
@@ -109,9 +111,15 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     );
   }
 
+  Future<void> _pickRegionThen(Widget screen, {bool guest = false}) async {
+    await RegionPickerSheet.show(context);
+    if (!mounted) return;
+    if (guest) await AuthService.setGuestMode(true);
+    await _goTo(screen);
+  }
+
   Future<void> _continueAsGuest() async {
-    await AuthService.setGuestMode(true);
-    await _goTo(const HomeScreen());
+    await _pickRegionThen(const HomeScreen(), guest: true);
   }
 
   void _next() {
@@ -163,6 +171,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   ),
                   child: Row(
                     children: [
+                      const EjariBrandMark(size: 34),
+                      const SizedBox(width: 10),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -247,7 +257,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   isLast: isLast,
                   narrow: narrow,
                   onNext: _next,
-                  onStart: () => _goTo(const SignupScreen()),
+                  onStart: () => _pickRegionThen(const SignupScreen()),
                   onGuest: _continueAsGuest,
                   onLogin: () => _goTo(const LoginScreen()),
                 ),

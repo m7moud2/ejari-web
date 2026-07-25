@@ -28,16 +28,46 @@ class AppTheme {
   static const Color borderColor =
       Color(0xFFE2E8F0); // لون خفيف جداً للحدود إن وجدت
 
-  // توكنات التخطيط (شبكة 8px)
-  static const double spaceXs = 8;
-  static const double spaceSm = 12;
-  static const double spaceMd = 16;
-  static const double spaceLg = 20;
-  static const double spaceXl = 24;
-  static const double screenPadding = 20;
-  static const double cardRadius = 20;
-  static const double cardRadiusLg = 24;
+  // ── Spacing scale (4px base) ──────────────────────────────────────────
+  static const double space2 = 2;
+  static const double space4 = 4;
+  static const double space8 = 8;
+  static const double space12 = 12;
+  static const double space16 = 16;
+  static const double space20 = 20;
+  static const double space24 = 24;
+  static const double space32 = 32;
+  static const double space40 = 40;
+
+  // Legacy aliases (keep call sites stable)
+  static const double spaceXs = space8;
+  static const double spaceSm = space12;
+  static const double spaceMd = space16;
+  static const double spaceLg = space20;
+  static const double spaceXl = space24;
+  static const double screenPadding = space20;
+
+  // ── Radius tokens ─────────────────────────────────────────────────────
+  static const double radiusSm = 10;
+  static const double radiusMd = 14;
+  static const double radiusLg = 16;
+  static const double radiusXl = 20;
+  static const double radius2xl = 24;
+  static const double cardRadius = radiusXl;
+  static const double cardRadiusLg = radius2xl;
   static const double ctaHeight = 52;
+
+  // ── Elevation / shadow tokens ─────────────────────────────────────────
+  static const double elevationNone = 0;
+  static const double elevationLow = 2;
+  static const double elevationMid = 6;
+  static const double elevationHigh = 12;
+
+  // ── Typography weights ────────────────────────────────────────────────
+  static const FontWeight weightRegular = FontWeight.w400;
+  static const FontWeight weightMedium = FontWeight.w600;
+  static const FontWeight weightBold = FontWeight.w700;
+  static const FontWeight weightHeavy = FontWeight.w800;
 
   /// Clears the floating pill bottom nav (`extendBody: true`, ~76 + SafeArea + pad).
   static const double homeBottomClearance = 120;
@@ -136,9 +166,8 @@ class AppTheme {
       onSurface: textPrimary,
     );
 
-    // شكل الكروت الحديث (بدون حدود قوية، مع ظل خفيف)
     final roundedCard = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(radiusLg),
     );
 
     return ThemeData(
@@ -154,42 +183,43 @@ class AppTheme {
       appBarTheme: const AppBarTheme(
         backgroundColor: surfaceColor,
         foregroundColor: primaryColor,
-        elevation: 0,
-        scrolledUnderElevation: 0,
+        elevation: elevationNone,
+        scrolledUnderElevation: elevationNone,
         centerTitle: true,
         surfaceTintColor: Colors.transparent,
         titleTextStyle: TextStyle(
           fontFamily: 'Tajawal',
           color: primaryColor,
           fontSize: 20,
-          fontWeight: FontWeight.w800,
+          fontWeight: weightHeavy,
         ),
         iconTheme: IconThemeData(color: primaryColor),
       ),
       cardTheme: CardTheme(
         color: surfaceColor,
-        elevation: 2, // إضافة ظل خفيف للكروت
+        elevation: elevationLow,
         shadowColor: Colors.black.withOpacity(0.05),
         surfaceTintColor: Colors.transparent,
         shape: roundedCard,
-        margin: const EdgeInsets.only(bottom: 16),
+        margin: const EdgeInsets.only(bottom: space16),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          minimumSize: const Size(0, 56), // تسمح بالاستخدام داخل Rows أيضًا
+          minimumSize: const Size(0, 56),
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
           disabledBackgroundColor: primaryColor.withOpacity(0.35),
           disabledForegroundColor: Colors.white.withOpacity(0.75),
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+          elevation: elevationNone,
+          padding: const EdgeInsets.symmetric(
+              vertical: space16, horizontal: space24),
           textStyle: const TextStyle(
             fontFamily: 'Tajawal',
             fontSize: 16,
-            fontWeight: FontWeight.w800,
+            fontWeight: weightHeavy,
           ),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(radiusLg)),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -197,14 +227,15 @@ class AppTheme {
           minimumSize: const Size(0, 56),
           foregroundColor: primaryColor,
           side: const BorderSide(color: primaryColor, width: 1.5),
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+          padding: const EdgeInsets.symmetric(
+              vertical: space16, horizontal: space24),
           textStyle: const TextStyle(
             fontFamily: 'Tajawal',
             fontSize: 16,
-            fontWeight: FontWeight.w800,
+            fontWeight: weightHeavy,
           ),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(radiusLg)),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -212,38 +243,37 @@ class AppTheme {
           foregroundColor: primaryColor,
           textStyle: const TextStyle(
             fontFamily: 'Tajawal',
-            fontWeight: FontWeight.w800,
+            fontWeight: weightHeavy,
           ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: inputFillColor, // خلفية رمادية فاتحة للحقول
+        fillColor: inputFillColor,
         contentPadding:
-            const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            const EdgeInsets.symmetric(horizontal: space20, vertical: 18),
         hintStyle: TextStyle(color: textSecondary.withOpacity(0.7)),
         labelStyle: const TextStyle(color: textSecondary),
         prefixIconColor: textSecondary,
         suffixIconColor: textSecondary,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none, // بدون إطار في الوضع العادي
+          borderRadius: BorderRadius.circular(radiusLg),
+          borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(radiusLg),
           borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(
-              color: primaryColor, width: 1.5), // إطار عند التركيز
+          borderRadius: BorderRadius.circular(radiusLg),
+          borderSide: const BorderSide(color: primaryColor, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(radiusLg),
           borderSide: const BorderSide(color: errorColor, width: 1.0),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(radiusLg),
           borderSide: const BorderSide(color: errorColor, width: 1.5),
         ),
       ),

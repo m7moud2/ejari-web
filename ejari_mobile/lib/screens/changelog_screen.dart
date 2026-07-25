@@ -8,6 +8,16 @@ class ChangelogScreen extends StatelessWidget {
   static const List<({String version, String date, List<String> items})>
       releases = [
     (
+      version: '1.3.16',
+      date: 'يوليو 2026',
+      items: [
+        'تعدد الدول والعملات: مصر (ج.م) والسعودية (ر.س) والإمارات (د.إ) مع تنسيق مركزي',
+        'اختيار الدولة من الإعدادات أو عند إنهاء التعريف — قوائم عرض للرياض وجدة ودبي وأبوظبي',
+        'بوابة دفع قابلة للتوجيه: Paymob لمصر + واجهة خليجية (PayTabs/Tap/HyperPay) بدون نجاح وهمي',
+        'عربية فصحى + إنجليزي للمسارات الأساسية، RTL/LTR، وشارات ثقة مرتبطة بالمنطقة',
+      ],
+    ),
+    (
       version: '1.3.15',
       date: 'يوليو 2026',
       items: [
