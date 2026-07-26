@@ -20,7 +20,7 @@ English deep link: https://m7moud2.github.io/ejari-web/promo/?lang=en
 
 APK (keep this URL until the next release):
 
-`https://github.com/m7moud2/ejari-web/releases/download/v1.3.15/ejari-1.3.15.apk`
+`https://github.com/m7moud2/ejari-web/releases/download/v1.3.16/ejari-1.3.16.apk`
 
 Install help: [download.html](./download.html)  
 Booking safety: [safety.html](./safety.html)  

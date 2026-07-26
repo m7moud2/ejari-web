@@ -10,7 +10,7 @@
     ar: {
       "meta.title": "إيجاري — منصة إدارة الإيجار في الشرق الأوسط",
       "meta.desc":
-        "منصة إدارة الإيجار في الشرق الأوسط: عقود، معاينة، دفع، صيانة، استلام بـ QR، وضمان مالي. ننطلق من مصر — قريبًا في السعودية والإمارات. الإصدار 1.3.15 لأندرويد.",
+        "منصة إدارة الإيجار في الشرق الأوسط: عقود، معاينة، دفع، صيانة، استلام بـ QR، وضمان مالي. ننطلق من مصر — قريبًا في السعودية والإمارات. الإصدار 1.3.16 لأندرويد.",
       "a11y.skip": "تخطّي إلى المحتوى",
       "nav.brand": "إيجاري",
       "nav.trust": "ليه إيجاري",
@@ -128,11 +128,11 @@
       "dl.lede":
         "الإصدار الحالي متاح كملف APK. قريباً على Google Play.",
       "dl.version":
-        "أندرويد <strong>1.3.15</strong> · حجم تقريبي حسب جهازك · أندرويد فقط حالياً",
-      "dl.apk": "تنزيل APK · 1.3.15",
+        "أندرويد <strong>1.3.16</strong> · حجم تقريبي حسب جهازك · أندرويد فقط حالياً",
+      "dl.apk": "تنزيل APK · 1.3.16",
       "dl.howto": "تعليمات التثبيت",
       "dl.upgrade":
-        "لو عندك نسخة قديمة: احذفها الأول، بعدين ثبّت 1.3.15 عشان ما يحصلش تعارض توقيع.",
+        "لو عندك نسخة قديمة: احذفها الأول، بعدين ثبّت 1.3.16 عشان ما يحصلش تعارض توقيع.",
       "dl.caption":
         "صورة توضيحية — استبدلوها بصور وحداتكم الرسمية لاحقاً.",
       "dl.photoAlt": "شقة سكنية",
@@ -157,30 +157,30 @@
       "footer.download": "التحميل",
       "footer.howto": "تعليمات التثبيت",
       "footer.releases": "أحدث الإصدارات",
-      "footer.copy": "© 2026 إيجاري · الإصدار 1.3.15",
+      "footer.copy": "© 2026 إيجاري · الإصدار 1.3.16",
       "footer.tag": "إيجاري — إدارة الإيجار في الشرق الأوسط",
 
       "sticky.aria": "تحميل سريع",
-      "sticky.title": "إيجاري 1.3.15",
+      "sticky.title": "إيجاري 1.3.16",
       "sticky.sub": "APK لأندرويد",
       "sticky.cta": "تحميل",
 
-      "dlpage.title": "تحميل إيجاري 1.3.15 — تعليمات التثبيت",
+      "dlpage.title": "تحميل إيجاري 1.3.16 — تعليمات التثبيت",
       "dlpage.meta":
-        "حمّل إيجاري 1.3.15 لأندرويد وثبّته خطوة بخطوة. ملف APK مباشر.",
+        "حمّل إيجاري 1.3.16 لأندرويد وثبّته خطوة بخطوة. ملف APK مباشر.",
       "dlpage.aria": "تحميل التطبيق",
-      "dlpage.brandSub": "v1.3.15",
+      "dlpage.brandSub": "v1.3.16",
       "dlpage.line": "ثبّت إيجاري على أندرويد.",
       "dlpage.sub":
         "ملف APK مباشر من إصدارنا الرسمي. لو عندك نسخة قديمة — امسحها الأول.",
-      "dlpage.cta": "تنزيل ejari-1.3.15.apk",
+      "dlpage.cta": "تنزيل ejari-1.3.16.apk",
       "dlpage.back": "العودة للموقع",
       "dlpage.stepsTitle": "خطوات التثبيت",
       "dlpage.stepsLede":
         "صفحة مساعدة قصيرة — زي ما بنرد على واتساب لما حد يسأل «إزاي أثبّت؟».",
       "dlpage.s1.title": "نزّل الملف",
       "dlpage.s1.body":
-        "اضغط زر التنزيل واحفظ <strong>ejari-1.3.15.apk</strong> على الموبايل.",
+        "اضغط زر التنزيل واحفظ <strong>ejari-1.3.16.apk</strong> على الموبايل.",
       "dlpage.s2.title": "اسمح بالتثبيت من المصدر",
       "dlpage.s2.body":
         "أندرويد هيطلب إذن تثبيت من المتصفح أو مدير الملفات (مصادر غير معروفة). وافق مرة للمتصفح اللي نزّلت منه — ده سلوك طبيعي لأي APK برا المتجر.",
@@ -188,7 +188,7 @@
       "dlpage.s3.body":
         "افتح الـ APK من الإشعارات أو التحميلات، واضغط تثبيت. بعدين افتح إيجاري من الشاشة الرئيسية.",
       "dlpage.note":
-        "لو التثبيت فشل بسبب تعارض التوقيع: امسح أي نسخة قديمة من إيجاري، بعدين ثبّت 1.3.15 من جديد.",
+        "لو التثبيت فشل بسبب تعارض التوقيع: امسح أي نسخة قديمة من إيجاري، بعدين ثبّت 1.3.16 من جديد.",
       "dlpage.retry": "تنزيل مرة تانية",
       "dlpage.privacy": "الخصوصية",
       "dlpage.terms": "الشروط",
@@ -197,11 +197,11 @@
       "dlpage.support": "الدعم:",
       "dlpage.footerTag": "تحميل APK لأندرويد",
       "dlpage.honest":
-        "أندرويد 1.3.15 — قريباً على Google Play. التحميل الحالي عبر ملف APK موقّع من إيجاري.",
+        "أندرويد 1.3.16 — قريباً على Google Play. التحميل الحالي عبر ملف APK موقّع من إيجاري.",
       "dlpage.beforeTitle": "قبل ما تبدأ",
       "dlpage.beforeBody":
         "أندرويد فقط. لو عندك إيجاري قديم — امسحه من إعدادات التطبيقات الأول عشان التوقيع ما يتعارضش.",
-      "dlpage.fileChip": "ejari-1.3.15.apk",
+      "dlpage.fileChip": "ejari-1.3.16.apk",
       "dlpage.needTitle": "هتحتاج",
       "dlpage.need1": "موبايل أندرويد واتصال بالنت",
       "dlpage.need2": "سماح لمرة واحدة بالتثبيت من المتصفح أو مدير الملفات",
@@ -226,7 +226,7 @@
       "safety.processBody":
         "التحقق من الملف الشخصي يتم مرة واحدة قبل الحجز. بعده: طلب الحجز، دفع العربون، موافقة المالك، دفع المتبقي، ثم الاستلام برمز QR. تابع حالة الحجز والضمان المالي من التطبيق والمحفظة.",
       "safety.processNote":
-        "المعلومات هنا تخص إصدار أندرويد 1.3.15. لا يوجد نظام يمنع كل المخاطر؛ أوقف التعامل وتواصل مع الدعم لو التفاصيل لا تطابق الواقع.",
+        "المعلومات هنا تخص إصدار أندرويد 1.3.16. لا يوجد نظام يمنع كل المخاطر؛ أوقف التعامل وتواصل مع الدعم لو التفاصيل لا تطابق الواقع.",
       "safety.rulesTitle": "قواعد قبل وأثناء الحجز",
       "safety.rulesLede":
         "خطوات بسيطة تقلّل الخلاف وتحافظ على سجل واضح للطرفين.",
@@ -268,7 +268,7 @@
       "safety.supportText": "للإبلاغ عن مشكلة في حجز إيجاري:",
       "safety.ctaTitle": "احجز من مسار واضح",
       "safety.ctaBody":
-        "حمّل إيجاري 1.3.15 لأندرويد، وراجع سياسة الخصوصية قبل إنشاء الحساب.",
+        "حمّل إيجاري 1.3.16 لأندرويد، وراجع سياسة الخصوصية قبل إنشاء الحساب.",
       "safety.footerTag": "إرشادات الحجز والمعاينة",
 
       "stats.loading": "جاري تحديث عدّاد التحميل…",
@@ -285,7 +285,7 @@
     en: {
       "meta.title": "Ejari — Rental management across the Middle East",
       "meta.desc":
-        "Rental management across the Middle East: contracts, viewing, payment, maintenance, QR handover, and escrow. Launching in Egypt — coming soon to Saudi Arabia & UAE. Android 1.3.15.",
+        "Rental management across the Middle East: contracts, viewing, payment, maintenance, QR handover, and escrow. Launching in Egypt — coming soon to Saudi Arabia & UAE. Android 1.3.16.",
       "a11y.skip": "Skip to content",
       "nav.brand": "Ejari",
       "nav.trust": "Why Ejari",
@@ -409,11 +409,11 @@
       "dl.lede":
         "The current release is available as an APK. Coming soon on Google Play.",
       "dl.version":
-        "Android <strong>1.3.15</strong> · size depends on your device · Android only for now",
-      "dl.apk": "Download APK · 1.3.15",
+        "Android <strong>1.3.16</strong> · size depends on your device · Android only for now",
+      "dl.apk": "Download APK · 1.3.16",
       "dl.howto": "Install guide",
       "dl.upgrade":
-        "If you have an older build: uninstall it first, then install 1.3.15 to avoid a signature conflict.",
+        "If you have an older build: uninstall it first, then install 1.3.16 to avoid a signature conflict.",
       "dl.caption":
         "Illustrative photo — replace with your official unit photos later.",
       "dl.photoAlt": "Apartment interior",
@@ -438,30 +438,30 @@
       "footer.download": "Download",
       "footer.howto": "Install guide",
       "footer.releases": "Latest releases",
-      "footer.copy": "© 2026 Ejari · version 1.3.15",
+      "footer.copy": "© 2026 Ejari · version 1.3.16",
       "footer.tag": "Ejari — rental management across the Middle East",
 
       "sticky.aria": "Quick download",
-      "sticky.title": "Ejari 1.3.15",
+      "sticky.title": "Ejari 1.3.16",
       "sticky.sub": "Android APK",
       "sticky.cta": "Download",
 
-      "dlpage.title": "Download Ejari 1.3.15 — install guide",
+      "dlpage.title": "Download Ejari 1.3.16 — install guide",
       "dlpage.meta":
-        "Download Ejari 1.3.15 for Android and install step by step. Direct APK.",
+        "Download Ejari 1.3.16 for Android and install step by step. Direct APK.",
       "dlpage.aria": "App download",
-      "dlpage.brandSub": "v1.3.15",
+      "dlpage.brandSub": "v1.3.16",
       "dlpage.line": "Install Ejari on Android.",
       "dlpage.sub":
         "Direct APK from our official release. If you already have an older build — remove it first.",
-      "dlpage.cta": "Download ejari-1.3.15.apk",
+      "dlpage.cta": "Download ejari-1.3.16.apk",
       "dlpage.back": "Back to site",
       "dlpage.stepsTitle": "Install steps",
       "dlpage.stepsLede":
         "A short help page — the same answer we give on WhatsApp when someone asks how to install.",
       "dlpage.s1.title": "Download the file",
       "dlpage.s1.body":
-        "Tap download and save <strong>ejari-1.3.15.apk</strong> on your phone.",
+        "Tap download and save <strong>ejari-1.3.16.apk</strong> on your phone.",
       "dlpage.s2.title": "Allow install from that source",
       "dlpage.s2.body":
         "Android will ask for permission to install from the browser or file manager (unknown sources). Allow it once for the app you downloaded with — normal for any APK outside the Play Store.",
@@ -469,7 +469,7 @@
       "dlpage.s3.body":
         "Open the APK from notifications or Downloads, tap Install, then open Ejari from your home screen.",
       "dlpage.note":
-        "If install fails due to a signature conflict: remove any older Ejari build, then install 1.3.15 again.",
+        "If install fails due to a signature conflict: remove any older Ejari build, then install 1.3.16 again.",
       "dlpage.retry": "Download again",
       "dlpage.privacy": "Privacy",
       "dlpage.terms": "Terms",
@@ -478,11 +478,11 @@
       "dlpage.support": "Support:",
       "dlpage.footerTag": "Android APK download",
       "dlpage.honest":
-        "Android 1.3.15 — coming soon on Google Play. Current download is a signed Ejari APK.",
+        "Android 1.3.16 — coming soon on Google Play. Current download is a signed Ejari APK.",
       "dlpage.beforeTitle": "Before you start",
       "dlpage.beforeBody":
         "Android only. If you already have an older Ejari build — uninstall it first so the signature does not conflict.",
-      "dlpage.fileChip": "ejari-1.3.15.apk",
+      "dlpage.fileChip": "ejari-1.3.16.apk",
       "dlpage.needTitle": "You will need",
       "dlpage.need1": "An Android phone and a network connection",
       "dlpage.need2": "One-time permission to install from the browser or file manager",
@@ -507,7 +507,7 @@
       "safety.processBody":
         "Profile verification is completed once before booking. Then: request the booking, pay the deposit, wait for owner approval, pay the balance, and check in with QR. Follow booking and escrow status in the app and wallet.",
       "safety.processNote":
-        "This information applies to Android version 1.3.15. No system removes every risk; stop and contact support if the details do not match what you find.",
+        "This information applies to Android version 1.3.16. No system removes every risk; stop and contact support if the details do not match what you find.",
       "safety.rulesTitle": "Before and during a booking",
       "safety.rulesLede":
         "Practical steps that reduce disputes and keep a clear record for both sides.",
@@ -549,7 +549,7 @@
       "safety.supportText": "To report an issue with an Ejari booking:",
       "safety.ctaTitle": "Book through a clear process",
       "safety.ctaBody":
-        "Download Ejari 1.3.15 for Android and review the privacy policy before creating an account.",
+        "Download Ejari 1.3.16 for Android and review the privacy policy before creating an account.",
       "safety.footerTag": "Booking and viewing guidance",
 
       "stats.loading": "Updating download count…",
